@@ -1,7 +1,6 @@
-aiohttp==3.8.4
+aiohttp==3.8.6
 #azure_storage==0.37.0
 channels==4.0.0
-# chromadb
 # Django==4.1.5
 # docx==0.2.4
 #faiss==1.5.3
@@ -11,14 +10,20 @@ typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
-langchain==0.1.8
-sqlalchemy==2.0.0  # along with langchain
+llama-index-core==0.10.15
+llama-index-embeddings-azure-openai==0.1.6
+llama-index-embeddings-openai==0.1.5
+llama-index-llms-azure-openai==0.1.4
+llama-index-readers-file==0.1.4
+llama-index-retrievers-bm25==0.1.3
+llama-index-vector-stores-faiss==0.1.1
+chromadb==0.4.23
 loguru==0.6.0
 meilisearch==0.21.0
-numpy>=1.24.3,<1.25.0
-openai==1.6.0
+numpy==1.24.3
+openai==1.6.1
 openpyxl
-beautifulsoup4==4.12.2
+beautifulsoup4==4.12.3
 pandas==2.0.3
 pydantic==2.5.3
 #pygame==2.1.3
@@ -30,7 +35,7 @@ PyYAML==6.0.1
 setuptools==65.6.3
 tenacity==8.2.3
 tiktoken==0.5.2
-tqdm==4.65.0
+tqdm==4.66.2
 #unstructured[local-inference]
 # selenium>4
 # webdriver_manager<3.9
@@ -61,7 +66,7 @@ typing-extensions==4.9.0
 socksio~=1.0.0
 gitignore-parser==0.1.9
 # connexion[uvicorn]~=3.0.5 # Used by metagpt/tools/openapi_v3_hello.py
-websockets~=12.0
+websockets~=11.0
 networkx~=3.2.1
 google-generativeai==0.3.2
 playwright>=1.26  # used at metagpt/tools/libs/web_scraping.py

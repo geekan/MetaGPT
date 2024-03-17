@@ -233,6 +233,10 @@ class Message(BaseModel):
     def check_send_to(cls, send_to: Any) -> set:
         return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
 
+    @field_serializer("send_to", mode="plain")
+    def ser_send_to(self, send_to: set) -> list:
+        return list(send_to)
+
     @field_serializer("instruct_content", mode="plain")
     def ser_instruct_content(self, ic: BaseModel) -> Union[dict, None]:
         ic_dict = None
@@ -275,6 +279,10 @@ class Message(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
+    def rag_key(self) -> str:
+        """For search"""
+        return self.content
 
     def to_dict(self) -> dict:
         """Return a dict containing `role` and `content` for the LLM call.l"""

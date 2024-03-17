@@ -8,8 +8,6 @@ import re
 import time
 from typing import Any, Iterable
 
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
 from pydantic import ConfigDict, Field
 
 from metagpt.config2 import config as CONFIG
@@ -17,6 +15,7 @@ from metagpt.environment.base_env import Environment
 from metagpt.environment.mincraft_env.const import MC_CKPT_DIR
 from metagpt.environment.mincraft_env.mincraft_ext_env import MincraftExtEnv
 from metagpt.logs import logger
+from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json_file
 
 
@@ -48,9 +47,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
 
     runtime_status: bool = False  # equal to action execution status: success or failed
 
-    vectordb: Chroma = Field(default_factory=Chroma)
+    vectordb: ChromaVectorStore = Field(default_factory=ChromaVectorStore)
 
-    qa_cache_questions_vectordb: Chroma = Field(default_factory=Chroma)
+    qa_cache_questions_vectordb: ChromaVectorStore = Field(default_factory=ChromaVectorStore)
 
     @property
     def progress(self):
@@ -73,16 +72,14 @@ class MincraftEnv(Environment, MincraftExtEnv):
         self.set_mc_resume()
 
     def set_mc_resume(self):
-        self.qa_cache_questions_vectordb = Chroma(
+        self.qa_cache_questions_vectordb = ChromaVectorStore(
             collection_name="qa_cache_questions_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{MC_CKPT_DIR}/curriculum/vectordb",
+            persist_dir=f"{MC_CKPT_DIR}/curriculum/vectordb",
         )
 
-        self.vectordb = Chroma(
+        self.vectordb = ChromaVectorStore(
             collection_name="skill_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{MC_CKPT_DIR}/skill/vectordb",
+            persist_dir=f"{MC_CKPT_DIR}/skill/vectordb",
         )
 
         if CONFIG.resume:
