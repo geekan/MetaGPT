@@ -41,7 +41,6 @@ class ReviewConst:
     PLAN_REVIEW_INSTRUCTION = (
         "You are very good at reviewing and scoring the code plan."
         "To review the information necessary and task relations for completing the `## User Requirement`, "
-        "Please note that any feedback and confirmation information must only be obtained through code tasks."
         "If you agree with the plan, respond:```\nconfirm\n```,otherwise,```\nchange,(here is your review points).\n```,"
     )
     INSTRUCTIONS = {

@@ -127,13 +127,17 @@ def reasonable_plan():
 
 
 @pytest.mark.asyncio
-async def test_llm_review_plan(unreasonable_plan, reasonable_plan):
+async def test_llm_review_unreasonable_plan(unreasonable_plan):
     rsp, confirmed = await AskReview().run(
         unreasonable_plan, trigger=ReviewConst.PLAN_REVIEW_TRIGGER, review_type="llm"
     )
     print(rsp)
     assert not confirmed
     assert rsp.startswith("change")
+
+
+@pytest.mark.asyncio
+async def test_llm_review_reasonable_plan(reasonable_plan):
     # test reasonable plan
     rsp, confirmed = await AskReview().run(reasonable_plan, trigger=ReviewConst.PLAN_REVIEW_TRIGGER, review_type="llm")
     print(rsp)
