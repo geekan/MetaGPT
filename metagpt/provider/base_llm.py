@@ -39,7 +39,7 @@ class BaseLLM(ABC):
     # OpenAI / Azure / Others
     aclient: Optional[Union[AsyncOpenAI]] = None
     cost_manager: Optional[CostManager] = None
-    model: Optional[str] = None
+    model: Optional[str] = None  # deprecated
     pricing_plan: Optional[str] = None
 
     @abstractmethod
@@ -231,3 +231,8 @@ class BaseLLM(ABC):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
+
+    def with_model(self, model: str):
+        """Set model and return self. For example, `with_model("gpt-3.5-turbo")`."""
+        self.config.model = model
+        return self
