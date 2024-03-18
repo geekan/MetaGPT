@@ -20,7 +20,7 @@ from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json
 
 
 class MincraftEnv(Environment, MincraftExtEnv):
-    """MincraftEnv, including shared memory of cache and infomation between roles"""
+    """MincraftEnv, including shared memory of cache and information between roles"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

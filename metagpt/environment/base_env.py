@@ -47,7 +47,7 @@ def mark_as_writeable(func):
 
 
 class ExtEnv(BaseModel):
-    """External Env to intergate actual game environment"""
+    """External Env to integrate actual game environment"""
 
     def _check_api_exist(self, rw_api: Optional[str] = None):
         if not rw_api:
