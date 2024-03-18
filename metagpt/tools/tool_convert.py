@@ -7,7 +7,7 @@ PARSER = GoogleDocstringParser
 
 def convert_code_to_tool_schema(obj, include: list[str] = None):
     docstring = inspect.getdoc(obj)
-    assert docstring, "no docstring found for the objects, skip registering"
+    # assert docstring, "no docstring found for the objects, skip registering"
 
     if inspect.isclass(obj):
         schema = {"type": "class", "description": remove_spaces(docstring), "methods": {}}
