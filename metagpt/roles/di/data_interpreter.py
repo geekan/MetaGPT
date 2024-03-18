@@ -135,7 +135,7 @@ class DataInterpreter(Role):
 
             if not success and counter >= max_retry:
                 logger.info("coding failed!")
-                review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
+                review, _ = await self.planner.ask_review(review_type="human", trigger=ReviewConst.CODE_REVIEW_TRIGGER)
                 if ReviewConst.CHANGE_WORDS[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
