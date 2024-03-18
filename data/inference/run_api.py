@@ -106,6 +106,7 @@ async def main(
         model_nickname = Path(model_name_or_path).name
     output_file = f"{model_nickname}__{dataset_name_or_path.split('/')[-1]}__{split}"
     output_file = Path(output_dir, output_file + ".jsonl")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"Will write to {output_file}")
     existing_ids = set()
     if os.path.exists(output_file):
