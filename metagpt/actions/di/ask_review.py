@@ -39,9 +39,12 @@ class ReviewConst:
         f"or type {EXIT_WORDS[0]} to terminate the code"
     )
     PLAN_REVIEW_INSTRUCTION = (
-        "You are very good at reviewing and scoring the code plan."
-        "To review the information necessary and task relations for completing the `## User Requirement`, "
-        "If you agree with the plan, respond:```\nconfirm\n```,otherwise,```\nchange,(here is your review points).\n```,"
+        "You are very good at reviewing and improving the plan. Let's think step by step: "
+        "1. Enumerate the necessary information (Label which are known or unknown) for completing the `## User Requirement`, "
+        "2. For each unknown information, is there a corresponding exploration task?"
+        "3. It is better for each task to focus on one thing rather than multiple things."
+        "4. If there are prerequisite tasks that acquire unknown information, when evaluating tasks that use this unknown information, you can assume that the unknown information is already known."
+        "5. If you agree with the plan,respond:```\nconfirm\n```,otherwise,```\nchange,(here is your review results...)\n```"
     )
     INSTRUCTIONS = {
         TASK_REVIEW_TRIGGER: TASK_REVIEW_INSTRUCTION,
@@ -100,6 +103,6 @@ class AskReview(Action):
         if review_type == "human":
             confirmed = rsp.lower() in ReviewConst.CONTINUE_WORDS or ReviewConst.CONTINUE_WORDS[0] in rsp.lower()
         else:
-            confirmed = "confirm" in rsp.lower()
+            confirmed = rsp.lower().startswith(("confirm", "```\nconfirm", "````confirm"))
         logger.info(f"Ask Review Result: `{rsp}` for above phase.")
         return rsp, confirmed
