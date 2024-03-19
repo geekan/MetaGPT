@@ -229,7 +229,7 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     else:
         raise NotImplementedError(
             f"num_tokens_from_messages() is not implemented for model {model}. "
-            f"See https://github.com/openai/openai-python/blob/main/chatml.md "
+            f"See https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken "
             f"for information on how messages are converted to tokens."
         )
     num_tokens = 0
