@@ -5,6 +5,7 @@ Author: garylin2099
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `send_to`
         value of the `Message` object; modify the argument type of `get_by_actions`.
 """
+
 import asyncio
 import platform
 from typing import Any
@@ -49,7 +50,7 @@ class Debator(Role):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        self._init_actions([SpeakAloud])
+        self.set_actions([SpeakAloud])
         self._watch([UserRequirement, SpeakAloud])
 
     async def _observe(self) -> int:
@@ -105,4 +106,4 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
 
 
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire(main)  # run as python debate.py --idea="TOPIC" --investment=3.0 --n_round=5

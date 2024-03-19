@@ -1,0 +1,83 @@
+name: Full Tests
+
+on:
+  workflow_dispatch:
+  pull_request_target:
+  push: 
+    branches:
+      - 'main'
+      - 'dev'
+      - '*-release'
+      - '*-debugger'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: unittest
+    strategy:
+      matrix:
+        # python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9']
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        sh tests/scripts/run_install_deps.sh
+    - name: Run reverse proxy script for ssh service
+      if: contains(github.ref, '-debugger')
+      continue-on-error: true
+      env:
+        FPR_SERVER_ADDR: ${{ secrets.FPR_SERVER_ADDR }}
+        FPR_TOKEN: ${{ secrets.FPR_TOKEN }}
+        FPR_SSH_REMOTE_PORT: ${{ secrets.FPR_SSH_REMOTE_PORT }}
+        RSA_PUB: ${{ secrets.RSA_PUB }}
+        SSH_PORT: ${{ vars.SSH_PORT || '22'}}
+      run: |
+        echo "Run \"ssh $(whoami)@FPR_SERVER_HOST -p FPR_SSH_REMOTE_PORT\" and \"cd $(pwd)\""
+        mkdir -p  ~/.ssh/
+        echo $RSA_PUB >> ~/.ssh/authorized_keys
+        chmod 600 ~/.ssh/authorized_keys
+        wget https://github.com/fatedier/frp/releases/download/v0.32.1/frp_0.32.1_linux_amd64.tar.gz -O frp.tar.gz
+        tar xvzf frp.tar.gz -C /opt
+        mv /opt/frp* /opt/frp
+        /opt/frp/frpc tcp --server_addr $FPR_SERVER_ADDR --token $FPR_TOKEN  --local_port $SSH_PORT  --remote_port $FPR_SSH_REMOTE_PORT
+    - name: Test with pytest
+      run: |
+        export ALLOW_OPENAI_API_CALL=0
+        echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
+        mkdir -p ~/.metagpt && echo "${{ secrets.METAGPT_CONFIG2_YAML }}" | base64 -d > ~/.metagpt/config2.yaml
+        pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
+    - name: Show coverage report
+      run: |
+        coverage report -m
+    - name: Show failed tests and overall summary
+      run: |
+        grep -E "FAILED tests|ERROR tests|[0-9]+ passed," unittest.txt
+        failed_count=$(grep -E "FAILED|ERROR" unittest.txt | wc -l)
+        if [[ "$failed_count" -gt 0 ]]; then
+          echo "$failed_count failed lines found! Task failed."
+          exit 1
+        fi
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results-${{ matrix.python-version }}
+        path: |
+          ./unittest.txt
+          ./htmlcov/
+          ./tests/data/rsp_cache_new.json
+        retention-days: 3
+      if: ${{ always() }}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      if: ${{ always() }}

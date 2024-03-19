@@ -9,22 +9,34 @@
 import pytest
 
 from metagpt.actions.design_api import WriteDesign
-from metagpt.const import PRDS_FILE_REPO
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.file_repository import FileRepository
-from tests.metagpt.actions.mock_markdown import PRD_SAMPLE
+from tests.data.incremental_dev_project.mock import DESIGN_SAMPLE, REFINED_PRD_JSON
 
 
 @pytest.mark.asyncio
-async def test_design_api():
-    inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。", PRD_SAMPLE]
+async def test_design_api(context):
+    inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"]  # PRD_SAMPLE
     for prd in inputs:
-        await FileRepository.save_file("new_prd.txt", content=prd, relative_path=PRDS_FILE_REPO)
+        await context.repo.docs.prd.save(filename="new_prd.txt", content=prd)
 
-        design_api = WriteDesign()
+        design_api = WriteDesign(context=context)
 
         result = await design_api.run(Message(content=prd, instruct_content=None))
         logger.info(result)
 
         assert result
+
+
+@pytest.mark.asyncio
+async def test_refined_design_api(context):
+    await context.repo.docs.prd.save(filename="1.txt", content=str(REFINED_PRD_JSON))
+    await context.repo.docs.system_design.save(filename="1.txt", content=DESIGN_SAMPLE)
+
+    design_api = WriteDesign(context=context, llm=LLM())
+
+    result = await design_api.run(Message(content="", instruct_content=None))
+    logger.info(result)
+
+    assert result

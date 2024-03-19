@@ -10,17 +10,29 @@
 ### 详细安装
 
 ```bash
-# 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
-
-# 第 2 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
+# 步骤 1: 确保您的系统安装了 Python 3.9 或更高版本。您可以使用以下命令来检查:
+# 您可以使用 conda 来初始化一个新的 Python 环境
+#     conda create -n metagpt python=3.9
+#     conda activate metagpt
 python3 --version
 
-# 第 3 步：克隆仓库到您的本地机器，并进行安装。
+# 步骤 2: 克隆仓库到您的本地机器以获取最新版本，并安装它。
 git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
-pip install -e.
+pip3 install -e .     # 或 pip3 install metagpt  # 用于稳定版本
+
+# 步骤 3: 在 config2.yaml 文件中设置您的 LLM 密钥
+mkdir ~/.metagpt
+cp config/config2.yaml ~/.metagpt/config2.yaml
+vim ~/.metagpt/config2.yaml
+
+# 步骤 4: 运行 metagpt 命令行界面
+metagpt "用 python 创建一个 2048 游戏"
+
+# 步骤 5 [可选]: 如果您想保存诸如象限图、系统设计、序列流等图表作为工作空间的工件，您可以在执行步骤 3 之前执行此步骤。默认情况下，该框架是兼容的，整个过程可以完全不执行此步骤而运行。
+# 如果执行此步骤，请确保您的系统上安装了 NPM。然后安装 mermaid-js。（如果您的计算机中没有 npm，请访问 Node.js 官方网站 https://nodejs.org/ 安装 Node.js，然后您将在计算机中拥有 npm 工具。）
+npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
 **注意：**
@@ -33,11 +45,12 @@ pip install -e.
     npm install @mermaid-js/mermaid-cli
     ```
 
-- 不要忘记在config.yml中为mmdc配置配置，
+- 不要忘记在config.yml中为mmdc配置
 
     ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
+    mermaid:
+      puppeteer_config: "./config/puppeteer-config.json"
+      path: "./node_modules/.bin/mmdc"
     ```
 
 - 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。

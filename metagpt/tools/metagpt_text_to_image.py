@@ -13,7 +13,6 @@ import aiohttp
 import requests
 from pydantic import BaseModel
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -22,7 +21,7 @@ class MetaGPTText2Image:
         """
         :param model_url: Model reset api url
         """
-        self.model_url = model_url if model_url else CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL
+        self.model_url = model_url
 
     async def text_2_image(self, text, size_type="512x512"):
         """Text to image
@@ -93,6 +92,4 @@ async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url
     """
     if not text:
         return ""
-    if not model_url:
-        model_url = CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
     return await MetaGPTText2Image(model_url).text_2_image(text, size_type=size_type)

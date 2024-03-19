@@ -13,12 +13,9 @@ import re
 from pydantic import Field
 
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
-from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.common import CodeParser
-from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -49,13 +46,10 @@ Now you should start rewriting the code:
 
 
 class DebugError(Action):
-    name: str = "DebugError"
-    context: RunCodeContext = Field(default_factory=RunCodeContext)
+    i_context: RunCodeContext = Field(default_factory=RunCodeContext)
 
     async def run(self, *args, **kwargs) -> str:
-        output_doc = await FileRepository.get_file(
-            filename=self.context.output_filename, relative_path=TEST_OUTPUTS_FILE_REPO
-        )
+        output_doc = await self.repo.test_outputs.get(filename=self.i_context.output_filename)
         if not output_doc:
             return ""
         output_detail = RunCodeResult.loads(output_doc.content)
@@ -64,15 +58,13 @@ class DebugError(Action):
         if matches:
             return ""
 
-        logger.info(f"Debug and rewrite {self.context.test_filename}")
-        code_doc = await FileRepository.get_file(
-            filename=self.context.code_filename, relative_path=CONFIG.src_workspace
+        logger.info(f"Debug and rewrite {self.i_context.test_filename}")
+        code_doc = await self.repo.with_src_path(self.context.src_workspace).srcs.get(
+            filename=self.i_context.code_filename
         )
         if not code_doc:
             return ""
-        test_doc = await FileRepository.get_file(
-            filename=self.context.test_filename, relative_path=TEST_CODES_FILE_REPO
-        )
+        test_doc = await self.repo.tests.get(filename=self.i_context.test_filename)
         if not test_doc:
             return ""
         prompt = PROMPT_TEMPLATE.format(code=code_doc.content, test_code=test_doc.content, logs=output_detail.stderr)

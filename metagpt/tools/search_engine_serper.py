@@ -6,33 +6,34 @@
 @File    : search_engine_serpapi.py
 """
 import json
+import warnings
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from metagpt.config import CONFIG
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SerperWrapper(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    search_engine: Any = None  #: :meta private:
+    api_key: str
     payload: dict = Field(default_factory=lambda: {"page": 1, "num": 10})
-    serper_api_key: Optional[str] = Field(default=None, validate_default=True)
     aiosession: Optional[aiohttp.ClientSession] = None
+    proxy: Optional[str] = None
 
-    @field_validator("serper_api_key", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def check_serper_api_key(cls, val: str):
-        val = val or CONFIG.serper_api_key
-        if not val:
+    def validate_serper(cls, values: dict) -> dict:
+        if "serper_api_key" in values:
+            values.setdefault("api_key", values["serper_api_key"])
+            warnings.warn("`serper_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+
+        if "api_key" not in values:
             raise ValueError(
-                "To use, make sure you provide the serper_api_key when constructing an object. Alternatively, "
-                "ensure that the environment variable SERPER_API_KEY is set with your API key. You can obtain "
+                "To use serper search engine, make sure you provide the `api_key` when constructing an object. You can obtain "
                 "an API key from https://serper.dev/."
             )
-        return val
+        return values
 
     async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
         """Run query through Serper and parse result async."""
@@ -54,10 +55,12 @@ class SerperWrapper(BaseModel):
         url, payloads, headers = construct_url_and_payload_and_headers()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, data=payloads, headers=headers) as response:
+                async with session.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+                    response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get.post(url, data=payloads, headers=headers) as response:
+            async with self.aiosession.get.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+                response.raise_for_status()
                 res = await response.json()
 
         return res
@@ -74,7 +77,7 @@ class SerperWrapper(BaseModel):
         return json.dumps(payloads, sort_keys=True)
 
     def get_headers(self) -> Dict[str, str]:
-        headers = {"X-API-KEY": self.serper_api_key, "Content-Type": "application/json"}
+        headers = {"X-API-KEY": self.api_key, "Content-Type": "application/json"}
         return headers
 
     @staticmethod

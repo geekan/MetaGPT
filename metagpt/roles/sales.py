@@ -8,12 +8,11 @@
 
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from metagpt.actions import SearchAndSummarize, UserRequirement
-from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Role
-from metagpt.tools import SearchEngineType
+from metagpt.tools.search_engine import SearchEngine
 
 
 class Sales(Role):
@@ -27,16 +26,15 @@ class Sales(Role):
         "delivered with the professionalism and courtesy expected of a seasoned sales guide."
     )
 
-    store: Optional[BaseStore] = Field(default=None, exclude=True)
+    store: Optional[object] = Field(default=None, exclude=True)  # must inplement tools.SearchInterface
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._set_store(self.store)
-
-    def _set_store(self, store):
-        if store:
-            action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
+    @model_validator(mode="after")
+    def validate_stroe(self):
+        if self.store:
+            search_engine = SearchEngine.from_search_func(search_func=self.store.asearch, proxy=self.config.proxy)
+            action = SearchAndSummarize(search_engine=search_engine, context=self.context)
         else:
-            action = SearchAndSummarize()
-        self._init_actions([action])
+            action = SearchAndSummarize
+        self.set_actions([action])
         self._watch([UserRequirement])
+        return self

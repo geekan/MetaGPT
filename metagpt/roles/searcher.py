@@ -8,14 +8,17 @@
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
 
-from pydantic import Field
+from typing import Optional
 
-from metagpt.actions import ActionOutput, SearchAndSummarize
+from pydantic import Field, model_validator
+
+from metagpt.actions import SearchAndSummarize
 from metagpt.actions.action_node import ActionNode
+from metagpt.actions.action_output import ActionOutput
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.tools import SearchEngineType
+from metagpt.tools.search_engine import SearchEngine
 
 
 class Searcher(Role):
@@ -27,33 +30,22 @@ class Searcher(Role):
         profile (str): Role profile.
         goal (str): Goal of the searcher.
         constraints (str): Constraints or limitations for the searcher.
-        engine (SearchEngineType): The type of search engine to use.
+        search_engine (SearchEngine): The search engine to use.
     """
 
     name: str = Field(default="Alice")
     profile: str = Field(default="Smart Assistant")
     goal: str = "Provide search services for users"
     constraints: str = "Answer is rich and complete"
-    engine: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
+    search_engine: Optional[SearchEngine] = None
 
-    def __init__(self, **kwargs) -> None:
-        """
-        Initializes the Searcher role with given attributes.
-
-        Args:
-            name (str): Name of the searcher.
-            profile (str): Role profile.
-            goal (str): Goal of the searcher.
-            constraints (str): Constraints or limitations for the searcher.
-            engine (SearchEngineType): The type of search engine to use.
-        """
-        super().__init__(**kwargs)
-        self._init_actions([SearchAndSummarize(engine=self.engine)])
-
-    def set_search_func(self, search_func):
-        """Sets a custom search function for the searcher."""
-        action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
-        self._init_actions([action])
+    @model_validator(mode="after")
+    def post_root(self):
+        if self.search_engine:
+            self.set_actions([SearchAndSummarize(search_engine=self.search_engine, context=self.context)])
+        else:
+            self.set_actions([SearchAndSummarize])
+        return self
 
     async def _act_sp(self) -> Message:
         """Performs the search action in a single process."""

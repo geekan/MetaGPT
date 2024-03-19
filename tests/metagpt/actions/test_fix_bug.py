@@ -12,6 +12,6 @@ from metagpt.actions.fix_bug import FixBug
 
 
 @pytest.mark.asyncio
-async def test_fix_bug():
-    fix_bug = FixBug()
+async def test_fix_bug(context):
+    fix_bug = FixBug(context=context)
     assert fix_bug.name == "FixBug"

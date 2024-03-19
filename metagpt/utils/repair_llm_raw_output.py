@@ -9,7 +9,7 @@ from typing import Callable, Union
 import regex as re
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.custom_decoder import CustomDecoder
 
@@ -120,6 +120,23 @@ def repair_json_format(output: str) -> str:
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
+    # remove comments in output json string, after json value content, maybe start with #, maybe start with //
+    arr = output.split("\n")
+    new_arr = []
+    for json_line in arr:
+        # look for # or // comments and make sure they are not inside the string value
+        comment_index = -1
+        for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", json_line):
+            if match.group(1):  # if the string value
+                continue
+            if match.group(2):  # if comments
+                comment_index = match.start(2)
+                break
+        # if comments, then delete them
+        if comment_index != -1:
+            json_line = json_line[:comment_index].rstrip()
+        new_arr.append(json_line)
+    output = "\n".join(new_arr)
     return output
 
 
@@ -152,7 +169,7 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
             target: { xxx }
             output: { xxx }]
     """
-    if not CONFIG.repair_llm_output:
+    if not config.repair_llm_output:
         return output
 
     # do the repairation usually for non-openai models
@@ -168,15 +185,17 @@ def repair_invalid_json(output: str, error: str) -> str:
         example 1. json.decoder.JSONDecodeError: Expecting ',' delimiter: line 154 column 1 (char 2765)
         example 2. xxx.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 1 (char 266)
     """
-    pattern = r"line ([0-9]+)"
+    pattern = r"line ([0-9]+) column ([0-9]+)"
 
     matches = re.findall(pattern, error, re.DOTALL)
     if len(matches) > 0:
-        line_no = int(matches[0]) - 1
+        line_no = int(matches[0][0]) - 1
+        col_no = int(matches[0][1]) - 1
 
         # due to CustomDecoder can handle `"": ''` or `'': ""`, so convert `"""` -> `"`, `'''` -> `'`
         output = output.replace('"""', '"').replace("'''", '"')
         arr = output.split("\n")
+        rline = arr[line_no]  # raw line
         line = arr[line_no].strip()
         # different general problems
         if line.endswith("],"):
@@ -187,9 +206,23 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        elif '",' not in line and "," not in line:
+        elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
+            # problem, `"""` or `'''` without `,`
+            new_line = f",{line}"
+        elif col_no - 1 >= 0 and rline[col_no - 1] in ['"', "'"]:
+            # backslash problem like \" in the output
+            char = rline[col_no - 1]
+            nearest_char_idx = rline[col_no:].find(char)
+            new_line = (
+                rline[: col_no - 1]
+                + "\\"
+                + rline[col_no - 1 : col_no + nearest_char_idx]
+                + "\\"
+                + rline[col_no + nearest_char_idx :]
+            )
+        elif '",' not in line and "," not in line and '"' not in line:
             new_line = f'{line}",'
-        elif "," not in line:
+        elif not line.endswith(","):
             # problem, miss char `,` at the end.
             new_line = f"{line},"
         elif "," in line and len(line) == 1:
@@ -231,7 +264,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
                 func_param_output = retry_state.kwargs.get("output", "")
             exp_str = str(retry_state.outcome.exception())
 
-            fix_str = "try to fix it, " if CONFIG.repair_llm_output else ""
+            fix_str = "try to fix it, " if config.repair_llm_output else ""
             logger.warning(
                 f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
                 f"{retry_state.attempt_number}, {fix_str}exp: {exp_str}"
@@ -244,7 +277,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
 
 
 @retry(
-    stop=stop_after_attempt(3 if CONFIG.repair_llm_output else 0),
+    stop=stop_after_attempt(3 if config.repair_llm_output else 0),
     wait=wait_fixed(1),
     after=run_after_exp_and_passon_next_retry(logger),
 )

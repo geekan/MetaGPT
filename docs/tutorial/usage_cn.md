@@ -2,18 +2,13 @@
 
 ### 配置
 
-- 在 `config/key.yaml / config/config.yaml / env` 中配置您的 `OPENAI_API_KEY`
-- 优先级顺序：`config/key.yaml > config/config.yaml > env`
+- 在 `~/.metagpt/config2.yaml / config/config2.yaml` 中配置您的 `api_key`
+- 优先级顺序：`~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash
 # 复制配置文件并进行必要的修改
-cp config/config.yaml config/key.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
 ```
-
-| 变量名                              | config/key.yaml                           | env                                             |
-| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # 可选              | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### 示例：启动一个创业公司
 
@@ -35,29 +30,28 @@ metagpt "写一个基于pygame的命令行贪吃蛇"
 ### 使用
 
 ```
-名称
-    metagpt - 我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
-
-概要
-    metagpt IDEA <flags>
-
-描述
-    我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
-
-位置参数
-    IDEA
-        类型: str
-        您的创新想法，例如"写一个命令行贪吃蛇。"
-
-标志
-    --investment=INVESTMENT
-        类型: float
-        默认值: 3.0
-        作为投资者，您有机会向这家AI公司投入一定的美元金额。
-    --n_round=N_ROUND
-        类型: int
-        默认值: 5
-
-备注
-    您也可以用`标志`的语法，来处理`位置参数`
+ Usage: metagpt [OPTIONS] [IDEA]                                                                                                                                                                                          
+                                                                                                                                                                                                                          
+ Start a new project.                                                                                                                                                                                                     
+                                                                                                                                                                                                                          
+╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│   idea      [IDEA]  Your innovative idea, such as 'Create a 2048 game.' [default: None]                                                                                                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --investment                                     FLOAT    Dollar amount to invest in the AI company. [default: 3.0]                                                                                                    │
+│ --n-round                                        INTEGER  Number of rounds for the simulation. [default: 5]                                                                                                            │
+│ --code-review                --no-code-review             Whether to use code review. [default: code-review]                                                                                                           │
+│ --run-tests                  --no-run-tests               Whether to enable QA for adding & running tests. [default: no-run-tests]                                                                                     │
+│ --implement                  --no-implement               Enable or disable code implementation. [default: implement]                                                                                                  │
+│ --project-name                                   TEXT     Unique project name, such as 'game_2048'.                                                                                                                    │
+│ --inc                        --no-inc                     Incremental mode. Use it to coop with existing repo. [default: no-inc]                                                                                       │
+│ --project-path                                   TEXT     Specify the directory path of the old version project to fulfill the incremental requirements.                                                               │
+│ --reqa-file                                      TEXT     Specify the source file name for rewriting the quality assurance code.                                                                                       │
+│ --max-auto-summarize-code                        INTEGER  The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the      │
+│                                                           workflow.                                                                                                                                                    │
+│                                                           [default: 0]                                                                                                                                                 │
+│ --recover-path                                   TEXT     recover the project from existing serialized storage [default: None]                                                                                         │
+│ --init-config                --no-init-config             Initialize the configuration file for MetaGPT. [default: no-init-config]                                                                                     │
+│ --help                                                    Show this message and exit.                                                                                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```

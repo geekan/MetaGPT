@@ -5,19 +5,17 @@
 @Author  : mashenquan
 @File    : test_teacher.py
 """
-import os
 from typing import Dict, Optional
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG, Config
+from metagpt.context import Context
 from metagpt.roles.teacher import Teacher
 from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip
 async def test_init():
     class Inputs(BaseModel):
         name: str
@@ -31,6 +29,7 @@ async def test_init():
         expect_goal: str
         expect_constraints: str
         expect_desc: str
+        exclude: list = Field(default_factory=list)
 
     inputs = [
         {
@@ -45,6 +44,7 @@ async def test_init():
             "kwargs": {},
             "desc": "aaa{language}",
             "expect_desc": "aaa{language}",
+            "exclude": ["language", "key1", "something_big", "teaching_language"],
         },
         {
             "name": "Lily{language}",
@@ -58,20 +58,21 @@ async def test_init():
             "kwargs": {"language": "CN", "key1": "HaHa", "something_big": "sleep", "teaching_language": "EN"},
             "desc": "aaa{language}",
             "expect_desc": "aaaCN",
+            "language": "CN",
+            "teaching_language": "EN",
         },
     ]
 
-    env = os.environ.copy()
     for i in inputs:
         seed = Inputs(**i)
-        os.environ.clear()
-        os.environ.update(env)
-        CONFIG = Config()
-        CONFIG.set_context(seed.kwargs)
-        print(CONFIG.options)
-        assert bool("language" in seed.kwargs) == bool("language" in CONFIG.options)
+        context = Context()
+        for k in seed.exclude:
+            context.kwargs.set(k, None)
+        for k, v in seed.kwargs.items():
+            context.kwargs.set(k, v)
 
         teacher = Teacher(
+            context=context,
             name=seed.name,
             profile=seed.profile,
             goal=seed.goal,
@@ -105,7 +106,6 @@ async def test_new_file_name():
 
 @pytest.mark.asyncio
 async def test_run():
-    CONFIG.set_context({"language": "Chinese", "teaching_language": "English"})
     lesson = """
     UNIT 1 Making New Friends
     TOPIC 1 Welcome to China!
@@ -149,7 +149,10 @@ async def test_run():
 
     3c Match the big letters with the small ones. Then write them on the lines.
     """
-    teacher = Teacher()
+    context = Context()
+    context.kwargs.language = "Chinese"
+    context.kwargs.teaching_language = "English"
+    teacher = Teacher(context=context)
     rsp = await teacher.run(Message(content=lesson))
     assert rsp
 

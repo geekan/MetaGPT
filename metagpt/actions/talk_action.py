@@ -9,25 +9,31 @@
 from typing import Optional
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_LANGUAGE
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.schema import Message
 
 
-# TOTEST
 class TalkAction(Action):
-    context: str
+    i_context: str
     history_summary: str = ""
     knowledge: str = ""
     rsp: Optional[Message] = None
 
     @property
+    def agent_description(self):
+        return self.context.kwargs.agent_description
+
+    @property
+    def language(self):
+        return self.context.kwargs.language or config.language
+
+    @property
     def prompt(self):
         prompt = ""
-        if CONFIG.agent_description:
+        if self.agent_description:
             prompt = (
-                f"You are {CONFIG.agent_description}. Your responses should align with the role-play agreement, "
+                f"You are {self.agent_description}. Your responses should align with the role-play agreement, "
                 f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
                 f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
             )
@@ -36,10 +42,10 @@ class TalkAction(Action):
         prompt += (
             "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
         )
-        language = CONFIG.language or DEFAULT_LANGUAGE
+        language = self.language
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
-            f"{self.context}"
+            f"{self.i_context}"
         )
         logger.debug(f"PROMPT: {prompt}")
         return prompt
@@ -47,11 +53,11 @@ class TalkAction(Action):
     @property
     def prompt_gpt4(self):
         kvs = {
-            "{role}": CONFIG.agent_description or "",
+            "{role}": self.agent_description or "",
             "{history}": self.history_summary or "",
             "{knowledge}": self.knowledge or "",
-            "{language}": CONFIG.language or DEFAULT_LANGUAGE,
-            "{ask}": self.context,
+            "{language}": self.language,
+            "{ask}": self.i_context,
         }
         prompt = TalkActionPrompt.FORMATION_LOOSE
         for k, v in kvs.items():
@@ -68,9 +74,9 @@ class TalkAction(Action):
 
     @property
     def aask_args(self):
-        language = CONFIG.language or DEFAULT_LANGUAGE
+        language = self.language
         system_msgs = [
-            f"You are {CONFIG.agent_description}.",
+            f"You are {self.agent_description}.",
             "Your responses should align with the role-play agreement, "
             "maintaining the character's persona and habits. When faced with unrelated questions, playfully "
             "decline to answer without revealing your AI nature to preserve the character's image.",
@@ -82,11 +88,11 @@ class TalkAction(Action):
             format_msgs.append({"role": "assistant", "content": self.knowledge})
         if self.history_summary:
             format_msgs.append({"role": "assistant", "content": self.history_summary})
-        return self.context, format_msgs, system_msgs
+        return self.i_context, format_msgs, system_msgs
 
     async def run(self, with_message=None, **kwargs) -> Message:
         msg, format_msgs, system_msgs = self.aask_args
-        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
+        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs, stream=False)
         self.rsp = Message(content=rsp, role="assistant", cause_by=self)
         return self.rsp
 

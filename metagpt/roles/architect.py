@@ -33,7 +33,7 @@ class Architect(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         # Initialize actions specific to the Architect role
-        self._init_actions([WriteDesign])
+        self.set_actions([WriteDesign])
 
         # Set events or actions the Architect should watch or be aware of
         self._watch({WritePRD})

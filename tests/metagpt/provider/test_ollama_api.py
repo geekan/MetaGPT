@@ -7,17 +7,17 @@ from typing import Any, Tuple
 
 import pytest
 
-from metagpt.config import CONFIG
 from metagpt.provider.ollama_api import OllamaLLM
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.req_resp_const import (
+    llm_general_chat_funcs_test,
+    messages,
+    prompt,
+    resp_cont_tmpl,
+)
 
-prompt_msg = "who are you"
-messages = [{"role": "user", "content": prompt_msg}]
-
-resp_content = "I'm ollama"
-default_resp = {"message": {"role": "assistant", "content": resp_content}}
-
-CONFIG.ollama_api_base = "http://xxx"
-CONFIG.max_budget = 10
+resp_cont = resp_cont_tmpl.format(name="ollama")
+default_resp = {"message": {"role": "assistant", "content": resp_cont}}
 
 
 async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[Any, Any, bool]:
@@ -44,19 +44,12 @@ async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[An
 async def test_gemini_acompletion(mocker):
     mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
 
-    ollama_gpt = OllamaLLM()
+    ollama_llm = OllamaLLM(mock_llm_config)
 
-    resp = await ollama_gpt.acompletion(messages)
+    resp = await ollama_llm.acompletion(messages)
     assert resp["message"]["content"] == default_resp["message"]["content"]
 
-    resp = await ollama_gpt.aask(prompt_msg, stream=False)
-    assert resp == resp_content
+    resp = await ollama_llm.aask(prompt, stream=False)
+    assert resp == resp_cont
 
-    resp = await ollama_gpt.acompletion_text(messages, stream=False)
-    assert resp == resp_content
-
-    resp = await ollama_gpt.acompletion_text(messages, stream=True)
-    assert resp == resp_content
-
-    resp = await ollama_gpt.aask(prompt_msg)
-    assert resp == resp_content
+    await llm_general_chat_funcs_test(ollama_llm, prompt, messages, resp_cont)

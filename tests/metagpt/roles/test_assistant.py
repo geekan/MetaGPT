@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 from metagpt.actions.skill_action import SkillAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import CONFIG
 from metagpt.memory.brain_memory import BrainMemory
 from metagpt.roles.assistant import Assistant
 from metagpt.schema import Message
@@ -20,14 +19,28 @@ from metagpt.utils.common import any_to_str
 
 
 @pytest.mark.asyncio
-async def test_run():
-    CONFIG.language = "Chinese"
+async def test_run(mocker, context):
+    # mock
+    mocker.patch("metagpt.learn.text_to_image", return_value="http://mock.com/1.png")
+
+    context.kwargs.language = "Chinese"
 
     class Input(BaseModel):
         memory: BrainMemory
         language: str
         agent_description: str
         cause_by: str
+        agent_skills: list
+
+    agent_skills = [
+        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
+        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
+    ]
 
     inputs = [
         {
@@ -46,6 +59,7 @@ async def test_run():
             "language": "English",
             "agent_description": "chatterbox",
             "cause_by": any_to_str(TalkAction),
+            "agent_skills": [],
         },
         {
             "memory": {
@@ -63,23 +77,17 @@ async def test_run():
             "language": "English",
             "agent_description": "painter",
             "cause_by": any_to_str(SkillAction),
+            "agent_skills": agent_skills,
         },
-    ]
-    CONFIG.agent_skills = [
-        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
-        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
     ]
 
     for i in inputs:
         seed = Input(**i)
-        CONFIG.language = seed.language
-        CONFIG.agent_description = seed.agent_description
-        role = Assistant(language="Chinese")
+        role = Assistant(language="Chinese", context=context)
+        role.context.kwargs.language = seed.language
+        role.context.kwargs.agent_description = seed.agent_description
+        role.context.kwargs.agent_skills = seed.agent_skills
+
         role.memory = seed.memory  # Restore historical conversation content.
         while True:
             has_action = await role.think()
@@ -110,21 +118,16 @@ async def test_run():
     ],
 )
 @pytest.mark.asyncio
-async def test_memory(memory):
-    role = Assistant()
+async def test_memory(memory, context):
+    role = Assistant(context=context)
+    role.context.kwargs.agent_skills = []
     role.load_memory(memory)
 
     val = role.get_memory()
     assert val
 
     await role.talk("draw apple")
-
-    agent_skills = CONFIG.agent_skills
-    CONFIG.agent_skills = []
-    try:
-        await role.think()
-    finally:
-        CONFIG.agent_skills = agent_skills
+    await role.think()
     assert isinstance(role.rc.todo, TalkAction)
 
 

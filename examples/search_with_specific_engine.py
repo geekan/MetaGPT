@@ -4,18 +4,17 @@
 """
 import asyncio
 
+from metagpt.config2 import Config
 from metagpt.roles import Searcher
-from metagpt.tools import SearchEngineType
+from metagpt.tools.search_engine import SearchEngine
 
 
 async def main():
     question = "What are the most interesting human facts?"
-    # Serper API
-    # await Searcher(engine=SearchEngineType.SERPER_GOOGLE).run(question)
-    # SerpAPI
-    await Searcher(engine=SearchEngineType.SERPAPI_GOOGLE).run(question)
-    # Google API
-    # await Searcher(engine=SearchEngineType.DIRECT_GOOGLE).run(question)
+
+    search = Config.default().search
+    kwargs = {"api_key": search.api_key, "cse_id": search.cse_id, "proxy": None}
+    await Searcher(search_engine=SearchEngine(engine=search.api_type, **kwargs)).run(question)
 
 
 if __name__ == "__main__":

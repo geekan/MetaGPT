@@ -33,16 +33,16 @@ class MockAction(Action):
 class MockRole(Role):
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
-        self._init_actions([MockAction()])
+        self.set_actions([MockAction()])
 
 
 def test_basic():
     mock_role = MockRole()
-    assert mock_role.subscription == {"tests.metagpt.test_role.MockRole"}
+    assert mock_role.addresses == ({"tests.metagpt.test_role.MockRole"})
     assert mock_role.rc.watch == {"metagpt.actions.add_requirement.UserRequirement"}
 
     mock_role = MockRole(name="mock_role")
-    assert mock_role.subscription == {"tests.metagpt.test_role.MockRole", "mock_role"}
+    assert mock_role.addresses == {"tests.metagpt.test_role.MockRole", "mock_role"}
 
 
 @pytest.mark.asyncio
@@ -53,7 +53,7 @@ async def test_react():
         goal: str
         constraints: str
         desc: str
-        subscription: str
+        address: str
 
     inputs = [
         {
@@ -62,7 +62,7 @@ async def test_react():
             "goal": "Test",
             "constraints": "constraints",
             "desc": "desc",
-            "subscription": "start",
+            "address": "start",
         }
     ]
 
@@ -71,7 +71,7 @@ async def test_react():
         role = MockRole(
             name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints, desc=seed.desc
         )
-        role.subscribe({seed.subscription})
+        role.set_addresses({seed.address})
         assert role.rc.watch == {any_to_str(UserRequirement)}
         assert role.name == seed.name
         assert role.profile == seed.profile
@@ -81,20 +81,20 @@ async def test_react():
         assert role.is_idle
         env = Environment()
         env.add_role(role)
-        assert env.get_subscription(role) == {seed.subscription}
-        env.publish_message(Message(content="test", msg_to=seed.subscription))
+        assert env.get_addresses(role) == {seed.address}
+        env.publish_message(Message(content="test", msg_to=seed.address))
         assert not role.is_idle
         while not env.is_idle:
             await env.run()
         assert role.is_idle
-        env.publish_message(Message(content="test", cause_by=seed.subscription))
+        env.publish_message(Message(content="test", cause_by=seed.address))
         assert not role.is_idle
         while not env.is_idle:
             await env.run()
         assert role.is_idle
         tag = uuid.uuid4().hex
-        role.subscribe({tag})
-        assert env.get_subscription(role) == {tag}
+        role.set_addresses({tag})
+        assert env.get_addresses(role) == {tag}
 
 
 @pytest.mark.asyncio
@@ -111,8 +111,8 @@ async def test_send_to():
 
 def test_init_action():
     role = Role()
-    role.init_actions([MockAction, MockAction])
-    assert role.action_count == 2
+    role.set_actions([MockAction, MockAction])
+    assert len(role.actions) == 2
 
 
 @pytest.mark.asyncio
@@ -127,11 +127,11 @@ async def test_recover():
     role.publish_message(None)
 
     role.llm = mock_llm
-    role.init_actions([MockAction, MockAction])
+    role.set_actions([MockAction, MockAction])
     role.recovered = True
     role.latest_observed_msg = Message(content="recover_test")
     role.rc.state = 0
-    assert role.todo == any_to_name(MockAction)
+    assert role.action_description == any_to_name(MockAction)
 
     rsp = await role.run()
     assert rsp.cause_by == any_to_str(MockAction)
@@ -144,7 +144,7 @@ async def test_think_act():
     mock_llm.aask.side_effect = ["ok"]
 
     role = Role()
-    role.init_actions([MockAction])
+    role.set_actions([MockAction])
     await role.think()
     role.rc.memory.add(Message("run"))
     assert len(role.get_memories()) == 1

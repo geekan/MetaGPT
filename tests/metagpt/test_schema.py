@@ -15,18 +15,19 @@ import pytest
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.schema import (
     AIMessage,
-    ClassAttribute,
-    ClassMethod,
-    ClassView,
     CodeSummarizeContext,
     Document,
     Message,
     MessageQueue,
+    Plan,
     SystemMessage,
+    Task,
+    UMLClassAttribute,
+    UMLClassMethod,
+    UMLClassView,
     UserMessage,
 )
 from metagpt.utils.common import any_to_str
@@ -103,7 +104,7 @@ def test_message_serdeser():
     new_message = Message.model_validate(message_dict)
     assert new_message.content == message.content
     assert new_message.instruct_content.model_dump() == message.instruct_content.model_dump()
-    assert new_message.instruct_content != message.instruct_content  # TODO
+    assert new_message.instruct_content == message.instruct_content  # TODO
     assert new_message.cause_by == message.cause_by
     assert new_message.instruct_content.field3 == out_data["field3"]
 
@@ -121,8 +122,6 @@ def test_document():
     assert doc.root_path == meta_doc.root_path
     assert doc.filename == meta_doc.filename
     assert meta_doc.content == ""
-
-    assert doc.full_path == str(CONFIG.git_repo.workdir / doc.root_path / doc.filename)
 
 
 @pytest.mark.asyncio
@@ -160,28 +159,195 @@ def test_CodeSummarizeContext(file_list, want):
 
 
 def test_class_view():
-    attr_a = ClassAttribute(name="a", value_type="int", default_value="0", visibility="+", abstraction=True)
-    assert attr_a.get_mermaid(align=1) == "\t+int a=0*"
-    attr_b = ClassAttribute(name="b", value_type="str", default_value="0", visibility="#", static=True)
-    assert attr_b.get_mermaid(align=0) == '#str b="0"$'
-    class_view = ClassView(name="A")
+    attr_a = UMLClassAttribute(name="a", value_type="int", default_value="0", visibility="+")
+    assert attr_a.get_mermaid(align=1) == "\t+int a=0"
+    attr_b = UMLClassAttribute(name="b", value_type="str", default_value="0", visibility="#")
+    assert attr_b.get_mermaid(align=0) == '#str b="0"'
+    class_view = UMLClassView(name="A")
     class_view.attributes = [attr_a, attr_b]
 
-    method_a = ClassMethod(name="run", visibility="+", abstraction=True)
-    assert method_a.get_mermaid(align=1) == "\t+run()*"
-    method_b = ClassMethod(
+    method_a = UMLClassMethod(name="run", visibility="+")
+    assert method_a.get_mermaid(align=1) == "\t+run()"
+    method_b = UMLClassMethod(
         name="_test",
         visibility="#",
-        static=True,
-        args=[ClassAttribute(name="a", value_type="str"), ClassAttribute(name="b", value_type="int")],
+        args=[UMLClassAttribute(name="a", value_type="str"), UMLClassAttribute(name="b", value_type="int")],
         return_type="str",
     )
-    assert method_b.get_mermaid(align=0) == "#_test(str a,int b):str$"
+    assert method_b.get_mermaid(align=0) == "#_test(str a,int b) str"
     class_view.methods = [method_a, method_b]
     assert (
         class_view.get_mermaid(align=0)
-        == 'class A{\n\t+int a=0*\n\t#str b="0"$\n\t+run()*\n\t#_test(str a,int b):str$\n}\n'
+        == 'class A{\n\t+int a=0\n\t#str b="0"\n\t+run()\n\t#_test(str a,int b) str\n}\n'
     )
+
+
+class TestPlan:
+    def test_add_tasks_ordering(self):
+        plan = Plan(goal="")
+
+        tasks = [
+            Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
+            Task(task_id="2", instruction="First"),
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
+        ]  # 2 -> 3 -> 1
+        plan.add_tasks(tasks)
+
+        assert [task.task_id for task in plan.tasks] == ["2", "3", "1"]
+
+    def test_add_tasks_to_existing_no_common_prefix(self):
+        plan = Plan(goal="")
+
+        tasks = [
+            Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
+            Task(task_id="2", instruction="First"),
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second", is_finished=True),
+        ]  # 2 -> 3 -> 1
+        plan.add_tasks(tasks)
+
+        new_tasks = [Task(task_id="3", instruction="")]
+        plan.add_tasks(new_tasks)
+
+        assert [task.task_id for task in plan.tasks] == ["3"]
+        assert not plan.tasks[0].is_finished  # must be the new unfinished task
+
+    def test_add_tasks_to_existing_with_common_prefix(self):
+        plan = Plan(goal="")
+
+        tasks = [
+            Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
+            Task(task_id="2", instruction="First"),
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
+        ]  # 2 -> 3 -> 1
+        plan.add_tasks(tasks)
+        plan.finish_current_task()  # finish 2
+        plan.finish_current_task()  # finish 3
+
+        new_tasks = [
+            Task(task_id="4", dependent_task_ids=["3"], instruction="Third"),
+            Task(task_id="2", instruction="First"),
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
+        ]  # 2 -> 3 -> 4, so the common prefix is 2 -> 3, and these two should be obtained from the existing tasks
+        plan.add_tasks(new_tasks)
+
+        assert [task.task_id for task in plan.tasks] == ["2", "3", "4"]
+        assert (
+            plan.tasks[0].is_finished and plan.tasks[1].is_finished
+        )  # "2" and "3" should be the original finished one
+        assert plan.current_task_id == "4"
+
+    def test_current_task(self):
+        plan = Plan(goal="")
+        tasks = [
+            Task(task_id="1", dependent_task_ids=["2"], instruction="Second"),
+            Task(task_id="2", instruction="First"),
+        ]
+        plan.add_tasks(tasks)
+        assert plan.current_task.task_id == "2"
+
+    def test_finish_task(self):
+        plan = Plan(goal="")
+        tasks = [
+            Task(task_id="1", instruction="First"),
+            Task(task_id="2", dependent_task_ids=["1"], instruction="Second"),
+        ]
+        plan.add_tasks(tasks)
+        plan.finish_current_task()
+        assert plan.current_task.task_id == "2"
+
+    def test_finished_tasks(self):
+        plan = Plan(goal="")
+        tasks = [
+            Task(task_id="1", instruction="First"),
+            Task(task_id="2", dependent_task_ids=["1"], instruction="Second"),
+        ]
+        plan.add_tasks(tasks)
+        plan.finish_current_task()
+        finished_tasks = plan.get_finished_tasks()
+        assert len(finished_tasks) == 1
+        assert finished_tasks[0].task_id == "1"
+
+    def test_reset_task_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("1")
+        reset_task = plan.task_map["1"]
+        assert reset_task.code == ""
+        assert reset_task.result == ""
+        assert not reset_task.is_finished
+
+    def test_reset_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("2")  # Task with ID 2 does not exist
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map
+
+    def test_replace_task_with_dependents(self):
+        plan = Plan(goal="")
+        tasks = [
+            Task(task_id="1", instruction="First Task", finished=True),
+            Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True),
+        ]
+        plan.add_tasks(tasks)
+        new_task = Task(task_id="1", instruction="Updated First Task")
+        plan.replace_task(new_task)
+        assert plan.task_map["1"].instruction == "Updated First Task"
+        assert not plan.task_map["2"].is_finished  # Dependent task should be reset
+        assert plan.task_map["2"].code == ""
+        assert plan.task_map["2"].result == ""
+
+    def test_replace_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="First Task")
+        plan.add_tasks([task])
+        new_task = Task(task_id="2", instruction="New Task")
+        with pytest.raises(AssertionError):
+            plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map
+
+    def test_append_task_with_valid_dependencies(self):
+        plan = Plan(goal="Test")
+        existing_task = [Task(task_id="1")]
+        plan.add_tasks(existing_task)
+        new_task = Task(task_id="2", dependent_task_ids=["1"])
+        plan.append_task(new_task)
+        assert plan.tasks[-1].task_id == "2"
+        assert plan.task_map["2"] == new_task
+
+    def test_append_task_with_invalid_dependencies(self):
+        new_task = Task(task_id="2", dependent_task_ids=["3"])
+        plan = Plan(goal="Test")
+        with pytest.raises(AssertionError):
+            plan.append_task(new_task)
+
+    def test_append_task_without_dependencies(self):
+        plan = Plan(goal="Test")
+        existing_task = [Task(task_id="1")]
+        plan.add_tasks(existing_task)
+
+        new_task = Task(task_id="2")
+        plan.append_task(new_task)
+
+        assert len(plan.tasks) == 2
+        assert plan.current_task_id == "1"
+
+    def test_append_task_updates_current_task(self):
+        finished_task = Task(task_id="1", is_finished=True)
+        new_task = Task(task_id="2")
+        plan = Plan(goal="Test", tasks=[finished_task])
+        plan.append_task(new_task)
+        assert plan.current_task_id == "2"
+
+    def test_update_current_task(self):
+        task1 = Task(task_id="1", is_finished=True)
+        task2 = Task(task_id="2")
+        plan = Plan(goal="Test", tasks=[task1, task2])
+        plan._update_current_task()
+        assert plan.current_task_id == "2"
 
 
 if __name__ == "__main__":

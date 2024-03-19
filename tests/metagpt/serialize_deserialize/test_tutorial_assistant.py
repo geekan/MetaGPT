@@ -7,7 +7,7 @@ from metagpt.roles.tutorial_assistant import TutorialAssistant
 
 
 @pytest.mark.asyncio
-async def test_tutorial_assistant_deserialize():
+async def test_tutorial_assistant_serdeser(context):
     role = TutorialAssistant()
     ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict

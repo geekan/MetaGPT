@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 
 LANGUAGE = ActionNode(
     key="Language",
@@ -31,10 +30,18 @@ ORIGINAL_REQUIREMENTS = ActionNode(
     example="Create a 2048 game",
 )
 
+REFINED_REQUIREMENTS = ActionNode(
+    key="Refined Requirements",
+    expected_type=str,
+    instruction="Place the New user's original requirements here.",
+    example="Create a 2048 game with a new feature that ...",
+)
+
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
-    instruction="According to the content of \"Original Requirements,\" name the project using snake case style , like 'game_2048' or 'simple_crm.",
+    instruction='According to the content of "Original Requirements," name the project using snake case style , '
+    "like 'game_2048' or 'simple_crm.",
     example="game_2048",
 )
 
@@ -43,6 +50,18 @@ PRODUCT_GOALS = ActionNode(
     expected_type=List[str],
     instruction="Provide up to three clear, orthogonal product goals.",
     example=["Create an engaging user experience", "Improve accessibility, be responsive", "More beautiful UI"],
+)
+
+REFINED_PRODUCT_GOALS = ActionNode(
+    key="Refined Product Goals",
+    expected_type=List[str],
+    instruction="Update and expand the original product goals to reflect the evolving needs due to incremental "
+    "development. Ensure that the refined goals align with the current project direction and contribute to its success.",
+    example=[
+        "Enhance user engagement through new features",
+        "Optimize performance for scalability",
+        "Integrate innovative UI enhancements",
+    ],
 )
 
 USER_STORIES = ActionNode(
@@ -55,6 +74,20 @@ USER_STORIES = ActionNode(
         "As a player, I want to get restart button when I lose",
         "As a player, I want to see beautiful UI that make me feel good",
         "As a player, I want to play game via mobile phone",
+    ],
+)
+
+REFINED_USER_STORIES = ActionNode(
+    key="Refined User Stories",
+    expected_type=List[str],
+    instruction="Update and expand the original scenario-based user stories to reflect the evolving needs due to "
+    "incremental development. Ensure that the refined user stories capture incremental features and improvements. ",
+    example=[
+        "As a player, I want to choose difficulty levels to challenge my skills",
+        "As a player, I want a visually appealing score display after each game for a better gaming experience",
+        "As a player, I want a convenient restart button displayed when I lose to quickly start a new game",
+        "As a player, I want an enhanced and aesthetically pleasing UI to elevate the overall gaming experience",
+        "As a player, I want the ability to play the game seamlessly on my mobile phone for on-the-go entertainment",
     ],
 )
 
@@ -97,10 +130,27 @@ REQUIREMENT_ANALYSIS = ActionNode(
     example="",
 )
 
+REFINED_REQUIREMENT_ANALYSIS = ActionNode(
+    key="Refined Requirement Analysis",
+    expected_type=List[str],
+    instruction="Review and refine the existing requirement analysis to align with the evolving needs of the project "
+    "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
+    "required for the refined project scope.",
+    example=["Require add/update/modify ..."],
+)
+
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=List[List[str]],
     instruction="List down the top-5 requirements with their priority (P0, P1, P2).",
+    example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
+)
+
+REFINED_REQUIREMENT_POOL = ActionNode(
+    key="Refined Requirement Pool",
+    expected_type=List[List[str]],
+    instruction="List down the top 5 to 7 requirements with their priority (P0, P1, P2). "
+    "Cover both legacy content and incremental content. Retain content unrelated to incremental development",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
 
@@ -152,15 +202,22 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
+REFINED_NODES = [
+    LANGUAGE,
+    PROGRAMMING_LANGUAGE,
+    REFINED_REQUIREMENTS,
+    PROJECT_NAME,
+    REFINED_PRODUCT_GOALS,
+    REFINED_USER_STORIES,
+    COMPETITIVE_ANALYSIS,
+    COMPETITIVE_QUADRANT_CHART,
+    REFINED_REQUIREMENT_ANALYSIS,
+    REFINED_REQUIREMENT_POOL,
+    UI_DESIGN_DRAFT,
+    ANYTHING_UNCLEAR,
+]
+
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
+REFINED_PRD_NODE = ActionNode.from_children("RefinedPRD", REFINED_NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
-
-
-def main():
-    prompt = WRITE_PRD_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()

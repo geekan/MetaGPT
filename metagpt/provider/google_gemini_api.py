@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+from typing import Optional, Union
+
 import google.generativeai as genai
 from google.ai import generativelanguage as glm
 from google.generativeai.generative_models import GenerativeModel
@@ -11,19 +13,11 @@ from google.generativeai.types.generation_types import (
     GenerateContentResponse,
     GenerationConfig,
 )
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
 
-from metagpt.config import CONFIG, LLMProviderEnum
-from metagpt.logs import log_llm_stream, logger
+from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -41,23 +35,25 @@ class GeminiGenerativeModel(GenerativeModel):
         return await self._async_client.count_tokens(model=self.model_name, contents=contents)
 
 
-@register_provider(LLMProviderEnum.GEMINI)
+@register_provider(LLMType.GEMINI)
 class GeminiLLM(BaseLLM):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """
 
-    def __init__(self):
+    def __init__(self, config: LLMConfig):
         self.use_system_prompt = False  # google gemini has no system prompt when use api
 
-        self.__init_gemini(CONFIG)
+        self.__init_gemini(config)
+        self.config = config
         self.model = "gemini-pro"  # so far only one model
+        self.pricing_plan = self.config.pricing_plan or self.model
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
-    def __init_gemini(self, config: CONFIG):
-        genai.configure(api_key=config.gemini_api_key)
+    def __init_gemini(self, config: LLMConfig):
+        genai.configure(api_key=config.api_key)
 
-    def _user_msg(self, msg: str) -> dict[str, str]:
+    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
         # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}
@@ -68,16 +64,6 @@ class GeminiLLM(BaseLLM):
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"contents": messages, "generation_config": GenerationConfig(temperature=0.3), "stream": stream}
         return kwargs
-
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        if CONFIG.calc_usage:
-            try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"google gemini updats costs failed! exp: {e}")
 
     def get_choice_text(self, resp: GenerateContentResponse) -> str:
         return resp.text
@@ -102,16 +88,16 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict]) -> "AsyncGenerateContentResponse":
+    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> "AsyncGenerateContentResponse":
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict]) -> dict:
-        return await self._achat_completion(messages)
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
+        return await self._achat_completion(messages, timeout=timeout)
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
             **self._const_kwargs(messages, stream=True)
         )
@@ -126,17 +112,3 @@ class GeminiLLM(BaseLLM):
         usage = await self.aget_usage(messages, full_content)
         self._update_costs(usage)
         return full_content
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_random_exponential(min=1, max=60),
-        after=after_log(logger, logger.level("WARNING").name),
-        retry=retry_if_exception_type(ConnectionError),
-        retry_error_callback=log_and_reraise,
-    )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
-        """response in async with stream or non-stream mode"""
-        if stream:
-            return await self._achat_completion_stream(messages)
-        resp = await self._achat_completion(messages)
-        return self.get_choice_text(resp)

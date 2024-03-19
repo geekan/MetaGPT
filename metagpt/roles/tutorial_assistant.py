@@ -40,7 +40,7 @@ class TutorialAssistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([WriteDirectory(language=self.language)])
+        self.set_actions([WriteDirectory(language=self.language)])
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _handle_directory(self, titles: Dict) -> Message:
@@ -63,7 +63,7 @@ class TutorialAssistant(Role):
             directory += f"- {key}\n"
             for second_dir in first_dir[key]:
                 directory += f"  - {second_dir}\n"
-        self._init_actions(actions)
+        self.set_actions(actions)
 
     async def _act(self) -> Message:
         """Perform an action as determined by the role.

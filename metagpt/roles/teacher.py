@@ -11,15 +11,12 @@
 
 import re
 
-import aiofiles
-
 from metagpt.actions import UserRequirement
 from metagpt.actions.write_teaching_plan import TeachingPlanBlock, WriteTeachingPlanPart
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, awrite
 
 
 class Teacher(Role):
@@ -34,11 +31,11 @@ class Teacher(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = WriteTeachingPlanPart.format_value(self.name)
-        self.profile = WriteTeachingPlanPart.format_value(self.profile)
-        self.goal = WriteTeachingPlanPart.format_value(self.goal)
-        self.constraints = WriteTeachingPlanPart.format_value(self.constraints)
-        self.desc = WriteTeachingPlanPart.format_value(self.desc)
+        self.name = WriteTeachingPlanPart.format_value(self.name, self.context)
+        self.profile = WriteTeachingPlanPart.format_value(self.profile, self.context)
+        self.goal = WriteTeachingPlanPart.format_value(self.goal, self.context)
+        self.constraints = WriteTeachingPlanPart.format_value(self.constraints, self.context)
+        self.desc = WriteTeachingPlanPart.format_value(self.desc, self.context)
 
     async def _think(self) -> bool:
         """Everything will be done part by part."""
@@ -48,9 +45,9 @@ class Teacher(Role):
             actions = []
             print(TeachingPlanBlock.TOPICS)
             for topic in TeachingPlanBlock.TOPICS:
-                act = WriteTeachingPlanPart(context=self.rc.news[0].content, topic=topic, llm=self.llm)
+                act = WriteTeachingPlanPart(i_context=self.rc.news[0].content, topic=topic, llm=self.llm)
                 actions.append(act)
-            self._init_actions(actions)
+            self.set_actions(actions)
 
         if self.rc.todo is None:
             self._set_state(0)
@@ -60,7 +57,7 @@ class Teacher(Role):
             self._set_state(self.rc.state + 1)
             return True
 
-        self.rc.todo = None
+        self.set_todo(None)
         return False
 
     async def _react(self) -> Message:
@@ -81,14 +78,10 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = CONFIG.workspace_path / "teaching_plan"
+        pathname = self.config.workspace.path / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
-        try:
-            async with aiofiles.open(str(pathname), mode="w", encoding="utf-8") as writer:
-                await writer.write(content)
-        except Exception as e:
-            logger.error(f"Save failed：{e}")
+        await awrite(pathname, content)
         logger.info(f"Save to:{pathname}")
 
     @staticmethod

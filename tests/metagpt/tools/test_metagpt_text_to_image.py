@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 
 
@@ -24,7 +24,7 @@ async def test_draw(mocker):
     mock_post.return_value.__aenter__.return_value = mock_response
 
     # Prerequisites
-    assert CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    assert config.metagpt_tti_url
 
     binary_data = await oas3_metagpt_text_to_image("Panda emoji")
     assert binary_data

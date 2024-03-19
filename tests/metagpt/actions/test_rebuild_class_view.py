@@ -11,27 +11,29 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.rebuild_class_view import RebuildClassView
-from metagpt.config import CONFIG
-from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.llm import LLM
 
 
 @pytest.mark.asyncio
-async def test_rebuild():
+async def test_rebuild(context):
     action = RebuildClassView(
-        name="RedBean", context=str(Path(__file__).parent.parent.parent.parent / "metagpt"), llm=LLM()
+        name="RedBean",
+        i_context=str(Path(__file__).parent.parent.parent.parent / "metagpt"),
+        llm=LLM(),
+        context=context,
     )
     await action.run()
-    graph_file_repo = CONFIG.git_repo.new_file_repository(relative_path=GRAPH_REPO_FILE_REPO)
-    assert graph_file_repo.changed_files
+    rows = await action.graph_db.select()
+    assert rows
+    assert context.repo.docs.graph_repo.changed_files
 
 
 @pytest.mark.parametrize(
     ("path", "direction", "diff", "want"),
     [
-        ("metagpt/startup.py", "=", ".", "metagpt/startup.py"),
-        ("metagpt/startup.py", "+", "MetaGPT", "MetaGPT/metagpt/startup.py"),
-        ("metagpt/startup.py", "-", "metagpt", "startup.py"),
+        ("metagpt/software_company.py", "=", ".", "metagpt/software_company.py"),
+        ("metagpt/software_company.py", "+", "MetaGPT", "MetaGPT/metagpt/software_company.py"),
+        ("metagpt/software_company.py", "-", "metagpt", "software_company.py"),
     ],
 )
 def test_align_path(path, direction, diff, want):
@@ -45,6 +47,12 @@ def test_align_path(path, direction, diff, want):
         ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT/metagpt", "=", "."),
         ("/Users/x/github/MetaGPT", "/Users/x/github/MetaGPT/metagpt", "-", "metagpt"),
         ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT", "+", "metagpt"),
+        (
+            "/Users/x/github/MetaGPT-env/lib/python3.9/site-packages/moviepy",
+            "/Users/x/github/MetaGPT-env/lib/python3.9/site-packages/",
+            "+",
+            "moviepy",
+        ),
     ],
 )
 def test_diff_path(path_root, package_root, want_direction, want_diff):

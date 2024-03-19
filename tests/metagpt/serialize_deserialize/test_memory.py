@@ -9,11 +9,11 @@ from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.design_api import WriteDesign
 from metagpt.memory.memory import Memory
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import serdeser_path
 
 
-def test_memory_serdeser():
+def test_memory_serdeser(context):
     msg1 = Message(role="Boss", content="write a snake game", cause_by=UserRequirement)
 
     out_mapping = {"field2": (list[str], ...)}
@@ -39,7 +39,7 @@ def test_memory_serdeser():
     assert memory.count() == 2
 
 
-def test_memory_serdeser_save():
+def test_memory_serdeser_save(context):
     msg1 = Message(role="User", content="write a 2048 game", cause_by=UserRequirement)
 
     out_mapping = {"field1": (list[str], ...)}
@@ -53,14 +53,14 @@ def test_memory_serdeser_save():
     memory.add_batch([msg1, msg2])
 
     stg_path = serdeser_path.joinpath("team", "environment")
-    memory.serialize(stg_path)
-    assert stg_path.joinpath("memory.json").exists()
+    memory_path = stg_path.joinpath("memory.json")
+    write_json_file(memory_path, memory.model_dump())
+    assert memory_path.exists()
 
-    new_memory = Memory.deserialize(stg_path)
+    memory_dict = read_json_file(memory_path)
+    new_memory = Memory(**memory_dict)
     assert new_memory.count() == 2
     new_msg2 = new_memory.get(1)[0]
     assert new_msg2.instruct_content.field1 == ["field1 value1", "field1 value2"]
     assert new_msg2.cause_by == any_to_str(WriteDesign)
     assert len(new_memory.index) == 2
-
-    stg_path.joinpath("memory.json").unlink()

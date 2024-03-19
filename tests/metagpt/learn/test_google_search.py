@@ -1,27 +1,21 @@
-import asyncio
-
+import pytest
 from pydantic import BaseModel
 
 from metagpt.learn.google_search import google_search
+from metagpt.tools import SearchEngineType
 
 
-async def mock_google_search():
+@pytest.mark.asyncio
+async def test_google_search(search_engine_mocker):
     class Input(BaseModel):
         input: str
 
     inputs = [{"input": "ai agent"}]
-
     for i in inputs:
         seed = Input(**i)
-        result = await google_search(seed.input)
+        result = await google_search(
+            seed.input,
+            engine=SearchEngineType.SERPER_GOOGLE,
+            api_key="mock-serper-key",
+        )
         assert result != ""
-
-
-def test_suite():
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(mock_google_search())
-    loop.run_until_complete(task)
-
-
-if __name__ == "__main__":
-    test_suite()

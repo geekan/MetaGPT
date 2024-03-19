@@ -13,7 +13,7 @@ from metagpt.actions.action import Action
 
 class WritePRDReview(Action):
     name: str = ""
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     prd: Optional[str] = None
     desc: str = "Based on the PRD, conduct a PRD Review, providing clear and detailed feedback"

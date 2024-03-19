@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 
 REQUIRED_PYTHON_PACKAGES = ActionNode(
     key="Required Python packages",
@@ -35,11 +34,34 @@ LOGIC_ANALYSIS = ActionNode(
     ],
 )
 
+REFINED_LOGIC_ANALYSIS = ActionNode(
+    key="Refined Logic Analysis",
+    expected_type=List[List[str]],
+    instruction="Review and refine the logic analysis by merging the Legacy Content and Incremental Content. "
+    "Provide a comprehensive list of files with classes/methods/functions to be implemented or modified incrementally. "
+    "Include dependency analysis, consider potential impacts on existing code, and document necessary imports.",
+    example=[
+        ["game.py", "Contains Game class and ... functions"],
+        ["main.py", "Contains main function, from game import Game"],
+        ["new_feature.py", "Introduces NewFeature class and related functions"],
+        ["utils.py", "Modifies existing utility functions to support incremental changes"],
+    ],
+)
+
 TASK_LIST = ActionNode(
     key="Task list",
     expected_type=List[str],
     instruction="Break down the tasks into a list of filenames, prioritized by dependency order.",
     example=["game.py", "main.py"],
+)
+
+REFINED_TASK_LIST = ActionNode(
+    key="Refined Task list",
+    expected_type=List[str],
+    instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content, "
+    "and consistent with Refined File List. Ensure that tasks are organized in a logical and prioritized order, "
+    "considering dependencies for a streamlined and efficient development process. ",
+    example=["new_feature.py", "utils", "game.py", "main.py"],
 )
 
 FULL_API_SPEC = ActionNode(
@@ -54,8 +76,18 @@ SHARED_KNOWLEDGE = ActionNode(
     key="Shared Knowledge",
     expected_type=str,
     instruction="Detail any shared knowledge, like common utility functions or configuration variables.",
-    example="'game.py' contains functions shared across the project.",
+    example="`game.py` contains functions shared across the project.",
 )
+
+REFINED_SHARED_KNOWLEDGE = ActionNode(
+    key="Refined Shared Knowledge",
+    expected_type=str,
+    instruction="Update and expand shared knowledge to reflect any new elements introduced. This includes common "
+    "utility functions, configuration variables for team collaboration. Retain content that is not related to "
+    "incremental development but important for consistency and clarity.",
+    example="`new_module.py` enhances shared utility functions for improved code reusability and collaboration.",
+)
+
 
 ANYTHING_UNCLEAR_PM = ActionNode(
     key="Anything UNCLEAR",
@@ -74,14 +106,15 @@ NODES = [
     ANYTHING_UNCLEAR_PM,
 ]
 
+REFINED_NODES = [
+    REQUIRED_PYTHON_PACKAGES,
+    REQUIRED_OTHER_LANGUAGE_PACKAGES,
+    REFINED_LOGIC_ANALYSIS,
+    REFINED_TASK_LIST,
+    FULL_API_SPEC,
+    REFINED_SHARED_KNOWLEDGE,
+    ANYTHING_UNCLEAR_PM,
+]
 
 PM_NODE = ActionNode.from_children("PM_NODE", NODES)
-
-
-def main():
-    prompt = PM_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()
+REFINED_PM_NODE = ActionNode.from_children("REFINED_PM_NODE", REFINED_NODES)

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Set
 
@@ -36,7 +37,9 @@ class DependencyFile:
         """Load dependencies from the file asynchronously."""
         if not self._filename.exists():
             return
-        self._dependencies = json.loads(await aread(self._filename))
+        json_data = await aread(self._filename)
+        json_data = re.sub(r"\\+", "/", json_data)  # Compatible with windows path
+        self._dependencies = json.loads(json_data)
 
     @handle_exception
     async def save(self):
@@ -57,20 +60,22 @@ class DependencyFile:
 
         root = self._filename.parent
         try:
-            key = Path(filename).relative_to(root)
+            key = Path(filename).relative_to(root).as_posix()
         except ValueError:
             key = filename
-
+        key = str(key)
         if dependencies:
             relative_paths = []
             for i in dependencies:
                 try:
-                    relative_paths.append(str(Path(i).relative_to(root)))
+                    s = str(Path(i).relative_to(root).as_posix())
                 except ValueError:
-                    relative_paths.append(str(i))
-            self._dependencies[str(key)] = relative_paths
-        elif str(key) in self._dependencies:
-            del self._dependencies[str(key)]
+                    s = str(i)
+                relative_paths.append(s)
+
+            self._dependencies[key] = relative_paths
+        elif key in self._dependencies:
+            del self._dependencies[key]
 
         if persist:
             await self.save()
@@ -87,7 +92,7 @@ class DependencyFile:
 
         root = self._filename.parent
         try:
-            key = Path(filename).relative_to(root)
+            key = Path(filename).relative_to(root).as_posix()
         except ValueError:
             key = filename
         return set(self._dependencies.get(str(key), {}))
