@@ -123,9 +123,6 @@ class DataInterpreter(Role):
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
             ### execute code ###
-            import pdb
-
-            pdb.set_trace()
             result, success = await self.execute_code.run(code)
             print(result)
 
