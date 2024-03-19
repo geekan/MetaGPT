@@ -1,4 +1,5 @@
 import re
+import re
 
 
 def extract_diff(response):
