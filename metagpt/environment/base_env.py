@@ -129,8 +129,8 @@ class Environment(ExtEnv):
             self.roles[role.profile] = role
 
         for role in roles:  # setup system message with roles
-            role.set_env(self)
             role.context = self.context
+            role.set_env(self)
 
     def publish_message(self, message: Message, peekable: bool = True) -> bool:
         """
