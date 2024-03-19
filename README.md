@@ -185,7 +185,7 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-To stay updated with the latest research and development, follow [MetaGPT_](https://twitter.com/MetaGPT_) on Twitter. 
+To stay updated with the latest research and development, follow [@MetaGPT_](https://twitter.com/MetaGPT_) on Twitter. 
 
 To cite [MetaGPT](https://arxiv.org/abs/2308.00352) or [Data Interpreter](https://arxiv.org/abs/2402.18679) in publications, please use the following BibTeX entries.
 
