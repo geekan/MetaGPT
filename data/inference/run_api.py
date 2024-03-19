@@ -10,12 +10,12 @@ from make_datasets.utils import extract_diff
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from tqdm.auto import tqdm
 
+from data.inference.const import SCIKIT_LEARN_IDS
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.utils import count_string_tokens
 from metagpt.utils.recovery_util import save_history
-from data.inference.const import SCIKIT_LEARN_IDS
 
 # Replace with your own
 MAX_TOKEN = 128000
@@ -71,7 +71,7 @@ async def openai_inference(
         for datum in tqdm(test_dataset, desc=f"Inference for {model_name_or_path}"):
             di = DataInterpreter(use_reflection=use_reflection)
             instance_id = datum["instance_id"]
-            
+
             if instance_id in existing_ids:
                 continue
             output_dict = {"instance_id": instance_id}
