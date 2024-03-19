@@ -3,6 +3,12 @@
 The index of sub_swebench is a subset of swebench, with two columns in total, each column containing 50 id_instance.
 
 The id_instance is a balanced subset of pass and fail samples for CognitionAI on swebench.
+
+The index of  scikit-learn-68 is another subset of CognitionAI in swebench (all tasks of the scikit-learn type), with a total of two columns：
+
+- pass：12 
+- fail：56
+
 Sampling list:https://github.com/CognitionAI/devin-swebench-results/tree/main/
 Original dataset：https://huggingface.co/datasets/princeton-nlp/SWE-bench/
 
@@ -69,3 +75,11 @@ There are a total of 50 txt files listed.
 - Xarray (pydata): 2
 - Matplotlib: 2
 - Sphinx: 1
+
+
+
+##  scikit-learn-68 dataset Description：
+
+instance_id_pass:12
+
+instance_id_pass:56
