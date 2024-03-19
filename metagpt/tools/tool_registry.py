@@ -10,26 +10,20 @@ from __future__ import annotations
 import inspect
 import os
 from collections import defaultdict
+from typing import Union
 
 import yaml
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_convert import convert_code_to_tool_schema
-from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolTypeDef
-from metagpt.tools.tool_type import ToolType
+from metagpt.tools.tool_data_type import Tool, ToolSchema
 
 
 class ToolRegistry(BaseModel):
     tools: dict = {}
-    tool_types: dict = {}
-    tools_by_types: dict = defaultdict(dict)  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
-
-    @field_validator("tool_types", mode="before")
-    @classmethod
-    def init_tool_types(cls, tool_types: ToolType):
-        return {tool_type.type_name: tool_type.value for tool_type in tool_types}
+    tools_by_tags: dict = defaultdict(dict)  # two-layer k-v, {tag: {tool_name: {...}, ...}, ...}
 
     def register_tool(
         self,
@@ -37,25 +31,15 @@ class ToolRegistry(BaseModel):
         tool_path,
         schema_path="",
         tool_code="",
-        tool_type="other",
+        tags=None,
         tool_source_object=None,
-        include_functions=[],
+        include_functions=None,
         verbose=False,
     ):
         if self.has_tool(tool_name):
             return
 
-        if tool_type not in self.tool_types:
-            # register new tool type on the fly
-            logger.warning(
-                f"{tool_type} not previously defined, will create a temporary tool type with just a name. This tool type is only effective during this runtime. You may consider add this tool type with more configs permanently at metagpt.tools.tool_type"
-            )
-            temp_tool_type_obj = ToolTypeDef(name=tool_type)
-            self.tool_types[tool_type] = temp_tool_type_obj
-            if verbose:
-                logger.info(f"tool type {tool_type} registered")
-
-        schema_path = schema_path or TOOL_SCHEMA_PATH / tool_type / f"{tool_name}.yml"
+        schema_path = schema_path or TOOL_SCHEMA_PATH / f"{tool_name}.yml"
 
         schemas = make_schema(tool_source_object, include_functions, schema_path)
 
@@ -70,10 +54,11 @@ class ToolRegistry(BaseModel):
             # logger.warning(
             #     f"{tool_name} schema not conforms to required format, but will be used anyway. Mismatch: {e}"
             # )
-
-        tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code)
+        tags = tags or []
+        tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code, tags=tags)
         self.tools[tool_name] = tool
-        self.tools_by_types[tool_type][tool_name] = tool
+        for tag in tags:
+            self.tools_by_tags[tag].update({tool_name: tool})
         if verbose:
             logger.info(f"{tool_name} registered")
             logger.info(f"schema made at {str(schema_path)}, can be used for checking")
@@ -84,24 +69,24 @@ class ToolRegistry(BaseModel):
     def get_tool(self, key) -> Tool:
         return self.tools.get(key)
 
-    def get_tools_by_type(self, key) -> dict[str, Tool]:
-        return self.tools_by_types.get(key, {})
+    def get_tools_by_tag(self, key) -> dict[str, Tool]:
+        return self.tools_by_tags.get(key, {})
 
-    def has_tool_type(self, key) -> bool:
-        return key in self.tool_types
+    def get_all_tools(self) -> dict[str, Tool]:
+        return self.tools
 
-    def get_tool_type(self, key) -> ToolType:
-        return self.tool_types.get(key)
+    def has_tool_tag(self, key) -> bool:
+        return key in self.tools_by_tags
 
-    def get_tool_types(self) -> dict[str, ToolType]:
-        return self.tool_types
+    def get_tool_tags(self) -> list[str]:
+        return list(self.tools_by_tags.keys())
 
 
 # Registry instance
-TOOL_REGISTRY = ToolRegistry(tool_types=ToolType)
+TOOL_REGISTRY = ToolRegistry()
 
 
-def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):
+def register_tool(tags: list[str] = None, schema_path: str = "", **kwargs):
     """register a tool to registry"""
 
     def decorator(cls):
@@ -117,7 +102,7 @@ def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):
             tool_path=file_path,
             schema_path=schema_path,
             tool_code=source_code,
-            tool_type=tool_type,
+            tags=tags,
             tool_source_object=cls,
             **kwargs,
         )
@@ -142,14 +127,15 @@ def make_schema(tool_source_object, include, path):
     return schema
 
 
-def validate_tool_names(tools: list[str], return_tool_object=False) -> list[str]:
-    valid_tools = []
-    for tool_name in tools:
-        if not TOOL_REGISTRY.has_tool(tool_name):
-            logger.warning(
-                f"Specified tool {tool_name} not found and was skipped. Check if you have registered it properly"
-            )
+def validate_tool_names(tools: Union[list[str], str]) -> str:
+    assert isinstance(tools, list), "tools must be a list of str"
+    valid_tools = {}
+    for key in tools:
+        # one can define either tool names or tool type names, take union to get the whole set
+        if TOOL_REGISTRY.has_tool(key):
+            valid_tools.update({key: TOOL_REGISTRY.get_tool(key)})
+        elif TOOL_REGISTRY.has_tool_tag(key):
+            valid_tools.update(TOOL_REGISTRY.get_tools_by_tag(key))
         else:
-            valid_tool = TOOL_REGISTRY.get_tool(tool_name) if return_tool_object else tool_name
-            valid_tools.append(valid_tool)
+            logger.warning(f"invalid tool name or tool type name: {key}, skipped")
     return valid_tools

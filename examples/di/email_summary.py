@@ -22,7 +22,7 @@ async def main():
             Firstly, Please help me fetch the latest 5 senders and full letter contents.
             Then, summarize each of the 5 emails into one sentence (you can do this by yourself, no need to import other models to do this) and output them in a markdown format."""
 
-    di = DataInterpreter(use_tools=True)
+    di = DataInterpreter()
 
     await di.run(prompt)
 

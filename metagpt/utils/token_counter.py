@@ -48,6 +48,8 @@ TOKEN_COSTS = {
     "claude-2.1": {"prompt": 0.008, "completion": 0.024},
     "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
+    "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
+    "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
 }
 
 
@@ -140,25 +142,24 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
+# https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
-    "gpt-3.5-turbo": 4096,
-    "gpt-3.5-turbo-0301": 4096,
-    "gpt-3.5-turbo-0613": 4096,
-    "gpt-3.5-turbo-16k": 16384,
-    "gpt-3.5-turbo-16k-0613": 16384,
-    "gpt-35-turbo": 4096,
-    "gpt-35-turbo-16k": 16384,
-    "gpt-3.5-turbo-1106": 16384,
-    "gpt-4-0314": 8192,
-    "gpt-4": 8192,
-    "gpt-4-32k": 32768,
-    "gpt-4-32k-0314": 32768,
-    "gpt-4-0613": 8192,
-    "gpt-4-turbo-preview": 128000,
     "gpt-4-0125-preview": 128000,
+    "gpt-4-turbo-preview": 128000,
     "gpt-4-1106-preview": 128000,
     "gpt-4-vision-preview": 128000,
     "gpt-4-1106-vision-preview": 128000,
+    "gpt-4": 8192,
+    "gpt-4-0613": 8192,
+    "gpt-4-32k": 32768,
+    "gpt-4-32k-0613": 32768,
+    "gpt-3.5-turbo-0125": 16385,
+    "gpt-3.5-turbo": 16385,
+    "gpt-3.5-turbo-1106": 16385,
+    "gpt-3.5-turbo-instruct": 4096,
+    "gpt-3.5-turbo-16k": 16385,
+    "gpt-3.5-turbo-0613": 4096,
+    "gpt-3.5-turbo-16k-0613": 16385,
     "text-embedding-ada-002": 8192,
     "glm-3-turbo": 128000,
     "glm-4": 128000,
@@ -176,10 +177,12 @@ TOKEN_MAX = {
     "claude-2.1": 200000,
     "claude-3-sonnet-20240229": 200000,
     "claude-3-opus-20240229": 200000,
+    "yi-34b-chat-0205": 4000,
+    "yi-34b-chat-200k": 200000,
 }
 
 
-def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
+def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -209,8 +212,8 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif "gpt-3.5-turbo" == model:
-        print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
-        return count_message_tokens(messages, model="gpt-3.5-turbo-0613")
+        print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125.")
+        return count_message_tokens(messages, model="gpt-3.5-turbo-0125")
     elif "gpt-4" == model:
         print("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
         return count_message_tokens(messages, model="gpt-4-0613")

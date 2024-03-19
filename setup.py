@@ -42,7 +42,7 @@ extras_require["test"] = [
     "connexion[uvicorn]~=3.0.5",
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=11.3.0",
-    "chromadb==0.4.14",
+    "chromadb==0.4.23",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
     "pylint==3.0.3",
