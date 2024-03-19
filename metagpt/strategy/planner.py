@@ -164,8 +164,9 @@ class Planner(BaseModel):
         code_written = "\n\n".join(code_written)
         task_results = [task.result for task in finished_tasks]
         task_results = "\n\n".join(task_results)
-        task_type_name = self.current_task.task_type.upper()
-        guidance = TaskType[task_type_name].value.guidance if hasattr(TaskType, task_type_name) else ""
+        task_type_name = self.current_task.task_type
+        task_type = TaskType.get_type(task_type_name)
+        guidance = task_type.guidance if task_type else ""
 
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
