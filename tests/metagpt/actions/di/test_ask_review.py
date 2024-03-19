@@ -3,13 +3,14 @@ import pytest
 from metagpt.actions.di.ask_review import AskReview, ReviewConst
 from metagpt.schema import AIMessage, Message, Plan, Task
 
-# @pytest.mark.asyncio
-# async def test_ask_review(mocker):
-#     mock_review_input = "confirm"
-#     mocker.patch("builtins.input", return_value=mock_review_input)
-#     rsp, confirmed = await AskReview().run(review_type="human")
-#     assert rsp == mock_review_input
-#     assert confirmed
+
+@pytest.mark.asyncio
+async def test_ask_review(mocker):
+    mock_review_input = "confirm"
+    mocker.patch("builtins.input", return_value=mock_review_input)
+    rsp, confirmed = await AskReview().run(review_type="human")
+    assert rsp == mock_review_input
+    assert confirmed
 
 
 @pytest.mark.asyncio
