@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2024/01/15
+@Author  : mannaandpoem
+@File    : imitate_webpage.py
+"""
+from metagpt.roles.di.data_interpreter import DataInterpreter
+
+
+async def main():
+    template = "https://arxiv.org/list/{tag}/pastweek?skip=0&show=300"
+    tags = ["cs.ai", "cs.cl", "cs.lg", "cs.se"]
+    urls = [template.format(tag=tag) for tag in tags]
+    prompt = f"""This is a collection of arxiv urls: '{urls}' .
+Record each article, remove duplicates by title (they may have multiple tags), filter out papers related to 
+large language model / agent / , and pay attention to maintaining the original order as much as possible"""
+    di = DataInterpreter(react_mode="react", tools=["scrape_web_playwright"])
+
+    await di.run(prompt)
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(main())
