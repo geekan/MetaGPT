@@ -72,6 +72,7 @@ class EnvManager:
             gitignore_path = Path(".gitignore")
             if gitignore_path.exists():
                 self.exec(["git", "ls-files", "--ignored", "--exclude-standard", "-o", "-z"], raise_error=False)
+                # fixme: need detect platform and change this cmd
                 # self.exec(["xargs", "-0", "-r", "rm", "-rf"], input=gitignore_path.read_text())
 
             self.exec(["git", "restore", "."])
