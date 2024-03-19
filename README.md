@@ -63,12 +63,18 @@
 > You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-pip install metagpt
-# https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
-metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
+pip install --upgrade metagpt
+# or `pip install --upgrade git+https://github.com/geekan/MetaGPT.git`
+# or `git clone https://github.com/geekan/MetaGPT && cd MetaGPT && pip install --upgrade -e .`
 ```
 
 ### Configuration
+
+You can init the config of MetaGPT by running the following command, or manually create `~/.metagpt/config2.yaml` file:
+```bash
+# Check https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html for more details
+metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
+```
 
 You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
 
