@@ -249,5 +249,7 @@ class BaseLLM(ABC):
             elif isinstance(msg, Message):
                 processed_messages.append(msg.to_dict())
             else:
-                raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
+                raise ValueError(
+                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
+                )
         return processed_messages

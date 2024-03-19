@@ -120,7 +120,7 @@ class GeminiLLM(BaseLLM):
 
         # Modify the processed messages as needed for Gemini
         for msg in processed_messages:
-            if 'content' in msg:
-                msg['parts'] = msg.pop('content')
+            if "content" in msg:
+                msg["parts"] = msg.pop("content")
 
         return processed_messages

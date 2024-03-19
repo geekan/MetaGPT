@@ -19,7 +19,6 @@ from metagpt.prompts.di.write_analysis_code import (
 )
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser, remove_comments
-from metagpt.provider.base_llm import BaseLLM
 
 
 class WriteAnalysisCode(Action):
