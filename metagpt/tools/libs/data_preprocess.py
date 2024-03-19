@@ -171,7 +171,7 @@ class OneHotEncode(DataPreprocessTool):
 
     def __init__(self, features: list):
         self.features = features
-        self.model = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        self.model = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         ts_data = self.model.transform(df[self.features])
