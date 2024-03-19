@@ -14,7 +14,7 @@ async def main():
     urls = [template.format(tag=tag) for tag in tags]
     prompt = f"""This is a collection of arxiv urls: '{urls}' .
 Record each article, remove duplicates by title (they may have multiple tags), filter out papers related to 
-large language model / agent / llm, and visualize the word count of the titles"""
+large language model / agent / llm, print top 100 and visualize the word count of the titles"""
     di = DataInterpreter(react_mode="react", tools=["scrape_web_playwright"])
 
     await di.run(prompt)
