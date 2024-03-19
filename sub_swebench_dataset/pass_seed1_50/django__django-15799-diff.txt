@@ -1,0 +1,26 @@
+diff --git a/django/contrib/admin/options.py b/django/contrib/admin/options.py
+index a25814b5fb..e1b5ec4d94 100644
+--- a/django/contrib/admin/options.py
++++ b/django/contrib/admin/options.py
+@@ -314,16 +314,11 @@ class BaseModelAdmin(metaclass=forms.MediaDefiningClass):
+                 kwargs["queryset"] = queryset
+ 
+         form_field = db_field.formfield(**kwargs)
+-        if isinstance(form_field.widget, SelectMultiple) and not isinstance(
+-            form_field.widget, (CheckboxSelectMultiple, AutocompleteSelectMultiple)
+-        ):
+-            msg = _(
+-                "Hold down “Control”, or “Command” on a Mac, to select more than one."
+-            )
+-            help_text = form_field.help_text
+-            form_field.help_text = (
+-                format_lazy("{} {}", help_text, msg) if help_text else msg
+-            )
++        if isinstance(form_field.widget, SelectMultiple):
++            if getattr(form_field.widget, 'allow_multiple_selected', False):
++                msg = _("Hold down “Control”, or “Command” on a Mac, to select more than one.")
++                help_text = form_field.help_text
++                form_field.help_text = format_lazy("{} {}", help_text, msg) if help_text else msg
+         return form_field
+ 
+     def get_autocomplete_fields(self, request):

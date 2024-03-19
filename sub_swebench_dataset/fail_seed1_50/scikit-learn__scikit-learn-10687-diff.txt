@@ -1,0 +1,17 @@
+diff --git a/sklearn/linear_model/coordinate_descent.py b/sklearn/linear_model/coordinate_descent.py
+index 32de16e2f..1ca4ad717 100644
+--- a/sklearn/linear_model/coordinate_descent.py
++++ b/sklearn/linear_model/coordinate_descent.py
+@@ -447,7 +447,11 @@ def enet_path(X, y, l1_ratio=0.5, eps=1e-3, n_alphas=100, alphas=None,
+                          dtype=X.dtype)
+ 
+     if coef_init is None:
+-        coef_ = np.asfortranarray(np.zeros(coefs.shape[:-1], dtype=X.dtype))
++        if self.fit_intercept:
++            # Plus one for intercept is not needed when fit_intercept=False
++            coef_ = np.asfortranarray(np.zeros(coefs.shape[:-1] + (1,), dtype=X.dtype))
++        else:
++            coef_ = np.asfortranarray(np.zeros(coefs.shape[:-1], dtype=X.dtype))
+     else:
+         coef_ = np.asfortranarray(coef_init, dtype=X.dtype)
+ 

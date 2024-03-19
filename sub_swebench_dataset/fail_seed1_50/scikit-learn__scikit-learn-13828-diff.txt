@@ -1,0 +1,91 @@
+diff --git a/sklearn/cluster/affinity_propagation_.py b/sklearn/cluster/affinity_propagation_.py
+index 1ee5213e0..ca54574ec 100644
+--- a/sklearn/cluster/affinity_propagation_.py
++++ b/sklearn/cluster/affinity_propagation_.py
+@@ -111,8 +111,17 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+     if S.shape[0] != S.shape[1]:
+         raise ValueError("S must be a square array (shape=%s)" % repr(S.shape))
+ 
++    from scipy.sparse import issparse, csr_matrix
++
+     if preference is None:
+-        preference = np.median(S)
++        if issparse(S):
++            # Convert sparse matrix to CSR format for efficient operations
++            S_csr = csr_matrix(S)
++            # Calculate the median for sparse matrix
++            # This is a placeholder, actual implementation will vary
++            preference = calculate_sparse_median(S_csr)
++        else:
++            preference = np.median(S)
+     if damping < 0.5 or damping >= 1:
+         raise ValueError('damping must be >= 0.5 and < 1')
+ 
+@@ -125,13 +134,9 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+         warnings.warn("All samples have mutually equal similarities. "
+                       "Returning arbitrary cluster center(s).")
+         if preference.flat[0] >= S.flat[n_samples - 1]:
+-            return ((np.arange(n_samples), np.arange(n_samples), 0)
+-                    if return_n_iter
+-                    else (np.arange(n_samples), np.arange(n_samples)))
++            return (np.arange(n_samples), np.arange(n_samples), 0) if return_n_iter else (np.arange(n_samples), np.arange(n_samples), None)
+         else:
+-            return ((np.array([0]), np.array([0] * n_samples), 0)
+-                    if return_n_iter
+-                    else (np.array([0]), np.array([0] * n_samples)))
++            return (np.array([0]), np.array([0] * n_samples), 0) if return_n_iter else (np.array([0]), np.array([0] * n_samples), None)
+ 
+     random_state = np.random.RandomState(0)
+ 
+@@ -149,8 +154,9 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+ 
+     # Execute parallel affinity propagation updates
+     e = np.zeros((n_samples, convergence_iter))
+-
++    E = np.zeros(n_samples, dtype=bool)
+     ind = np.arange(n_samples)
++    it = 0
+ 
+     for it in range(max_iter):
+         # tmp = A + S; compute responsibilities
+@@ -225,11 +231,27 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+         labels = np.array([-1] * n_samples)
+         cluster_centers_indices = []
+ 
+-    if return_n_iter:
+-        return cluster_centers_indices, labels, it + 1
+-    else:
+-        return cluster_centers_indices, labels
++    return (cluster_centers_indices, labels, it + 1) if return_n_iter else (cluster_centers_indices, labels, None)
++
++def calculate_sparse_median(S_csr):
++    """
++    Calculate the median of the non-zero values in a sparse CSR matrix.
+ 
++    Parameters
++    ----------
++    S_csr : scipy.sparse.csr_matrix
++        Input sparse matrix in Compressed Sparse Row format.
++
++    Returns
++    -------
++    median_value : float
++        The median value of the non-zero elements in the sparse matrix.
++    """
++    # Convert the sparse matrix to a dense 1D array of non-zero values
++    non_zero_values = S_csr.data
++    # Calculate the median of the non-zero values
++    median_value = np.median(non_zero_values)
++    return median_value
+ 
+ ###############################################################################
+ 
+@@ -364,7 +386,7 @@ class AffinityPropagation(BaseEstimator, ClusterMixin):
+         y : Ignored
+ 
+         """
+-        X = check_array(X, accept_sparse='csr')
++        X = check_array(X, accept_sparse=True)
+         if self.affinity == "precomputed":
+             self.affinity_matrix_ = X
+         elif self.affinity == "euclidean":

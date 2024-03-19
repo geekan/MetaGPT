@@ -1,0 +1,43 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index 9d621c4f69..12dcfc1c8a 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -926,20 +926,24 @@ class QuerySet(AltersData):
+             **kwargs,
+         )
+ 
+-    def update_or_create(self, defaults=None, **kwargs):
++    def update_or_create(self, defaults=None, create_defaults=None, **kwargs):
+         """
+         Look up an object with the given kwargs, updating one with defaults
+-        if it exists, otherwise create a new one.
++        if it exists, otherwise create a new one with create_defaults.
+         Return a tuple (object, created), where created is a boolean
+         specifying whether an object was created.
+         """
+         defaults = defaults or {}
++        create_defaults = create_defaults or {}
+         self._for_write = True
+         with transaction.atomic(using=self.db):
+             # Lock the row so that a concurrent update is blocked until
+             # update_or_create() has performed its save.
+             obj, created = self.select_for_update().get_or_create(defaults, **kwargs)
+             if created:
++                for k, v in resolve_callables(create_defaults):
++                    setattr(obj, k, v)
++                obj.save(using=self.db)
+                 return obj, created
+             for k, v in resolve_callables(defaults):
+                 setattr(obj, k, v)
+@@ -964,9 +968,10 @@ class QuerySet(AltersData):
+                 obj.save(using=self.db)
+         return obj, False
+ 
+-    async def aupdate_or_create(self, defaults=None, **kwargs):
++    async def aupdate_or_create(self, defaults=None, create_defaults=None, **kwargs):
+         return await sync_to_async(self.update_or_create)(
+             defaults=defaults,
++            create_defaults=create_defaults,
+             **kwargs,
+         )
+ 

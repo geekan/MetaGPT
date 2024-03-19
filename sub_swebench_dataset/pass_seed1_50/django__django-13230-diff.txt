@@ -1,0 +1,21 @@
+diff --git a/django/contrib/syndication/views.py b/django/contrib/syndication/views.py
+index 68ffb0bfe0..c7286b7ab8 100644
+--- a/django/contrib/syndication/views.py
++++ b/django/contrib/syndication/views.py
+@@ -165,7 +165,7 @@ class Feed:
+             except TemplateDoesNotExist:
+                 pass
+ 
+-        for item in self._get_dynamic_attr('items', obj):
++        for item in self._get_dynamic_attr('items', obj, []):
+             context = self.get_context_data(item=item, site=current_site,
+                                             obj=obj, request=request)
+             if title_tmp is not None:
+@@ -213,6 +213,7 @@ class Feed:
+                 author_email=author_email,
+                 author_link=author_link,
+                 categories=self._get_dynamic_attr('item_categories', item),
++                comments=self._get_dynamic_attr('item_comments', item),
+                 item_copyright=self._get_dynamic_attr('item_copyright', item),
+                 **self.item_extra_kwargs(item)
+             )

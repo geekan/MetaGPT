@@ -1,0 +1,17 @@
+diff --git a/sklearn/metrics/pairwise.py b/sklearn/metrics/pairwise.py
+index 5f87d880c..1abe1ba5a 100644
+--- a/sklearn/metrics/pairwise.py
++++ b/sklearn/metrics/pairwise.py
+@@ -245,6 +245,12 @@ def euclidean_distances(X, Y=None, Y_norm_squared=None, squared=False,
+     else:
+         YY = row_norms(Y, squared=True)[np.newaxis, :]
+ 
++    # Cast X and Y to float64 if they are float32, to improve precision
++    if X.dtype == np.float32:
++        X = X.astype(np.float64)
++    if Y is not None and Y.dtype == np.float32:
++        Y = Y.astype(np.float64)
++
+     distances = safe_sparse_dot(X, Y.T, dense_output=True)
+     distances *= -2
+     distances += XX

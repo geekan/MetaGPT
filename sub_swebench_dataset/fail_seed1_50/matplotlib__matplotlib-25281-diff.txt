@@ -1,0 +1,31 @@
+diff --git a/lib/matplotlib/legend.py b/lib/matplotlib/legend.py
+index e06069a675..c396d5b669 100644
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -670,14 +670,23 @@ class Legend(Artist):
+         a.set_transform(self.get_transform())
+ 
+     def _set_loc(self, loc):
+-        # find_offset function will be provided to _legend_box and
+-        # _legend_box will draw itself at the location of the return
+-        # value of the find_offset.
++        # Validation for 'loc' inputs
++        print(f"DEBUG: loc value passed: {loc}")
++        print(f"DEBUG: valid loc codes: {self._get_loc_codes()}")
++        if isinstance(loc, str):
++            if loc not in self._get_loc_codes():  # Use a method to get valid codes
++                raise ValueError(f"'{loc}' is not a valid string for 'loc'.")
++        elif not (isinstance(loc, tuple) and len(loc) == 2 and all(isinstance(item, float) for item in loc)):
++            raise ValueError("The 'loc' argument must be a string or a tuple of two floats")
++        # Existing code to set the location
+         self._loc_used_default = False
+         self._loc_real = loc
+         self.stale = True
+         self._legend_box.set_offset(self._findoffset)
+ 
++    def _get_loc_codes(self):
++        return self.codes
++
+     def set_ncols(self, ncols):
+         """Set the number of columns."""
+         self._ncols = ncols

@@ -1,0 +1,25 @@
+diff --git a/django/db/models/query_utils.py b/django/db/models/query_utils.py
+index 0caa165e15..e24045ddd8 100644
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -217,7 +217,7 @@ class RegisterLookupMixin:
+         if lookup_name is None:
+             lookup_name = lookup.lookup_name
+         del cls.class_lookups[lookup_name]
+-
++        cls._clear_cached_lookups()
+ 
+ def select_related_descend(field, restricted, requested, load_fields, reverse=False):
+     """
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index fa59a3e0b1..9e67e57dca 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2781,6 +2781,7 @@ class SchemaTests(TransactionTestCase):
+         with connection.schema_editor() as editor:
+             editor.remove_constraint(Author, constraint)
+         self.assertNotIn(constraint.name, self.get_constraints(table))
++        # Note: The lookup cache should be cleared after removing the constraint due to changes in RegisterLookupMixin._unregister_lookup()
+ 
+     @skipUnlessDBFeature("supports_expression_indexes")
+     def test_func_unique_constraint_collate(self):

@@ -1,0 +1,13 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index aa21a151bc..bb025301ab 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -270,7 +270,7 @@ class Field(RegisterLookupMixin):
+                     break
+                 if self.max_length is not None and group_choices:
+                     choice_max_length = max(
+-                        choice_max_length,
++                        choice_max_length, 0,
+                         *(len(value) for value, _ in group_choices if isinstance(value, str)),
+                     )
+             except (TypeError, ValueError):

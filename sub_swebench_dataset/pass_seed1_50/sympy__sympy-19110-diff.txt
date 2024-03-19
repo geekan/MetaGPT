@@ -1,0 +1,17 @@
+diff --git a/sympy/matrices/expressions/matexpr.py b/sympy/matrices/expressions/matexpr.py
+index dea1f8a866..696eef96f9 100644
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -996,10 +996,8 @@ def conjugate(self):
+     def _entry(self, i, j, **kwargs):
+         return S.Zero
+ 
+-    def __nonzero__(self):
+-        return False
+-
+-    __bool__ = __nonzero__
++    def __bool__(self):
++        return True
+ 
+ 
+ class GenericZeroMatrix(ZeroMatrix):

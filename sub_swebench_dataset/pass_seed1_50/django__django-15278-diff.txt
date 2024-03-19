@@ -1,0 +1,41 @@
+diff --git a/django/db/backends/sqlite3/schema.py b/django/db/backends/sqlite3/schema.py
+index 6752a8e3c0..b3d71b4818 100644
+--- a/django/db/backends/sqlite3/schema.py
++++ b/django/db/backends/sqlite3/schema.py
+@@ -3,6 +3,7 @@ from decimal import Decimal
+ 
+ from django.apps.registry import Apps
+ from django.db import NotSupportedError
++from django.db import models
+ from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+ from django.db.backends.ddl_references import Statement
+ from django.db.backends.utils import strip_quotes
+@@ -43,7 +44,8 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+         # security hardening).
+         try:
+             import sqlite3
+-            value = sqlite3.adapt(value)
++            if isinstance(value, (Decimal, float, int, str, bytes, bytearray, memoryview, bool, type(None))):
++                value = sqlite3.adapt(value)
+         except ImportError:
+             pass
+         except sqlite3.ProgrammingError:
+@@ -324,10 +326,17 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+ 
+     def add_field(self, model, field):
+         """Create a field on a model."""
++        # Check if the field is a OneToOneField with a unique constraint
++        is_one_to_one_unique = (
++            isinstance(field, models.OneToOneField) and
++            field.unique
++        )
+         # Fields with default values cannot by handled by ALTER TABLE ADD
+         # COLUMN statement because DROP DEFAULT is not supported in
+         # ALTER TABLE.
+-        if not field.null or self.effective_default(field) is not None:
++        # Additionally, SQLite does not support adding a unique column directly,
++        # so we must remake the table in this case.
++        if not field.null or self.effective_default(field) is not None or is_one_to_one_unique:
+             self._remake_table(model, create_field=field)
+         else:
+             super().add_field(model, field)

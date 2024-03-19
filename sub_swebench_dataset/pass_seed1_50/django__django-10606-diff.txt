@@ -1,0 +1,22 @@
+diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py
+index 700410a086..71f940aeff 100644
+--- a/django/db/models/fields/reverse_related.py
++++ b/django/db/models/fields/reverse_related.py
+@@ -114,7 +114,7 @@ class ForeignObjectRel(FieldCacheMixin):
+             self.related_model._meta.model_name,
+         )
+ 
+-    def get_choices(self, include_blank=True, blank_choice=BLANK_CHOICE_DASH, ordering=()):
++    def get_choices(self, include_blank=True, blank_choice=BLANK_CHOICE_DASH, limit_choices_to=None, ordering=()):
+         """
+         Return choices with a default blank choices included, for use
+         as <select> choices for this field.
+@@ -123,6 +123,8 @@ class ForeignObjectRel(FieldCacheMixin):
+         initially for utilization by RelatedFieldListFilter.
+         """
+         qs = self.related_model._default_manager.all()
++        if limit_choices_to is not None:
++            qs = qs.filter(**limit_choices_to)
+         if ordering:
+             qs = qs.order_by(*ordering)
+         return (blank_choice if include_blank else []) + [

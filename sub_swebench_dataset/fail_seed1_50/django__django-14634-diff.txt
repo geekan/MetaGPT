@@ -1,0 +1,37 @@
+diff --git a/django/views/generic/edit.py b/django/views/generic/edit.py
+index ccfef9cbcd..1bda06b2c0 100644
+--- a/django/views/generic/edit.py
++++ b/django/views/generic/edit.py
+@@ -199,6 +199,16 @@ class UpdateView(SingleObjectTemplateResponseMixin, BaseUpdateView):
+     template_name_suffix = '_form'
+ 
+ 
++class SuccessMessageMixin:
++    """
++    Provide a way to display a success message after an object has been deleted.
++    """
++    success_message = ""
++
++    def set_success_message(self, message):
++        self.success_message = message
++
++
+ class DeletionMixin:
+     """Provide the ability to delete objects."""
+     success_url = None
+@@ -233,9 +243,14 @@ class BaseDeleteView(DeletionMixin, BaseDetailView):
+     """
+ 
+ 
+-class DeleteView(SingleObjectTemplateResponseMixin, BaseDeleteView):
++class DeleteView(SuccessMessageMixin, SingleObjectTemplateResponseMixin, BaseDeleteView):
+     """
+     View for deleting an object retrieved with self.get_object(), with a
+     response rendered by a template.
+     """
+     template_name_suffix = '_confirm_delete'
++
++    def delete(self, request, *args, **kwargs):
++        response = super().delete(request, *args, **kwargs)
++        self.set_success_message("The object was deleted successfully.")
++        return response

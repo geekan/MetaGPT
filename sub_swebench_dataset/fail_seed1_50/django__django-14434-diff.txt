@@ -1,0 +1,66 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index ad2f5a7da1..c857c30009 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -170,6 +170,8 @@ class BaseDatabaseSchemaEditor:
+             col_type_suffix = field.db_type_suffix(connection=self.connection)
+             if col_type_suffix:
+                 definition += ' %s' % col_type_suffix
++            if extra_params is None:
++                extra_params = []
+             params.extend(extra_params)
+             # FK.
+             if field.remote_field and field.db_constraint:
+@@ -764,6 +766,7 @@ class BaseDatabaseSchemaEditor:
+                 )
+             if four_way_default_alteration:
+                 # Update existing rows with default value
++                new_default = self.effective_default(new_field)  # Ensure new_default is always bound
+                 self.execute(
+                     self.sql_update_with_default % {
+                         "table": self.quote_name(model._meta.db_table),
+@@ -1149,10 +1152,10 @@ class BaseDatabaseSchemaEditor:
+         }
+ 
+     def _create_fk_sql(self, model, field, suffix):
+-        table = Table(model._meta.db_table, self.quote_name)
++        table = model._meta.db_table
+         name = self._fk_constraint_name(model, field, suffix)
+         column = Columns(model._meta.db_table, [field.column], self.quote_name)
+-        to_table = Table(field.target_field.model._meta.db_table, self.quote_name)
++        to_table = field.target_field.model._meta.db_table
+         to_column = Columns(field.target_field.model._meta.db_table, [field.target_field.column], self.quote_name)
+         deferrable = self.connection.ops.deferrable_sql()
+         return Statement(
+@@ -1241,7 +1244,7 @@ class BaseDatabaseSchemaEditor:
+             return self.quote_name(self._create_index_name(*args, **kwargs))
+ 
+         compiler = Query(model, alias_cols=False).get_compiler(connection=self.connection)
+-        table = Table(model._meta.db_table, self.quote_name)
++        table = model._meta.db_table
+         if name is None:
+             name = IndexName(model._meta.db_table, columns, '_uniq', create_unique_name)
+         else:
+diff --git a/django/db/backends/ddl_references.py b/django/db/backends/ddl_references.py
+index c06386a2fa..6a83cc46a4 100644
+--- a/django/db/backends/ddl_references.py
++++ b/django/db/backends/ddl_references.py
+@@ -82,6 +82,9 @@ class Columns(TableColumns):
+         self.col_suffixes = col_suffixes
+         super().__init__(table, columns)
+ 
++    def references_column(self, table, column):
++        return self.table == table and column in self.columns
++
+     def __str__(self):
+         def col_str(column, idx):
+             col = self.quote_name(column)
+@@ -206,7 +209,7 @@ class Expressions(TableColumns):
+         self.compiler = compiler
+         self.expressions = expressions
+         self.quote_value = quote_value
+-        columns = [col.target.column for col in self.compiler.query._gen_cols([self.expressions])]
++        columns = [col.target.column for col in self.compiler.query._gen_cols([expressions])]
+         super().__init__(table, columns)
+ 
+     def rename_table_references(self, old_table, new_table):

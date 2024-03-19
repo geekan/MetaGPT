@@ -1,0 +1,19 @@
+diff --git a/django/contrib/admin/helpers.py b/django/contrib/admin/helpers.py
+index dd154f72ee..dffed172ae 100644
+--- a/django/contrib/admin/helpers.py
++++ b/django/contrib/admin/helpers.py
+@@ -204,12 +204,9 @@ class AdminReadonlyField:
+         return format_html('<label{}>{}{}</label>', flatatt(attrs), capfirst(label), self.form.label_suffix)
+ 
+     def get_admin_url(self, remote_field, remote_obj):
+-        url_name = 'admin:%s_%s_change' % (
+-            remote_field.model._meta.app_label,
+-            remote_field.model._meta.model_name,
+-        )
++        info = (remote_field.model._meta.app_label, remote_field.model._meta.model_name)
+         try:
+-            url = reverse(url_name, args=[quote(remote_obj.pk)])
++            url = reverse('admin:%s_%s_change' % info, args=[quote(remote_obj.pk)], current_app=self.model_admin.admin_site.name)
+             return format_html('<a href="{}">{}</a>', url, remote_obj)
+         except NoReverseMatch:
+             return str(remote_obj)

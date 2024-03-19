@@ -1,0 +1,77 @@
+diff --git a/django/db/transaction.py b/django/db/transaction.py
+index b3c7b4bbaa..f8ee615204 100644
+--- a/django/db/transaction.py
++++ b/django/db/transaction.py
+@@ -1,4 +1,5 @@
+ from contextlib import ContextDecorator, contextmanager
++import logging
+ 
+ from django.db import (
+     DEFAULT_DB_ALIAS,
+@@ -8,6 +9,7 @@ from django.db import (
+     connections,
+ )
+ 
++logger = logging.getLogger('django.db.transaction')
+ 
+ class TransactionManagementError(ProgrammingError):
+     """Transaction management is used improperly."""
+@@ -125,12 +127,23 @@ def mark_for_rollback_on_error(using=None):
+         raise
+ 
+ 
+-def on_commit(func, using=None):
++def on_commit(func, using=None, robust=False):
+     """
+     Register `func` to be called when the current transaction is committed.
+     If the current transaction is rolled back, `func` will not be called.
++    If `robust` is True, exceptions in `func` will be suppressed.
+     """
+-    get_connection(using).on_commit(func)
++    connection = get_connection(using)
++    if robust:
++        def wrapped_func():
++            try:
++                func()
++            except Exception as e:
++                # Log the exception and suppress it
++                logger.error("Suppressed exception in robust on_commit handler: %s", e)
++        connection.on_commit(wrapped_func)
++    else:
++        connection.on_commit(func)
+ 
+ 
+ #################################
+@@ -221,6 +234,7 @@ class Atomic(ContextDecorator):
+             connection.atomic_blocks.append(self)
+ 
+     def __exit__(self, exc_type, exc_value, traceback):
++        sid = None
+         connection = get_connection(self.using)
+ 
+         if connection.in_atomic_block:
+diff --git a/django/local_settings.py b/django/local_settings.py
+new file mode 100644
+index 0000000000..4b3b4ab5ba
+--- /dev/null
++++ b/django/local_settings.py
+@@ -0,0 +1,19 @@
++
++# local_settings.py
++SECRET_KEY = 'fake-key-for-testing'
++
++INSTALLED_APPS = [
++    'django.contrib.auth',
++    'django.contrib.contenttypes',
++    'django.contrib.sessions',
++]
++
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': 'mydatabase',
++    }
++}
++
++# Use console backend for email during testing
++EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

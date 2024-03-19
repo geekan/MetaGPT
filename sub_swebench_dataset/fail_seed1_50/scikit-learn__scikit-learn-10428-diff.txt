@@ -1,0 +1,64 @@
+diff --git a/sklearn/utils/estimator_checks.py b/sklearn/utils/estimator_checks.py
+index 398c12cbd..98367077e 100644
+--- a/sklearn/utils/estimator_checks.py
++++ b/sklearn/utils/estimator_checks.py
+@@ -58,6 +58,8 @@ from sklearn.utils.validation import has_fit_parameter, _num_samples
+ from sklearn.preprocessing import StandardScaler
+ from sklearn.datasets import load_iris, load_boston, make_blobs
+ 
++from sklearn.utils import check_random_state
++from numpy.testing import assert_array_almost_equal
+ 
+ BOSTON = None
+ CROSS_DECOMPOSITION = ['PLSCanonical', 'PLSRegression', 'CCA', 'PLSSVD']
+@@ -570,7 +572,7 @@ def is_public_parameter(attr):
+ @ignore_warnings(category=(DeprecationWarning, FutureWarning))
+ def check_dont_overwrite_parameters(name, estimator_orig):
+     # check that fit method only changes or sets private attributes
+-    if hasattr(estimator_orig.__init__, "deprecated_original"):
++    if hasattr(type(estimator_orig).__init__, "deprecated_original"):
+         # to not check deprecated classes
+         return
+     estimator = clone(estimator_orig)
+@@ -830,8 +832,8 @@ def _check_transformer(name, transformer_orig, X, y):
+         # raises error on malformed input for transform
+         if hasattr(X, 'T'):
+             # If it's not an array, it does not have a 'T' property
+-            with assert_raises(ValueError, msg="The transformer {} does "
+-                               "not raise an error when the number of "
++            with assert_raises(ValueError, msg="The transformer {} does not"
++                               " raise an error when the number of "
+                                "features in transform is different from"
+                                " the number of features in "
+                                "fit.".format(name)):
+@@ -1944,3 +1946,30 @@ def check_decision_proba_consistency(name, estimator_orig):
+         a = estimator.predict_proba(X_test)[:, 1]
+         b = estimator.decision_function(X_test)
+         assert_array_equal(rankdata(a), rankdata(b))
++
++@ignore_warnings(category=(DeprecationWarning, FutureWarning))
++def check_methods_subset_invariance(name, estimator_orig):
++    # Generate a random dataset
++    rng = check_random_state(0)
++    X = rng.normal(size=(100, 20))
++    y = rng.randint(0, 2, size=(100,))
++
++    # Fit the estimator
++    estimator = clone(estimator_orig)
++    estimator.fit(X, y)
++
++    # Generate a boolean mask for a subset
++    mask = rng.randint(0, 2, size=(100,)).astype(bool)
++
++    # Methods to check
++    methods = ["predict", "predict_proba", "decision_function", "score_samples", "transform"]
++
++    # Check method invariance on subset
++    for method in methods:
++        if hasattr(estimator, method):
++            est_method = getattr(estimator, method)
++            # Compare the results of the method on the full dataset and the subset
++            full_data_result = est_method(X)
++            subset_result = est_method(X[mask])
++            assert_array_almost_equal(full_data_result[mask], subset_result,
++                                      err_msg="{} failed subset invariance check".format(method))

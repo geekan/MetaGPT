@@ -1,0 +1,32 @@
+diff --git a/xarray/backends/netCDF4_.py b/xarray/backends/netCDF4_.py
+index 19047d17..0c5780b5 100644
+--- a/xarray/backends/netCDF4_.py
++++ b/xarray/backends/netCDF4_.py
+@@ -551,6 +551,27 @@ class NetCDF4BackendEntrypoint(BackendEntrypoint):
+         autoclose=False,
+     ):
+ 
++        # Custom backend modification to handle multiindex datasets:
++        # The following pseudocode represents how the custom backend's `open_dataset` method
++        # might be modified to handle multiindex datasets correctly.
++        #
++        # class MultiindexNetCDF4BackendEntrypoint(NetCDF4BackendEntrypoint):
++        #     def open_dataset(self, *args, handle_multiindex=True, **kwargs):
++        #         ds = super().open_dataset(*args, **kwargs)
++        #
++        #         if handle_multiindex:
++        #             # Instead of assigning data to IndexVariable, use appropriate methods
++        #             # to handle multiindex datasets without violating immutability.
++        #             # For example, use Dataset.assign_coords or similar methods.
++        #             ds = decode_compress_to_multiindex(ds)
++        #
++        #         return ds
++        #
++        # This pseudocode is a high-level representation and does not include the specific
++        # implementation details of the `decode_compress_to_multiindex` function or how exactly
++        # the dataset's coordinates should be modified. The actual implementation would need to be
++        # done by the user or the developer responsible for the custom backend.
++
+         filename_or_obj = _normalize_path(filename_or_obj)
+         store = NetCDF4DataStore.open(
+             filename_or_obj,

@@ -1,0 +1,62 @@
+diff --git a/django/forms/boundfield.py b/django/forms/boundfield.py
+index 5bbfcbe41c..14aff0d5e1 100644
+--- a/django/forms/boundfield.py
++++ b/django/forms/boundfield.py
+@@ -167,15 +167,19 @@ class BoundField:
+         widget = self.field.widget
+         id_ = widget.attrs.get('id') or self.auto_id
+         if id_:
+-            id_for_label = widget.id_for_label(id_)
+-            if id_for_label:
+-                attrs = {**(attrs or {}), 'for': id_for_label}
+-            if self.field.required and hasattr(self.form, 'required_css_class'):
+-                attrs = attrs or {}
+-                if 'class' in attrs:
+-                    attrs['class'] += ' ' + self.form.required_css_class
+-                else:
+-                    attrs['class'] = self.form.required_css_class
++            if not isinstance(widget, MultiWidget):
++                id_for_label = widget.id_for_label(id_)
++                if id_for_label:
++                    attrs = {**(attrs or {}), 'for': id_for_label}
++            else:
++                # Handle the case for MultiWidget differently or omit 'for' attribute
++                pass
++        if self.field.required and hasattr(self.form, 'required_css_class'):
++            attrs = attrs or {}
++            if 'class' in attrs:
++                attrs['class'] += ' ' + self.form.required_css_class
++            else:
++                attrs['class'] = self.form.required_css_class
+         context = {
+             'field': self,
+             'label': contents,
+@@ -224,7 +228,11 @@ class BoundField:
+         """
+         widget = self.field.widget
+         id_ = widget.attrs.get('id') or self.auto_id
+-        return widget.id_for_label(id_)
++        if not isinstance(widget, MultiWidget):
++            return widget.id_for_label(id_)
++        else:
++            # Return an appropriate ID or None for MultiWidget
++            return None
+ 
+     @cached_property
+     def initial(self):
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 00c19e2c55..7307f3b15b 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -848,11 +848,6 @@ class MultiWidget(Widget):
+         context['widget']['subwidgets'] = subwidgets
+         return context
+ 
+-    def id_for_label(self, id_):
+-        if id_:
+-            id_ += '_0'
+-        return id_
+-
+     def value_from_datadict(self, data, files, name):
+         return [
+             widget.value_from_datadict(data, files, name + widget_name)

@@ -1,0 +1,22 @@
+diff --git a/sympy/printing/octave.py b/sympy/printing/octave.py
+index 9de4f6af14..9dc99992ea 100644
+--- a/sympy/printing/octave.py
++++ b/sympy/printing/octave.py
+@@ -56,6 +56,7 @@
+     "RisingFactorial": "pochhammer",
+     "Shi": "sinhint",
+     "Si": "sinint",
++    "assoc_laguerre": "_print_assoc_laguerre",
+ }
+ 
+ 
+@@ -561,6 +562,9 @@ def indent_code(self, code):
+             level += increase[n]
+         return pretty
+ 
++    def _print_assoc_laguerre(self, expr):
++        raise NotImplementedError("Code generation for the associated Laguerre polynomials is not supported in Octave.")
++
+ 
+ def octave_code(expr, assign_to=None, **settings):
+     r"""Converts `expr` to a string of Octave (or Matlab) code.

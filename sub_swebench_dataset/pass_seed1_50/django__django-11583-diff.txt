@@ -1,0 +1,15 @@
+diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py
+index 25c3b44250..f706be72be 100644
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -143,6 +143,10 @@ def iter_modules_and_files(modules, extra_files):
+             # The module could have been removed, don't fail loudly if this
+             # is the case.
+             continue
++        except ValueError as e:
++            # Log the error and skip this file
++            logger.error(f"Error resolving path {path}: {e}")
++            continue
+         results.add(resolved_path)
+     return frozenset(results)
+ 

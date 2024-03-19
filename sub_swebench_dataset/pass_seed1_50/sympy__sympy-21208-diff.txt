@@ -1,0 +1,140 @@
+diff --git a/sympy/matrices/matrices.py b/sympy/matrices/matrices.py
+index f7b4aeebf3..ca8e905b08 100644
+--- a/sympy/matrices/matrices.py
++++ b/sympy/matrices/matrices.py
+@@ -440,7 +440,7 @@ class MatrixCalculus(MatrixCommon):
+ 
+     def diff(self, *args, **kwargs):
+         """Calculate the derivative of each element in the matrix.
+-        ``args`` will be passed to the ``integrate`` function.
++        ``args`` will be passed to the ``diff`` function.
+ 
+         Examples
+         ========
+@@ -459,125 +459,7 @@ def diff(self, *args, **kwargs):
+         integrate
+         limit
+         """
+-        # XXX this should be handled here rather than in Derivative
+-        from sympy.tensor.array.array_derivatives import ArrayDerivative
+-        kwargs.setdefault('evaluate', True)
+-        deriv = ArrayDerivative(self, *args, evaluate=True)
+-        if not isinstance(self, Basic):
+-            return deriv.as_mutable()
+-        else:
+-            return deriv
+-
+-    def _eval_derivative(self, arg):
+-        return self.applyfunc(lambda x: x.diff(arg))
+-
+-    def integrate(self, *args, **kwargs):
+-        """Integrate each element of the matrix.  ``args`` will
+-        be passed to the ``integrate`` function.
+-
+-        Examples
+-        ========
+-
+-        >>> from sympy.matrices import Matrix
+-        >>> from sympy.abc import x, y
+-        >>> M = Matrix([[x, y], [1, 0]])
+-        >>> M.integrate((x, ))
+-        Matrix([
+-        [x**2/2, x*y],
+-        [     x,   0]])
+-        >>> M.integrate((x, 0, 2))
+-        Matrix([
+-        [2, 2*y],
+-        [2,   0]])
+-
+-        See Also
+-        ========
+-
+-        limit
+-        diff
+-        """
+-        return self.applyfunc(lambda x: x.integrate(*args, **kwargs))
+-
+-    def jacobian(self, X):
+-        """Calculates the Jacobian matrix (derivative of a vector-valued function).
+-
+-        Parameters
+-        ==========
+-
+-        ``self`` : vector of expressions representing functions f_i(x_1, ..., x_n).
+-        X : set of x_i's in order, it can be a list or a Matrix
+-
+-        Both ``self`` and X can be a row or a column matrix in any order
+-        (i.e., jacobian() should always work).
+-
+-        Examples
+-        ========
+-
+-        >>> from sympy import sin, cos, Matrix
+-        >>> from sympy.abc import rho, phi
+-        >>> X = Matrix([rho*cos(phi), rho*sin(phi), rho**2])
+-        >>> Y = Matrix([rho, phi])
+-        >>> X.jacobian(Y)
+-        Matrix([
+-        [cos(phi), -rho*sin(phi)],
+-        [sin(phi),  rho*cos(phi)],
+-        [   2*rho,             0]])
+-        >>> X = Matrix([rho*cos(phi), rho*sin(phi)])
+-        >>> X.jacobian(Y)
+-        Matrix([
+-        [cos(phi), -rho*sin(phi)],
+-        [sin(phi),  rho*cos(phi)]])
+-
+-        See Also
+-        ========
+-
+-        hessian
+-        wronskian
+-        """
+-        if not isinstance(X, MatrixBase):
+-            X = self._new(X)
+-        # Both X and ``self`` can be a row or a column matrix, so we need to make
+-        # sure all valid combinations work, but everything else fails:
+-        if self.shape[0] == 1:
+-            m = self.shape[1]
+-        elif self.shape[1] == 1:
+-            m = self.shape[0]
+-        else:
+-            raise TypeError("``self`` must be a row or a column matrix")
+-        if X.shape[0] == 1:
+-            n = X.shape[1]
+-        elif X.shape[1] == 1:
+-            n = X.shape[0]
+-        else:
+-            raise TypeError("X must be a row or a column matrix")
+-
+-        # m is the number of functions and n is the number of variables
+-        # computing the Jacobian is now easy:
+-        return self._new(m, n, lambda j, i: self[j].diff(X[i]))
+-
+-    def limit(self, *args):
+-        """Calculate the limit of each element in the matrix.
+-        ``args`` will be passed to the ``limit`` function.
+-
+-        Examples
+-        ========
+-
+-        >>> from sympy.matrices import Matrix
+-        >>> from sympy.abc import x, y
+-        >>> M = Matrix([[x, y], [1, 0]])
+-        >>> M.limit(x, 2)
+-        Matrix([
+-        [2, y],
+-        [1, 0]])
+-
+-        See Also
+-        ========
+-
+-        integrate
+-        diff
+-        """
+-        return self.applyfunc(lambda x: x.limit(*args))
+-
++        return self.applyfunc(lambda x: x.diff(*args, **kwargs))
+ 
+ # https://github.com/sympy/sympy/pull/12854
+ class MatrixDeprecated(MatrixCommon):

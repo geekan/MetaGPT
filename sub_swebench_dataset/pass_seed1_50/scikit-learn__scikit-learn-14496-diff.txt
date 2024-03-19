@@ -1,0 +1,36 @@
+diff --git a/sklearn/cluster/optics_.py b/sklearn/cluster/optics_.py
+index 4f7eb11ab..b7529062a 100755
+--- a/sklearn/cluster/optics_.py
++++ b/sklearn/cluster/optics_.py
+@@ -437,7 +437,7 @@ if metric=’precomputed’.
+     n_samples = X.shape[0]
+     _validate_size(min_samples, n_samples, 'min_samples')
+     if min_samples <= 1:
+-        min_samples = max(2, min_samples * n_samples)
++        min_samples = int(round(max(2, min_samples * n_samples)))
+ 
+     # Start all points as 'unprocessed' ##
+     reachability_ = np.empty(n_samples)
+@@ -612,19 +612,19 @@ def cluster_optics_xi(reachability, predecessor, ordering, min_samples,
+         The list of clusters in the form of ``[start, end]`` in each row, with
+         all indices inclusive. The clusters are ordered according to ``(end,
+         -start)`` (ascending) so that larger clusters encompassing smaller
+-        clusters come after such nested smaller clusters. Since ``labels`` does
++        clusters come after those smaller ones. Since ``labels`` does
+         not reflect the hierarchy, usually ``len(clusters) >
+         np.unique(labels)``.
+     """
+     n_samples = len(reachability)
+     _validate_size(min_samples, n_samples, 'min_samples')
+     if min_samples <= 1:
+-        min_samples = max(2, min_samples * n_samples)
++        min_samples = int(round(max(2, min_samples * n_samples)))
+     if min_cluster_size is None:
+         min_cluster_size = min_samples
+     _validate_size(min_cluster_size, n_samples, 'min_cluster_size')
+     if min_cluster_size <= 1:
+-        min_cluster_size = max(2, min_cluster_size * n_samples)
++        min_cluster_size = int(round(max(2, min_cluster_size * n_samples)))
+ 
+     clusters = _xi_cluster(reachability[ordering], predecessor[ordering],
+                            ordering, xi,

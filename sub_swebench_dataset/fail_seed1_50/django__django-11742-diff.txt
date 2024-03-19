@@ -1,0 +1,18 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 9ce46e3f73..eacb852ebe 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -179,6 +179,13 @@ class Field(RegisterLookupMixin):
+         self._error_messages = error_messages  # Store for deconstruction later
+         self.error_messages = messages
+ 
++        if self.choices:
++            max_choice_length = max(len(choice[0]) for choice in self.choices if isinstance(choice, (list, tuple)) and len(choice) > 0)
++            if self.max_length is not None and max_choice_length > self.max_length:
++                raise exceptions.ValidationError(
++                    self.error_messages['max_length'] % {'max_length': self.max_length, 'max_choice_length': max_choice_length}
++                )
++
+     def __str__(self):
+         """
+         Return "app_label.model_label.field_name" for fields attached to

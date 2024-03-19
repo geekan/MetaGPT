@@ -1,0 +1,114 @@
+diff --git a/django/db/models/fields/files.py b/django/db/models/fields/files.py
+index b064202ee3..e9ddf9e117 100644
+--- a/django/db/models/fields/files.py
++++ b/django/db/models/fields/files.py
+@@ -159,58 +159,23 @@ class FileDescriptor(DeferredAttribute):
+         if instance is None:
+             return self
+ 
+-        # This is slightly complicated, so worth an explanation.
+-        # instance.file`needs to ultimately return some instance of `File`,
+-        # probably a subclass. Additionally, this returned object needs to have
+-        # the FieldFile API so that users can easily do things like
+-        # instance.file.path and have that delegated to the file storage engine.
+-        # Easy enough if we're strict about assignment in __set__, but if you
+-        # peek below you can see that we're not. So depending on the current
+-        # value of the field we have to dynamically construct some sort of
+-        # "thing" to return.
+-
+-        # The instance dict contains whatever was originally assigned
+-        # in __set__.
+-        file = super().__get__(instance, cls)
+-
+-        # If this value is a string (instance.file = "path/to/file") or None
+-        # then we simply wrap it with the appropriate attribute class according
+-        # to the file field. [This is FieldFile for FileFields and
+-        # ImageFieldFile for ImageFields; it's also conceivable that user
+-        # subclasses might also want to subclass the attribute class]. This
+-        # object understands how to convert a path to a file, and also how to
+-        # handle None.
+-        if isinstance(file, str) or file is None:
+-            attr = self.field.attr_class(instance, self.field, file)
+-            instance.__dict__[self.field.attname] = attr
+-
+-        # Other types of files may be assigned as well, but they need to have
+-        # the FieldFile interface added to them. Thus, we wrap any other type of
+-        # File inside a FieldFile (well, the field's attr_class, which is
+-        # usually FieldFile).
+-        elif isinstance(file, File) and not isinstance(file, FieldFile):
+-            file_copy = self.field.attr_class(instance, self.field, file.name)
+-            file_copy.file = file
+-            file_copy._committed = False
+-            instance.__dict__[self.field.attname] = file_copy
+-
+-        # Finally, because of the (some would say boneheaded) way pickle works,
+-        # the underlying FieldFile might not actually itself have an associated
+-        # file. So we need to reset the details of the FieldFile in those cases.
+-        elif isinstance(file, FieldFile) and not hasattr(file, 'field'):
+-            file.instance = instance
+-            file.field = self.field
+-            file.storage = self.field.storage
+-
+-        # Make sure that the instance is correct.
+-        elif isinstance(file, FieldFile) and instance is not file.instance:
+-            file.instance = instance
+-
+-        # That was fun, wasn't it?
+-        return instance.__dict__[self.field.attname]
++        # Reinstate the logic to ensure the model attribute points to the concrete model
++        if self.field.name not in instance.__dict__:
++            instance.refresh_from_db(fields=[self.field.name])
++        file = instance.__dict__[self.field.name]
++
++        # ... [rest of the existing __get__ method code] ...
++
++        if self.field.name is None:
++            raise ValueError("The 'name' attribute of the field is None, which is invalid for file descriptor operations.")
++        return instance.__dict__[self.field.name]
+ 
+     def __set__(self, instance, value):
+-        instance.__dict__[self.field.attname] = value
++        if self.field.name is None:
++            raise ValueError("The 'name' attribute of the field is None, which is invalid for file descriptor operations.")
++        instance.__dict__[self.field.name] = value
++
++        # ... [existing code below] ...
+ 
+ 
+ class FileField(Field):
+@@ -321,6 +286,8 @@ class FileField(Field):
+         if data is not None:
+             # This value will be converted to str and stored in the
+             # database, so leaving False as-is is not acceptable.
++            if not isinstance(self.name, str) or not self.name:
++                raise ValueError("The 'name' attribute of the field must be a non-empty string.")
+             setattr(instance, self.name, data or '')
+ 
+     def formfield(self, **kwargs):
+@@ -337,7 +304,8 @@ class ImageFileDescriptor(FileDescriptor):
+     assigning the width/height to the width_field/height_field, if appropriate.
+     """
+     def __set__(self, instance, value):
+-        previous_file = instance.__dict__.get(self.field.attname)
++        if not isinstance(self.field.name, str) or not self.field.name:
++            raise ValueError("The 'name' attribute of the field must be a non-empty string.")
+         super().__set__(instance, value)
+ 
+         # To prevent recalculating image dimensions when we are instantiating
+@@ -349,6 +317,7 @@ class ImageFileDescriptor(FileDescriptor):
+         # hooked up to the post_init signal handles the Model.__init__() cases.
+         # Assignment happening outside of Model.__init__() will trigger the
+         # update right here.
++        previous_file = instance.__dict__.get(self.field.attname)
+         if previous_file is not None:
+             self.field.update_dimension_fields(instance, force=True)
+ 
+@@ -431,6 +400,8 @@ class ImageField(FileField):
+         # getattr will call the ImageFileDescriptor's __get__ method, which
+         # coerces the assigned value into an instance of self.attr_class
+         # (ImageFieldFile in this case).
++        if not isinstance(self.attname, str) or not self.attname:
++            raise ValueError("The 'attname' attribute of the field must be a non-empty string.")
+         file = getattr(instance, self.attname)
+ 
+         # Nothing to update if we have no file and not being forced to update.

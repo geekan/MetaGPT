@@ -1,0 +1,25 @@
+diff --git a/xarray/core/dataarray.py b/xarray/core/dataarray.py
+index dc8dcbd3..97dd03ae 100644
+--- a/xarray/core/dataarray.py
++++ b/xarray/core/dataarray.py
+@@ -2745,10 +2745,20 @@ class DataArray(
+         --------
+         DataArray.unstack
+         """
++        # Check if any of the coordinates being stacked have 'i4' dtype
++        # and set the dtype for MultiIndex accordingly
++        dtype_to_preserve = None
++        for dim in dimensions.values():
++            for coord in self.coords[dim]:
++                if self.coords[coord].dtype == 'int32':
++                    dtype_to_preserve = 'int32'
++                    break
++
+         ds = self._to_temp_dataset().stack(
+             dimensions,
+             create_index=create_index,
+             index_cls=index_cls,
++            dtype=dtype_to_preserve,  # Specify dtype if needed
+             **dimensions_kwargs,
+         )
+         return self._from_temp_dataset(ds)

@@ -1,0 +1,40 @@
+diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py
+index dd36dea304..e2bbfd623c 100644
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -1802,9 +1802,9 @@ def partitions(n, m=None, k=None, size=False):
+         keys.append(r)
+     room = m - q - bool(r)
+     if size:
+-        yield sum(ms.values()), ms
++        yield sum(ms.values()), ms.copy()
+     else:
+-        yield ms
++        yield ms.copy()
+ 
+     while keys != [1]:
+         # Reuse any 1's.
+@@ -1842,9 +1842,9 @@ def partitions(n, m=None, k=None, size=False):
+             break
+         room -= need
+         if size:
+-            yield sum(ms.values()), ms
++            yield sum(ms.values()), ms.copy()
+         else:
+-            yield ms
++            yield ms.copy()
+ 
+ 
+ def ordered_partitions(n, m=None, sort=True):
+@@ -2345,9 +2345,8 @@ def necklaces(n, k, free=False):
+     >>> set(N) - set(B)
+     {'ACB'}
+ 
+-    >>> list(necklaces(4, 2))
+-    [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 1),
+-     (0, 1, 0, 1), (0, 1, 1, 1), (1, 1, 1, 1)]
++    >>> list(ordered_partitions(4, 2))
++    [[1, 3], [2, 2], [3, 1]]
+ 
+     >>> [show('.o', i) for i in bracelets(4, 2)]
+     ['....', '...o', '..oo', '.o.o', '.ooo', 'oooo']

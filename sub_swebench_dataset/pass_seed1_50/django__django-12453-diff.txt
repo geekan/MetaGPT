@@ -1,0 +1,25 @@
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index c50fc90171..86968401b0 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -126,8 +126,10 @@ class BaseDatabaseCreation:
+         the serialize_db_to_string() method.
+         """
+         data = StringIO(data)
+-        for obj in serializers.deserialize("json", data, using=self.connection.alias):
+-            obj.save()
++        from django.db import transaction
++        with transaction.atomic(using=self.connection.alias):
++            for obj in serializers.deserialize("json", data, using=self.connection.alias):
++                obj.save()
+ 
+     def _get_database_display_str(self, verbosity, database_name):
+         """
+@@ -163,6 +165,7 @@ class BaseDatabaseCreation:
+         }
+         # Create the test database and connect to it.
+         with self._nodb_cursor() as cursor:
++            confirm = None
+             try:
+                 self._execute_create_test_db(cursor, test_db_params, keepdb)
+             except Exception as e:

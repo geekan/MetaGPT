@@ -1,0 +1,17 @@
+diff --git a/lib/matplotlib/tri/__init__.py b/lib/matplotlib/tri/__init__.py
+index 4185452c01..588234e272 100644
+--- a/lib/matplotlib/tri/__init__.py
++++ b/lib/matplotlib/tri/__init__.py
+@@ -7,7 +7,7 @@ from .tricontour import TriContourSet, tricontour, tricontourf
+ from .trifinder import TriFinder, TrapezoidMapTriFinder
+ from .triinterpolate import (TriInterpolator, LinearTriInterpolator,
+                              CubicTriInterpolator)
+-from .tripcolor import tripcolor
++from ._tripcolor import tripcolor
+ from .triplot import triplot
+ from .trirefine import TriRefiner, UniformTriRefiner
+ from .tritools import TriAnalyzer
+diff --git a/lib/matplotlib/tri/tripcolor.py b/lib/matplotlib/tri/_tripcolor.py
+similarity index 100%
+rename from lib/matplotlib/tri/tripcolor.py
+rename to lib/matplotlib/tri/_tripcolor.py

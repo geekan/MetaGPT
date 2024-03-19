@@ -1,0 +1,75 @@
+diff --git a/sympy/sets/fancysets.py b/sympy/sets/fancysets.py
+index b1af4372be..d3c6df6bdc 100644
+--- a/sympy/sets/fancysets.py
++++ b/sympy/sets/fancysets.py
+@@ -608,37 +608,23 @@ def __new__(cls, *args):
+     [0, 1/10, 1/5].'''))
+         start, stop, step = ok
+ 
++        print("start:", start, "stop:", stop, "step:", step)
++
+         null = False
+         if any(i.has(Symbol) for i in (start, stop, step)):
+             if start == stop:
+                 null = True
+             else:
+-                end = stop
+-        elif start.is_infinite:
+-            span = step*(stop - start)
+-            if span is S.NaN or span <= 0:
+-                null = True
+-            elif step.is_Integer and stop.is_infinite and abs(step) != 1:
+-                raise ValueError(filldedent('''
+-                    Step size must be %s in this case.''' % (1 if step > 0 else -1)))
+-            else:
+-                end = stop
+-        else:
+-            oostep = step.is_infinite
+-            if oostep:
+-                step = S.One if step > 0 else S.NegativeOne
+-            n = ceiling((stop - start)/step)
+-            if n <= 0:
+-                null = True
+-            elif oostep:
+-                end = start + 1
+-                step = S.One  # make it a canonical single step
+-            else:
+-                end = start + n*step
++                if step.has(Symbol):
++                    # Calculate the adjustment needed to make the range canonical
++                    adjusted_stop = start + ceiling((stop - start)/step)*step
++                    stop = adjusted_stop
++                else:
++                    stop = stop
+         if null:
+-            start = end = S.Zero
++            start = stop = S.Zero
+             step = S.One
+-        return Basic.__new__(cls, start, end, step)
++        return Basic.__new__(cls, start, stop, step)
+ 
+     start = property(lambda self: self.args[0])
+     stop = property(lambda self: self.args[1])
+@@ -890,14 +876,14 @@ def _inf(self):
+ 
+     @property
+     def _sup(self):
+-        if not self:
+-            raise NotImplementedError
+-        if self.has(Symbol):
+-            if self.step.is_positive:
+-                return self[-1]
+-            elif self.step.is_negative:
+-                return self[0]
+-            _ = self.size  # validate
++        if self.size == 0:
++            return S.NegativeInfinity
++        if self.start.is_infinite:
++            return S.NegativeInfinity
++        if self.stop.is_infinite:
++            return S.Infinity
++        if self.step.has(Symbol):
++            return self.stop - self.step
+         if self.step > 0:
+             return self.stop - self.step
+         else:

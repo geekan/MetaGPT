@@ -1,0 +1,34 @@
+diff --git a/sklearn/feature_extraction/text.py b/sklearn/feature_extraction/text.py
+index 9cdbace62..2884b11da 100644
+--- a/sklearn/feature_extraction/text.py
++++ b/sklearn/feature_extraction/text.py
+@@ -1019,7 +1019,28 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
+         min_df = self.min_df
+         max_features = self.max_features
+ 
+-        vocabulary, X = self._count_vocab(raw_documents,
++        # If a specific analyzer is provided, we use it instead of the built-in ones
++        if callable(self.analyzer):
++            # Since the user specified a custom analyzer,
++            # we assume that they want to analyze the files themselves.
++            processed_docs = []
++            for doc in raw_documents:
++                if self.input == 'filename':
++                    doc = self.decode(doc)
++                elif self.input == 'file':
++                    doc = self.decode(doc.read())
++                processed_docs.append(doc)
++        else:
++            # Preprocess the documents with the preprocessor and tokenizer
++            processed_docs = []
++            for doc in raw_documents:
++                if self.input == 'filename':
++                    doc = self.decode(doc)
++                elif self.input == 'file':
++                    doc = self.decode(doc.read())
++                processed_docs.append(self.preprocessor(doc))
++
++        vocabulary, X = self._count_vocab(processed_docs,
+                                           self.fixed_vocabulary_)
+ 
+         if self.binary:

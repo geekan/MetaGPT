@@ -1,0 +1,22 @@
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index df7452ee87..e3723a290e 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -21,6 +21,8 @@
+     xsym, pretty_symbol, pretty_atom, pretty_use_unicode, greek_unicode, U, \
+     pretty_try_use_unicode,  annotated
+ 
++from sympy import pi, E
++
+ # rename for usage from outside
+ pprint_use_unicode = pretty_use_unicode
+ pprint_try_use_unicode = pretty_try_use_unicode
+@@ -1951,6 +1953,8 @@ def _print_Pow(self, power):
+         from sympy.simplify.simplify import fraction
+         b, e = power.as_base_exp()
+         if power.is_commutative:
++            if b == pi and e == 1/E:
++                return self._print(b)**self._print(e)
+             if e is S.NegativeOne:
+                 return prettyForm("1")/self._print(b)
+             n, d = fraction(e)

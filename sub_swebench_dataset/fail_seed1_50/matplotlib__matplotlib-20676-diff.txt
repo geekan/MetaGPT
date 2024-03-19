@@ -1,0 +1,17 @@
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index a199e45d40..40538bc397 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -1879,8 +1879,10 @@ class _SelectorWidget(AxesWidget):
+         """Get the xdata and ydata for event, with limits."""
+         if event.xdata is None:
+             return None, None
+-        xdata = np.clip(event.xdata, *self.ax.get_xbound())
+-        ydata = np.clip(event.ydata, *self.ax.get_ybound())
++        x0, x1 = self.ax.get_xbound()
++        y0, y1 = self.ax.get_ybound()
++        xdata = event.xdata if x0 <= event.xdata <= x1 else np.clip(event.xdata, x0, x1)
++        ydata = event.ydata if y0 <= event.ydata <= y1 else np.clip(event.ydata, y0, y1)
+         return xdata, ydata
+ 
+     def _clean_event(self, event):

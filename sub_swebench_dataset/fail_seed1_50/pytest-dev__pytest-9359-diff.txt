@@ -1,0 +1,48 @@
+diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py
+index 456681ab2..32e711374 100644
+--- a/src/_pytest/assertion/rewrite.py
++++ b/src/_pytest/assertion/rewrite.py
+@@ -195,12 +195,16 @@ class AssertionRewritingHook(importlib.abc.MetaPathFinder, importlib.abc.Loader)
+         # For matching the name it must be as if it was a filename.
+         path = PurePath(os.path.sep.join(parts) + ".py")
+ 
++        # Ensure self.fnpats is an iterable
++        if not isinstance(self.fnpats, Iterable):
++            self.fnpats = ["test_*.py", "*_test.py"]
++
+         for pat in self.fnpats:
+             # if the pattern contains subdirectories ("tests/**.py" for example) we can't bail out based
+             # on the name alone because we need to match against the full path
+             if os.path.dirname(pat):
+                 return False
+-            if fnmatch_ex(pat, path):
++            if fnmatch_ex(pat, str(path)):
+                 return False
+ 
+         if self._is_marked_for_rewrite(name, state):
+@@ -223,8 +227,13 @@ class AssertionRewritingHook(importlib.abc.MetaPathFinder, importlib.abc.Loader)
+         # modules not passed explicitly on the command line are only
+         # rewritten if they match the naming convention for test files
+         fn_path = PurePath(fn)
++
++        # Ensure self.fnpats is an iterable
++        if not isinstance(self.fnpats, Iterable):
++            self.fnpats = ["test_*.py", "*_test.py"]
++
+         for pat in self.fnpats:
+-            if fnmatch_ex(pat, fn_path):
++            if fnmatch_ex(pat, str(fn_path)):
+                 state.trace(f"matched test file {fn!r}")
+                 return True
+ 
+@@ -443,6 +452,10 @@ def _saferepr(obj: object) -> str:
+ def _get_maxsize_for_saferepr(config: Optional[Config]) -> Optional[int]:
+     """Get `maxsize` configuration for saferepr based on the given config object."""
+     verbosity = config.getoption("verbose") if config is not None else 0
++    if isinstance(verbosity, str) and verbosity.isdigit():
++        verbosity = int(verbosity)
++    elif not isinstance(verbosity, int):
++        verbosity = 0
+     if verbosity >= 2:
+         return None
+     if verbosity >= 1:

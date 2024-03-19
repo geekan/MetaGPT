@@ -1,0 +1,118 @@
+diff --git a/sympy/simplify/cse_main.py b/sympy/simplify/cse_main.py
+index a771dd377b..e2fc4b2cd4 100644
+--- a/sympy/simplify/cse_main.py
++++ b/sympy/simplify/cse_main.py
+@@ -13,6 +13,11 @@
+ 
+ from . import cse_opts
+ 
++import logging
++
++logging.basicConfig(filename='/home/ubuntu/sympy/sympy/simplify/cse_debug.log', level=logging.DEBUG,
++                    format='%(asctime)s:%(levelname)s:%(message)s')
++
+ # (preprocessor, postprocessor) pairs which are commonly useful. They should
+ # each take a sympy expression and return a possibly transformed expression.
+ # When used in the function ``cse()``, the target expressions will be transformed
+@@ -158,11 +163,13 @@ def pairwise_most_common(sets):
+     from sympy.utilities.iterables import subsets
+     from collections import defaultdict
+     most = -1
++    best_keys = []
++    best = defaultdict(list)
+     for i, j in subsets(list(range(len(sets))), 2):
+         com = sets[i] & sets[j]
+         if com and len(com) > most:
+-            best = defaultdict(list)
+             best_keys = []
++            best = defaultdict(list)
+             most = len(com)
+         if len(com) == most:
+             if com not in best_keys:
+@@ -393,6 +400,7 @@ def restore(dafi):
+     # split muls into commutative
+     commutative_muls = set()
+     for m in muls:
++        logging.debug(f"Splitting Mul objects into commutative and non-commutative parts: {m}")
+         c, nc = m.args_cnc(cset=True)
+         if c:
+             c_mul = m.func(*c)
+@@ -400,6 +408,7 @@ def restore(dafi):
+                 opt_subs[m] = m.func(c_mul, m.func(*nc), evaluate=False)
+             if len(c) > 1:
+                 commutative_muls.add(c_mul)
++        logging.debug(f"Finished splitting Mul objects into commutative and non-commutative parts: {m}")
+ 
+     _match_common_args(Add, adds)
+     _match_common_args(Mul, commutative_muls)
+@@ -417,12 +426,17 @@ def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
+         The expressions to reduce.
+     symbols : infinite iterator yielding unique Symbols
+         The symbols used to label the common subexpressions which are pulled
+-        out.
++        out. The ``numbered_symbols`` generator is useful. The default is a
++        stream of symbols of the form "x0", "x1", etc. This must be an
++        infinite iterator.
+     opt_subs : dictionary of expression substitutions
+         The expressions to be substituted before any CSE action is performed.
+     order : string, 'none' or 'canonical'
+-        The order by which Mul and Add arguments are processed. For large
+-        expressions where speed is a concern, use the setting order='none'.
++        The order by which Mul and Add arguments are processed. If set to
++        'canonical', arguments will be canonically ordered. If set to 'none',
++        ordering will be faster but dependent on expressions hashes, thus
++        machine dependent and variable. For large expressions where speed is a
++        concern, use the setting order='none'.
+     ignore : iterable of Symbols
+         Substitutions containing any Symbol from ``ignore`` will be ignored.
+     """
+@@ -496,6 +510,7 @@ def _rebuild(expr):
+         # If enabled, parse Muls and Adds arguments by order to ensure
+         # replacement order independent from hashes
+         if order != 'none':
++            logging.debug(f"Before canonical ordering: {expr}")
+             if isinstance(expr, (Mul, MatMul)):
+                 c, nc = expr.args_cnc()
+                 if c == [1]:
+@@ -506,6 +521,7 @@ def _rebuild(expr):
+                 args = list(ordered(expr.args))
+             else:
+                 args = expr.args
++            logging.debug(f"After canonical ordering: {expr}")
+         else:
+             args = expr.args
+ 
+@@ -515,6 +531,8 @@ def _rebuild(expr):
+         else:
+             new_expr = expr
+ 
++        logging.debug(f"Rebuilding expression: {expr}")
++
+         if orig_expr in to_eliminate:
+             try:
+                 sym = next(symbols)
+@@ -546,6 +564,7 @@ def _rebuild(expr):
+     #     R = [(x0, d + f), (x1, b + d)]
+     #     C = [e + x0 + x1, g + x0 + x1, a + c + d + f + g]
+     # but the args of C[-1] should not be `(a + c, d + f + g)`
++    logging.debug(f"Before hollow nesting prevention: {exprs}")
+     nested = [[i for i in f.args if isinstance(i, f.func)] for f in exprs]
+     for i in range(len(exprs)):
+         F = reduced_exprs[i].func
+@@ -563,6 +582,7 @@ def _rebuild(expr):
+             else:
+                 args.append(a)
+         reduced_exprs[i] = F(*args)
++    logging.debug(f"After hollow nesting prevention: {reduced_exprs}")
+ 
+     return replacements, reduced_exprs
+ 
+@@ -644,6 +664,8 @@ def cse(exprs, symbols=None, optimizations=None, postprocess=None,
+     from sympy.matrices import (MatrixBase, Matrix, ImmutableMatrix,
+                                 SparseMatrix, ImmutableSparseMatrix)
+ 
++    logging.debug("Starting cse function")
++
+     # Handle the case if just one expression was passed.
+     if isinstance(exprs, (Basic, MatrixBase)):
+         exprs = [exprs]

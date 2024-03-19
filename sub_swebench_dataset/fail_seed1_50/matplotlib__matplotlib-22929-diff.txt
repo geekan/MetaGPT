@@ -1,0 +1,32 @@
+diff --git a/lib/matplotlib/axes/_axes.py b/lib/matplotlib/axes/_axes.py
+index c3a79b0d45..2dece1060e 100644
+--- a/lib/matplotlib/axes/_axes.py
++++ b/lib/matplotlib/axes/_axes.py
+@@ -2676,11 +2676,22 @@ class Axes(_AxesBase):
+ 
+             if err is None:
+                 endpt = extrema
+-            elif orientation == "vertical":
+-                endpt = err[:, 1].max() if dat >= 0 else err[:, 1].min()
+-            elif orientation == "horizontal":
+-                endpt = err[:, 0].max() if dat >= 0 else err[:, 0].min()
+-
++            else:
++                # Check if 'err' is 1D and convert to 2D if needed
++                if err.ndim == 1:
++                    err = np.array([err, err])
++                # Check if 'err' is empty and set 'endpt' to 'extrema'
++                if err.size == 0:
++                    endpt = extrema
++                else:
++                    # Handle NaN in error values: if err array contains NaN, use extrema as endpoint
++                    if np.any(np.isnan(err)):
++                        endpt = extrema
++                    else:
++                        if orientation == "vertical":
++                            endpt = err[:, 1].max() if dat >= 0 else err[:, 1].min()
++                        elif orientation == "horizontal":
++                            endpt = err[:, 0].max() if dat >= 0 else err[:, 0].min()
+             if label_type == "center":
+                 value = sign(dat) * length
+             elif label_type == "edge":

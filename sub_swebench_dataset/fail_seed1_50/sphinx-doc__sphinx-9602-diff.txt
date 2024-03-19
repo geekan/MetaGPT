@@ -1,0 +1,122 @@
+diff --git a/sphinx/util/typing.py b/sphinx/util/typing.py
+index cf4318cda..6f04adb28 100644
+--- a/sphinx/util/typing.py
++++ b/sphinx/util/typing.py
+@@ -73,13 +73,15 @@ TitleGetter = Callable[[nodes.Node], str]
+ Inventory = Dict[str, Dict[str, Tuple[str, str, str, str]]]
+ 
+ 
+-def get_type_hints(obj: Any, globalns: Dict = None, localns: Dict = None) -> Dict[str, Any]:
++def get_type_hints(obj: Any, globalns: Optional[Dict] = None, localns: Optional[Dict] = None) -> Dict[str, Any]:
+     """Return a dictionary containing type hints for a function, method, module or class object.
+ 
+     This is a simple wrapper of `typing.get_type_hints()` that does not raise an error on
+     runtime.
+     """
+     from sphinx.util.inspect import safe_getattr  # lazy loading
++    globalns = globalns if globalns is not None else {}
++    localns = localns if localns is not None else {}
+ 
+     try:
+         return typing.get_type_hints(obj, globalns, localns)
+@@ -118,11 +120,11 @@ def restify(cls: Optional[Type]) -> str:
+         elif inspect.isNewType(cls):
+             return ':class:`%s`' % cls.__name__
+         elif UnionType and isinstance(cls, UnionType):
+-            if len(cls.__args__) > 1 and None in cls.__args__:
+-                args = ' | '.join(restify(a) for a in cls.__args__ if a)
++            if getattr(cls, '__args__', None) is not None and len(cls.__args__) > 1 and None in cls.__args__:
++                args = ' | '.join(restify(a) for a in cls.__args__ if a) if cls.__args__ is not None else ''
+                 return 'Optional[%s]' % args
+             else:
+-                return ' | '.join(restify(a) for a in cls.__args__)
++                return ' | '.join(restify(a) for a in cls.__args__) if getattr(cls, '__args__', None) is not None else ''
+         elif cls.__module__ in ('__builtin__', 'builtins'):
+             if hasattr(cls, '__args__'):
+                 return ':class:`%s`\\ [%s]' % (
+@@ -145,9 +147,9 @@ def _restify_py37(cls: Optional[Type]) -> str:
+     from sphinx.util import inspect  # lazy loading
+ 
+     if (inspect.isgenericalias(cls) and
+-            cls.__module__ == 'typing' and cls.__origin__ is Union):
++            cls.__module__ == 'typing' and getattr(cls, '_name', None) == 'Callable'):
+         # Union
+-        if len(cls.__args__) > 1 and cls.__args__[-1] is NoneType:
++        if getattr(cls, '__args__', None) is not None and len(cls.__args__) > 1 and cls.__args__[-1] is NoneType:
+             if len(cls.__args__) > 2:
+                 args = ', '.join(restify(a) for a in cls.__args__[:-1])
+                 return ':obj:`~typing.Optional`\\ [:obj:`~typing.Union`\\ [%s]]' % args
+@@ -173,12 +175,13 @@ def _restify_py37(cls: Optional[Type]) -> str:
+         elif all(is_system_TypeVar(a) for a in cls.__args__):
+             # Suppress arguments if all system defined TypeVars (ex. Dict[KT, VT])
+             pass
+-        elif cls.__module__ == 'typing' and cls._name == 'Callable':
++        elif cls.__module__ == 'typing' and getattr(origin, '_name', None) == 'Callable':
+             args = ', '.join(restify(a) for a in cls.__args__[:-1])
+             text += r"\ [[%s], %s]" % (args, restify(cls.__args__[-1]))
+         elif cls.__module__ == 'typing' and getattr(origin, '_name', None) == 'Literal':
+-            text += r"\ [%s]" % ', '.join(repr(a) for a in cls.__args__)
+-        elif cls.__args__:
++            # Handle Literal types without creating class references
++            return f'Literal[{", ".join(repr(a) for a in cls.__args__)}]'
++        elif getattr(cls, '__args__', None):
+             text += r"\ [%s]" % ", ".join(restify(a) for a in cls.__args__)
+ 
+         return text
+@@ -368,28 +371,28 @@ def _stringify_py37(annotation: Any) -> str:
+                 else:
+                     return 'Optional[%s]' % stringify(annotation.__args__[0])
+             else:
+-                args = ', '.join(stringify(a) for a in annotation.__args__)
++                args = ', '.join(stringify(a) for a in annotation.__args__) if annotation.__args__ is not None else ''
+                 return 'Union[%s]' % args
+         elif qualname == 'types.Union':
+             if len(annotation.__args__) > 1 and None in annotation.__args__:
+-                args = ' | '.join(stringify(a) for a in annotation.__args__ if a)
++                args = ' | '.join(stringify(a) for a in annotation.__args__ if a) if annotation.__args__ is not None else ''
+                 return 'Optional[%s]' % args
+             else:
+-                return ' | '.join(stringify(a) for a in annotation.__args__)
++                return ' | '.join(stringify(a) for a in annotation.__args__) if annotation.__args__ is not None else ''
+         elif qualname == 'Callable':
+             args = ', '.join(stringify(a) for a in annotation.__args__[:-1])
+             returns = stringify(annotation.__args__[-1])
+             return '%s[[%s], %s]' % (qualname, args, returns)
+         elif qualname == 'Literal':
+             args = ', '.join(repr(a) for a in annotation.__args__)
+-            return '%s[%s]' % (qualname, args)
++            return f'Literal[{args}]'
+         elif str(annotation).startswith('typing.Annotated'):  # for py39+
+             return stringify(annotation.__args__[0])
+         elif all(is_system_TypeVar(a) for a in annotation.__args__):
+             # Suppress arguments if all system defined TypeVars (ex. Dict[KT, VT])
+-            return qualname
++            pass
+         else:
+-            args = ', '.join(stringify(a) for a in annotation.__args__)
++            args = ', '.join(stringify(a) for a in annotation.__args__) if annotation.__args__ is not None else ''
+             return '%s[%s]' % (qualname, args)
+ 
+     return qualname
+@@ -447,7 +450,7 @@ def _stringify_py36(annotation: Any) -> str:
+                 else:
+                     return 'Optional[%s]' % stringify(params[0])
+             else:
+-                param_str = ', '.join(stringify(p) for p in params)
++                param_str = ', '.join(stringify(p) for p in params) if params is not None else ''
+                 return 'Union[%s]' % param_str
+ 
+     return qualname
+diff --git a/tox.ini b/tox.ini
+index b6a67fd85..483f2df92 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -28,7 +28,7 @@ setenv =
+     PYTHONWARNINGS = all,ignore::ImportWarning:importlib._bootstrap_external,ignore::DeprecationWarning:site,ignore::DeprecationWarning:distutils,ignore::DeprecationWarning:pip._vendor.packaging.version
+     PYTEST_ADDOPTS = {env:PYTEST_ADDOPTS:} --color yes
+ commands=
+-    python -X dev -m pytest --durations 25 {posargs}
++    python -X dev -m pytest -rA --durations 25 {posargs}
+ 
+ [testenv:flake8]
+ basepython = python3

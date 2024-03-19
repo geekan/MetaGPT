@@ -1,0 +1,24 @@
+diff --git a/sphinx/builders/manpage.py b/sphinx/builders/manpage.py
+index 532d2b8fe..897b310cf 100644
+--- a/sphinx/builders/manpage.py
++++ b/sphinx/builders/manpage.py
+@@ -65,7 +65,7 @@ class ManualPageBuilder(Builder):
+             docname, name, description, authors, section = info
+             if docname not in self.env.all_docs:
+                 logger.warning(__('"man_pages" config value references unknown '
+-                                  'document %s'), docname)
++                                   'document %s'), docname)
+                 continue
+             if isinstance(authors, str):
+                 if authors:
+@@ -79,8 +79,8 @@ class ManualPageBuilder(Builder):
+             docsettings.section = section
+ 
+             if self.config.man_make_section_directory:
+-                ensuredir(path.join(self.outdir, str(section)))
+-                targetname = '%s/%s.%s' % (section, name, section)
++                ensuredir(path.join(self.outdir, 'man' + str(section)))
++                targetname = 'man%s/%s.%s' % (section, name, section)
+             else:
+                 targetname = '%s.%s' % (name, section)
+ 

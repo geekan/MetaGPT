@@ -1,0 +1,29 @@
+diff --git a/src/_pytest/_code/code.py b/src/_pytest/_code/code.py
+index 218b5ad63..79bcde5e0 100644
+--- a/src/_pytest/_code/code.py
++++ b/src/_pytest/_code/code.py
+@@ -262,7 +262,7 @@ class TracebackEntry:
+             raise
+         except BaseException:
+             line = "???"
+-        return "  File %r:%d in %s\n  %s\n" % (self.path, self.lineno + 1, name, line)
++        return "  File %s:%d in %s\n  %s\n" % (str(self.path), self.lineno + 1, name, line)
+ 
+     @property
+     def name(self) -> str:
+diff --git a/testing/python/test_traceback_format.py b/testing/python/test_traceback_format.py
+new file mode 100644
+index 000000000..8f54320fe
+--- /dev/null
++++ b/testing/python/test_traceback_format.py
+@@ -0,0 +1,10 @@
++import pytest
++import os
++
++def test_traceback_format():
++    with pytest.raises(ImportError) as exc_info:
++        from non_existent_module import something
++
++    current_file = os.path.basename(__file__)
++    traceback_str = "".join(str(line) for line in exc_info.traceback)
++    assert current_file in traceback_str

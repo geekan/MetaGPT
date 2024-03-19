@@ -1,0 +1,27 @@
+diff --git a/sympy/functions/elementary/integers.py b/sympy/functions/elementary/integers.py
+index fa68122865..691f178172 100644
+--- a/sympy/functions/elementary/integers.py
++++ b/sympy/functions/elementary/integers.py
+@@ -390,13 +390,16 @@ def __ge__(self, other):
+     def __gt__(self, other):
+         if self.is_extended_real:
+             other = _sympify(other)
+-            # Check if other < 0
+-            res = self._value_one_or_more(other)
+-            if res is not None:
+-                return not(res)
+-            # Check if other >= 1
+-            if other.is_extended_negative:
++            # Check if other is a positive number
++            if other.is_positive:
++                # If other is positive, ceiling of any number is greater than 0
+                 return S.true
++            # Check if other is non-positive
++            if other.is_nonpositive:
++                # If other is non-positive, ceiling of any number is not greater
++                return S.false
++            # If other is not a number, return unevaluated
++            return Gt(self, other, evaluate=False)
+         return Gt(self, other, evaluate=False)
+ 
+     def __le__(self, other):

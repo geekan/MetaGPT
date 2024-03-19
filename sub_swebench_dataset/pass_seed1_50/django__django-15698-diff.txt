@@ -1,0 +1,29 @@
+diff --git a/django/template/base.py b/django/template/base.py
+index a1ab437eca..a2d8a22456 100644
+--- a/django/template/base.py
++++ b/django/template/base.py
+@@ -913,15 +913,17 @@ class Variable:
+                         try:  # method call (assuming no args required)
+                             current = current()
+                         except TypeError:
+-                            signature = inspect.signature(current)
+                             try:
+-                                signature.bind()
+-                            except TypeError:  # arguments *were* required
+-                                current = (
+-                                    context.template.engine.string_if_invalid
+-                                )  # invalid method call
++                                signature = inspect.signature(current)
++                            except ValueError:  # python builtins might not have signature
++                                current = context.template.engine.string_if_invalid
+                             else:
+-                                raise
++                                try:
++                                    signature.bind()
++                                except TypeError:  # arguments *were* required
++                                    current = context.template.engine.string_if_invalid  # invalid method call
++                                else:
++                                    raise
+         except Exception as e:
+             template_name = getattr(context, "template_name", None) or "unknown"
+             logger.debug(

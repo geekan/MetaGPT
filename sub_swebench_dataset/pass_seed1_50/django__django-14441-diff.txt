@@ -1,0 +1,52 @@
+diff --git a/django/core/files/images.py b/django/core/files/images.py
+index 579c32e11c..799506ddee 100644
+--- a/django/core/files/images.py
++++ b/django/core/files/images.py
+@@ -7,6 +7,7 @@ import struct
+ import zlib
+ 
+ from django.core.files import File
++from PIL import ImageFile as PillowImageFile
+ 
+ 
+ class ImageFile(File):
+@@ -36,16 +37,21 @@ def get_image_dimensions(file_or_path, close=False):
+     'close' to True to close the file at the end if it is initially in an open
+     state.
+     """
+-    from PIL import ImageFile as PillowImageFile
+ 
+     p = PillowImageFile.Parser()
+-    if hasattr(file_or_path, 'read'):
+-        file = file_or_path
+-        file_pos = file.tell()
+-        file.seek(0)
+-    else:
+-        file = open(file_or_path, 'rb')
+-        close = True
++    file = None
++    file_pos = 0
++    try:
++        if hasattr(file_or_path, 'read'):
++            file = file_or_path
++            file_pos = file.tell()
++            file.seek(0)
++        else:
++            file = open(file_or_path, 'rb')
++            close = True
++    except FileNotFoundError:
++        return (None, None)
++
+     try:
+         # Most of the time Pillow only needs a small chunk to parse the image
+         # and get the dimensions, but with some TIFF files Pillow needs to
+@@ -78,7 +84,7 @@ def get_image_dimensions(file_or_path, close=False):
+             chunk_size *= 2
+         return (None, None)
+     finally:
+-        if close:
++        if file and close:
+             file.close()
+-        else:
++        elif file:
+             file.seek(file_pos)

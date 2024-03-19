@@ -1,0 +1,66 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index be0deb90b0..bd194a0d0b 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -1564,9 +1564,14 @@ class QuerySet:
+         if lookups == (None,):
+             clone._prefetch_related_lookups = ()
+         else:
++            lookups = normalize_prefetch_lookups(lookups)
+             for lookup in lookups:
+                 if isinstance(lookup, Prefetch):
+-                    lookup = lookup.prefetch_to
++                    if lookup.queryset is not None and lookup.queryset.query.is_sliced:
++                        # The queryset has slicing applied, so we make a clone of the
++                        # queryset before using it for prefetching.
++                        lookup.queryset = lookup.queryset._chain()
++                lookup = lookup.prefetch_to
+                 lookup = lookup.split(LOOKUP_SEP, 1)[0]
+                 if lookup in self.query._filtered_relations:
+                     raise ValueError(
+@@ -2022,7 +2027,7 @@ class RawQuerySet:
+         annotation_fields = [
+             (column, pos)
+             for pos, column in enumerate(self.columns)
+-            if column not in self.model_fields
++            if column not in the model_fields
+         ]
+         model_init_order = [
+             self.columns.index(converter(f.column)) for f in model_init_fields
+@@ -2036,13 +2041,20 @@ class RawQuerySet:
+         if lookups == (None,):
+             clone._prefetch_related_lookups = ()
+         else:
++            for lookup in lookups:
++                if isinstance(lookup, Prefetch):
++                    lookup = lookup.prefetch_to
++                lookup = lookup.split(LOOKUP_SEP, 1)[0]
++                if lookup in self.query._filtered_relations:
++                    raise ValueError(
++                        "prefetch_related() is not supported with FilteredRelation."
++                    )
+             clone._prefetch_related_lookups = clone._prefetch_related_lookups + lookups
+         return clone
+ 
+     def _prefetch_related_objects(self):
+         prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+         self._prefetch_done = True
+-
+     def _clone(self):
+         """Same as QuerySet._clone()"""
+         c = self.__class__(
+diff --git a/docs/ref/models/querysets.txt b/docs/ref/models/querysets.txt
+index 223bb452b0..ceb8dc1fda 100644
+--- a/docs/ref/models/querysets.txt
++++ b/docs/ref/models/querysets.txt
+@@ -1363,9 +1363,7 @@ database selected by the outer query. All of the following are valid::
+         >>> prefetch_related('pizzas__toppings', Prefetch('pizzas', queryset=Pizza.objects.all()))
+ 
+     This will raise a ``ValueError`` because of the attempt to redefine the
+-    queryset of a previously seen lookup. Note that an implicit queryset was
+-    created to traverse ``'pizzas'`` as part of the ``'pizzas__toppings'``
+-    lookup.
++    This will not raise a ``ValueError`` anymore because the queryset of a previously seen lookup can now be redefined with slicing. Note that an implicit queryset was created to traverse ``'pizzas'`` as part of the ``'pizzas__toppings'`` lookup.
+ 
+         >>> prefetch_related('pizza_list__toppings', Prefetch('pizzas', to_attr='pizza_list'))
+ 

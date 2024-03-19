@@ -1,0 +1,16 @@
+diff --git a/sympy/polys/rings.py b/sympy/polys/rings.py
+index 12bd2fc920..4f81743552 100644
+--- a/sympy/polys/rings.py
++++ b/sympy/polys/rings.py
+@@ -616,8 +616,9 @@ def set_ring(self, new_ring):
+             return new_ring.from_dict(self, self.ring.domain)
+ 
+     def as_expr(self, *symbols):
+-        if symbols and len(symbols) != self.ring.ngens:
+-            raise ValueError("not enough symbols, expected %s got %s" % (self.ring.ngens, len(symbols)))
++        if symbols:
++            if len(symbols) != self.ring.ngens:
++                raise ValueError("not enough symbols, expected %s got %s" % (self.ring.ngens, len(symbols)))
+         else:
+             symbols = self.ring.symbols
+ 

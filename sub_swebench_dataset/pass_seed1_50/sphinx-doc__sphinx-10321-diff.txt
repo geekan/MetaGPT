@@ -1,0 +1,67 @@
+diff --git a/sphinx/ext/autodoc/preserve_defaults.py b/sphinx/ext/autodoc/preserve_defaults.py
+index 313fe5501..6ad9dd2c9 100644
+--- a/sphinx/ext/autodoc/preserve_defaults.py
++++ b/sphinx/ext/autodoc/preserve_defaults.py
+@@ -3,7 +3,6 @@
+ Preserve the default argument values of function signatures in source code
+ and keep them not evaluated for readability.
+ """
+-
+ import ast
+ import inspect
+ import sys
+@@ -26,7 +25,7 @@ class DefaultValue:
+         return self.name
+ 
+ 
+-def get_function_def(obj: Any) -> ast.FunctionDef:
++def get_function_def(obj: Any) -> Optional[ast.FunctionDef]:
+     """Get FunctionDef object from living object.
+     This tries to parse original code for living object and returns
+     AST node for given *obj*.
+@@ -73,7 +72,7 @@ def update_defvalue(app: Sphinx, obj: Any, bound_method: bool) -> None:
+ 
+     try:
+         function = get_function_def(obj)
+-        if function.args.defaults or function.args.kw_defaults:
++        if function and (function.args.defaults or function.args.kw_defaults):
+             sig = inspect.signature(obj)
+             defaults = list(function.args.defaults)
+             kw_defaults = list(function.args.kw_defaults)
+@@ -86,12 +85,17 @@ def update_defvalue(app: Sphinx, obj: Any, bound_method: bool) -> None:
+                         if value is None:
+                             value = ast_unparse(default)  # type: ignore
+                         parameters[i] = param.replace(default=DefaultValue(value))
+-                    else:
+-                        default = kw_defaults.pop(0)
+-                        value = get_default_value(lines, default)
+-                        if value is None:
+-                            value = ast_unparse(default)  # type: ignore
+-                        parameters[i] = param.replace(default=DefaultValue(value))
++                    elif param.kind == param.KEYWORD_ONLY:
++                        if kw_defaults and kw_defaults[0] is None:
++                            kw_defaults.pop(0)
++                        if kw_defaults:
++                            default = kw_defaults.pop(0)
++                            if isinstance(default, ast.AST):
++                                value = get_default_value(lines, default)
++                                if value is None:
++                                    value = ast_unparse(default)  # type: ignore
++                                if value is not None:
++                                    parameters[i] = param.replace(default=DefaultValue(value))
+             sig = sig.replace(parameters=parameters)
+             obj.__signature__ = sig
+     except (AttributeError, TypeError):
+diff --git a/tox.ini b/tox.ini
+index f0afd779b..30ca90275 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -28,7 +28,7 @@ setenv =
+     PYTHONWARNINGS = all
+     PYTEST_ADDOPTS = {env:PYTEST_ADDOPTS:} --color yes
+ commands=
+-    python -X dev -m pytest --durations 25 {posargs}
++    python -X dev -m pytest -rA --durations 25 {posargs}
+ 
+ [testenv:du-latest]
+ commands =

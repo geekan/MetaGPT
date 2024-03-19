@@ -1,0 +1,32 @@
+diff --git a/django/db/models/fields/related.py b/django/db/models/fields/related.py
+index 63ed2ff4c7..9f9bb428f8 100644
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -897,6 +897,27 @@ ForeignObject.register_lookup(RelatedGreaterThanOrEqual)
+ ForeignObject.register_lookup(RelatedLessThanOrEqual)
+ ForeignObject.register_lookup(RelatedIsNull)
+ 
++from django.db.models.lookups import StartsWith
++
++class StartsWithNoJoin(StartsWith):
++    # This class should override methods from StartsWith to change the SQL generation
++    # to not require a join. The implementation details would depend on Django's ORM
++    # internals and require a deep understanding of how Django constructs SQL queries
++    # for lookups.
++
++    def as_sql(self, compiler, connection):
++        # We override the as_sql method to modify the default behavior of the 'startswith' lookup
++        # to prevent a join. Instead, we directly apply the 'startswith' pattern to the foreign key column.
++        lhs, lhs_params = self.process_lhs(compiler, connection)
++        rhs, rhs_params = self.process_rhs(compiler, connection)
++        params = lhs_params + rhs_params
++        # The pattern '%' is appended to the rhs value to achieve the 'startswith' SQL behavior.
++        rhs = self.get_rhs_op(connection, rhs)
++        return '%s LIKE %s' % (lhs, rhs), params
++
++# Register the custom lookup for ForeignObject fields
++ForeignObject.register_lookup(StartsWithNoJoin)
++
+ 
+ class ForeignKey(ForeignObject):
+     """

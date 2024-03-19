@@ -1,0 +1,26 @@
+diff --git a/sympy/matrices/expressions/matexpr.py b/sympy/matrices/expressions/matexpr.py
+index 87a40b0b57..ebfef7e3c8 100644
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -771,9 +771,9 @@ def __new__(cls, name, n, m):
+         cls._check_dim(m)
+         cls._check_dim(n)
+ 
+-        if isinstance(name, str):
+-            name = Symbol(name)
+-        obj = Basic.__new__(cls, name, n, m)
++        if not isinstance(name, str):
++            raise TypeError("name must be a string")
++        obj = Basic.__new__(cls, str(name), n, m)
+         return obj
+ 
+     @property
+@@ -782,7 +782,7 @@ def shape(self):
+ 
+     @property
+     def name(self):
+-        return self.args[0].name
++        return self.args[0]
+ 
+     def _entry(self, i, j, **kwargs):
+         return MatrixElement(self, i, j)

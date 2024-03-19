@@ -1,0 +1,2045 @@
+diff --git a/.travis.yml b/.travis.yml
+index 48c05b187f..1baf10d530 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -9,7 +9,6 @@ env:
+   - SPLIT="4/4" TEST_SYMPY="true"
+   global:
+     - secure: "YIEZal9EBTL+fg2YmoZoS8Bvt3eAVUOZjb38CtqpzR2CCSXWoUk35KG23m2NknlY1iKfYJyt7XWBszT/VKOQEbWQq7PIakV4vIByrWacgBxy1x3WC+rZoW7TX+JJiL+y942qIYbMoNMMB8xFpE5RDLSjSecMpFhJJXoafVTvju8="
+-dist: trusty
+ 
+ python:
+   - 2.7
+@@ -27,7 +26,6 @@ matrix:
+         - TEST_THEANO="true"
+         - TEST_ASCII="true"
+         - TEST_AUTOWRAP="true"
+-        - TEST_SYMENGINE="true"
+       addons:
+         apt:
+           packages:
+@@ -43,7 +41,6 @@ matrix:
+         - TEST_THEANO="true"
+         - TEST_ASCII="true"
+         - TEST_AUTOWRAP="true"
+-        - TEST_SYMENGINE="true"
+       addons:
+         apt:
+           packages:
+@@ -67,7 +64,6 @@ matrix:
+             - texlive-xetex
+             - texlive-fonts-recommended
+             - texlive-latex-extra
+-            - latexmk
+             - lmodern
+             - librsvg2-bin
+             - imagemagick
+@@ -97,6 +93,9 @@ matrix:
+       env:
+         - TEST_SLOW="true"
+         - SPLIT="3/3"
++    - python: 3.5
++      env:
++        - TEST_SYMENGINE="true"
+ 
+     # Everything here and below is in the allow_failures. The need to be
+     # duplicated here and in that section below.
+@@ -235,7 +234,7 @@ before_install:
+       pip install fastcache;
+     fi
+   - if [[ "${TEST_SPHINX}" == "true" ]]; then
+-      pip install "sphinx" "docutils" doctr;
++      pip install "sphinx==1.3.1" "docutils==0.12" doctr;
+     fi
+   - |
+     if [[ "${TEST_MATPLOTLIB}" == "true" || "${TEST_SYMENGINE}" == "true" ]]; then
+diff --git a/AUTHORS b/AUTHORS
+index d89b4c0d68..c7a641de7a 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -3,7 +3,7 @@ order of the date of their first contribution), except those who explicitly
+ didn't want to be mentioned. People with a * next to their names are not found
+ in the metadata of the git history. This file is generated automatically by
+ running `./bin/authors_update.py`.
+-There are a total of 619 authors.
++There are a total of 618 authors.
+ 
+ Ondřej Čertík <ondrej@certik.cz>
+ Fabian Pedregosa <fabian@fseoane.net>
+@@ -621,6 +621,5 @@ Vincent Delecroix <vincent.delecroix@labri.fr>
+ Michael Sparapany <msparapa@purdue.edu>
+ harsh_jain <harshjniitr@gmail.com>
+ Nathan Goldbaum <ngoldbau@illinois.edu>
+-latot <felipematas@yahoo.com>
+ Kenneth Lyons <ixjlyons@gmail.com>
+-Jiri Kuncar <jiri.kuncar@gmail.com>
++latot <felipematas@yahoo.com>
+diff --git a/bin/test_travis.sh b/bin/test_travis.sh
+index efd4fa1bed..9de7d200b8 100755
+--- a/bin/test_travis.sh
++++ b/bin/test_travis.sh
+@@ -12,7 +12,7 @@ fi
+ if [[ "${TEST_SPHINX}" == "true" ]]; then
+     echo "Testing SPHINX"
+     cd doc
+-    make html
++    make html-errors
+     make man
+     make latex
+     cd _build/latex
+@@ -27,6 +27,11 @@ if [[ "${TEST_SAGE}" == "true" ]]; then
+     ./bin/test -k tensorflow
+ fi
+ 
++if [[ "${TEST_SYMENGINE}" == "true" ]]; then
++    echo "Testing SYMENGINE"
++    export USE_SYMENGINE=1
++fi
++
+ # We change directories to make sure that we test the installed version of
+ # sympy.
+ mkdir empty
+@@ -126,13 +131,10 @@ fi
+ 
+ 
+ if [[ "${TEST_SYMENGINE}" == "true" ]]; then
+-    echo "Testing SYMENGINE"
+-    export USE_SYMENGINE=1
+     cat << EOF | python
+ print('Testing SymEngine')
+ import sympy
+ if not sympy.test('sympy/physics/mechanics'):
+     raise Exception('Tests failed')
+ EOF
+-    unset USE_SYMENGINE
+ fi
+diff --git a/doc/Makefile b/doc/Makefile
+index d2f822b12b..e29496e7a9 100644
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -17,8 +17,9 @@ ALLSPHINXOPTSapi = -d _build/doctrees-api $(SPHINXOPTS) api
+ ALLSPHINXOPTSlatex = -d _build/doctrees-latex -D latex_paper_size=$(PAPER) \
+                 $(SPHINXOPTS) src
+ 
+-.PHONY: changes cheatsheet clean help html htmlapi htmlhelp info latex \
+-        linkcheck livehtml texinfo web logo man
++.PHONY: changes cheatsheet clean help html html-errors \
++        htmlapi htmlhelp info latex linkcheck livehtml \
++        texinfo web logo man
+ 
+ .SUFFIXES: .pdf .svg
+ 
+@@ -28,6 +29,7 @@ help:
+ 	@echo "  cheatsheet  to make the Cheatsheet"
+ 	@echo "  clean       to remove generated files"
+ 	@echo "  html        to make standalone HTML files"
++	@echo "  html-errors to make the standalone HTML files, stopping on any errors or warnings"
+ 	@echo "  htmlapi     to make HTML API docs"
+ 	@echo "  htmlhelp    to make HTML files and a HTML help project"
+ 	@echo "  info        to make Texinfo files and run them through makeinfo"
+@@ -44,7 +46,6 @@ clean:
+ 	-rm -rf sphinx
+ 	-rm -f $(PDFFILES)
+ 
+-html: SPHINXOPTS += -W
+ html: _build/logo/sympy-notailtext-favicon.ico
+ 	mkdir -p src/.static
+ 	mkdir -p _build/html
+@@ -55,6 +56,9 @@ html: _build/logo/sympy-notailtext-favicon.ico
+ 	@echo
+ 	@echo "Build finished. The HTML pages are in _build/html."
+ 
++html-errors: SPHINXOPTS += -W
++html-errors: html
++
+ htmlapi:
+ 	mkdir -p api/.static
+ 	mkdir -p api/modules
+@@ -82,8 +86,7 @@ htmlhelp:
+ latex: $(PDFFILES)
+ 	mkdir -p _build/latex _build/doctrees
+ 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTSlatex) _build/latex
+-	sed -i'' -e "s/pdflatex/xelatex/g" _build/latex/Makefile
+-	sed -i'' -e "s/latexmk/latexmk -xelatex/g" _build/latex/Makefile
++	sed -i "s/pdflatex/xelatex/g" _build/latex/Makefile
+ 	@echo
+ 	@echo "Build finished; the LaTeX files are in _build/latex."
+ 	@echo "Run \`make all' in that directory to run these through xelatex."
+diff --git a/doc/ext/numpydoc.py b/doc/ext/numpydoc.py
+index b47000757b..a575060320 100644
+--- a/doc/ext/numpydoc.py
++++ b/doc/ext/numpydoc.py
+@@ -29,6 +29,7 @@
+     raise RuntimeError("Sphinx 1.0.1 or newer is required")
+ 
+ from docscrape_sphinx import get_doc_object, SphinxDocString
++from sphinx.util.compat import Directive
+ 
+ if sys.version_info[0] >= 3:
+     sixu = lambda s: s
+diff --git a/doc/src/conf.py b/doc/src/conf.py
+index 6066701cee..f4c5afdfd1 100644
+--- a/doc/src/conf.py
++++ b/doc/src/conf.py
+@@ -40,8 +40,6 @@
+ # The master toctree document.
+ master_doc = 'index'
+ 
+-suppress_warnings = ['ref.citation', 'ref.footnote']
+-
+ # General substitutions.
+ project = 'SymPy'
+ copyright = '2017 SymPy Development Team'
+diff --git a/release/Dockerfile b/release/Dockerfile
+index 0f7296cf48..61a5c92562 100644
+--- a/release/Dockerfile
++++ b/release/Dockerfile
+@@ -1,9 +1,9 @@
+ FROM continuumio/anaconda3
+ 
+-WORKDIR /root
++WORKDIR /home
+ 
+ RUN apt-get update \
+-    && apt-get install -y libc6-i386 libc6 linux-headers-amd64 git make zip graphviz inkscape texlive-xetex texlive-fonts-recommended texlive-latex-extra librsvg2-bin docbook2x latexmk \
++    && apt-get install -y libc6-i386 libc6 linux-headers-amd64 git make zip graphviz inkscape texlive-xetex texlive-fonts-recommended texlive-latex-extra librsvg2-bin docbook2x \
+     && apt-get -y clean
+ 
+ RUN conda config --add channels conda-forge
+@@ -15,12 +15,15 @@ RUN /opt/conda/bin/pip install xonda
+ 
+ # Make matplotlib tests work
+ # https://stackoverflow.com/questions/2801882/generating-a-png-with-matplotlib-when-display-is-undefined
+-ENV MATPLOTLIBRC=/root/matplotlibrc
++ENV MATPLOTLIBRC=/home/matplotlibrc
+ RUN mkdir -p $MATPLOTLIBRC
+ RUN echo "backend : Agg" > $MATPLOTLIBRC/matplotlibrc
+ 
+ RUN git clone git://github.com/sympy/sympy.git
++# This can be removed once this is in master
++RUN cd /home/sympy && git checkout 1.1
++RUN cd /home/sympy && git pull
+ 
+-WORKDIR /root/sympy/release
++WORKDIR /home/sympy/release
+ 
+ ENTRYPOINT ["./pull_and_run_rever.sh"]
+diff --git a/release/README.md b/release/README.md
+index ce5f8ef342..8fd4bde90f 100644
+--- a/release/README.md
++++ b/release/README.md
+@@ -1,6 +1,16 @@
+-**NOTE: The release script is currently in the process of moving from
+-Vagrant/fabric to Docker/rever. The fabfile.py is left here for reference, but
+-all release processes should be done with release.sh and rever.xsh.**
++TODO Fix release script to stop support for Python 2.6 and 3.2 (Issue #10463)
++
++# Prepare the VM
++
++First execute:
++
++    vagrant up
++    fab vagrant prepare
++
++which will prepare the VM (install packages, cache sympy repository, etc.).
++
++You only need to execute this once. It will take a while if you have never run
++it before, because it has to download a lot of stuff.
+ 
+ # Release
+ 
+@@ -24,39 +34,50 @@ First, make sure that you have done the following things
+ - Push the release branch up to origin, and make a pull request for it against
+   master.
+ 
+-It is important to create a new branch because that lets master continue as
+-normal. The release script will automatically checkout the release branch from
++It is important to create a new branch because that lets master continue
++as normal. The fab script will automatically checkout the release branch from
+ origin, which is why you need to push it (it determines what the release
+ branch by just looking at what branch you have checked out locally, so make
+ sure you are on the release branch when you release). It is important to
+ change the version number because it uses that in naming the tarballs it
+ creates.
+ 
+-Next, make sure you have Docker installed.
+-
+-**TODO: Fix the release script to pull sympy/sympy-release from Dockerhub.**
++If you want to test the release process without pushing a branch to the
++official repo, you can push a branch to your fork and use `fab vagrant
++release:fork='username'`, where `username` is your GitHub username.  Note that
++once you do the actual release, you should do it in a branch in the official
++GitHub repo. **NOTE**: If your fork does not have all the tags of the
++official repo, then the code that finds the previous version will not work
++correctly.  Hence, you may see things like more authors in the authors list
++than you should.  To remedy this, be sure to do `git fetch origin --tags` and
++`git push github --tags`.
+ 
+ Once you have done these things, execute:
+ 
+-    ./release.sh <BRANCH> <VERSION>
++    fab vagrant release
+ 
+-where `<BRANCH>` is the release branch (e.g., `0.7.3`), and `<VERSION>` is the
+-release version (e.g., `0.7.3rc1`).
++this create release tarballs and put them all into a new "release" directory
++of the current directory.
+ 
+-On Linux, you may need to use `sudo` to execute this.
++# Testing things
+ 
+-This will run all the release scripts. If they are successful, they will
+-create release tarballs and put them all into a new "release-VERSION"
+-directory of the current directory. Most likely they will fail the first time,
+-in which case you will need to investigate why and fix things (e.g., update
+-authors, run tests, update whitelists in `rever.xsh`, fix setup.py). The whole
+-script can take about an hour or so to run (depending on how long the tests
+-take). Every time you re-run the script, it pulls from the branch and runs
+-everything from scratch.
++The full test suite is not run by fabric, because we leave that to
++Travis. However, there are things that need to be tested specific to the
++release. Most of these things are done automatically by the release command
++(like testing that the tarball can be installed), but one thing must be tested
++manually, because it has to be inspected by hand, namely, making sure that the
++tarballs contain everything, and don't contain any junk files.
+ 
+-At the end it will print two things, the list of authors, and the md5 sums.
+-Copy the list of authors into the release notes. You should verify that the
+-md5 sums of the release files are the same as what are printed.
++Run
++
++    fab vagrant show_files:arg
++
++to show the files in the tarball, where `arg` is `source` or `html`.  You'll
++probably want to pipe the output of this into `less`, so that you can inspect
++it.
++
++You should also open the pdf and make sure that it has built correctly, and
++open the html docs and make sure that they have built correctly.
+ 
+ # Tagging the release
+ 
+@@ -82,14 +103,11 @@ everything is right before pushing.
+ 
+ # Uploading
+ 
+-**WARNING: This stuff does not fully work yet. Some development on `rever.xsh`
+-may be required.**
+-
+ Before you release, you need to push the tag up, as described above.
+ 
+ Release candidates should be uploaded to GitHub only.
+ 
+-    rever VERSION -a GitHub_release
++    fab vagrant GitHub_release
+ 
+ This will create the release on GitHub for the tag, and upload the files to
+ it.  Do not upload release candidates to PyPI, as `pip` and `easy_install`
+@@ -102,12 +120,19 @@ only supported via OAuth, so using a token is required.
+ 
+ You (obviously) need push access to create a GitHub release.
+ 
++If you want to test this before doing it, use
++
++    fab vagrant GitHub_release:draft=True
++
++This will make the release not visible until you go to the web interface and
++publish it.  You can also set the `user` and `repo` flags to test against a
++different GitHub repo.
++
+ For final releases, you should upload to both GitHub and PyPI. The command
+ 
+-    rever VERSION -a upload
++    fab vagrant upload
+ 
+-will do both of these (**TODO: This function has not been translated from the
+-fabfile yet**).  You will need admin access to the SymPy PyPI project.
++will do both of these.  You will need admin access to the SymPy PyPI project.
+ 
+ Note that if either of these commands fails for some reason, you will very
+ likely need to go into the web interface and clean some things up before you
+@@ -117,24 +142,43 @@ can upload again.
+ 
+ You should now update the websites. Only do this for final releases. The command
+ 
+-    rever VERSION -a update_websites
++    fab vagrant update_websites
+ 
+-will update docs.sympy.org and sympy.org (**TODO: This isn't fully translated
+-from the fabfile yet.**).  You will need to have local clones
++will update docs.sympy.org and sympy.org.  You will need to have local clones
+ of these repos, and push access to them (obviously).  **Note, this command
+ will commit and push the changes automatically.**
+ 
+ The other website that needs to be updated is SymPy Live. You should make this
+ as a pull request to the Live repo.
+ 
+-# Updating the Dockerfile
++# Other
++
++You can run all the SymPy tests by running:
++
++    fab vagrant test_sympy
++
++To get the md5 sums of all the files, use
++
++    fab md5
++
++To list the files in the tarball use
++
++    fab vagrant show_files:arg
++
++where `arg` is `source` or `html`, for the Python sources and the html docs,
++respectively. Note that the source code is already checked automatically
++against the files in git and a whitelist.
++
++You can obtain all available commands by:
++
++    fab -l
+ 
+-If you change the Dockerfile, you will need to run
++# Restarting from scratch
+ 
+-    docker build -f Dockerfile . -t sympy/sympy-release
++Run
+ 
+-Once you have it working, push the changes up to Dockerhub
++    vagrant destroy
+ 
+-    docker push sympy/sympy-release
++You can also delete the releases that it has built
+ 
+-You'll need access to the sympy org, ask Aaron or Ondřej if you need it.
++    rm -rf release
+diff --git a/release/Vagrantfile b/release/Vagrantfile
+new file mode 100644
+index 0000000000..9cd2ce08e9
+--- /dev/null
++++ b/release/Vagrantfile
+@@ -0,0 +1,10 @@
++# -*- mode: ruby -*-
++# vi: set ft=ruby :
++
++Vagrant::Config.run do |config|
++  #config.vm.box = "precise64"
++  #config.vm.box_url = "http://files.vagrantup.com/precise64.box"
++  config.vm.box = "precise32"
++  config.vm.box_url = "http://files.vagrantup.com/precise32.box"
++  config.ssh.forward_agent = true
++end
+diff --git a/release/fabfile.py b/release/fabfile.py
+index d25acdb727..7e5eee1ad1 100644
+--- a/release/fabfile.py
++++ b/release/fabfile.py
+@@ -308,7 +308,7 @@ def build_docs():
+         with virtualenv(venv):
+             with cd("/home/vagrant/repos/sympy/doc"):
+                 run("make clean")
+-                run("make html")
++                run("make html-errors")
+                 run("make man")
+                 with cd("/home/vagrant/repos/sympy/doc/_build"):
+                     run("mv html {html-nozip}".format(**tarball_formatter()))
+diff --git a/release/release.sh b/release/release.sh
+index 785b81da13..b65928bfd7 100755
+--- a/release/release.sh
++++ b/release/release.sh
+@@ -19,4 +19,5 @@ if [[ -z $2 ]]; then
+     $2=$1
+ fi
+ 
+-docker run -t -v "$parent_path/release-$2":/root/release sympy/sympy-release "$@"
++docker build -f Dockerfile . -t sympy-release
++docker run -v "$parent_path/release-$2":/home/release sympy-release "$@"
+diff --git a/release/rever.xsh b/release/rever.xsh
+index 818c135d26..0b55397ab8 100644
+--- a/release/rever.xsh
++++ b/release/rever.xsh
+@@ -3,8 +3,6 @@
+ $XONSH_SHOW_TRACEBACK = True
+ $RAISE_SUBPROC_ERROR = True
+ 
+-trace on
+-
+ import os
+ import sys
+ import unicodedata
+@@ -15,8 +13,6 @@ from contextlib import contextmanager
+ import json
+ import glob
+ import stat
+-import configparser
+-import time
+ 
+ import requests
+ from requests.auth import HTTPBasicAuth
+@@ -46,8 +42,6 @@ $ACTIVITIES = [
+     # 'tag',
+ ]
+ 
+-version = $VERSION
+-
+ # Work around https://github.com/ergs/rever/issues/15
+ @activity
+ def _version():
+@@ -83,12 +77,12 @@ def source_tarball():
+ 
+ @activity(deps={'_version'})
+ def build_docs():
+-    with run_in_conda_env(['sphinx', 'docutils', 'numpy', 'mpmath'],
++    with run_in_conda_env(['sphinx=1.3.1', 'docutils=0.12', 'numpy', 'mpmath'],
+         envname='sympy-release-docs'):
+ 
+         cd doc
+         make clean
+-        make html
++        make html-errors
+         make man
+ 
+         cd _build
+@@ -109,7 +103,7 @@ def build_docs():
+ @activity(deps={'source_tarball', 'build_docs'})
+ def copy_release_files():
+     ls dist
+-    cp dist/* /root/release/
++    cp dist/* /home/release/
+ 
+ @activity(deps={'source_tarball'})
+ def test_tarball27():
+@@ -209,7 +203,7 @@ def _md5(print_=True, local=False):
+     if local:
+         out = $(md5sum @(release_files()))
+     else:
+-        out = $(md5sum /root/release/*)
++        out = $(md5sum /home/release/*)
+     # Remove the release/ part for printing. Useful for copy-pasting into the
+     # release notes.
+     out = [i.split() for i in out.strip().split('\n')]
+@@ -231,15 +225,6 @@ def GitHub_release():
+     # Prevent default undo
+     pass
+ 
+-@activity(deps={'_version'})
+-def update_docs():
+-    _update_docs()
+-
+-
+-@activity(deps={'_version'})
+-def update_sympy_org():
+-    _update_sympy_org()
+-
+ # HELPER FUNCTIONS
+ 
+ def test_tarball(py_version):
+@@ -252,10 +237,10 @@ def test_tarball(py_version):
+ 
+ 
+     with run_in_conda_env(['python=%s' % py_version], 'test-install-%s' % py_version):
+-        cp @('/root/release/{source}'.format(**tarball_format)) @("releasetar.tar".format(**tarball_format))
++        cp @('/home/release/{source}'.format(**tarball_format)) @("releasetar.tar".format(**tarball_format))
+         tar xvf releasetar.tar
+ 
+-        cd @("/root/{source-orig-notar}".format(**tarball_format))
++        cd @("/home/{source-orig-notar}".format(**tarball_format))
+         python setup.py install
+         python -c "import sympy; print(sympy.__version__); print('sympy installed successfully')"
+ 
+@@ -339,9 +324,9 @@ def show_files(file, print_=True):
+     # TODO: Test the unarchived name. See
+     # https://github.com/sympy/sympy/issues/7087.
+     if file == 'source':
+-        ret = $(tar tf @("/root/release/{source}".format(**tarball_format)))
++        ret = $(tar tf @("/home/release/{source}".format(**tarball_format)))
+     elif file == 'html':
+-        ret = $(unzip -l @("/root/release/{html}".format(**tarball_format)))
++        ret = $(unzip -l @("/home/release/{html}".format(**tarball_format)))
+     else:
+         raise ValueError(file + " is not valid")
+     if print_:
+@@ -826,137 +811,6 @@ the <a href="http://docs.sympy.org/latest/index.html">online documentation</a>.'
+     ('pdf', '''Pdf version of the <a href="http://docs.sympy.org/latest/index.html"> html documentation</a>.''',),
+     ])
+ 
+-def get_location(location):
+-    """
+-    Read/save a location from the configuration file.
+-    """
+-    locations_file = os.path.expanduser('~/.sympy/sympy-locations')
+-    config = configparser.SafeConfigParser()
+-    config.read(locations_file)
+-    the_location = config.has_option("Locations", location) and config.get("Locations", location)
+-    if not the_location:
+-        the_location = input("Where is the SymPy {location} directory? ".format(location=location))
+-        if not config.has_section("Locations"):
+-            config.add_section("Locations")
+-        config.set("Locations", location, the_location)
+-        save = raw_input("Save this to file [yes]? ")
+-        if save.lower().strip() in ['', 'y', 'yes']:
+-            print("saving to ", locations_file)
+-            with open(locations_file, 'w') as f:
+-                config.write(f)
+-    else:
+-        print("Reading {location} location from config".format(location=location))
+-
+-    return os.path.abspath(os.path.expanduser(the_location))
+-
+-def _update_docs(docs_location=None):
+-    """
+-    Update the docs hosted at docs.sympy.org
+-    """
+-    docs_location = docs_location or get_location("docs")
+-
+-    print("Docs location:", docs_location)
+-
+-    current_version = version
+-    previous_version = get_previous_version_tag().lstrip('sympy-')
+-
+-    release_dir = os.path.abspath(os.path.expanduser(os.path.join(os.path.curdir, 'release')))
+-    docs_zip = os.path.abspath(os.path.join(release_dir, 'release-' + version,
+-        get_tarball_name('html')))
+-
+-    cd @(docs_location)
+-
+-    # Check that the docs directory is clean
+-    git diff --exit-code > /dev/null
+-    git diff --cached --exit-code > /dev/null
+-
+-    git pull
+-
+-    # See the README of the docs repo. We have to remove the old redirects,
+-    # move in the new docs, and create redirects.
+-    print("Removing redirects from previous version")
+-    rm -r @(previous_version)
+-    print("Moving previous latest docs to old version")
+-    mv latest @(previous_version)
+-
+-    print("Unzipping docs into repo")
+-    unzip @(docs_zip) > /dev/null
+-    mv @(get_tarball_name('html-nozip')) @(version)
+-
+-    print("Writing new version to releases.txt")
+-    with open(os.path.join(docs_location, "releases.txt"), 'a') as f:
+-        f.write("{version}:SymPy {version}\n".format(version=current_version))
+-
+-    print("Generating indexes")
+-    ./generate_indexes.py
+-    mv @(current_version) latest
+-
+-    print("Generating redirects")
+-    ./generate_redirects.py latest @(current_version)
+-
+-    print("Committing")
+-    git add -A @(version) latest
+-    git commit -a -m @('Updating docs to {version}'.format(version=current_version))
+-
+-    print("Pushing")
+-    git push origin
+-
+-    cd @(release_dir)
+-    cd ..
+-
+-def _update_sympy_org(website_location=None):
+-    """
+-    Update sympy.org
+-
+-    This just means adding an entry to the news section.
+-    """
+-    website_location = website_location or get_location("sympy.github.com")
+-
+-    release_dir = os.path.abspath(os.path.expanduser(os.path.join(os.path.curdir, 'release')))
+-
+-    cd @(website_location)
+-
+-    # Check that the website directory is clean
+-    git diff --exit-code > /dev/null
+-    git diff --cached --exit-code > /dev/null
+-
+-    git pull
+-
+-    release_date = time.gmtime(os.path.getctime(os.path.join(release_dir,
+-        'release-' + version, tarball_format['source'])))
+-    release_year = str(release_date.tm_year)
+-    release_month = str(release_date.tm_mon)
+-    release_day = str(release_date.tm_mday)
+-
+-    with open(os.path.join(website_location, "templates", "index.html"), 'r') as f:
+-        lines = f.read().split('\n')
+-        # We could try to use some html parser, but this way is easier
+-        try:
+-            news = lines.index(r"    <h3>{% trans %}News{% endtrans %}</h3>")
+-        except ValueError:
+-            error("index.html format not as expected")
+-        lines.insert(news + 2,  # There is a <p> after the news line. Put it
+-            # after that.
+-            r"""        <span class="date">{{ datetime(""" + release_year + """, """ + release_month + """, """ + release_day + """) }}</span> {% trans v='""" + version + """' %}Version {{ v }} released{% endtrans %} (<a href="https://github.com/sympy/sympy/wiki/Release-Notes-for-""" + version + """">{% trans %}changes{% endtrans %}</a>)<br/>
+-    </p><p>""")
+-
+-    with open(os.path.join(website_location, "templates", "index.html"), 'w') as f:
+-        print("Updating index.html template")
+-        f.write('\n'.join(lines))
+-
+-    print("Generating website pages")
+-    ./generate
+-
+-    print("Committing")
+-    git commit -a -m @('Add {version} to the news'.format(version=version))
+-
+-    print("Pushing")
+-    git push origin
+-
+-    cd @(release_dir)
+-    cd ..
+-
+-
+ ## TARBALL WHITELISTS
+ 
+ # If a file does not end up in the tarball that should, add it to setup.py if
+diff --git a/setup.py b/setup.py
+index 96d337fbd0..cacdf43032 100755
+--- a/setup.py
++++ b/setup.py
+@@ -361,13 +361,13 @@ def run(self):
+             'Topic :: Scientific/Engineering :: Mathematics',
+             'Topic :: Scientific/Engineering :: Physics',
+             'Programming Language :: Python :: 2',
++            'Programming Language :: Python :: 2.6',
+             'Programming Language :: Python :: 2.7',
+             'Programming Language :: Python :: 3',
+             'Programming Language :: Python :: 3.2',
+             'Programming Language :: Python :: 3.3',
+             'Programming Language :: Python :: 3.4',
+             'Programming Language :: Python :: 3.5',
+-            'Programming Language :: Python :: 3.6',
+             ],
+           install_requires=['mpmath>=%s' % mpmath_version],
+           **extra_kwargs
+diff --git a/sympy/core/add.py b/sympy/core/add.py
+index 2ec4fff073..f2a5d0dd77 100644
+--- a/sympy/core/add.py
++++ b/sympy/core/add.py
+@@ -509,10 +509,9 @@ def _eval_is_imaginary(self):
+                 im_I.append(a*S.ImaginaryUnit)
+             else:
+                 return
+-        b = self.func(*nz)
+-        if b.is_zero:
++        if self.func(*nz).is_zero:
+             return fuzzy_not(self.func(*im_I).is_zero)
+-        elif b.is_zero is False:
++        elif self.func(*nz).is_zero is False:
+             return False
+ 
+     def _eval_is_zero(self):
+@@ -540,15 +539,12 @@ def _eval_is_zero(self):
+                 return
+         if z == len(self.args):
+             return True
+-        if len(nz) == len(self.args):
+-            return None
+-        b = self.func(*nz)
+-        if b.is_zero:
++        if self.func(*nz).is_zero:
+             if not im_or_z and not im:
+                 return True
+             if im and not im_or_z:
+                 return False
+-        if b.is_zero is False:
++        if self.func(*nz).is_zero is False:
+             return False
+ 
+     def _eval_is_odd(self):
+@@ -580,11 +576,11 @@ def _eval_is_positive(self):
+             v = _monotonic_sign(a)
+             if v is not None:
+                 s = v + c
+-                if s != self and s.is_positive and a.is_nonnegative:
++                if s.is_positive and a.is_nonnegative:
+                     return True
+                 if len(self.free_symbols) == 1:
+                     v = _monotonic_sign(self)
+-                    if v is not None and v != self and v.is_positive:
++                    if v is not None and v.is_positive:
+                         return True
+         pos = nonneg = nonpos = unknown_sign = False
+         saw_INF = set()
+@@ -633,11 +629,11 @@ def _eval_is_nonnegative(self):
+                 v = _monotonic_sign(a)
+                 if v is not None:
+                     s = v + c
+-                    if s != self and s.is_nonnegative:
++                    if s.is_nonnegative:
+                         return True
+                     if len(self.free_symbols) == 1:
+                         v = _monotonic_sign(self)
+-                        if v is not None and v != self and v.is_nonnegative:
++                        if v is not None and v.is_nonnegative:
+                             return True
+ 
+     def _eval_is_nonpositive(self):
+@@ -648,11 +644,11 @@ def _eval_is_nonpositive(self):
+                 v = _monotonic_sign(a)
+                 if v is not None:
+                     s = v + c
+-                    if s != self and s.is_nonpositive:
++                    if s.is_nonpositive:
+                         return True
+                     if len(self.free_symbols) == 1:
+                         v = _monotonic_sign(self)
+-                        if v is not None and v != self and v.is_nonpositive:
++                        if v is not None and v.is_nonpositive:
+                             return True
+ 
+     def _eval_is_negative(self):
+@@ -664,11 +660,11 @@ def _eval_is_negative(self):
+             v = _monotonic_sign(a)
+             if v is not None:
+                 s = v + c
+-                if s != self and s.is_negative and a.is_nonpositive:
++                if s.is_negative and a.is_nonpositive:
+                     return True
+                 if len(self.free_symbols) == 1:
+                     v = _monotonic_sign(self)
+-                    if v is not None and v != self and v.is_negative:
++                    if v is not None and v.is_negative:
+                         return True
+         neg = nonpos = nonneg = unknown_sign = False
+         saw_INF = set()
+diff --git a/sympy/core/basic.py b/sympy/core/basic.py
+index 04452ce9a0..d4b335c9cf 100644
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -1,7 +1,6 @@
+ """Base class for all the objects in SymPy"""
+ from __future__ import print_function, division
+ from collections import Mapping, defaultdict
+-from itertools import chain
+ 
+ from .assumptions import BasicMeta, ManagedProperties
+ from .cache import cacheit
+@@ -1661,13 +1660,8 @@ def _exec_constructor_postprocessors(cls, obj):
+                 if i in Basic._constructor_postprocessor_mapping:
+                     for k, v in Basic._constructor_postprocessor_mapping[i].items():
+                         postprocessors[k].extend([j for j in v if j not in postprocessors[k]])
+-                else:
+-                    postprocessor_mappings = (
+-                        Basic._constructor_postprocessor_mapping[cls].items()
+-                        for cls in type(i).mro()
+-                        if cls in Basic._constructor_postprocessor_mapping
+-                    )
+-                    for k, v in chain.from_iterable(postprocessor_mappings):
++                elif type(i) in Basic._constructor_postprocessor_mapping:
++                    for k, v in Basic._constructor_postprocessor_mapping[type(i)].items():
+                         postprocessors[k].extend([j for j in v if j not in postprocessors[k]])
+             except TypeError:
+                 pass
+diff --git a/sympy/core/expr.py b/sympy/core/expr.py
+index cc815aec49..2ffa49a351 100644
+--- a/sympy/core/expr.py
++++ b/sympy/core/expr.py
+@@ -346,9 +346,9 @@ def _from_mpmath(x, prec):
+ 
+     @property
+     def is_number(self):
+-        """Returns True if ``self`` has no free symbols.
+-        It will be faster than ``if not self.free_symbols``, however, since
+-        ``is_number`` will fail as soon as it hits a free symbol.
++        """Returns True if 'self' has no free symbols.
++        It will be faster than `if not self.free_symbols`, however, since
++        `is_number` will fail as soon as it hits a free symbol.
+ 
+         Examples
+         ========
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 61d7a8f928..e221fa252b 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -1062,14 +1062,7 @@ def _eval_is_rational(self):
+                 return e.is_zero
+ 
+     def _eval_is_algebraic(self):
+-        def _is_one(expr):
+-            try:
+-                return (expr - 1).is_zero
+-            except ValueError:
+-                # when the operation is not allowed
+-                return False
+-
+-        if self.base.is_zero or _is_one(self.base):
++        if self.base.is_zero or (self.base - 1).is_zero:
+             return True
+         elif self.exp.is_rational:
+             if self.base.is_algebraic is False:
+@@ -1077,7 +1070,7 @@ def _is_one(expr):
+             return self.base.is_algebraic
+         elif self.base.is_algebraic and self.exp.is_algebraic:
+             if ((fuzzy_not(self.base.is_zero)
+-                and fuzzy_not(_is_one(self.base)))
++                and fuzzy_not((self.base - 1).is_zero))
+                 or self.base.is_integer is False
+                 or self.base.is_irrational):
+                 return self.exp.is_rational
+diff --git a/sympy/core/sympify.py b/sympy/core/sympify.py
+index 402fdcc7dc..fbe187ffd1 100644
+--- a/sympy/core/sympify.py
++++ b/sympy/core/sympify.py
+@@ -50,7 +50,6 @@ class CantSympify(object):
+     """
+     pass
+ 
+-
+ def sympify(a, locals=None, convert_xor=True, strict=False, rational=False,
+         evaluate=None):
+     """Converts an arbitrary expression to a type that can be used inside SymPy.
+@@ -257,13 +256,12 @@ def sympify(a, locals=None, convert_xor=True, strict=False, rational=False,
+         else:
+             return a
+ 
+-    # Support for basic numpy datatypes
++    #Support for basic numpy datatypes
+     if type(a).__module__ == 'numpy':
+         import numpy as np
+         if np.isscalar(a):
+             if not isinstance(a, np.floating):
+-                func = converter[complex] if np.iscomplex(a) else sympify
+-                return func(np.asscalar(a))
++                return sympify(np.asscalar(a))
+             else:
+                 try:
+                     from sympy.core.numbers import Float
+diff --git a/sympy/core/tests/test_constructor_postprocessor.py b/sympy/core/tests/test_constructor_postprocessor.py
+index c434a51267..e85223752f 100644
+--- a/sympy/core/tests/test_constructor_postprocessor.py
++++ b/sympy/core/tests/test_constructor_postprocessor.py
+@@ -24,16 +24,11 @@ class SymbolRemovesOtherSymbols(Symbol):
+     # Test class for a symbol that removes other symbols in `Mul`.
+     pass
+ 
++
+ Basic._constructor_postprocessor_mapping[SymbolRemovesOtherSymbols] = {
+     "Mul": [_postprocess_SymbolRemovesOtherSymbols],
+ }
+ 
+-class SubclassSymbolInMulOnce(SymbolInMulOnce):
+-    pass
+-
+-class SubclassSymbolRemovesOtherSymbols(SymbolRemovesOtherSymbols):
+-    pass
+-
+ 
+ def test_constructor_postprocessors1():
+     a = symbols("a")
+@@ -52,24 +47,4 @@ def test_constructor_postprocessors1():
+     assert (3*w).args == (3, w)
+     assert 3*a*w**2 == 3*w**2
+     assert 3*a*x**3*w**2 == 3*w**2
+-    assert set((w + x).args) == set((x, w))
+-
+-
+-def test_constructor_postprocessors2():
+-    a = symbols("a")
+-    x = SubclassSymbolInMulOnce("x")
+-    y = SubclassSymbolInMulOnce("y")
+-    assert isinstance(3*x, Mul)
+-    assert (3*x).args == (3, x)
+-    assert x*x == x
+-    assert 3*x*x == 3*x
+-    assert 2*x*x + x == 3*x
+-    assert x**3*y*y == x*y
+-    assert x**5 + y*x**3 == x + x*y
+-
+-    w = SubclassSymbolRemovesOtherSymbols("w")
+-    assert x*w == w
+-    assert (3*w).args == (3, w)
+-    assert 3*a*w**2 == 3*w**2
+-    assert 3*a*x**3*w**2 == 3*w**2
+-    assert set((w + x).args) == set((x, w))
++    assert (w + x).args == (x, w)
+diff --git a/sympy/core/tests/test_sympify.py b/sympy/core/tests/test_sympify.py
+index 6e87b3ea54..71e881179d 100644
+--- a/sympy/core/tests/test_sympify.py
++++ b/sympy/core/tests/test_sympify.py
+@@ -560,15 +560,11 @@ def equal(x, y):
+         skip('numpy not installed.Abort numpy tests.')
+ 
+     assert sympify(np.bool_(1)) is S(True)
+-    try:
+-        assert equal(
+-            sympify(np.int_(1234567891234567891)), S(1234567891234567891))
+-        assert equal(
+-            sympify(np.intp(1234567891234567891)), S(1234567891234567891))
+-    except OverflowError:
+-        # May fail on 32-bit systems: Python int too large to convert to C long
+-        pass
++    assert equal(
++        sympify(np.int_(1234567891234567891)), S(1234567891234567891))
+     assert equal(sympify(np.intc(1234567891)), S(1234567891))
++    assert equal(
++        sympify(np.intp(1234567891234567891)), S(1234567891234567891))
+     assert equal(sympify(np.int8(-123)), S(-123))
+     assert equal(sympify(np.int16(-12345)), S(-12345))
+     assert equal(sympify(np.int32(-1234567891)), S(-1234567891))
+@@ -582,11 +578,8 @@ def equal(x, y):
+     assert equal(sympify(np.float32(1.123456)), Float(1.123456, precision=24))
+     assert equal(sympify(np.float64(1.1234567891234)),
+                 Float(1.1234567891234, precision=53))
+-    assert equal(sympify(np.longdouble(1.123456789)),
+-                 Float(1.123456789, precision=80))
+     assert equal(sympify(np.complex64(1 + 2j)), S(1.0 + 2.0*I))
+     assert equal(sympify(np.complex128(1 + 2j)), S(1.0 + 2.0*I))
+-    assert equal(sympify(np.longcomplex(1 + 2j)), S(1.0 + 2.0*I))
+ 
+     try:
+         assert equal(sympify(np.float96(1.123456789)),
+diff --git a/sympy/functions/special/delta_functions.py b/sympy/functions/special/delta_functions.py
+index 894c3918d3..e98b61f18e 100644
+--- a/sympy/functions/special/delta_functions.py
++++ b/sympy/functions/special/delta_functions.py
+@@ -369,15 +369,15 @@ def _sage_(self):
+ class Heaviside(Function):
+     """Heaviside Piecewise function
+ 
+-    Heaviside function has the following properties [1]_:
++    Heaviside function has the following properties [*]_:
+ 
+     1) ``diff(Heaviside(x),x) = DiracDelta(x)``
+                         ``( 0, if x < 0``
+-    2) ``Heaviside(x) = < ( undefined if x==0 [1]``
++    2) ``Heaviside(x) = < ( undefined if x==0 [*]``
+                         ``( 1, if x > 0``
+     3) ``Max(0,x).diff(x) = Heaviside(x)``
+ 
+-    .. [1] Regarding to the value at 0, Mathematica defines ``H(0) = 1``,
++    .. [*] Regarding to the value at 0, Mathematica defines ``H(0) = 1``,
+            but Maple uses ``H(0) = undefined``.  Different application areas
+            may have specific conventions.  For example, in control theory, it
+            is common practice to assume ``H(0) == 0`` to match the Laplace
+@@ -407,8 +407,8 @@ class Heaviside(Function):
+     References
+     ==========
+ 
+-    .. [2] http://mathworld.wolfram.com/HeavisideStepFunction.html
+-    .. [3] http://dlmf.nist.gov/1.16#iv
++    .. [1] http://mathworld.wolfram.com/HeavisideStepFunction.html
++    .. [2] http://dlmf.nist.gov/1.16#iv
+ 
+     """
+ 
+diff --git a/sympy/integrals/prde.py b/sympy/integrals/prde.py
+index 706578fb0f..78eeb44859 100644
+--- a/sympy/integrals/prde.py
++++ b/sympy/integrals/prde.py
+@@ -986,10 +986,9 @@ def is_deriv_k(fa, fd, DE):
+     dfa, dfd = dfa.cancel(dfd, include=True)
+ 
+     # Our assumption here is that each monomial is recursively transcendental
+-    if len(DE.exts) != len(DE.D):
++    if len(DE.L_K) + len(DE.E_K) != len(DE.D) - 1:
+         if [i for i in DE.cases if i == 'tan'] or \
+-                (set([i for i in DE.cases if i == 'primitive']) -
+-                        set(DE.indices('log'))):
++                set([i for i in DE.cases if i == 'primitive']) - set(DE.L_K):
+             raise NotImplementedError("Real version of the structure "
+                 "theorems with hypertangent support is not yet implemented.")
+ 
+@@ -997,8 +996,8 @@ def is_deriv_k(fa, fd, DE):
+         raise NotImplementedError("Nonelementary extensions not supported "
+             "in the structure theorems.")
+ 
+-    E_part = [DE.D[i].quo(Poly(DE.T[i], DE.T[i])).as_expr() for i in DE.indices('exp')]
+-    L_part = [DE.D[i].as_expr() for i in DE.indices('log')]
++    E_part = [DE.D[i].quo(Poly(DE.T[i], DE.T[i])).as_expr() for i in DE.E_K]
++    L_part = [DE.D[i].as_expr() for i in DE.L_K]
+ 
+     lhs = Matrix([E_part + L_part])
+     rhs = Matrix([dfa.as_expr()/dfd.as_expr()])
+@@ -1016,12 +1015,10 @@ def is_deriv_k(fa, fd, DE):
+             raise NotImplementedError("Cannot work with non-rational "
+                 "coefficients in this case.")
+         else:
+-            terms = ([DE.extargs[i] for i in DE.indices('exp')] +
+-                    [DE.T[i] for i in DE.indices('log')])
++            terms = DE.E_args + [DE.T[i] for i in DE.L_K]
+             ans = list(zip(terms, u))
+             result = Add(*[Mul(i, j) for i, j in ans])
+-            argterms = ([DE.T[i] for i in DE.indices('exp')] +
+-                    [DE.extargs[i] for i in DE.indices('log')])
++            argterms = [DE.T[i] for i in DE.E_K] + DE.L_args
+             l = []
+             ld = []
+             for i, j in zip(argterms, u):
+@@ -1098,10 +1095,9 @@ def is_log_deriv_k_t_radical(fa, fd, DE, Df=True):
+         dfa, dfd = fa, fd
+ 
+     # Our assumption here is that each monomial is recursively transcendental
+-    if len(DE.exts) != len(DE.D):
++    if len(DE.L_K) + len(DE.E_K) != len(DE.D) - 1:
+         if [i for i in DE.cases if i == 'tan'] or \
+-                (set([i for i in DE.cases if i == 'primitive']) -
+-                        set(DE.indices('log'))):
++                set([i for i in DE.cases if i == 'primitive']) - set(DE.L_K):
+             raise NotImplementedError("Real version of the structure "
+                 "theorems with hypertangent support is not yet implemented.")
+ 
+@@ -1109,8 +1105,8 @@ def is_log_deriv_k_t_radical(fa, fd, DE, Df=True):
+         raise NotImplementedError("Nonelementary extensions not supported "
+             "in the structure theorems.")
+ 
+-    E_part = [DE.D[i].quo(Poly(DE.T[i], DE.T[i])).as_expr() for i in DE.indices('exp')]
+-    L_part = [DE.D[i].as_expr() for i in DE.indices('log')]
++    E_part = [DE.D[i].quo(Poly(DE.T[i], DE.T[i])).as_expr() for i in DE.E_K]
++    L_part = [DE.D[i].as_expr() for i in DE.L_K]
+ 
+     lhs = Matrix([E_part + L_part])
+     rhs = Matrix([dfa.as_expr()/dfd.as_expr()])
+@@ -1132,15 +1128,13 @@ def is_log_deriv_k_t_radical(fa, fd, DE, Df=True):
+         else:
+             n = reduce(ilcm, [i.as_numer_denom()[1] for i in u])
+             u *= n
+-            terms = ([DE.T[i] for i in DE.indices('exp')] +
+-                    [DE.extargs[i] for i in DE.indices('log')])
++            terms = [DE.T[i] for i in DE.E_K] + DE.L_args
+             ans = list(zip(terms, u))
+             result = Mul(*[Pow(i, j) for i, j in ans])
+ 
+             # exp(f) will be the same as result up to a multiplicative
+             # constant.  We now find the log of that constant.
+-            argterms = ([DE.extargs[i] for i in DE.indices('exp')] +
+-                    [DE.T[i] for i in DE.indices('log')])
++            argterms = DE.E_args + [DE.T[i] for i in DE.L_K]
+             const = cancel(fa.as_expr()/fd.as_expr() -
+                 Add(*[Mul(i, j/n) for i, j in zip(argterms, u)]))
+ 
+diff --git a/sympy/integrals/risch.py b/sympy/integrals/risch.py
+index 0fd66f9d31..b1f2494326 100644
+--- a/sympy/integrals/risch.py
++++ b/sympy/integrals/risch.py
+@@ -130,8 +130,12 @@ class DifferentialExtension(object):
+       For back-substitution after integration.
+     - backsubs: A (possibly empty) list of further substitutions to be made on
+       the final integral to make it look more like the integrand.
+-    - exts:
+-    - extargs:
++    - E_K: List of the positions of the exponential extensions in T.
++    - E_args: The arguments of each of the exponentials in E_K.
++    - L_K: List of the positions of the logarithmic extensions in T.
++    - L_args: The arguments of each of the logarithms in L_K.
++    (See the docstrings of is_deriv_k() and is_log_deriv_k_t_radical() for
++    more information on E_K, E_args, L_K, and L_args)
+     - cases: List of string representations of the cases of T.
+     - t: The top level extension variable, as defined by the current level
+       (see level below).
+@@ -157,8 +161,8 @@ class DifferentialExtension(object):
+     # of the class easily (the memory use doesn't matter too much, since we
+     # only create one DifferentialExtension per integration).  Also, it's nice
+     # to have a safeguard when debugging.
+-    __slots__ = ('f', 'x', 'T', 'D', 'fa', 'fd', 'Tfuncs', 'backsubs',
+-        'exts', 'extargs', 'cases', 'case', 't', 'd', 'newf', 'level',
++    __slots__ = ('f', 'x', 'T', 'D', 'fa', 'fd', 'Tfuncs', 'backsubs', 'E_K',
++        'E_args', 'L_K', 'L_args', 'cases', 'case', 't', 'd', 'newf', 'level',
+         'ts', 'dummy')
+ 
+     def __init__(self, f=None, x=None, handle_first='log', dummy=False, extension=None, rewrite_complex=False):
+@@ -512,8 +516,8 @@ def _exp_part(self, exps):
+                 darg = darga.as_expr()/dargd.as_expr()
+                 self.t = next(self.ts)
+                 self.T.append(self.t)
+-                self.extargs.append(arg)
+-                self.exts.append('exp')
++                self.E_args.append(arg)
++                self.E_K.append(len(self.T) - 1)
+                 self.D.append(darg.as_poly(self.t, expand=False)*Poly(self.t,
+                     self.t, expand=False))
+                 if self.dummy:
+@@ -566,8 +570,8 @@ def _log_part(self, logs):
+                 darg = darga.as_expr()/dargd.as_expr()
+                 self.t = next(self.ts)
+                 self.T.append(self.t)
+-                self.extargs.append(arg)
+-                self.exts.append('log')
++                self.L_args.append(arg)
++                self.L_K.append(len(self.T) - 1)
+                 self.D.append(cancel(darg.as_expr()/arg).as_poly(self.t,
+                     expand=False))
+                 if self.dummy:
+@@ -587,11 +591,11 @@ def _important_attrs(self):
+ 
+         Used for testing and debugging purposes.
+ 
+-        The attributes are (fa, fd, D, T, Tfuncs, backsubs,
+-        exts, extargs).
++        The attributes are (fa, fd, D, T, Tfuncs, backsubs, E_K, E_args,
++        L_K, L_args).
+         """
+         return (self.fa, self.fd, self.D, self.T, self.Tfuncs,
+-            self.backsubs, self.exts, self.extargs)
++            self.backsubs, self.E_K, self.E_args, self.L_K, self.L_args)
+ 
+     # NOTE: this printing doesn't follow the Python's standard
+     # eval(repr(DE)) == DE, where DE is the DifferentialExtension object
+@@ -627,8 +631,7 @@ def reset(self):
+         self.T = [self.x]
+         self.D = [Poly(1, self.x)]
+         self.level = -1
+-        self.exts = [None]
+-        self.extargs = [None]
++        self.L_K, self.E_K, self.L_args, self.E_args = [], [], [], []
+         if self.dummy:
+             self.ts = numbered_symbols('t', cls=Dummy)
+         else:
+@@ -640,30 +643,6 @@ def reset(self):
+         self.Tfuncs = []
+         self.newf = self.f
+ 
+-    def indices(self, extension):
+-        """
+-        Args:
+-            extension (str): represents a valid extension type.
+-
+-        Returns:
+-            list: A list of indices of 'exts' where extension of
+-                  type 'extension' is present.
+-
+-        Examples
+-        ========
+-
+-        >>> from sympy.integrals.risch import DifferentialExtension
+-        >>> from sympy import log, exp
+-        >>> from sympy.abc import x
+-        >>> DE = DifferentialExtension(log(x) + exp(x), x, handle_first='exp')
+-        >>> DE.indices('log')
+-        [2]
+-        >>> DE.indices('exp')
+-        [1]
+-
+-        """
+-        return [i for i, ext in enumerate(self.exts) if ext == extension]
+-
+     def increment_level(self):
+         """
+         Increment the level of self.
+diff --git a/sympy/integrals/tests/test_prde.py b/sympy/integrals/tests/test_prde.py
+index 42ab5e5177..77a6c4d8aa 100644
+--- a/sympy/integrals/tests/test_prde.py
++++ b/sympy/integrals/tests/test_prde.py
+@@ -237,48 +237,48 @@ def test_limited_integrate():
+ 
+ 
+ def test_is_log_deriv_k_t_radical():
+-    DE = DifferentialExtension(extension={'D': [Poly(1, x)], 'exts': [None],
+-        'extargs': [None]})
++    DE = DifferentialExtension(extension={'D': [Poly(1, x)], 'E_K': [], 'L_K': [],
++        'E_args': [], 'L_args': []})
+     assert is_log_deriv_k_t_radical(Poly(2*x, x), Poly(1, x), DE) is None
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(2*t1, t1), Poly(1/x, t2)],
+-        'exts': [None, 'exp', 'log'], 'extargs': [None, 2*x, x]})
++        'L_K': [2], 'E_K': [1], 'L_args': [x], 'E_args': [2*x]})
+     assert is_log_deriv_k_t_radical(Poly(x + t2/2, t2), Poly(1, t2), DE) == \
+         ([(t1, 1), (x, 1)], t1*x, 2, 0)
+     # TODO: Add more tests
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(t0, t0), Poly(1/x, t)],
+-        'exts': [None, 'exp', 'log'], 'extargs': [None, x, x]})
++        'L_K': [2], 'E_K': [1], 'L_args': [x], 'E_args': [x]})
+     assert is_log_deriv_k_t_radical(Poly(x + t/2 + 3, t), Poly(1, t), DE) == \
+         ([(t0, 2), (x, 1)], x*t0**2, 2, 3)
+ 
+ 
+ def test_is_deriv_k():
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(1/x, t1), Poly(1/(x + 1), t2)],
+-        'exts': [None, 'log', 'log'], 'extargs': [None, x, x + 1]})
++        'L_K': [1, 2], 'E_K': [], 'L_args': [x, x + 1], 'E_args': []})
+     assert is_deriv_k(Poly(2*x**2 + 2*x, t2), Poly(1, t2), DE) == \
+         ([(t1, 1), (t2, 1)], t1 + t2, 2)
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(1/x, t1), Poly(t2, t2)],
+-        'exts': [None, 'log', 'exp'], 'extargs': [None, x, x]})
++        'L_K': [1], 'E_K': [2], 'L_args': [x], 'E_args': [x]})
+     assert is_deriv_k(Poly(x**2*t2**3, t2), Poly(1, t2), DE) == \
+         ([(x, 3), (t1, 2)], 2*t1 + 3*x, 1)
+     # TODO: Add more tests, including ones with exponentials
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(2/x, t1)],
+-        'exts': [None, 'log'], 'extargs': [None, x**2]})
++        'L_K': [1], 'E_K': [], 'L_args': [x**2], 'E_args': []})
+     assert is_deriv_k(Poly(x, t1), Poly(1, t1), DE) == \
+         ([(t1, S(1)/2)], t1/2, 1)
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(2/(1 + x), t0)],
+-        'exts': [None, 'log'], 'extargs': [None, x**2 + 2*x + 1]})
++        'L_K': [1], 'E_K': [], 'L_args': [x**2 + 2*x + 1], 'E_args': []})
+     assert is_deriv_k(Poly(1 + x, t0), Poly(1, t0), DE) == \
+         ([(t0, S(1)/2)], t0/2, 1)
+ 
+     # Issue 10798
+     # DE = DifferentialExtension(log(1/x), x)
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(-1/x, t)],
+-        'exts': [None, 'log'], 'extargs': [None, 1/x]})
++        'L_K': [1], 'E_K': [], 'L_args': [1/x], 'E_args': []})
+     assert is_deriv_k(Poly(1, t), Poly(x, t), DE) == ([(t, 1)], t, 1)
+ 
+ 
+diff --git a/sympy/integrals/tests/test_risch.py b/sympy/integrals/tests/test_risch.py
+index c678ccad3c..7308a6ef02 100644
+--- a/sympy/integrals/tests/test_risch.py
++++ b/sympy/integrals/tests/test_risch.py
+@@ -409,38 +409,38 @@ def test_DifferentialExtension_exp():
+     assert DifferentialExtension(exp(x) + exp(x**2), x)._important_attrs == \
+         (Poly(t1 + t0, t1), Poly(1, t1), [Poly(1, x,), Poly(t0, t0),
+         Poly(2*x*t1, t1)], [x, t0, t1], [Lambda(i, exp(i)),
+-        Lambda(i, exp(i**2))], [], [None, 'exp', 'exp'], [None, x, x**2])
++        Lambda(i, exp(i**2))], [], [1, 2], [x, x**2], [], [])
+     assert DifferentialExtension(exp(x) + exp(2*x), x)._important_attrs == \
+         (Poly(t0**2 + t0, t0), Poly(1, t0), [Poly(1, x), Poly(t0, t0)], [x, t0],
+-        [Lambda(i, exp(i))], [], [None, 'exp'], [None, x])
++        [Lambda(i, exp(i))], [], [1], [x], [], [])
+     assert DifferentialExtension(exp(x) + exp(x/2), x)._important_attrs == \
+         (Poly(t0**2 + t0, t0), Poly(1, t0), [Poly(1, x), Poly(t0/2, t0)],
+-        [x, t0], [Lambda(i, exp(i/2))], [], [None, 'exp'], [None, x/2])
++        [x, t0], [Lambda(i, exp(i/2))], [], [1], [x/2], [], [])
+     assert DifferentialExtension(exp(x) + exp(x**2) + exp(x + x**2), x)._important_attrs == \
+         (Poly((1 + t0)*t1 + t0, t1), Poly(1, t1), [Poly(1, x), Poly(t0, t0),
+         Poly(2*x*t1, t1)], [x, t0, t1], [Lambda(i, exp(i)),
+-        Lambda(i, exp(i**2))], [], [None, 'exp', 'exp'], [None, x, x**2])
++        Lambda(i, exp(i**2))], [], [1, 2], [x, x**2], [], [])
+     assert DifferentialExtension(exp(x) + exp(x**2) + exp(x + x**2 + 1), x)._important_attrs == \
+         (Poly((1 + S.Exp1*t0)*t1 + t0, t1), Poly(1, t1), [Poly(1, x),
+         Poly(t0, t0), Poly(2*x*t1, t1)], [x, t0, t1], [Lambda(i, exp(i)),
+-        Lambda(i, exp(i**2))], [], [None, 'exp', 'exp'], [None, x, x**2])
++        Lambda(i, exp(i**2))], [], [1, 2], [x, x**2], [], [])
+     assert DifferentialExtension(exp(x) + exp(x**2) + exp(x/2 + x**2), x)._important_attrs == \
+         (Poly((t0 + 1)*t1 + t0**2, t1), Poly(1, t1), [Poly(1, x),
+         Poly(t0/2, t0), Poly(2*x*t1, t1)], [x, t0, t1],
+         [Lambda(i, exp(i/2)), Lambda(i, exp(i**2))],
+-        [(exp(x/2), sqrt(exp(x)))], [None, 'exp', 'exp'], [None, x/2, x**2])
++        [(exp(x/2), sqrt(exp(x)))], [1, 2], [x/2, x**2], [], [])
+     assert DifferentialExtension(exp(x) + exp(x**2) + exp(x/2 + x**2 + 3), x)._important_attrs == \
+         (Poly((t0*exp(3) + 1)*t1 + t0**2, t1), Poly(1, t1), [Poly(1, x),
+         Poly(t0/2, t0), Poly(2*x*t1, t1)], [x, t0, t1], [Lambda(i, exp(i/2)),
+-        Lambda(i, exp(i**2))], [(exp(x/2), sqrt(exp(x)))], [None, 'exp', 'exp'],
+-        [None, x/2, x**2])
++        Lambda(i, exp(i**2))], [(exp(x/2), sqrt(exp(x)))], [1, 2], [x/2, x**2],
++        [], [])
+     assert DifferentialExtension(sqrt(exp(x)), x)._important_attrs == \
+         (Poly(t0, t0), Poly(1, t0), [Poly(1, x), Poly(t0/2, t0)], [x, t0],
+-        [Lambda(i, exp(i/2))], [(exp(x/2), sqrt(exp(x)))], [None, 'exp'], [None, x/2])
++        [Lambda(i, exp(i/2))], [(exp(x/2), sqrt(exp(x)))], [1], [x/2], [], [])
+ 
+     assert DifferentialExtension(exp(x/2), x)._important_attrs == \
+         (Poly(t0, t0), Poly(1, t0), [Poly(1, x), Poly(t0/2, t0)], [x, t0],
+-        [Lambda(i, exp(i/2))], [], [None, 'exp'], [None, x/2])
++        [Lambda(i, exp(i/2))], [], [1], [x/2], [], [])
+ 
+ 
+ def test_DifferentialExtension_log():
+@@ -448,13 +448,12 @@ def test_DifferentialExtension_log():
+         (Poly(t0*t1**2 + (t0*log(2) + t0**2)*t1, t1), Poly(1, t1),
+         [Poly(1, x), Poly(1/x, t0),
+         Poly(1/(x + 1), t1, expand=False)], [x, t0, t1],
+-        [Lambda(i, log(i)), Lambda(i, log(i + 1))], [], [None, 'log', 'log'],
+-        [None, x, x + 1])
++        [Lambda(i, log(i)), Lambda(i, log(i + 1))], [], [], [],
++        [1, 2], [x, x + 1])
+     assert DifferentialExtension(x**x*log(x), x)._important_attrs == \
+         (Poly(t0*t1, t1), Poly(1, t1), [Poly(1, x), Poly(1/x, t0),
+         Poly((1 + t0)*t1, t1)], [x, t0, t1], [Lambda(i, log(i)),
+-        Lambda(i, exp(t0*i))], [(exp(x*log(x)), x**x)], [None, 'log', 'exp'],
+-        [None, x, t0*x])
++        Lambda(i, exp(t0*i))], [(exp(x*log(x)), x**x)], [2], [t0*x], [1], [x])
+ 
+ 
+ def test_DifferentialExtension_symlog():
+@@ -462,26 +461,24 @@ def test_DifferentialExtension_symlog():
+     assert DifferentialExtension(log(x**x), x)._important_attrs == \
+         (Poly(t0*x, t1), Poly(1, t1), [Poly(1, x), Poly(1/x, t0), Poly((t0 +
+             1)*t1, t1)], [x, t0, t1], [Lambda(i, log(i)), Lambda(i, exp(i*t0))],
+-            [(exp(x*log(x)), x**x)], [None, 'log', 'exp'], [None, x, t0*x])
++            [(exp(x*log(x)), x**x)], [2], [t0*x], [1], [x])
+     assert DifferentialExtension(log(x**y), x)._important_attrs == \
+         (Poly(y*t0, t0), Poly(1, t0), [Poly(1, x), Poly(1/x, t0)], [x, t0],
+-        [Lambda(i, log(i))], [(y*log(x), log(x**y))], [None, 'log'],
+-        [None, x])
++        [Lambda(i, log(i))], [(y*log(x), log(x**y))], [], [], [1], [x])
+     assert DifferentialExtension(log(sqrt(x)), x)._important_attrs == \
+         (Poly(t0, t0), Poly(2, t0), [Poly(1, x), Poly(1/x, t0)], [x, t0],
+-        [Lambda(i, log(i))], [(log(x)/2, log(sqrt(x)))], [None, 'log'],
+-        [None, x])
++        [Lambda(i, log(i))], [(log(x)/2, log(sqrt(x)))], [], [], [1], [x])
+ 
+ 
+ def test_DifferentialExtension_handle_first():
+     assert DifferentialExtension(exp(x)*log(x), x, handle_first='log')._important_attrs == \
+         (Poly(t0*t1, t1), Poly(1, t1), [Poly(1, x), Poly(1/x, t0),
+         Poly(t1, t1)], [x, t0, t1], [Lambda(i, log(i)), Lambda(i, exp(i))],
+-        [], [None, 'log', 'exp'], [None, x, x])
++        [], [2], [x], [1], [x])
+     assert DifferentialExtension(exp(x)*log(x), x, handle_first='exp')._important_attrs == \
+         (Poly(t0*t1, t1), Poly(1, t1), [Poly(1, x), Poly(t0, t0),
+         Poly(1/x, t1)], [x, t0, t1], [Lambda(i, exp(i)), Lambda(i, log(i))],
+-        [], [None, 'exp', 'log'], [None, x, x])
++        [], [1], [x], [2], [x])
+ 
+     # This one must have the log first, regardless of what we set it to
+     # (because the log is inside of the exponential: x**x == exp(x*log(x)))
+@@ -492,7 +489,7 @@ def test_DifferentialExtension_handle_first():
+         (Poly((-1 + x - x*t0**2)*t1, t1), Poly(x, t1),
+             [Poly(1, x), Poly(1/x, t0), Poly((1 + t0)*t1, t1)], [x, t0, t1],
+             [Lambda(i, log(i)), Lambda(i, exp(t0*i))], [(exp(x*log(x)), x**x)],
+-            [None, 'log', 'exp'], [None, x, t0*x])
++            [2], [t0*x], [1], [x])
+ 
+ 
+ def test_DifferentialExtension_all_attrs():
+@@ -526,16 +523,12 @@ def test_DifferentialExtension_all_attrs():
+     assert DE.d == Poly(1/x, t1) == DE.D[DE.level]
+     assert DE.case == 'primitive'
+ 
+-    # Test methods
+-    assert DE.indices('log') == [2]
+-    assert DE.indices('exp') == [1]
+-
+ 
+ def test_DifferentialExtension_extension_flag():
+     raises(ValueError, lambda: DifferentialExtension(extension={'T': [x, t]}))
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(t, t)]})
+     assert DE._important_attrs == (None, None, [Poly(1, x), Poly(t, t)], [x, t],
+-        None, None, None, None)
++        None, None, None, None, None, None)
+     assert DE.d == Poly(t, t)
+     assert DE.t == t
+     assert DE.level == -1
+@@ -544,9 +537,9 @@ def test_DifferentialExtension_extension_flag():
+     assert DE.case == 'exp'
+ 
+     DE = DifferentialExtension(extension={'D': [Poly(1, x), Poly(t, t)],
+-        'exts': [None, 'exp'], 'extargs': [None, x]})
++        'E_K': [1], 'E_args': [x], 'L_K': [], 'L_args': []})
+     assert DE._important_attrs == (None, None, [Poly(1, x), Poly(t, t)], [x, t],
+-        None, None, [None, 'exp'], [None, x])
++        None, None, [1], [x], [], [])
+     raises(ValueError, lambda: DifferentialExtension())
+ 
+ 
+@@ -555,19 +548,19 @@ def test_DifferentialExtension_misc():
+     assert DifferentialExtension(sin(y)*exp(x), x)._important_attrs == \
+         (Poly(sin(y)*t0, t0, domain='ZZ[sin(y)]'), Poly(1, t0, domain='ZZ'),
+         [Poly(1, x, domain='ZZ'), Poly(t0, t0, domain='ZZ')], [x, t0],
+-        [Lambda(i, exp(i))], [], [None, 'exp'], [None, x])
++        [Lambda(i, exp(i))], [], [1], [x], [], [])
+     raises(NotImplementedError, lambda: DifferentialExtension(sin(x), x))
+     assert DifferentialExtension(10**x, x)._important_attrs == \
+         (Poly(t0, t0), Poly(1, t0), [Poly(1, x), Poly(log(10)*t0, t0)], [x, t0],
+-        [Lambda(i, exp(i*log(10)))], [(exp(x*log(10)), 10**x)], [None, 'exp'],
+-        [None, x*log(10)])
++        [Lambda(i, exp(i*log(10)))], [(exp(x*log(10)), 10**x)], [1], [x*log(10)],
++        [], [])
+     assert DifferentialExtension(log(x) + log(x**2), x)._important_attrs in [
+         (Poly(3*t0, t0), Poly(2, t0), [Poly(1, x), Poly(2/x, t0)], [x, t0],
+-        [Lambda(i, log(i**2))], [], [None, ], [], [1], [x**2]),
++        [Lambda(i, log(i**2))], [], [], [], [1], [x**2]),
+         (Poly(3*t0, t0), Poly(1, t0), [Poly(1, x), Poly(1/x, t0)], [x, t0],
+-        [Lambda(i, log(i))], [], [None, 'log'], [None, x])]
++        [Lambda(i, log(i))], [], [], [], [1], [x])]
+     assert DifferentialExtension(S.Zero, x)._important_attrs == \
+-        (Poly(0, x), Poly(1, x), [Poly(1, x)], [x], [], [], [None], [None])
++        (Poly(0, x), Poly(1, x), [Poly(1, x)], [x], [], [], [], [], [], [])
+ 
+ 
+ def test_DifferentialExtension_Rothstein():
+@@ -579,8 +572,8 @@ def test_DifferentialExtension_Rothstein():
+         119750400*t0 + 119750400*t0**2 + 39916800*t0**3, t1),
+         [Poly(1, x), Poly(t0, t0), Poly(-(10 + 21*t0 + 10*t0**2)/(1 + 2*t0 +
+         t0**2)*t1, t1, domain='ZZ(t0)')], [x, t0, t1],
+-        [Lambda(i, exp(i)), Lambda(i, exp(1/(t0 + 1) - 10*i))], [],
+-        [None, 'exp', 'exp'], [None, x, 1/(t0 + 1) - 10*x])
++        [Lambda(i, exp(i)), Lambda(i, exp(1/(t0 + 1) - 10*i))], [], [1, 2],
++        [x, 1/(t0 + 1) - 10*x], [], [])
+ 
+ 
+ class TestingException(Exception):
+@@ -700,7 +693,7 @@ def test_DifferentialExtension_printing():
+         "('x', x), ('T', [x, t0, t1]), ('D', [Poly(1, x, domain='ZZ'), Poly(2*x*t0, t0, domain='ZZ[x]'), "
+         "Poly(2*t0*x/(t0 + 1), t1, domain='ZZ(x,t0)')]), ('fa', Poly(t1 + t0**2, t1, domain='ZZ[t0]')), "
+         "('fd', Poly(1, t1, domain='ZZ')), ('Tfuncs', [Lambda(i, exp(i**2)), Lambda(i, log(t0 + 1))]), "
+-        "('backsubs', []), ('exts', [None, 'exp', 'log']), ('extargs', [None, x**2, t0 + 1]), "
++        "('backsubs', []), ('E_K', [1]), ('E_args', [x**2]), ('L_K', [2]), ('L_args', [t0 + 1]), "
+         "('cases', ['base', 'exp', 'primitive']), ('case', 'primitive'), ('t', t1), "
+         "('d', Poly(2*t0*x/(t0 + 1), t1, domain='ZZ(x,t0)')), ('newf', t0**2 + t1), ('level', -1), "
+         "('dummy', False)]))")
+diff --git a/sympy/matrices/common.py b/sympy/matrices/common.py
+index 7ef51bc847..dc37416525 100644
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -239,9 +239,10 @@ def col_join(self, other):
+         col
+         row_join
+         """
+-        # A null matrix can always be stacked (see  #10770)
+-        if self.rows == 0 and self.cols != other.cols:
+-            return self._new(0, other.cols, []).col_join(other)
++        from sympy.matrices import MutableMatrix
++        # Allows you to build a matrix even if it is null matrix
++        if not self:
++            return type(self)(other)
+ 
+         if self.cols != other.cols:
+             raise ShapeError(
+@@ -377,6 +378,11 @@ def hstack(cls, *args):
+         if len(args) == 0:
+             return cls._new()
+ 
++        # Check if all matrices have zero rows
++        if all(arg.rows == 0 for arg in args):
++            total_cols = sum(arg.cols for arg in args)
++            return cls.zeros(0, total_cols)
++
+         kls = type(args[0])
+         return reduce(kls.row_join, args)
+ 
+@@ -475,9 +481,9 @@ def row_join(self, other):
+         row
+         col_join
+         """
+-        # A null matrix can always be stacked (see  #10770)
+-        if self.cols == 0 and self.rows != other.rows:
+-            return self._new(other.rows, 0, []).row_join(other)
++        # Allows you to build a matrix even if it is null matrix
++        if not self:
++            return self._new(other)
+ 
+         if self.rows != other.rows:
+             raise ShapeError(
+@@ -1225,7 +1231,7 @@ def is_lower(self):
+         Examples
+         ========
+ 
+-        >>> from sympy import Matrix
++        >>> from sympy.matrices import Matrix
+         >>> m = Matrix(2, 2, [1, 0, 0, 1])
+         >>> m
+         Matrix([
+@@ -1273,7 +1279,7 @@ def is_square(self):
+         Examples
+         ========
+ 
+-        >>> from sympy import Matrix
++        >>> from sympy.matrices import Matrix
+         >>> a = Matrix([[1, 2, 3], [4, 5, 6]])
+         >>> b = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+         >>> c = Matrix([])
+@@ -1811,7 +1817,7 @@ def trace(self):
+         Examples
+         ========
+ 
+-        >>> from sympy import Matrix
++        >>> from sympy.matrices import Matrix
+         >>> A = Matrix(2, 2, [1, 2, 3, 4])
+         >>> A.trace()
+         5
+diff --git a/sympy/matrices/expressions/matmul.py b/sympy/matrices/expressions/matmul.py
+index 9a9b06cb1d..f5b95ee959 100644
+--- a/sympy/matrices/expressions/matmul.py
++++ b/sympy/matrices/expressions/matmul.py
+@@ -64,12 +64,9 @@ def _entry(self, i, j, expand=True):
+         if X.has(ImmutableMatrix) or Y.has(ImmutableMatrix):
+             return coeff*Add(*[X[i, k]*Y[k, j] for k in range(X.cols)])
+         result = Sum(coeff*X[i, k]*Y[k, j], (k, 0, X.cols - 1))
+-        try:
+-            if not X.cols.is_number:
+-                # Don't waste time in result.doit() if the sum bounds are symbolic
+-                expand = False
+-        except AttributeError:
+-            pass
++        if not X.cols.is_number:
++            # Don't waste time in result.doit() if the sum bounds are symbolic
++            expand = False
+         return result.doit() if expand else result
+ 
+     def as_coeff_matrices(self):
+diff --git a/sympy/matrices/expressions/tests/test_matmul.py b/sympy/matrices/expressions/tests/test_matmul.py
+index 5a76ec12ee..cb414935d6 100644
+--- a/sympy/matrices/expressions/tests/test_matmul.py
++++ b/sympy/matrices/expressions/tests/test_matmul.py
+@@ -6,7 +6,7 @@
+ from sympy.matrices.expressions.matmul import (factor_in_front, remove_ids,
+         MatMul, xxinv, any_zeros, unpack, only_squares)
+ from sympy.strategies import null_safe
+-from sympy import refine, Q, Symbol
++from sympy import refine, Q
+ 
+ n, m, l, k = symbols('n m l k', integer=True)
+ A = MatrixSymbol('A', n, m)
+@@ -131,7 +131,3 @@ def test_matmul_args_cnc():
+     a, b = symbols('a b', commutative=False)
+     assert MatMul(n, a, b, A, A.T).args_cnc() == ([n], [a, b, A, A.T])
+     assert MatMul(A, A.T).args_cnc() == ([1], [A, A.T])
+-
+-def test_issue_12950():
+-    M = Matrix([[Symbol("x")]]) * MatrixSymbol("A", 1, 1)
+-    assert MatrixSymbol("A", 1, 1).as_explicit()[0]*Symbol('x') == M.as_explicit()[0]
+diff --git a/sympy/matrices/tests/test_commonmatrix.py b/sympy/matrices/tests/test_commonmatrix.py
+index 3e27ecc8b2..120f0b42c4 100644
+--- a/sympy/matrices/tests/test_commonmatrix.py
++++ b/sympy/matrices/tests/test_commonmatrix.py
+@@ -221,14 +221,6 @@ def test_hstack():
+     raises(ShapeError, lambda: m.hstack(m, m2))
+     assert Matrix.hstack() == Matrix()
+ 
+-    # test regression #12938
+-    M1 = Matrix.zeros(0, 0)
+-    M2 = Matrix.zeros(0, 1)
+-    M3 = Matrix.zeros(0, 2)
+-    M4 = Matrix.zeros(0, 3)
+-    m = ShapingOnlyMatrix.hstack(M1, M2, M3, M4)
+-    assert m.rows == 0 and m.cols == 6
+-
+ def test_vstack():
+     m = ShapingOnlyMatrix(4, 3, lambda i, j: i*3 + j)
+     m2 = ShapingOnlyMatrix(3, 4, lambda i, j: i*3 + j)
+diff --git a/sympy/physics/units/dimensions.py b/sympy/physics/units/dimensions.py
+index f0d9a42204..aeb624fa66 100644
+--- a/sympy/physics/units/dimensions.py
++++ b/sympy/physics/units/dimensions.py
+@@ -17,7 +17,7 @@
+ import collections
+ 
+ from sympy.core.compatibility import reduce, string_types
+-from sympy import sympify, Integer, Matrix, Symbol, S, Abs
++from sympy import sympify, Integer, Matrix, Symbol, S
+ from sympy.core.expr import Expr
+ 
+ 
+@@ -185,14 +185,8 @@ def get_dimensional_dependencies(self, mark_dimensionless=False):
+             return {'dimensionless': 1}
+         return dimdep
+ 
+-    @classmethod
+-    def _from_dimensional_dependencies(cls, dependencies):
+-        return reduce(lambda x, y: x * y, (
+-            Dimension(d)**e for d, e in dependencies.items()
+-        ))
+-
+-    @classmethod
+-    def _get_dimensional_dependencies_for_name(cls, name):
++    @staticmethod
++    def _get_dimensional_dependencies_for_name(name):
+ 
+         if name.is_Symbol:
+             if name.name in Dimension._dimensional_dependencies:
+@@ -217,17 +211,6 @@ def _get_dimensional_dependencies_for_name(cls, name):
+             dim = Dimension._get_dimensional_dependencies_for_name(name.base)
+             return {k: v*name.exp for (k, v) in dim.items()}
+ 
+-        if name.is_Function:
+-            args = (Dimension._from_dimensional_dependencies(
+-                Dimension._get_dimensional_dependencies_for_name(arg)
+-            ) for arg in name.args)
+-            result = name.func(*args)
+-
+-            if isinstance(result, cls):
+-                return result.get_dimensional_dependencies()
+-            # TODO shall we consider a result that is not a dimension?
+-            # return Dimension._get_dimensional_dependencies_for_name(result)
+-
+     @property
+     def is_dimensionless(self):
+         """
+diff --git a/sympy/physics/units/prefixes.py b/sympy/physics/units/prefixes.py
+index c4e6c7c943..1e79b6316c 100644
+--- a/sympy/physics/units/prefixes.py
++++ b/sympy/physics/units/prefixes.py
+@@ -183,11 +183,11 @@ def prefix_unit(unit, prefixes):
+ }
+ 
+ 
+-kibi = Prefix('kibi', 'Y', 10, 2)
+-mebi = Prefix('mebi', 'Y', 20, 2)
+-gibi = Prefix('gibi', 'Y', 30, 2)
+-tebi = Prefix('tebi', 'Y', 40, 2)
+-pebi = Prefix('pebi', 'Y', 50, 2)
++kibi = Prefix('kibi', 'Y', 10, 2),
++mebi = Prefix('mebi', 'Y', 20, 2),
++gibi = Prefix('gibi', 'Y', 30, 2),
++tebi = Prefix('tebi', 'Y', 40, 2),
++pebi = Prefix('pebi', 'Y', 50, 2),
+ exbi = Prefix('exbi', 'Y', 60, 2)
+ 
+ 
+diff --git a/sympy/physics/units/quantities.py b/sympy/physics/units/quantities.py
+index 4c60bb54d2..6112bda489 100644
+--- a/sympy/physics/units/quantities.py
++++ b/sympy/physics/units/quantities.py
+@@ -7,7 +7,7 @@
+ from __future__ import division
+ 
+ from sympy.core.compatibility import string_types
+-from sympy import Abs, sympify, Mul, Pow, S, Symbol, Add, AtomicExpr, Basic, Function
++from sympy import sympify, Mul, Pow, S, Symbol, Add, AtomicExpr, Basic
+ from sympy.physics.units import Dimension
+ from sympy.physics.units import dimensions
+ from sympy.physics.units.prefixes import Prefix
+@@ -88,11 +88,6 @@ def _eval_is_positive(self):
+     def _eval_is_constant(self):
+         return self.scale_factor.is_constant()
+ 
+-    def _eval_Abs(self):
+-        # FIXME prefer usage of self.__class__ or type(self) instead
+-        return self.func(self.name, self.dimension, Abs(self.scale_factor),
+-                         self.abbrev)
+-
+     @staticmethod
+     def get_dimensional_expr(expr):
+         if isinstance(expr, Mul):
+@@ -101,9 +96,6 @@ def get_dimensional_expr(expr):
+             return Quantity.get_dimensional_expr(expr.base) ** expr.exp
+         elif isinstance(expr, Add):
+             return Quantity.get_dimensional_expr(expr.args[0])
+-        elif isinstance(expr, Function):
+-            fds = [Quantity.get_dimensional_expr(arg) for arg in expr.args]
+-            return expr.func(*fds)
+         elif isinstance(expr, Quantity):
+             return expr.dimension.name
+         return 1
+@@ -160,12 +152,11 @@ def _Quantity_constructor_postprocessor_Add(expr):
+     # expressions like `meter + second` to be created.
+ 
+     deset = {
+-        tuple(sorted(Dimension(
+-            Quantity.get_dimensional_expr(i) if not i.is_number else 1
+-        ).get_dimensional_dependencies().items()))
++        tuple(Dimension(Quantity.get_dimensional_expr(i)).get_dimensional_dependencies().items())
+         for i in expr.args
+         if i.free_symbols == set()  # do not raise if there are symbols
+                     # (free symbols could contain the units corrections)
++        and not i.is_number
+     }
+     # If `deset` has more than one element, then some dimensions do not
+     # match in the sum:
+diff --git a/sympy/physics/units/tests/test_quantities.py b/sympy/physics/units/tests/test_quantities.py
+index d1d672b461..1797d15143 100644
+--- a/sympy/physics/units/tests/test_quantities.py
++++ b/sympy/physics/units/tests/test_quantities.py
+@@ -6,8 +6,8 @@
+ from sympy.physics.units import convert_to, find_unit
+ 
+ from sympy.physics.units.definitions import s, m, kg, speed_of_light, day, minute, km, foot, meter, grams, amu, au, \
+-    quart, inch, coulomb, millimeter, steradian, second, mile, centimeter, hour, kilogram, pressure, temperature, energy
+-from sympy.physics.units.dimensions import Dimension, length, time, charge, mass
++    quart, inch, coulomb, millimeter, steradian, second, mile, centimeter, hour
++from sympy.physics.units.dimensions import length, time, charge
+ from sympy.physics.units.quantities import Quantity
+ from sympy.physics.units.prefixes import PREFIXES, kilo
+ from sympy.utilities.pytest import raises
+@@ -110,19 +110,6 @@ def test_add_sub():
+     # TODO: eventually add this:
+     # assert (u - v).convert_to(u) == S.Half*u
+ 
+-def test_abs():
+-    v_w1 = Quantity('v_w1', length/time, meter/second)
+-    v_w2 = Quantity('v_w2', length/time, meter/second)
+-    v_w3 = Quantity('v_w3', length/time, meter/second)
+-    expr = v_w3 - Abs(v_w1 - v_w2)
+-
+-    Dq = Dimension(Quantity.get_dimensional_expr(expr))
+-    assert Dimension.get_dimensional_dependencies(Dq) == {
+-        'length': 1,
+-        'time': -1,
+-    }
+-    assert meter == sqrt(meter**2)
+-
+ 
+ def test_check_unit_consistency():
+     return  # TODO remove
+@@ -239,7 +226,6 @@ def test_Quantity_derivative():
+ 
+ 
+ def test_sum_of_incompatible_quantities():
+-    raises(ValueError, lambda: meter + 1)
+     raises(ValueError, lambda: meter + second)
+     raises(ValueError, lambda: 2 * meter + second)
+     raises(ValueError, lambda: 2 * meter + 3 * second)
+@@ -250,17 +236,3 @@ def test_sum_of_incompatible_quantities():
+     assert expr in Basic._constructor_postprocessor_mapping
+     for i in expr.args:
+         assert i in Basic._constructor_postprocessor_mapping
+-
+-
+-def test_quantity_postprocessing():
+-    q1 = Quantity('q1', length*pressure**2*temperature/time)
+-    q2 = Quantity('q2', energy*pressure*temperature/(length**2*time))
+-    assert q1 + q2
+-    q = q1 + q2
+-    Dq = Dimension(Quantity.get_dimensional_expr(q))
+-    assert Dimension.get_dimensional_dependencies(Dq) == {
+-        'length': -1,
+-        'mass': 2,
+-        'temperature': 1,
+-        'time': -5,
+-    }
+diff --git a/sympy/printing/octave.py b/sympy/printing/octave.py
+index cfcae81dae..0be218d6a2 100644
+--- a/sympy/printing/octave.py
++++ b/sympy/printing/octave.py
+@@ -310,8 +310,13 @@ def _print_MatrixBase(self, A):
+         elif (A.rows, A.cols) == (1, 1):
+             # Octave does not distinguish between scalars and 1x1 matrices
+             return self._print(A[0, 0])
+-        return "[%s]" % "; ".join(" ".join([self._print(a) for a in A[r, :]])
+-                                  for r in range(A.rows))
++        elif A.rows == 1:
++            return "[%s]" % A.table(self, rowstart='', rowend='', colsep=' ')
++        elif A.cols == 1:
++            # note .table would unnecessarily equispace the rows
++            return "[%s]" % "; ".join([self._print(a) for a in A])
++        return "[%s]" % A.table(self, rowstart='', rowend='',
++                                rowsep=';\n', colsep=' ')
+ 
+ 
+     def _print_SparseMatrix(self, A):
+diff --git a/sympy/printing/tests/test_octave.py b/sympy/printing/tests/test_octave.py
+index 0103035ae0..c5d0d93085 100644
+--- a/sympy/printing/tests/test_octave.py
++++ b/sympy/printing/tests/test_octave.py
+@@ -145,7 +145,9 @@ def test_Matrices():
+     A = Matrix([[1, sin(x/2), abs(x)],
+                 [0, 1, pi],
+                 [0, exp(1), ceiling(x)]]);
+-    expected = "[1 sin(x/2) abs(x); 0 1 pi; 0 exp(1) ceil(x)]"
++    expected = ("[1 sin(x/2)  abs(x);\n"
++                "0        1      pi;\n"
++                "0   exp(1) ceil(x)]")
+     assert mcode(A) == expected
+     # row and columns
+     assert mcode(A[:,0]) == "[1; 0; 0]"
+@@ -202,7 +204,7 @@ def test_containers():
+     assert mcode(Tuple(*[1, 2, 3])) == "{1, 2, 3}"
+     assert mcode((1, x*y, (3, x**2))) == "{1, x.*y, {3, x.^2}}"
+     # scalar, matrix, empty matrix and empty list
+-    assert mcode((1, eye(3), Matrix(0, 0, []), [])) == "{1, [1 0 0; 0 1 0; 0 0 1], [], {}}"
++    assert mcode((1, eye(3), Matrix(0, 0, []), [])) == "{1, [1 0 0;\n0 1 0;\n0 0 1], [], {}}"
+ 
+ 
+ def test_octave_noninline():
+@@ -258,7 +260,7 @@ def test_octave_matrix_assign_to():
+     A = Matrix([[1, 2, 3]])
+     assert mcode(A, assign_to='a') == "a = [1 2 3];"
+     A = Matrix([[1, 2], [3, 4]])
+-    assert mcode(A, assign_to='A') == "A = [1 2; 3 4];"
++    assert mcode(A, assign_to='A') == "A = [1 2;\n3 4];"
+ 
+ 
+ def test_octave_matrix_assign_to_more():
+diff --git a/sympy/release.py b/sympy/release.py
+index 5a776b94cf..f901408650 100644
+--- a/sympy/release.py
++++ b/sympy/release.py
+@@ -1 +1 @@
+-__version__ = "1.1.1rc1"
++__version__ = "1.1"
+diff --git a/sympy/utilities/codegen.py b/sympy/utilities/codegen.py
+index 0045efeb49..311cb27d27 100644
+--- a/sympy/utilities/codegen.py
++++ b/sympy/utilities/codegen.py
+@@ -798,7 +798,6 @@ def __init__(self, project="project", printer=None,
+         super(CCodeGen, self).__init__(project=project)
+         self.printer = printer or c_code_printers[self.standard.lower()]()
+ 
+-        self.preprocessor_statements = preprocessor_statements
+         if preprocessor_statements is None:
+             self.preprocessor_statements = ['#include <math.h>']
+ 
+diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py
+index 9b1ee3ec06..56b3ce33d0 100644
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -10,7 +10,7 @@
+ import textwrap
+ 
+ from sympy.core.compatibility import (exec_, is_sequence, iterable,
+-    NotIterable, string_types, range, builtins, integer_types)
++    NotIterable, string_types, range, builtins)
+ from sympy.utilities.decorator import doctest_depends_on
+ 
+ # These are the namespaces the lambda functions will use.
+@@ -438,10 +438,7 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
+         def array_wrap(funcarg):
+             @wraps(funcarg)
+             def wrapper(*argsx, **kwargsx):
+-                asarray = namespace['asarray']
+-                newargs = [asarray(i) if isinstance(i, integer_types + (float,
+-                    complex)) else i for i in argsx]
+-                return funcarg(*newargs, **kwargsx)
++                return funcarg(*[namespace['asarray'](i) for i in argsx], **kwargsx)
+             return wrapper
+         func = array_wrap(func)
+     # Apply the docstring
+diff --git a/sympy/utilities/misc.py b/sympy/utilities/misc.py
+index c989997818..27ba151482 100644
+--- a/sympy/utilities/misc.py
++++ b/sympy/utilities/misc.py
+@@ -343,7 +343,15 @@ def translate(s, a, b=None, c=None):
+     >>> translate(abc, {'ab': 'x', 'bc': 'y'}) in ('xc', 'ay')
+     True
+     """
+-    from sympy.core.compatibility import maketrans, PY3
++    from sympy.core.compatibility import maketrans
++
++    # when support for Python 2 is dropped, this try/except can be
++    #removed
++    try:
++        ''.translate(None, '')
++        py3 = False
++    except TypeError:
++        py3 = True
+ 
+     mr = {}
+     if a is None:
+@@ -366,7 +374,7 @@ def translate(s, a, b=None, c=None):
+                 a = b = ''
+         else:
+             assert len(a) == len(b)
+-    if PY3:
++    if py3:
+         if c:
+             s = s.translate(maketrans('', '', c))
+         s = replace(s, mr)
+diff --git a/sympy/utilities/tests/test_codegen.py b/sympy/utilities/tests/test_codegen.py
+index 46bc645858..2b5be52edb 100644
+--- a/sympy/utilities/tests/test_codegen.py
++++ b/sympy/utilities/tests/test_codegen.py
+@@ -1447,32 +1447,12 @@ def test_custom_codegen():
+     from sympy.functions.elementary.exponential import exp
+ 
+     printer = C99CodePrinter(settings={'user_functions': {'exp': 'fastexp'}})
++    gen = C99CodeGen(printer=printer)
++    gen.preprocessor_statements.append('#include "fastexp.h"')
+ 
+     x, y = symbols('x y')
+     expr = exp(x + y)
+ 
+-    # replace math.h with a different header
+-    gen = C99CodeGen(printer=printer,
+-                     preprocessor_statements=['#include "fastexp.h"'])
+-
+-    expected = (
+-        '#include "expr.h"\n'
+-        '#include "fastexp.h"\n'
+-        'double expr(double x, double y) {\n'
+-        '   double expr_result;\n'
+-        '   expr_result = fastexp(x + y);\n'
+-        '   return expr_result;\n'
+-        '}\n'
+-    )
+-
+-    result = codegen(('expr', expr), header=False, empty=False, code_gen=gen)
+-    source = result[0][1]
+-    assert source == expected
+-
+-    # use both math.h and an external header
+-    gen = C99CodeGen(printer=printer)
+-    gen.preprocessor_statements.append('#include "fastexp.h"')
+-
+     expected = (
+         '#include "expr.h"\n'
+         '#include <math.h>\n'
+diff --git a/sympy/utilities/tests/test_codegen_octave.py b/sympy/utilities/tests/test_codegen_octave.py
+index 8aee4e2586..b79b4be3d8 100644
+--- a/sympy/utilities/tests/test_codegen_octave.py
++++ b/sympy/utilities/tests/test_codegen_octave.py
+@@ -347,7 +347,8 @@ def test_m_matrix_output_autoname_2():
+         "  out1 = x + y;\n"
+         "  out2 = [2*x 2*y 2*z];\n"
+         "  out3 = [x; y; z];\n"
+-        "  out4 = [x y; z 16];\n"
++        "  out4 = [x  y;\n"
++        "  z 16];\n"
+         "end\n"
+     )
+     assert source == expected
+diff --git a/sympy/vector/coordsysrect.py b/sympy/vector/coordsysrect.py
+index a9a3af6b76..5ffd66aa06 100644
+--- a/sympy/vector/coordsysrect.py
++++ b/sympy/vector/coordsysrect.py
+@@ -4,8 +4,7 @@
+ from sympy.core.cache import cacheit
+ from sympy.core import S
+ from sympy.vector.scalar import BaseScalar
+-from sympy import Matrix
+-from sympy import eye, trigsimp, ImmutableMatrix as Matrix, Symbol, sin, cos, sqrt, diff, Tuple, simplify
++from sympy import eye, trigsimp, ImmutableMatrix as Matrix, Symbol, sin, cos, sqrt, diff, Tuple
+ import sympy.vector
+ from sympy import simplify
+ from sympy.vector.orienters import (Orienter, AxisOrienter, BodyOrienter,
+@@ -216,37 +215,6 @@ def _connect_to_standard_cartesian(self, curv_coord_type):
+         else:
+             raise ValueError("Wrong set of parameter.")
+ 
+-        if not self._check_orthogonality():
+-            raise ValueError("The transformation equation does not create orthogonal coordinate system")
+-
+-    def _check_orthogonality(self):
+-        """
+-        Helper method for _connect_to_cartesian. It checks if
+-        set of transformation equations create orthogonal curvilinear
+-        coordinate system
+-
+-        Parameters
+-        ==========
+-
+-        equations : tuple
+-            Tuple of transformation equations
+-
+-        """
+-
+-        eq = self._transformation_equations()
+-
+-        v1 = Matrix([diff(eq[0], self.x), diff(eq[1], self.x), diff(eq[2], self.x)])
+-        v2 = Matrix([diff(eq[0], self.y), diff(eq[1], self.y), diff(eq[2], self.y)])
+-        v3 = Matrix([diff(eq[0], self.z), diff(eq[1], self.z), diff(eq[2], self.z)])
+-
+-        if any(simplify(i[0]+i[1]+i[2]) == 0 for i in (v1, v2, v3)):
+-            return False
+-        else:
+-            if simplify(v1.dot(v2)) == 0 and simplify(v2.dot(v3)) == 0 and simplify(v3.dot(v1)) == 0:
+-                return True
+-            else:
+-                return False
+-
+     def _set_transformation_equations_mapping(self, curv_coord_name):
+         """
+         Store information about some default, pre-defined transformation
+diff --git a/sympy/vector/tests/test_coordsysrect.py b/sympy/vector/tests/test_coordsysrect.py
+index dc455a3635..e8f0c6e9d6 100644
+--- a/sympy/vector/tests/test_coordsysrect.py
++++ b/sympy/vector/tests/test_coordsysrect.py
+@@ -1,9 +1,8 @@
+ from sympy.utilities.exceptions import SymPyDeprecationWarning
+-from sympy.utilities.pytest import raises
+ import warnings
+ from sympy.vector.coordsysrect import CoordSys3D, CoordSysCartesian
+ from sympy.vector.scalar import BaseScalar
+-from sympy import sin, sinh, cos, cosh, sqrt, pi, ImmutableMatrix as Matrix, \
++from sympy import sin, cos, sqrt, pi, ImmutableMatrix as Matrix, \
+      symbols, simplify, zeros, expand
+ from sympy.vector.functions import express
+ from sympy.vector.point import Point
+@@ -353,19 +352,6 @@ def test_transformation_equations():
+     assert simplify(a.lame_coefficients()) == (1, sqrt(a.x**2), 1)
+ 
+ 
+-def test_check_orthogonality():
+-    a = CoordSys3D('a')
+-    a._connect_to_standard_cartesian((a.x*sin(a.y)*cos(a.z), a.x*sin(a.y)*sin(a.z), a.x*cos(a.y)))
+-    assert a._check_orthogonality() is True
+-    a._connect_to_standard_cartesian((a.x * cos(a.y), a.x * sin(a.y), a.z))
+-    assert a._check_orthogonality() is True
+-    a._connect_to_standard_cartesian((cosh(a.x)*cos(a.y), sinh(a.x)*sin(a.y), a.z))
+-    assert a._check_orthogonality() is True
+-
+-    raises(ValueError, lambda: a._connect_to_standard_cartesian((a.x, a.x, a.z)))
+-    raises(ValueError, lambda: a._connect_to_standard_cartesian(
+-        (a.x*sin(a.y / 2)*cos(a.z), a.x*sin(a.y)*sin(a.z), a.x*cos(a.y))))
+-
+ def test_coordsys3d():
+     with warnings.catch_warnings():
+         warnings.filterwarnings("ignore", category=SymPyDeprecationWarning)

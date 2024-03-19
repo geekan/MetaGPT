@@ -1,0 +1,29 @@
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 3b1aec2429..36c1122b75 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -2422,8 +2422,13 @@ def __floordiv__(self, other):
+         if not isinstance(other, Expr):
+             return NotImplemented
+         if isinstance(other, Integer):
+-            return Integer(self.p // other)
+-        return Integer(divmod(self, other)[0])
++            return Integer(self.p // other.p)
++        else:
++            div_result = divmod(self, other)[0]
++            if isinstance(div_result, Expr):
++                return div_result
++            else:
++                return Integer(div_result)
+ 
+     def __rfloordiv__(self, other):
+         return Integer(Integer(other).p // self.p)
+@@ -3733,7 +3738,7 @@ def __ne__(self, other):
+ nan = S.NaN
+ 
+ @dispatch(NaN, Expr) # type:ignore
+-def _eval_is_eq(a, b): # noqa:F811
++def _eval_is_eq(a, b): # noqa: F811
+     return False
+ 
+ 

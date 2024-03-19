@@ -1,0 +1,14 @@
+diff --git a/sympy/simplify/cse_main.py b/sympy/simplify/cse_main.py
+index e49ba26a70..45ed59fe93 100644
+--- a/sympy/simplify/cse_main.py
++++ b/sympy/simplify/cse_main.py
+@@ -515,8 +515,7 @@ def cse(exprs, symbols=None, optimizations=None, postprocess=None,
+     for i, (sym, subtree) in enumerate(replacements):
+         subtree = postprocess_for_cse(subtree, optimizations)
+         replacements[i] = (sym, subtree)
+-    reduced_exprs = [postprocess_for_cse(e, optimizations)
+-                     for e in reduced_exprs]
++    reduced_exprs = [e.xreplace(replacements) for e in reduced_exprs]
+ 
+     # Get the matrices back
+     for i, e in enumerate(exprs):

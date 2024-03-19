@@ -1,0 +1,44 @@
+diff --git a/django/core/management/__init__.py b/django/core/management/__init__.py
+index 4e30a28f33..3699cf99fa 100644
+--- a/django/core/management/__init__.py
++++ b/django/core/management/__init__.py
+@@ -142,14 +142,17 @@ def call_command(command_name, *args, **options):
+         for group in parser._mutually_exclusive_groups
+         for opt in group._group_actions if group.required
+     }
+-    # Any required arguments which are passed in via **options must be passed
+-    # to parse_args().
++    # Track which options have been added to parse_args to avoid duplicates
++    added_options = set()
++
+     for opt in parser_actions:
+         if (
+             opt.dest in options and
+-            (opt.required or opt in mutually_exclusive_required_options)
++            (opt.required or opt in mutually_exclusive_required_options) and
++            opt.dest not in added_options  # Check if the dest has not been added already
+         ):
+             parse_args.append(min(opt.option_strings))
++            added_options.add(opt.dest)  # Mark this dest as added
+             if isinstance(opt, (_AppendConstAction, _CountAction, _StoreConstAction)):
+                 continue
+             value = arg_options[opt.dest]
+diff --git a/tests/user_commands/tests.py b/tests/user_commands/tests.py
+index d3afb697bb..02ef937a23 100644
+--- a/tests/user_commands/tests.py
++++ b/tests/user_commands/tests.py
+@@ -421,3 +421,14 @@ class UtilsTests(SimpleTestCase):
+     def test_normalize_path_patterns_truncates_wildcard_base(self):
+         expected = [os.path.normcase(p) for p in ['foo/bar', 'bar/*/']]
+         self.assertEqual(normalize_path_patterns(['foo/bar/*', 'bar/*/']), expected)
++
++from django.core.management import call_command
++from django.core.management.base import CommandError
++from django.test import TestCase
++
++class SimulateIssueCommandTests(TestCase):
++    def test_call_command_with_mutually_exclusive_arguments(self):
++        with self.assertRaises(CommandError):
++            # This should raise an error because the --for and --until arguments are mutually exclusive
++            # and use the same dest, which is not currently supported by call_command.
++            call_command('simulate_issue', '--for', '2h')

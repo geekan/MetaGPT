@@ -1,0 +1,23 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 7fdf551554..81184647e7 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -333,6 +333,8 @@ class SQLCompiler:
+         result = []
+         seen = set()
+ 
++        print("DEBUG: Ordering variable contents:", ordering)
++
+         for expr, is_ref in order_by:
+             resolved = expr.resolve_expression(self.query, allow_joins=True, reuse=None)
+             if self.query.combinator:
+@@ -361,6 +363,9 @@ class SQLCompiler:
+                 continue
+             seen.add((without_ordering, params_hash))
+             result.append((resolved, (sql, params, is_ref)))
++
++        print("DEBUG: Final order_by list:", order_by)
++
+         return result
+ 
+     def get_extra_select(self, order_by, select):

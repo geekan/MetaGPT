@@ -1,0 +1,80 @@
+diff --git a/sklearn/cluster/_affinity_propagation.py b/sklearn/cluster/_affinity_propagation.py
+index 4806afee9..f1fd5c0cb 100644
+--- a/sklearn/cluster/_affinity_propagation.py
++++ b/sklearn/cluster/_affinity_propagation.py
+@@ -185,45 +185,46 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+         A -= tmp
+ 
+         # Check for convergence
++        converged = False
+         E = (np.diag(A) + np.diag(R)) > 0
+         e[:, it % convergence_iter] = E
+         K = np.sum(E, axis=0)
+ 
+         if it >= convergence_iter:
+             se = np.sum(e, axis=1)
+-            unconverged = (np.sum((se == convergence_iter) + (se == 0))
+-                           != n_samples)
+-            if (not unconverged and (K > 0)) or (it == max_iter):
++            converged = (np.sum((se == convergence_iter) + (se == 0)) == n_samples)
++            if converged and (K > 0):
+                 if verbose:
+                     print("Converged after %d iterations." % it)
+-                break
+-    else:
+-        if verbose:
+-            print("Did not converge")
+-
+-    I = np.flatnonzero(E)
+-    K = I.size  # Identify exemplars
+-
+-    if K > 0:
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)  # Identify clusters
+-        # Refine the final set of exemplars and clusters and return results
+-        for k in range(K):
+-            ii = np.where(c == k)[0]
+-            j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
+-            I[k] = ii[j]
+-
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)
+-        labels = I[c]
+-        # Reduce labels to a sorted, gapless, list
+-        cluster_centers_indices = np.unique(labels)
+-        labels = np.searchsorted(cluster_centers_indices, labels)
+-    else:
++            elif it == max_iter:
++                if verbose:
++                    print("Did not converge")
++                converged = False
++
++    if not converged:
+         warnings.warn("Affinity propagation did not converge, this model "
+                       "will not have any cluster centers.", ConvergenceWarning)
+-        labels = np.array([-1] * n_samples)
+-        cluster_centers_indices = []
++        cluster_centers_indices = np.array([], dtype=int)
++        labels = np.full(n_samples, -1, dtype=int)
++    else:
++        I = np.flatnonzero(E)
++        K = I.size  # Identify exemplars
++
++        if K > 0:
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)  # Identify clusters
++            # Refine the final set of exemplars and clusters and return results
++            for k in range(K):
++                ii = np.where(c == k)[0]
++                j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
++                I[k] = ii[j]
++
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)
++            labels = I[c]
++            # Reduce labels to a sorted, gapless, list
++            cluster_centers_indices = np.unique(labels)
++            labels = np.searchsorted(cluster_centers_indices, labels)
+ 
+     if return_n_iter:
+         return cluster_centers_indices, labels, it + 1

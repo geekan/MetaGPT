@@ -1,0 +1,25 @@
+diff --git a/sklearn/utils/_set_output.py b/sklearn/utils/_set_output.py
+index 335773c6a..71dd1b200 100644
+--- a/sklearn/utils/_set_output.py
++++ b/sklearn/utils/_set_output.py
+@@ -3,6 +3,7 @@ from functools import wraps
+ from scipy.sparse import issparse
+ 
+ from . import check_pandas_support
++import pandas as pd
+ from .._config import get_config
+ from ._available_if import available_if
+ 
+@@ -127,9 +128,11 @@ def _wrap_data_with_container(method, data_to_wrap, original_input, estimator):
+         return data_to_wrap
+ 
+     # dense_config == "pandas"
++    # Use the index from the transformed data if it's a DataFrame
++    transformed_index = data_to_wrap.index if isinstance(data_to_wrap, pd.DataFrame) else getattr(original_input, "index", None)
+     return _wrap_in_pandas_container(
+         data_to_wrap=data_to_wrap,
+-        index=getattr(original_input, "index", None),
++        index=transformed_index,
+         columns=estimator.get_feature_names_out,
+     )
+ 

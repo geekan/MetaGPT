@@ -1,0 +1,14 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index 247e3680c0..4a83ce97bd 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -65,8 +65,7 @@ class ResolverMatch:
+ 
+ @functools.lru_cache(maxsize=None)
+ def get_resolver(urlconf=None):
+-    if urlconf is None:
+-        urlconf = settings.ROOT_URLCONF
++    urlconf = settings.ROOT_URLCONF if urlconf is None else urlconf
+     return URLResolver(RegexPattern(r'^/'), urlconf)
+ 
+ 

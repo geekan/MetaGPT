@@ -1,0 +1,126 @@
+diff --git a/sklearn/model_selection/_split.py b/sklearn/model_selection/_split.py
+index 0c09ff3b0..6527157fb 100644
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -644,29 +644,17 @@ class StratifiedKFold(_BaseKFold):
+                            " be less than n_splits=%d."
+                            % (min_groups, self.n_splits)), Warning)
+ 
+-        # pre-assign each sample to a test fold index using individual KFold
+-        # splitting strategies for each class so as to respect the balance of
+-        # classes
+-        # NOTE: Passing the data corresponding to ith class say X[y==class_i]
+-        # will break when the data is not 100% stratifiable for all classes.
+-        # So we pass np.zeroes(max(c, n_splits)) as data to the KFold
+-        per_cls_cvs = [
+-            KFold(self.n_splits, shuffle=self.shuffle,
+-                  random_state=rng).split(np.zeros(max(count, self.n_splits)))
+-            for count in y_counts]
+-
+-        test_folds = np.zeros(n_samples, dtype=np.int)
+-        for test_fold_indices, per_cls_splits in enumerate(zip(*per_cls_cvs)):
+-            for cls, (_, test_split) in zip(unique_y, per_cls_splits):
+-                cls_test_folds = test_folds[y == cls]
+-                # the test split can be too big because we used
+-                # KFold(...).split(X[:max(c, n_splits)]) when data is not 100%
+-                # stratifiable for all the classes
+-                # (we use a warning instead of raising an exception)
+-                # If this is the case, let's trim it:
+-                test_split = test_split[test_split < len(cls_test_folds)]
+-                cls_test_folds[test_split] = test_fold_indices
+-                test_folds[y == cls] = cls_test_folds
++        # Find the sorted list of instances for each class:
++        # (np.unique above performs a sort, so code is O(n logn) already)
++        class_indices = np.split(np.argsort(y_inversed, kind='mergesort'), np.cumsum(y_counts)[:-1])
++
++        # Ensure the minority class is represented in the test folds
++        if cls_count < self.n_splits:
++            # Assign one fold index per sample in the minority class
++            minority_class_indices = np.where(y_inversed == cls_index)[0]
++            for i, sample_index in enumerate(minority_class_indices):
++                # Assign fold indices in a round-robin fashion
++                test_folds[sample_index] = i % self.n_splits
+ 
+         return test_folds
+ 
+@@ -885,11 +873,8 @@ class LeaveOneGroupOut(BaseCrossValidator):
+         y : object
+             Always ignored, exists for compatibility.
+ 
+-        groups : array-like, with shape (n_samples,)
+-            Group labels for the samples used while splitting the dataset into
+-            train/test set. This 'groups' parameter must always be specified to
+-            calculate the number of splits, though the other parameters can be
+-            omitted.
++        groups : object
++            Always ignored, exists for compatibility.
+ 
+         Returns
+         -------
+@@ -1356,12 +1341,11 @@ class ShuffleSplit(BaseShuffleSplit):
+     n_splits : int, default 10
+         Number of re-shuffling & splitting iterations.
+ 
+-    test_size : float, int, None, default=0.1
++    test_size : float, int, None, optional
+         If float, should be between 0.0 and 1.0 and represent the proportion
+         of the dataset to include in the test split. If int, represents the
+         absolute number of test samples. If None, the value is set to the
+-        complement of the train size. By default (the parameter is
+-        unspecified), the value is set to 0.1.
++        complement of the train size. By default, the value is set to 0.1.
+         The default will change in version 0.21. It will remain 0.1 only
+         if ``train_size`` is unspecified, otherwise it will complement
+         the specified ``train_size``.
+diff --git a/sklearn/model_selection/_validation.py b/sklearn/model_selection/_validation.py
+index 4ffa462ff..313ab741f 100644
+--- a/sklearn/model_selection/_validation.py
++++ b/sklearn/model_selection/_validation.py
+@@ -841,9 +841,14 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+         n_classes = len(set(y))
+         if n_classes != len(estimator.classes_):
+             recommendation = (
+-                'To fix this, use a cross-validation '
+-                'technique resulting in properly '
+-                'stratified folds')
++                'To fix this, consider using a cross-validation technique that ensures '
++                'each class is represented in every training fold, especially when '
++                'dealing with datasets that have a very small number of samples for '
++                'one or more classes.'
++            )
++            print("Debug: estimator.classes_ =", estimator.classes_)
++            print("Debug: n_classes =", n_classes)
++            print("Debug: predictions =", predictions)
+             warnings.warn('Number of classes in training fold ({}) does '
+                           'not match total number of classes ({}). '
+                           'Results may not be appropriate for your use case. '
+@@ -873,13 +878,22 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+                                         len(estimator.classes_),
+                                         recommendation))
+ 
+-            float_min = np.finfo(predictions.dtype).min
+-            default_values = {'decision_function': float_min,
+-                              'predict_log_proba': float_min,
+-                              'predict_proba': 0}
+-            predictions_for_all_classes = np.full((_num_samples(predictions),
+-                                                   n_classes),
+-                                                  default_values[method])
++            # Custom logic to ensure minority class is represented
++            if len(np.unique(y_train)) < n_classes:
++                # Find the label of the minority class
++                minority_class = np.setdiff1d(np.arange(n_classes),
++                                              estimator.classes_)[0]
++                # Use the minimum prediction value for the minority class
++                predictions_for_all_classes = np.full((_num_samples(predictions),
++                                                       n_classes),
++                                                      np.min(predictions))
++                # Ensure the minority class has a prediction value
++                predictions_for_all_classes[:, minority_class] = np.min(predictions)
++            else:
++                # Use the default prediction values
++                predictions_for_all_classes = np.full((_num_samples(predictions),
++                                                       n_classes),
++                                                      np.min(predictions))
+             predictions_for_all_classes[:, estimator.classes_] = predictions
+             predictions = predictions_for_all_classes
+     return predictions, test

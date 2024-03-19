@@ -1,0 +1,30 @@
+diff --git a/xarray/core/dataarray.py b/xarray/core/dataarray.py
+index 794984b7..20f8e270 100644
+--- a/xarray/core/dataarray.py
++++ b/xarray/core/dataarray.py
+@@ -2736,6 +2736,11 @@ class DataArray(
+         numpy.transpose
+         Dataset.transpose
+         """
++        # Check if any element in dims is a list and raise an error if so
++        for dim in dims:
++            if isinstance(dim, list):
++                raise ValueError("When calling transpose, provide dimension names as separate arguments, not as a list. For example, use .transpose('dim1', 'dim2') instead of .transpose(['dim1', 'dim2']).")
++
+         if dims:
+             dims = tuple(utils.infix_dims(dims, self.dims, missing_dims))
+         variable = self.variable.transpose(*dims)
+diff --git a/xarray/core/utils.py b/xarray/core/utils.py
+index 0320ea81..2766c496 100644
+--- a/xarray/core/utils.py
++++ b/xarray/core/utils.py
+@@ -905,6 +905,9 @@ def drop_missing_dims(
+     dims : sequence
+     missing_dims : {"raise", "warn", "ignore"}
+     """
++    for dim in supplied_dims:
++        if not isinstance(dim, Hashable):
++            raise ValueError("Dimension names must be hashable. Provide dimension names as separate arguments, not as a list.")
+ 
+     if missing_dims == "raise":
+         supplied_dims_set = {val for val in supplied_dims if val is not ...}

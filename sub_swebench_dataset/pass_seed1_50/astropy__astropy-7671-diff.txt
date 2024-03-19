@@ -1,0 +1,82 @@
+diff --git a/astropy/utils/collections.py b/astropy/utils/collections.py
+deleted file mode 100644
+index 3a9b839548..0000000000
+--- a/astropy/utils/collections.py
++++ /dev/null
+@@ -1,57 +0,0 @@
+-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+-"""
+-A module containing specialized collection classes.
+-"""
+-
+-
+-class HomogeneousList(list):
+-    """
+-    A subclass of list that contains only elements of a given type or
+-    types.  If an item that is not of the specified type is added to
+-    the list, a `TypeError` is raised.
+-    """
+-    def __init__(self, types, values=[]):
+-        """
+-        Parameters
+-        ----------
+-        types : sequence of types
+-            The types to accept.
+-
+-        values : sequence, optional
+-            An initial set of values.
+-        """
+-        self._types = types
+-        super().__init__()
+-        self.extend(values)
+-
+-    def _assert(self, x):
+-        if not isinstance(x, self._types):
+-            raise TypeError(
+-                "homogeneous list must contain only objects of "
+-                "type '{}'".format(self._types))
+-
+-    def __iadd__(self, other):
+-        self.extend(other)
+-        return self
+-
+-    def __setitem__(self, idx, value):
+-        if isinstance(idx, slice):
+-            value = list(value)
+-            for item in value:
+-                self._assert(item)
+-        else:
+-            self._assert(value)
+-        return super().__setitem__(idx, value)
+-
+-    def append(self, x):
+-        self._assert(x)
+-        return super().append(x)
+-
+-    def insert(self, i, x):
+-        self._assert(x)
+-        return super().insert(i, x)
+-
+-    def extend(self, x):
+-        for item in x:
+-            self._assert(item)
+-            super().append(item)
+diff --git a/astropy/utils/introspection.py b/astropy/utils/introspection.py
+index 3e784f9fc3..a4f8ebc513 100644
+--- a/astropy/utils/introspection.py
++++ b/astropy/utils/introspection.py
+@@ -139,10 +139,12 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
+     else:
+         have_version = resolve_name(module.__name__, version_path)
+ 
++    from pkg_resources import parse_version
++
+     if inclusive:
+-        return LooseVersion(have_version) >= LooseVersion(version)
++        return parse_version(have_version) >= parse_version(version)
+     else:
+-        return LooseVersion(have_version) > LooseVersion(version)
++        return parse_version(have_version) > parse_version(version)
+ 
+ 
+ def find_current_module(depth=1, finddiff=False):

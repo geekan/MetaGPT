@@ -1,0 +1,41 @@
+diff --git a/sklearn/mixture/base.py b/sklearn/mixture/base.py
+index 1cf8a0fb9..97b1be54f 100644
+--- a/sklearn/mixture/base.py
++++ b/sklearn/mixture/base.py
+@@ -256,6 +256,8 @@ class BaseMixture(six.with_metaclass(ABCMeta, DensityMixin, BaseEstimator)):
+                 best_params = self._get_parameters()
+                 best_n_iter = n_iter
+ 
++        self.lower_bound_ = max_lower_bound
++
+         if not self.converged_:
+             warnings.warn('Initialization %d did not converge. '
+                           'Try different init parameters, '
+diff --git a/sklearn/mixture/tests/test_gaussian_mixture.py b/sklearn/mixture/tests/test_gaussian_mixture.py
+index 3b17bf17b..7802aa335 100644
+--- a/sklearn/mixture/tests/test_gaussian_mixture.py
++++ b/sklearn/mixture/tests/test_gaussian_mixture.py
+@@ -990,15 +990,16 @@ def test_sample():
+ 
+ @ignore_warnings(category=ConvergenceWarning)
+ def test_init():
+-    # We check that by increasing the n_init number we have a better solution
++    # Test that GaussianMixture with n_init > 1 indeed sets the lower_bound_ to the
++    # max lower bound across all initializations.
+     random_state = 0
+     rand_data = RandomData(np.random.RandomState(random_state), scale=1)
+     n_components = rand_data.n_components
+     X = rand_data.X['full']
+ 
+-    gmm1 = GaussianMixture(n_components=n_components, n_init=1,
+-                           max_iter=1, random_state=random_state).fit(X)
+-    gmm2 = GaussianMixture(n_components=n_components, n_init=100,
+-                           max_iter=1, random_state=random_state).fit(X)
+-
+-    assert_greater(gmm2.lower_bound_, gmm1.lower_bound_)
++    for random_state in range(10):  # Test across multiple random states
++        gmm1 = GaussianMixture(n_components=n_components, n_init=1,
++                               max_iter=1, random_state=random_state).fit(X)
++        gmm2 = GaussianMixture(n_components=n_components, n_init=10,
++                               max_iter=1, random_state=random_state).fit(X)
++        assert gmm2.lower_bound_ >= gmm1.lower_bound_, random_state

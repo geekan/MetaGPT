@@ -1,0 +1,13 @@
+diff --git a/lib/matplotlib/collections.py b/lib/matplotlib/collections.py
+index 20ed38948c..48797cccde 100644
+--- a/lib/matplotlib/collections.py
++++ b/lib/matplotlib/collections.py
+@@ -1461,7 +1461,7 @@ class LineCollection(Collection):
+         segments = []
+ 
+         for path in self._paths:
+-            vertices = [vertex for vertex, _ in path.iter_segments()]
++            vertices = [vertex for vertex, _ in path.iter_segments(simplify=False)]
+             vertices = np.asarray(vertices)
+             segments.append(vertices)
+ 

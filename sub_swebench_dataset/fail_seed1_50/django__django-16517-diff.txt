@@ -1,0 +1,28 @@
+diff --git a/django/contrib/admindocs/views.py b/django/contrib/admindocs/views.py
+index a5e710835e..75bcdd0387 100644
+--- a/django/contrib/admindocs/views.py
++++ b/django/contrib/admindocs/views.py
+@@ -173,13 +173,20 @@ class ViewDetailView(BaseAdminDocsView):
+                 # Separate the module and function, e.g.
+                 # 'mymodule.views.myview' -> 'mymodule.views', 'myview').
+                 return getattr(import_module(mod), func)
+-            except ImportError:
++            except ImportError as e:
+                 # Import may fail because view contains a class name, e.g.
+                 # 'mymodule.views.ViewContainer.my_view', so mod takes the form
+                 # 'mymodule.views.ViewContainer'. Parse it again to separate
+                 # the module and class.
+-                mod, klass = get_mod_func(mod)
+-                return getattr(getattr(import_module(mod), klass), func)
++                parts = mod.split('.')
++                for i in range(len(parts) - 1, 0, -1):
++                    try:
++                        mod = '.'.join(parts[:i])
++                        klass = parts[i]
++                        return getattr(getattr(import_module(mod), klass), func)
++                    except ImportError:
++                        continue
++                raise e
+ 
+     def get_context_data(self, **kwargs):
+         view = self.kwargs["view"]

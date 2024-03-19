@@ -1,0 +1,93 @@
+diff --git a/requests/sessions.py b/requests/sessions.py
+index d8e040c8..7deefa44 100644
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -9,7 +9,7 @@ requests (cookies, auth, proxies).
+ 
+ """
+ import os
+-from collections import Mapping
++from collections.abc import Mapping
+ from datetime import datetime
+ 
+ from .compat import cookielib, OrderedDict, urljoin, urlparse, urlunparse
+@@ -26,41 +26,40 @@ from .utils import requote_uri, get_environ_proxies, get_netrc_auth
+ 
+ from .status_codes import codes
+ REDIRECT_STATI = (
+-    codes.moved, # 301
++    codes.moved_permanently, # 301
+     codes.found, # 302
+-    codes.other, # 303
+-    codes.temporary_moved, # 307
++    codes.see_other, # 303
++    codes.temporary_redirect, # 307
+ )
+ DEFAULT_REDIRECT_LIMIT = 30
+ 
+ 
+ def merge_setting(request_setting, session_setting, dict_class=OrderedDict):
+-    """
+-    Determines appropriate setting for a given request, taking into account the
+-    explicit setting on that request, and the setting in the session. If a
+-    setting is a dictionary, they will be merged together using `dict_class`
+-    """
+-
++    # If either setting is None, return the other
+     if session_setting is None:
+         return request_setting
+-
+     if request_setting is None:
+         return session_setting
+ 
+-    # Bypass if not a dictionary (e.g. verify)
+-    if not (
+-            isinstance(session_setting, Mapping) and
+-            isinstance(request_setting, Mapping)
+-    ):
++    # If settings are not dictionaries, return request_setting
++    if not (isinstance(session_setting, Mapping) and isinstance(request_setting, Mapping)):
+         return request_setting
+ 
+-    merged_setting = dict_class(to_key_val_list(session_setting))
+-    merged_setting.update(to_key_val_list(request_setting))
+-
+-    # Remove keys that are set to None.
+-    for (k, v) in request_setting.items():
+-        if v is None:
+-            del merged_setting[k]
++    # Initialize merged_setting with session_setting items
++    merged_setting = dict_class()
++    session_items = to_key_val_list(session_setting) if session_setting is not None else []
++    request_items = to_key_val_list(request_setting) if request_setting is not None else []
++    for key, value in session_items:
++        if key in request_items:
++            merged_setting[key] = value + request_items[key]
++        else:
++            merged_setting[key] = value
++    for key, value in request_items:
++        if key not in merged_setting:
++            merged_setting[key] = value
++
++    # Remove keys that are set to None
++    merged_setting = {k: v for k, v in merged_setting.items() if v is not None}
+ 
+     return merged_setting
+ 
+@@ -114,14 +113,14 @@ class SessionRedirectMixin(object):
+                 method = 'GET'
+ 
+             # Do what the browsers do, despite standards...
+-            if (resp.status_code in (codes.moved, codes.found) and
++            if (resp.status_code in (codes.moved_permanently, codes.found) and
+                     method not in ('GET', 'HEAD')):
+                 method = 'GET'
+ 
+             prepared_request.method = method
+ 
+             # https://github.com/kennethreitz/requests/issues/1084
+-            if resp.status_code not in (codes.temporary, codes.resume):
++            if resp.status_code not in (codes.temporary_redirect, codes.resume_incomplete):
+                 if 'Content-Length' in prepared_request.headers:
+                     del prepared_request.headers['Content-Length']
+ 

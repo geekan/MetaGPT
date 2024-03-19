@@ -1,0 +1,19 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 3792ffb90e..c00fa50156 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -504,6 +504,14 @@ class Model(metaclass=ModelBase):
+         super().__init__()
+         post_init.send(sender=cls, instance=self)
+ 
++    def __copy__(self):
++        # Create a new instance of the model
++        new_instance = self.__class__()
++        # Explicitly deep copy the _state.fields_cache
++        new_instance._state.fields_cache = copy.deepcopy(self._state.fields_cache)
++        # Copy other necessary attributes if needed
++        return new_instance
++
+     @classmethod
+     def from_db(cls, db, field_names, values):
+         if len(values) != len(cls._meta.concrete_fields):

@@ -1,0 +1,136 @@
+diff --git a/setup.py b/setup.py
+index 8d40de1a8..05716fae1 100644
+--- a/setup.py
++++ b/setup.py
+@@ -21,7 +21,7 @@ install_requires = [
+     'sphinxcontrib-htmlhelp',
+     'sphinxcontrib-serializinghtml',
+     'sphinxcontrib-qthelp',
+-    'Jinja2>=2.3',
++    'Jinja2<3.1',
+     'Pygments>=2.0',
+     'docutils>=0.12',
+     'snowballstemmer>=1.1',
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index 06a6293d2..6cebacade 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -46,6 +46,7 @@ CHECK_IMMEDIATELY = 0
+ QUEUE_POLL_SECS = 1
+ DEFAULT_DELAY = 60.0
+ 
++print("DEBUG: linkcheck.py script started")
+ 
+ class AnchorCheckParser(HTMLParser):
+     """Specialized HTML parser that looks for a specific anchor."""
+@@ -116,6 +117,7 @@ class CheckExternalLinksBuilder(Builder):
+             self.workers.append(thread)
+ 
+     def check_thread(self) -> None:
++        print("DEBUG: Starting check_thread")
+         kwargs = {}
+         if self.app.config.linkcheck_timeout:
+             kwargs['timeout'] = self.app.config.linkcheck_timeout
+@@ -182,7 +184,7 @@ class CheckExternalLinksBuilder(Builder):
+                                                  **kwargs)
+                         response.raise_for_status()
+                     except (HTTPError, TooManyRedirects) as err:
+-                        if isinstance(err, HTTPError) and err.response.status_code == 429:
++                        if isinstance(err, HTTPError) and err.response is not None and err.response.status_code == 429:
+                             raise
+                         # retry with GET request if that fails, some servers
+                         # don't like HEAD requests.
+@@ -191,16 +193,16 @@ class CheckExternalLinksBuilder(Builder):
+                                                 auth=auth_info, **kwargs)
+                         response.raise_for_status()
+             except HTTPError as err:
+-                if err.response.status_code == 401:
++                if err.response is not None and err.response.status_code == 401:
+                     # We'll take "Unauthorized" as working.
+                     return 'working', ' - unauthorized', 0
+-                elif err.response.status_code == 429:
++                elif err.response is not None and err.response.status_code == 429:
+                     next_check = self.limit_rate(err.response)
+                     if next_check is not None:
+                         self.wqueue.put((next_check, uri, docname, lineno), False)
+                         return 'rate-limited', '', 0
+                     return 'broken', str(err), 0
+-                elif err.response.status_code == 503:
++                elif err.response is not None and err.response.status_code == 503:
+                     # We'll take "Service Unavailable" as ignored.
+                     return 'ignored', str(err), 0
+                 else:
+@@ -256,6 +258,9 @@ class CheckExternalLinksBuilder(Builder):
+                     return 'ignored', '', 0
+ 
+             # need to actually check the URI
++            status = 'unknown'
++            info = ''
++            code = 0
+             for _ in range(self.app.config.linkcheck_retries):
+                 status, info, code = check_uri()
+                 if status != "broken":
+@@ -287,17 +292,22 @@ class CheckExternalLinksBuilder(Builder):
+                 # Sleep before putting message back in the queue to avoid
+                 # waking up other threads.
+                 time.sleep(QUEUE_POLL_SECS)
++                print("DEBUG: Re-queuing item. Queue size before put():", self.wqueue.qsize(), "Item:", (next_check, uri, docname, lineno))
+                 self.wqueue.put((next_check, uri, docname, lineno), False)
+-                self.wqueue.task_done()
+                 continue
++            status = 'unknown'
++            info = ''
++            code = 0
+             status, info, code = check(docname)
+             if status == 'rate-limited':
+                 logger.info(darkgray('-rate limited-   ') + uri + darkgray(' | sleeping...'))
+             else:
+                 self.rqueue.put((uri, docname, lineno, status, info, code))
++            print("DEBUG: task_done() called. Queue size before task_done():", self.wqueue.qsize())
+             self.wqueue.task_done()
+ 
+     def limit_rate(self, response: Response) -> Optional[float]:
++        delay = DEFAULT_DELAY  # Initialize delay to default
+         next_check = None
+         retry_after = response.headers.get("Retry-After")
+         if retry_after:
+@@ -387,8 +397,9 @@ class CheckExternalLinksBuilder(Builder):
+             self.write_entry('redirected ' + text, docname, filename,
+                              lineno, uri + ' to ' + info)
+             self.write_linkstat(linkstat)
++        print(f"DEBUG: Finished processing result for {uri}")
+ 
+-    def get_target_uri(self, docname: str, typ: str = None) -> str:
++    def get_target_uri(self, docname: str, typ: str = '') -> str:
+         return ''
+ 
+     def get_outdated_docs(self) -> Set[str]:
+@@ -398,6 +409,7 @@ class CheckExternalLinksBuilder(Builder):
+         return
+ 
+     def write_doc(self, docname: str, doctree: Node) -> None:
++        print("DEBUG: Starting write_doc for", docname)
+         logger.info('')
+         n = 0
+ 
+@@ -439,6 +451,7 @@ class CheckExternalLinksBuilder(Builder):
+             output.write('\n')
+ 
+     def finish(self) -> None:
++        print("DEBUG: Finish method called")
+         self.wqueue.join()
+         # Shutdown threads.
+         for worker in self.workers:
+diff --git a/tox.ini b/tox.ini
+index dbb705a3a..9f4fc3a32 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -28,7 +28,7 @@ setenv =
+     PYTHONWARNINGS = all,ignore::ImportWarning:importlib._bootstrap_external,ignore::DeprecationWarning:site,ignore::DeprecationWarning:distutils
+     PYTEST_ADDOPTS = {env:PYTEST_ADDOPTS:} --color yes
+ commands=
+-    python -X dev -m pytest --durations 25 {posargs}
++    python -X dev -m pytest -rA --durations 25 {posargs}
+ 
+ [testenv:flake8]
+ basepython = python3

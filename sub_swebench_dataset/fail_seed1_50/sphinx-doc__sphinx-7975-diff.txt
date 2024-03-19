@@ -1,0 +1,46 @@
+diff --git a/setup.py b/setup.py
+index a404f1fa5..250ef5b61 100644
+--- a/setup.py
++++ b/setup.py
+@@ -21,7 +21,7 @@ install_requires = [
+     'sphinxcontrib-htmlhelp',
+     'sphinxcontrib-serializinghtml',
+     'sphinxcontrib-qthelp',
+-    'Jinja2>=2.3',
++    'Jinja2<3.1',
+     'Pygments>=2.0',
+     'docutils>=0.12',
+     'snowballstemmer>=1.1',
+diff --git a/sphinx/environment/adapters/indexentries.py b/sphinx/environment/adapters/indexentries.py
+index 5af213932..bdde4829a 100644
+--- a/sphinx/environment/adapters/indexentries.py
++++ b/sphinx/environment/adapters/indexentries.py
+@@ -165,11 +165,11 @@ class IndexEntries:
+                 if k.startswith('\N{RIGHT-TO-LEFT MARK}'):
+                     k = k[1:]
+                 letter = unicodedata.normalize('NFD', k[0])[0].upper()
+-                if letter.isalpha() or letter == '_':
+-                    return letter
+-                else:
+-                    # get all other symbols under one heading
++                if not letter.isalpha():
++                    # get all non-alphabetic symbols under one heading
+                     return _('Symbols')
++                else:
++                    return letter
+             else:
+                 return v[2]
+         return [(key_, list(group))
+diff --git a/tox.ini b/tox.ini
+index bddd822a6..34baee205 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -27,7 +27,7 @@ extras =
+ setenv =
+     PYTHONWARNINGS = all,ignore::ImportWarning:importlib._bootstrap_external,ignore::DeprecationWarning:site,ignore::DeprecationWarning:distutils
+ commands=
+-    pytest --durations 25 {posargs}
++    pytest -rA --durations 25 {posargs}
+ 
+ [testenv:flake8]
+ basepython = python3

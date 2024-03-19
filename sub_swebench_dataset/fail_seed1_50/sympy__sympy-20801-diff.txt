@@ -1,0 +1,50 @@
+diff --git a/sympy/core/basic.py b/sympy/core/basic.py
+index 8e82778c7d..5d289fc1c3 100644
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -334,6 +334,11 @@ def __eq__(self, other):
+ 
+         from http://docs.python.org/dev/reference/datamodel.html#object.__hash__
+         """
++        from sympy.core.numbers import Float
++        from sympy.logic.boolalg import Boolean
++
++        print(f"Debug: Comparing self: {self}, type: {type(self)} with other: {other}, type: {type(other)}")
++
+         if self is other:
+             return True
+ 
+@@ -341,6 +346,7 @@ def __eq__(self, other):
+         tother = type(other)
+         if tself is not tother:
+             try:
++                print(f"Debug before sympify: self: {self}, type: {type(self)}, other: {other}, type: {type(other)}")
+                 other = _sympify(other)
+                 tother = type(other)
+             except SympifyError:
+@@ -357,14 +363,22 @@ def __eq__(self, other):
+             elif tself is not tother:
+                 return False
+ 
++        # If the types are the same then we can just compare the _hashable_content.
++        # However, we special case Float and Boolean here. A Float with value 0.0
++        # should not compare equal to S.false even though they will both have
++        # _hashable_content() == (0,).
++        if isinstance(self, Float) and self == 0.0 and isinstance(other, Boolean) and other is S.false:
++            return False
++        elif isinstance(self, Boolean) and self is S.false and isinstance(other, Float) and other == 0.0:
++            return False
++
++        print(f"Debug before hashable content comparison: self: {self}, type: {type(self)}, other: {other}, type: {type(other)}")
+         return self._hashable_content() == other._hashable_content()
+ 
+     def __ne__(self, other):
+         """``a != b``  -> Compare two symbolic trees and see whether they are different
+ 
+-        this is the same as:
+-
+-        ``a.compare(b) != 0``
++        this is the same as: ``a.compare(b) != 0``
+ 
+         but faster
+         """
