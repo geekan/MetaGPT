@@ -169,6 +169,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
+        self.llm.cost_manager = self.context.cost_manager
         self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
@@ -331,6 +332,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if env:
             env.set_addresses(self, self.addresses)
             self.llm.system_prompt = self._get_prefix()
+            self.llm.cost_manager = self.context.cost_manager
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
     def _get_prefix(self):
