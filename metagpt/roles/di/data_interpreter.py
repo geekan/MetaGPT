@@ -182,3 +182,6 @@ class DataInterpreter(Role):
             print(result)
             data_info = DATA_INFO.format(info=result)
             self.working_memory.add(Message(content=data_info, role="user", cause_by=CheckData))
+
+    def get_last_cell_source(self):
+        return self.execute_code.nb.cells[-1].source
