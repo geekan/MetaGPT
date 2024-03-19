@@ -3,7 +3,7 @@ from typing import Tuple
 
 
 def remove_spaces(text):
-    return re.sub(r"\s+", " ", text).strip()
+    return re.sub(r"\s+", " ", text).strip() if text else ""
 
 
 class DocstringParser:
