@@ -72,7 +72,7 @@ class Planner(BaseModel):
             self.plan = Plan(goal=goal)
 
         plan_confirmed = False
-        while not plan_confirmed:
+        while not plan_confirmed and max_retries > 1:
             context = self.get_useful_memories()
             rsp = await WritePlan().run(context, max_tasks=max_tasks)
             self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
@@ -87,9 +87,8 @@ class Planner(BaseModel):
                 continue
 
             _, plan_confirmed = await self.ask_review(
-                review_type=self.review_type, trigger=ReviewConst.TASK_REVIEW_TRIGGER
+                review_type=self.review_type, trigger=ReviewConst.PLAN_REVIEW_TRIGGER
             )
-
         update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
 
         self.working_memory.clear()
@@ -136,11 +135,7 @@ class Planner(BaseModel):
             trigger = ReviewConst.CODE_REVIEW_TRIGGER
 
         review, confirmed = await AskReview().run(
-            context=context,
-            plan=self.plan,
-            trigger=trigger,
-            # 暂时不对plan进行review.
-            review_type=review_type if task_result else "disabled",  # 当task_result为None，说明是在review plan.
+            context=context, plan=self.plan, trigger=trigger, review_type=review_type
         )
 
         if not confirmed:
