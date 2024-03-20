@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import traceback
 from pathlib import Path
 
@@ -30,11 +31,20 @@ async def call_chat(inputs, interpreter):
     inputs (str): The inputs to generate completions for.
     interpreter (DataInterpreter): The data interpreter to use for execution.
     """
-    requirement = "Please rewrite the code and generate test case to address the issues existing in the repository. If the test code passes, it is considered that the execution code has passed and use the `git diff` command to output the patch based on the correct code."
+    requirement = "Please rewrite the code and generate test case to address the issues existing in the repository. If the test code passes, it is considered that the execution code has passed."
     system_messages = inputs.split("\n", 1)[0]
     user_message = inputs.split("\n", 1)[1]
+
+    # remove patch in user_message
+    cleaned_message = re.sub("<patch>.*?</patch>", '', user_message, flags=re.DOTALL)
+    cleaned_message_lines = cleaned_message.split('\n')
+    while len(cleaned_message_lines) > 0 and cleaned_message_lines[-1] != '</code>':
+        cleaned_message_lines = cleaned_message_lines[:-1]
+
+    cleaned_message = '\n'.join(cleaned_message_lines)
+
     try:
-        await interpreter.run([requirement, system_messages, user_message])
+        await interpreter.run([requirement, system_messages, cleaned_message])
         return interpreter.get_last_cell_source()
     except Exception as e:
         logger.error(f"Error: {e}\nInputs: {inputs}")
