@@ -11,7 +11,7 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
 
 
-@register_tool(tags=["software company", "ProductManager"])
+@register_tool(tags=["software development", "ProductManager"])
 async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Path:
     """Writes a PRD based on user requirements.
 
@@ -51,7 +51,7 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     return ctx.repo.docs.prd.workdir
 
 
-@register_tool(tags=["software company", "Architect"])
+@register_tool(tags=["software development", "Architect"])
 async def write_design(prd_path: str | Path) -> Path:
     """Writes a design to the project repository, based on the PRD of the project.
 
@@ -82,7 +82,7 @@ async def write_design(prd_path: str | Path) -> Path:
     return ctx.repo.docs.system_design.workdir
 
 
-@register_tool(tags=["software company", "Architect"])
+@register_tool(tags=["software development", "Architect"])
 async def write_project_plan(system_design_path: str | Path) -> Path:
     """Writes a project plan to the project repository, based on the design of the project.
 
@@ -113,7 +113,7 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
     return ctx.repo.docs.task.workdir
 
 
-@register_tool(tags=["software company", "Engineer"])
+@register_tool(tags=["software development", "Engineer"])
 async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
     """Writes codes to the project repository, based on the project plan of the project.
 
@@ -156,7 +156,7 @@ async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
     return ctx.repo.srcs.workdir
 
 
-@register_tool(tags=["software company", "QaEngineer"])
+@register_tool(tags=["software development", "QaEngineer"])
 async def run_qa_test(src_path: str | Path) -> Path:
     """Run QA test on the project repository.
 
@@ -195,7 +195,7 @@ async def run_qa_test(src_path: str | Path) -> Path:
     return ctx.repo.tests.workdir
 
 
-@register_tool(tags=["software company", "Engineer"])
+@register_tool(tags=["software development", "Engineer"])
 async def fix_bug(project_path: str | Path, issue: str) -> Path:
     """Fix bugs in the project repository.
 
@@ -240,7 +240,7 @@ async def fix_bug(project_path: str | Path, issue: str) -> Path:
     return project_path
 
 
-@register_tool(tags=["software company", "git"])
+@register_tool(tags=["software development", "git"])
 async def git_archive(project_path: str | Path) -> str:
     """Stage and commit changes for the project repository using Git.
 
