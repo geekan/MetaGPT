@@ -17,7 +17,7 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
 
     Args:
         idea (str): The idea or concept for the PRD.
-        project_path (Optional[str|Path], optional): The path to an existing project directory created by `write_prd`.
+        project_path (Optional[str|Path], optional): The path to an existing project directory.
             If it's None, a new project path will be created. Defaults to None.
 
     Returns:
