@@ -202,16 +202,16 @@ class DashScopeLLM(BaseLLM):
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> GenerationOutput:
+    async def _achat_completion(self, messages: list[dict], timeout: int = 0) -> GenerationOutput:
         resp: GenerationResponse = await self.aclient.acall(**self._const_kwargs(messages, stream=False))
         self._check_response(resp)
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> GenerationOutput:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=0) -> GenerationOutput:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
         resp = await self.aclient.acall(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = {}

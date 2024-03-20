@@ -416,7 +416,7 @@ class ActionNode:
         images: Optional[Union[str, list[str]]] = None,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
-        timeout=3,
+        timeout=0,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
@@ -448,7 +448,7 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=3, exclude=None):
+    async def simple_fill(self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=0, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -473,7 +473,7 @@ class ActionNode:
         mode="auto",
         strgy="simple",
         images: Optional[Union[str, list[str]]] = None,
-        timeout=3,
+        timeout=0,
         exclude=[],
     ):
         """Fill the node(s) with mode.

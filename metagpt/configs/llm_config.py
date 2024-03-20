@@ -74,7 +74,7 @@ class LLMConfig(YamlModel):
     stream: bool = False
     logprobs: Optional[bool] = None  # https://cookbook.openai.com/examples/using_logprobs
     top_logprobs: Optional[int] = None
-    timeout: int = 60
+    timeout: int = 600
 
     # For Network
     proxy: Optional[str] = None

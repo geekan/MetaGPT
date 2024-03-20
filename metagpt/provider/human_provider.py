@@ -18,7 +18,7 @@ class HumanProvider(BaseLLM):
     def __init__(self, config: LLMConfig):
         pass
 
-    def ask(self, msg: str, timeout=3) -> str:
+    def ask(self, msg: str, timeout=0) -> str:
         logger.info("It's your turn, please type in your response. You may also refer to the context below")
         rsp = input(msg)
         if rsp in ["exit", "quit"]:
@@ -31,20 +31,20 @@ class HumanProvider(BaseLLM):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
-        timeout=3,
+        timeout=0,
     ) -> str:
-        return self.ask(msg, timeout=timeout)
+        return self.ask(msg, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion(self, messages: list[dict], timeout=3):
+    async def _achat_completion(self, messages: list[dict], timeout=0):
         pass
 
-    async def acompletion(self, messages: list[dict], timeout=3):
+    async def acompletion(self, messages: list[dict], timeout=0):
         """dummy implementation of abstract method in base"""
         return []
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
         pass
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=0) -> str:
         """dummy implementation of abstract method in base"""
         return ""

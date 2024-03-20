@@ -41,15 +41,15 @@ class AnthropicLLM(BaseLLM):
     def get_choice_text(self, resp: Message) -> str:
         return resp.content[0].text
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> Message:
+    async def _achat_completion(self, messages: list[dict], timeout: int = 0) -> Message:
         resp: Message = await self.aclient.messages.create(**self._const_kwargs(messages))
         self._update_costs(resp.usage, self.model)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout: int = 3) -> Message:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout: int = 0) -> Message:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
         stream = await self.aclient.messages.create(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = Usage(input_tokens=0, output_tokens=0)
