@@ -143,11 +143,11 @@ class DataInterpreter(Role):
             ### write test code ###
             test_code = await self._write_test_code(code)
 
-            code += "\n" + test_code
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            code_and_test_code = code + "\n" + test_code
+            self.working_memory.add(Message(content=code_and_test_code, role="assistant", cause_by=cause_by))
 
             ### execute code ###
-            result, success = await self.execute_code.run(code)
+            result, success = await self.execute_code.run(code_and_test_code)
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
