@@ -29,12 +29,7 @@ from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.utils.common import (
-    CodeParser,
-    decode_image,
-    log_and_reraise,
-    process_message,
-)
+from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -150,7 +145,7 @@ class OpenAILLM(BaseLLM):
     async def _achat_completion_function(
         self, messages: list[dict], timeout: int = 3, **chat_configs
     ) -> ChatCompletion:
-        messages = process_message(messages)
+        messages = self.format_msg(messages)
         kwargs = self._cons_kwargs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
