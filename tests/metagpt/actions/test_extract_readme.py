@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.actions.learn_readme import LearnReadMe
+from metagpt.actions.extract_readme import ExtractReadMe
 from metagpt.llm import LLM
 
 
 @pytest.mark.asyncio
 async def test_learn_readme(context):
-    action = LearnReadMe(
+    action = ExtractReadMe(
         name="RedBean",
         i_context=str(Path(__file__).parent.parent.parent.parent),
         llm=LLM(),

@@ -19,9 +19,9 @@ from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 
-class LearnReadMe(Action):
+class ExtractReadMe(Action):
     """
-    An action to learn from the contents of a README.md file.
+    An action to extract summary, installation, configuration, usages from the contents of a README.md file.
 
     Attributes:
         graph_db (Optional[GraphRepository]): A graph database repository.
@@ -42,20 +42,20 @@ class LearnReadMe(Action):
         """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
-        summary = await self.summarize()
+        summary = await self._summarize()
         await self.graph_db.insert(subject=self._filename, predicate=GraphKeyword.HAS_SUMMARY, object_=summary)
-        install = await self.install()
+        install = await self._extract_install()
         await self.graph_db.insert(subject=self._filename, predicate=GraphKeyword.HAS_INSTALL, object_=install)
-        conf = await self.config()
+        conf = await self._extract_configuration()
         await self.graph_db.insert(subject=self._filename, predicate=GraphKeyword.HAS_CONFIG, object_=conf)
-        usage = await self.usage()
+        usage = await self._extract_usage()
         await self.graph_db.insert(subject=self._filename, predicate=GraphKeyword.HAS_USAGE, object_=usage)
 
         await self.graph_db.save()
 
         return Message(content="", cause_by=self)
 
-    async def summarize(self) -> str:
+    async def _summarize(self) -> str:
         readme = await self._get()
         summary = await self.llm.aask(
             readme,
@@ -66,10 +66,10 @@ class LearnReadMe(Action):
         )
         return summary
 
-    async def install(self) -> str:
-        readme = await self._get()
+    async def _extract_install(self) -> str:
+        await self._get()
         install = await self.llm.aask(
-            readme,
+            self._readme,
             system_msgs=[
                 "You are a tool can install git repository according to README.md file.",
                 "Return a bash code block of markdown including:\n"
@@ -80,10 +80,10 @@ class LearnReadMe(Action):
         )
         return install
 
-    async def config(self) -> str:
-        readme = await self._get()
+    async def _extract_configuration(self) -> str:
+        await self._get()
         configuration = await self.llm.aask(
-            readme,
+            self._readme,
             system_msgs=[
                 "You are a tool can configure git repository according to README.md file.",
                 "Return a bash code block of markdown object to configure the repository if necessary, otherwise return"
@@ -92,10 +92,10 @@ class LearnReadMe(Action):
         )
         return configuration
 
-    async def usage(self) -> str:
-        readme = await self._get()
+    async def _extract_usage(self) -> str:
+        await self._get()
         usage = await self.llm.aask(
-            readme,
+            self._readme,
             system_msgs=[
                 "You are a tool can summarize all usages of git repository according to README.md file.",
                 "Return a list of code block of markdown objects to demonstrates the usage of the repository.",
