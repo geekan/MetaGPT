@@ -6,12 +6,6 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main():
-    # prompt = f"""This is a software requirement:\n```text\nwrite a snake game\n```\n .
-    #         1. Append user requirement to project path `/Users/iorishinier/github/bak/MetaGPT/workspace/snake_game` and write a PRD.\n
-    #         2. Write a design to project path `/Users/iorishinier/github/bak/MetaGPT/workspace/snake_game`.\n
-    #         Note: All required dependencies and environments have been fully installed and configured."""
-    # prompt = f"""1. fix bug:\n```text\n{issue}\n````\nin project path `/Users/iorishinier/github/bak/MetaGPT/workspace/snake_game`.\n
-    #     Note: All required dependencies and environments have been fully installed and configured."""
     prompt = """
 This is a software requirement:
 ```text
