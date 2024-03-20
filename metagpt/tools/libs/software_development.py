@@ -12,7 +12,7 @@ from metagpt.utils.common import any_to_str
 
 
 @register_tool(tags=["software company", "ProductManager"])
-async def write_prd(idea: str, project_path: Optional[str | Path]) -> Path:
+async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Path:
     """Writes a PRD based on user requirements.
 
     Args:

@@ -82,8 +82,6 @@ class Context(BaseModel):
 
     def set_repo_dir(self, path: str | Path):
         repo_path = Path(path)
-        if not repo_path.exists():
-            return
         self.git_repo = GitRepository(local_path=repo_path, auto_init=True)
         self.repo = ProjectRepo(self.git_repo)
 
