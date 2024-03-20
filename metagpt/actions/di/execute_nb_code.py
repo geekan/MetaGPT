@@ -128,13 +128,14 @@ class ExecuteNbCode(Action):
                 output_text = output["data"]["text/plain"]
             elif output["output_type"] == "error":
                 output_text, is_success = "\n".join(output["traceback"]), False
+                # remove escape and color codes in traceback
+                output_text = remove_escape_and_color_codes(output_text)
 
             # handle coroutines that are not executed asynchronously
             if output_text.strip().startswith("<coroutine object"):
                 output_text = "Executed code failed, you need use key word 'await' to run a async code."
                 is_success = False
 
-            output_text = remove_escape_and_color_codes(output_text)
             # The useful information of the exception is at the end,
             # the useful information of normal output is at the begining.
             output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
