@@ -29,6 +29,7 @@ from typing import Any, Callable, List, Literal, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
+import chardet
 import loguru
 import requests
 from PIL import Image
@@ -663,14 +664,21 @@ def role_raise_decorator(func):
 
 
 @handle_exception
-async def aread(filename: str | Path, encoding=None) -> str:
+async def aread(filename: str | Path, encoding="utf-8") -> str:
     """Read file asynchronously."""
-    async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
-        content = await reader.read()
+    try:
+        async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
+            content = await reader.read()
+    except UnicodeDecodeError:
+        async with aiofiles.open(str(filename), mode="rb") as reader:
+            raw = await reader.read()
+            result = chardet.detect(raw)
+            detected_encoding = result["encoding"]
+            content = raw.decode(detected_encoding)
     return content
 
 
-async def awrite(filename: str | Path, data: str, encoding=None):
+async def awrite(filename: str | Path, data: str, encoding="utf-8"):
     """Write file asynchronously."""
     pathname = Path(filename)
     pathname.parent.mkdir(parents=True, exist_ok=True)
@@ -800,29 +808,6 @@ def decode_image(img_url_or_b64: str) -> Image:
         img_data = BytesIO(base64.b64decode(b64_data))
         img = Image.open(img_data)
     return img
-
-
-def process_message(messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
-    """convert messages to list[dict]."""
-    from metagpt.schema import Message
-
-    # 全部转成list
-    if not isinstance(messages, list):
-        messages = [messages]
-
-    # 转成list[dict]
-    processed_messages = []
-    for msg in messages:
-        if isinstance(msg, str):
-            processed_messages.append({"role": "user", "content": msg})
-        elif isinstance(msg, dict):
-            assert set(msg.keys()) == set(["role", "content"])
-            processed_messages.append(msg)
-        elif isinstance(msg, Message):
-            processed_messages.append(msg.to_dict())
-        else:
-            raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
-    return processed_messages
 
 
 def log_and_reraise(retry_state: RetryCallState):

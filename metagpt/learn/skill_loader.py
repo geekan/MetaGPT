@@ -9,11 +9,11 @@
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import aiofiles
 import yaml
 from pydantic import BaseModel, Field
 
 from metagpt.context import Context
+from metagpt.utils.common import aread
 
 
 class Example(BaseModel):
@@ -68,8 +68,7 @@ class SkillsDeclaration(BaseModel):
     async def load(skill_yaml_file_name: Path = None) -> "SkillsDeclaration":
         if not skill_yaml_file_name:
             skill_yaml_file_name = Path(__file__).parent.parent.parent / "docs/.well-known/skills.yaml"
-        async with aiofiles.open(str(skill_yaml_file_name), mode="r") as reader:
-            data = await reader.read(-1)
+        data = await aread(filename=skill_yaml_file_name)
         skill_data = yaml.safe_load(data)
         return SkillsDeclaration(**skill_data)
 
