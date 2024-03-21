@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @Time    : 2024/01/15
-@Author  : mannaandpoem
-@File    : imitate_webpage.py
 """
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
