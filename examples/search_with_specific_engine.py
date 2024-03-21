@@ -13,7 +13,7 @@ async def main():
     question = "What are the most interesting human facts?"
 
     search = Config.default().search
-    kwargs = {"api_key": search.api_key, "cse_id": search.cse_id, "proxy": None}
+    kwargs = {"api_key": search.api_key, "cse_id": search.cse_id, "proxy": None, "params": search.params}
     await Searcher(search_engine=SearchEngine(engine=search.api_type, **kwargs)).run(question)
 
 

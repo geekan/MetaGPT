@@ -18,3 +18,4 @@ class SearchConfig(YamlModel):
     api_key: str = ""
     cse_id: str = ""  # for google
     search_func: Optional[Callable] = None
+    params: dict = {}
