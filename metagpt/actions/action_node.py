@@ -330,7 +330,7 @@ class ActionNode:
 
     def compile_to(self, i: Dict, schema, kv_sep) -> str:
         if schema == "json":
-            return json.dumps(i, indent=4)
+            return json.dumps(i, indent=4, ensure_ascii=False)
         elif schema == "markdown":
             return dict_to_markdown(i, kv_sep=kv_sep)
         else:
