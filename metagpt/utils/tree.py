@@ -130,7 +130,7 @@ def _add_line(rows: List[str]) -> List[str]:
 
 
 def _execute_tree(root: Path, gitignore: str | Path) -> str:
-    args = ["--gitignore", str(gitignore)] if gitignore else []
+    args = ["--gitfile", str(gitignore)] if gitignore else []
     try:
         result = subprocess.run(["tree"] + args + [str(root)], capture_output=True, text=True, check=True)
         if result.returncode != 0:
