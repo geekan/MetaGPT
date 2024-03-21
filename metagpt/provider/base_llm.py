@@ -23,7 +23,7 @@ from tenacity import (
 )
 
 from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import LLM_API_TIMEOUT
+from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
@@ -109,7 +109,7 @@ class BaseLLM(ABC):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
-        timeout=0,
+        timeout=USE_CONFIG_TIMEOUT,
         stream=True,
     ) -> str:
         if system_msgs:
@@ -131,7 +131,7 @@ class BaseLLM(ABC):
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
 
-    async def aask_batch(self, msgs: list, timeout=0) -> str:
+    async def aask_batch(self, msgs: list, timeout=USE_CONFIG_TIMEOUT) -> str:
         """Sequential questioning"""
         context = []
         for msg in msgs:
@@ -141,15 +141,15 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=0, **kwargs) -> dict:
+    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=USE_CONFIG_TIMEOUT, **kwargs) -> dict:
         raise NotImplementedError
 
     @abstractmethod
-    async def _achat_completion(self, messages: list[dict], timeout=0):
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         """_achat_completion implemented by inherited class"""
 
     @abstractmethod
-    async def acompletion(self, messages: list[dict], timeout=0):
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         """Asynchronous version of completion
         All GPTAPIs are required to provide the standard OpenAI completion interface
         [
@@ -160,7 +160,7 @@ class BaseLLM(ABC):
         """
 
     @abstractmethod
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         """_achat_completion_stream implemented by inherited class"""
 
     @retry(
@@ -170,7 +170,9 @@ class BaseLLM(ABC):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream: bool = False, timeout: int = 0) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream: bool = False, timeout: int = USE_CONFIG_TIMEOUT
+    ) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
         if stream:
             return await self._achat_completion_stream(messages, timeout=self.get_timeout(timeout))

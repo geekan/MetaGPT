@@ -25,6 +25,7 @@ from tenacity import (
 )
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
@@ -79,7 +80,7 @@ class OpenAILLM(BaseLLM):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=0) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages, timeout=self.get_timeout(timeout)), stream=True
         )
@@ -109,7 +110,7 @@ class OpenAILLM(BaseLLM):
         self._update_costs(usage)
         return full_reply_content
 
-    def _cons_kwargs(self, messages: list[dict], timeout=0, **extra_kwargs) -> dict:
+    def _cons_kwargs(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, **extra_kwargs) -> dict:
         kwargs = {
             "messages": messages,
             "max_tokens": self._get_max_tokens(messages),
@@ -123,13 +124,13 @@ class OpenAILLM(BaseLLM):
             kwargs.update(extra_kwargs)
         return kwargs
 
-    async def _achat_completion(self, messages: list[dict], timeout=0) -> ChatCompletion:
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> ChatCompletion:
         kwargs = self._cons_kwargs(messages, timeout=self.get_timeout(timeout))
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp
 
-    async def acompletion(self, messages: list[dict], timeout=0) -> ChatCompletion:
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> ChatCompletion:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     @retry(
@@ -139,7 +140,7 @@ class OpenAILLM(BaseLLM):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=0) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT) -> str:
         """when streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages, timeout=timeout)
@@ -148,7 +149,7 @@ class OpenAILLM(BaseLLM):
         return self.get_choice_text(rsp)
 
     async def _achat_completion_function(
-        self, messages: list[dict], timeout: int = 0, **chat_configs
+        self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, **chat_configs
     ) -> ChatCompletion:
         messages = process_message(messages)
         kwargs = self._cons_kwargs(messages=messages, timeout=self.get_timeout(timeout), **chat_configs)
@@ -156,7 +157,7 @@ class OpenAILLM(BaseLLM):
         self._update_costs(rsp.usage)
         return rsp
 
-    async def aask_code(self, messages: list[dict], timeout: int = 0, **kwargs) -> dict:
+    async def aask_code(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, **kwargs) -> dict:
         """Use function of tools to ask a code.
         Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create
 

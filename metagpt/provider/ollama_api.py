@@ -5,6 +5,7 @@
 import json
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
@@ -49,7 +50,7 @@ class OllamaLLM(BaseLLM):
         chunk = chunk.decode(encoding)
         return json.loads(chunk)
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 0) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,
@@ -61,10 +62,10 @@ class OllamaLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=0) -> dict:
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         stream_resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,

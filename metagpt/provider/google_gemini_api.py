@@ -15,6 +15,7 @@ from google.generativeai.types.generation_types import (
 )
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -88,16 +89,18 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 0) -> "AsyncGenerateContentResponse":
+    async def _achat_completion(
+        self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
+    ) -> "AsyncGenerateContentResponse":
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=0) -> dict:
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 0) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
             **self._const_kwargs(messages, stream=True)
         )

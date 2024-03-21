@@ -10,6 +10,7 @@ from typing import Optional
 
 from pydantic import field_validator
 
+from metagpt.const import LLM_API_TIMEOUT
 from metagpt.utils.yaml_model import YamlModel
 
 
@@ -88,3 +89,8 @@ class LLMConfig(YamlModel):
         if v in ["", None, "YOUR_API_KEY"]:
             raise ValueError("Please set your API key in config2.yaml")
         return v
+
+    @field_validator("timeout")
+    @classmethod
+    def check_timeout(cls, v):
+        return v or LLM_API_TIMEOUT
