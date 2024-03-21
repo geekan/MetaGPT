@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/15
-"""
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
