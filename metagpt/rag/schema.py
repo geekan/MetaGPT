@@ -6,6 +6,7 @@ from typing import Any, Union
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from metagpt.rag.interface import RAGObject
@@ -46,6 +47,24 @@ class ChromaRetrieverConfig(IndexRetrieverConfig):
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
 
 
+class ElasticsearchStoreConfig(BaseModel):
+    index_name: str = Field(default="metagpt", description="Name of the Elasticsearch index.")
+    es_url: str = Field(default=None, description="Elasticsearch URL.")
+    es_cloud_id: str = Field(default=None, description="Elasticsearch cloud ID.")
+    es_api_key: str = Field(default=None, description="Elasticsearch API key.")
+    es_user: str = Field(default=None, description="Elasticsearch username.")
+    es_password: str = Field(default=None, description="Elasticsearch password.")
+    batch_size: int = Field(default=200, description="Batch size for bulk indexing.")
+    distance_strategy: str = Field(default="COSINE", description="Distance strategy to use for similarity search.")
+
+
+class ElasticsearchRetrieverConfig(IndexRetrieverConfig):
+    """Config for Elasticsearch-based retrievers."""
+
+    store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
+    vector_store_query_mode: VectorStoreQueryMode = VectorStoreQueryMode.DEFAULT
+
+
 class BaseRankerConfig(BaseModel):
     """Common config for rankers.
 
@@ -53,7 +72,6 @@ class BaseRankerConfig(BaseModel):
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     top_n: int = Field(default=5, description="The number of top results to return.")
 
 
@@ -72,6 +90,7 @@ class BaseIndexConfig(BaseModel):
     If add new subconfig, it is necessary to add the corresponding instance implementation in rag.factories.index.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     persist_path: Union[str, Path] = Field(description="The directory of saved data.")
 
 
@@ -95,6 +114,13 @@ class BM25IndexConfig(BaseIndexConfig):
     """Config for bm25-based index."""
 
     _no_embedding: bool = PrivateAttr(default=True)
+
+
+class ElasticsearchIndexConfig(VectorIndexConfig):
+    """Config for es-based index."""
+
+    store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
+    persist_path: Union[str, Path] = ""
 
 
 class ObjectNodeMetadata(BaseModel):

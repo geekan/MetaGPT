@@ -17,6 +17,7 @@ llama-index-llms-azure-openai==0.1.4
 llama-index-readers-file==0.1.4
 llama-index-retrievers-bm25==0.1.3
 llama-index-vector-stores-faiss==0.1.1
+llama-index-vector-stores-elasticsearch==0.1.5
 chromadb==0.4.23
 loguru==0.6.0
 meilisearch==0.21.0
@@ -76,3 +77,5 @@ Pillow
 imap_tools==1.5.0  # Used by metagpt/tools/libs/email_login.py
 qianfan==0.3.2
 dashscope==1.14.1
+rank-bm25==0.2.2  # for tool recommendation
+jieba==0.42.1  # for tool recommendation
