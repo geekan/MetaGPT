@@ -8,7 +8,6 @@ from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
-from metagpt.utils.common import process_message
 
 OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 
@@ -105,7 +104,7 @@ class MockLLM(OriginalLLM):
         return rsp
 
     async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
-        msg_key = json.dumps(process_message(messages), ensure_ascii=False)
+        msg_key = json.dumps(self.format_msg(messages), ensure_ascii=False)
         rsp = await self._mock_rsp(msg_key, self.original_aask_code, messages, **kwargs)
         return rsp
 
