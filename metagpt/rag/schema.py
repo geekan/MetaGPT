@@ -84,6 +84,12 @@ class LLMRankerConfig(BaseRankerConfig):
     )
 
 
+class ColbertRerankConfig(BaseRankerConfig):
+    model: str = Field(default="colbert-ir/colbertv2.0", description="Colbert model name.")
+    device: str = Field(default="cpu", description="Device to use for sentence transformer.")
+    keep_retrieval_score: bool = Field(default=False, description="Whether to keep the retrieval score in metadata.")
+
+
 class BaseIndexConfig(BaseModel):
     """Common config for index.
 
