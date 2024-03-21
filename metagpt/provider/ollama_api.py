@@ -5,7 +5,7 @@
 import json
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import LLM_API_TIMEOUT
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
@@ -50,28 +50,28 @@ class OllamaLLM(BaseLLM):
         chunk = chunk.decode(encoding)
         return json.loads(chunk)
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,
             params=self._const_kwargs(messages),
-            request_timeout=LLM_API_TIMEOUT,
+            request_timeout=self.get_timeout(timeout),
         )
         resp = self._decode_and_load(resp)
         usage = self.get_usage(resp)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         stream_resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,
             stream=True,
             params=self._const_kwargs(messages, stream=True),
-            request_timeout=LLM_API_TIMEOUT,
+            request_timeout=self.get_timeout(timeout),
         )
 
         collected_content = []

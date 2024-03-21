@@ -5,6 +5,7 @@ from anthropic import AsyncAnthropic
 from anthropic.types import Message, Usage
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -41,15 +42,15 @@ class AnthropicLLM(BaseLLM):
     def get_choice_text(self, resp: Message) -> str:
         return resp.content[0].text
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> Message:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> Message:
         resp: Message = await self.aclient.messages.create(**self._const_kwargs(messages))
         self._update_costs(resp.usage, self.model)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout: int = 3) -> Message:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> Message:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         stream = await self.aclient.messages.create(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = Usage(input_tokens=0, output_tokens=0)
