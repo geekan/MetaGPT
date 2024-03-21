@@ -1,6 +1,6 @@
 """FLARE Engine.
 
-Use llamaindex's FLAREInstructQueryEngine, which accepts other engines as parameters.
+Use llamaindex's FLAREInstructQueryEngine as FLAREEngine, which accepts other engines as parameters.
 For example, Create a simple engine, and then pass it to FLAREEngine.
 """
 
