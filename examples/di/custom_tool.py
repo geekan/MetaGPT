@@ -27,7 +27,7 @@ def magic_function(arg1: str, arg2: int) -> dict:
 
 async def main():
     di = DataInterpreter(tools=["magic_function"])
-    await di.run("Just call the magic function with arg1 'A' and arg2 'B'. Tell me the result.")
+    await di.run("Just call the magic function with arg1 'A' and arg2 2. Tell me the result.")
 
 
 if __name__ == "__main__":
