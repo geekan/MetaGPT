@@ -1,7 +1,7 @@
 """RAG schemas."""
 
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Literal, Union
 
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
@@ -62,14 +62,18 @@ class ElasticsearchRetrieverConfig(IndexRetrieverConfig):
     """Config for Elasticsearch-based retrievers. Support both vector and text."""
 
     store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
-    vector_store_query_mode: VectorStoreQueryMode = VectorStoreQueryMode.DEFAULT
+    vector_store_query_mode: VectorStoreQueryMode = Field(
+        default=VectorStoreQueryMode.DEFAULT, description="default is vector query."
+    )
 
 
 class ElasticsearchKeywordRetrieverConfig(ElasticsearchRetrieverConfig):
     """Config for Elasticsearch-based retrievers. Support text only."""
 
     _no_embedding: bool = PrivateAttr(default=True)
-    vector_store_query_mode: VectorStoreQueryMode = VectorStoreQueryMode.TEXT_SEARCH
+    vector_store_query_mode: Literal[VectorStoreQueryMode.TEXT_SEARCH] = Field(
+        default=VectorStoreQueryMode.TEXT_SEARCH, description="text query only."
+    )
 
 
 class BaseRankerConfig(BaseModel):
