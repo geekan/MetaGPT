@@ -28,6 +28,16 @@ extras_require = {
     "search-google": ["google-api-python-client==2.94.0"],
     "search-ddg": ["duckduckgo-search~=4.1.1"],
     "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
+    "rag": [
+        "llama-index-core==0.10.15",
+        "llama-index-embeddings-azure-openai==0.1.6",
+        "llama-index-embeddings-openai==0.1.5",
+        "llama-index-llms-azure-openai==0.1.4",
+        "llama-index-readers-file==0.1.4",
+        "llama-index-retrievers-bm25==0.1.3",
+        "llama-index-vector-stores-faiss==0.1.1",
+        "chromadb==0.4.23",
+    ],
 }
 
 extras_require["test"] = [
@@ -42,7 +52,6 @@ extras_require["test"] = [
     "connexion[uvicorn]~=3.0.5",
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=11.3.0",
-    "chromadb==0.4.23",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
     "pylint==3.0.3",
