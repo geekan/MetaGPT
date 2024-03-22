@@ -19,7 +19,7 @@ from git.repo.fun import is_git_dir
 from gitignore_parser import parse_gitignore
 
 from metagpt.logs import logger
-from metagpt.tools.libs.shell import execute
+from metagpt.tools.libs.shell import shell_execute
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
 
@@ -298,8 +298,8 @@ class GitRepository:
         command = ["git", "clone"] + proxy + [str(url)]
         logger.info(" ".join(command))
 
-        stdout, stderr = await execute(command=command, cwd=str(to_path), env=env, timeout=600)
-        info = f"{stdout}\n{stderr}"
+        stdout, stderr, return_code = await shell_execute(command=command, cwd=str(to_path), env=env, timeout=600)
+        info = f"{stdout}\n{stderr}\nexit: {return_code}\n"
         logger.info(info)
         dir_name = Path(url).with_suffix("").name
         to_path = to_path / dir_name
