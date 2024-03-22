@@ -11,6 +11,7 @@ from pathlib import Path
 from gitignore_parser import parse_gitignore
 
 from metagpt.logs import logger
+from metagpt.tools.libs.shell import execute
 from metagpt.utils.common import aread, awrite, get_markdown_codeblock_type, list_files
 from metagpt.utils.tree import tree
 
@@ -69,6 +70,15 @@ async def _write_file(filename: Path, repo_path: Path) -> str:
     markdown = f"## {relative_path}\n"
 
     mime_type, _ = mimetypes.guess_type(filename.name)
+    if not mime_type:
+        try:
+            stdout, stderr = await execute(f"file {str(filename)}")
+            if "text" in stdout.lower():
+                mime_type = "text/*"
+        except Exception as e:
+            logger.debug(f"file:{filename}, error:{e}")
+            mime_type = "unknown"
+
     if "text/" not in mime_type:
         logger.info(f"Ignore content: {filename}")
         markdown += "<binary file>\n---\n\n"
