@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+import os
 from typing import Optional, Union
 
 import google.generativeai as genai
@@ -15,7 +16,8 @@ from google.generativeai.types.generation_types import (
 )
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.logs import log_llm_stream
+from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
@@ -52,6 +54,10 @@ class GeminiLLM(BaseLLM):
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
     def __init_gemini(self, config: LLMConfig):
+        if config.proxy:
+            logger.info(f"Use proxy: {config.proxy}")
+            os.environ["HTTP_PROXY"] = config.proxy
+            os.environ["HTTP_PROXYS"] = config.proxy
         genai.configure(api_key=config.api_key)
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
@@ -118,16 +124,18 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> "AsyncGenerateContentResponse":
+    async def _achat_completion(
+        self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
+    ) -> "AsyncGenerateContentResponse":
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
             **self._const_kwargs(messages, stream=True)
         )
