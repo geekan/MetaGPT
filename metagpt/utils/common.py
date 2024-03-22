@@ -18,6 +18,7 @@ import csv
 import importlib
 import inspect
 import json
+import mimetypes
 import os
 import platform
 import re
@@ -819,3 +820,21 @@ See FAQ 5.8
 """
     )
     raise retry_state.outcome.exception()
+
+
+def get_markdown_codeblock_type(filename: str) -> str:
+    """Return the markdown code-block type corresponding to the file extension."""
+    mime_type, _ = mimetypes.guess_type(filename)
+    mappings = {
+        "text/x-shellscript": "bash",
+        "text/x-c++src": "cpp",
+        "text/css": "css",
+        "text/html": "html",
+        "text/x-java": "java",
+        "application/javascript": "javascript",
+        "application/json": "json",
+        "text/x-python": "python",
+        "text/x-ruby": "ruby",
+        "application/sql": "sql",
+    }
+    return mappings.get(mime_type, "text")
