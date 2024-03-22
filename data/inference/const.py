@@ -28,22 +28,24 @@ SCIKIT_LEARN_IDS = [
     "scikit-learn__scikit-learn-10459",
 ]
 
+MATPLOTLIB_IDS = [
+    "matplotlib__matplotlib-24362",
+    "matplotlib__matplotlib-20584",
+    "matplotlib__matplotlib-23188",
+    "matplotlib__matplotlib-24403",
+    # 'matplotlib__matplotlib-21443',
+    # 'matplotlib__matplotlib-23047'
+]
 
-def read_sub_set_instance(path=SUBSET_DATASET, tag="scikit-learn"):
+
+def read_subset_instance(path=SUBSET_DATASET, tag="scikit-learn"):
     try:
         df = pd.read_excel(path)
-        # Filter for instances containing the tag in either column
-        pass_filter = df["instance_id_pass"].str.contains(tag, na=False)
-        fail_filter = df["instance_id_fail"].str.contains(tag, na=False)
-
-        # Combine the filters using | (OR operator) for efficiency
-        combined_filter = pass_filter | fail_filter
-
-        # Apply combined filter and select the specific columns
-        filtered_df = df[combined_filter][["instance_id_pass", "instance_id_fail"]]
-
-        # Flatten the DataFrame into a list and remove NaN values
-        subset_instance = filtered_df.stack().dropna().tolist()
+        pass_filters = df["instance_id_pass"].tolist()
+        fail_filters = df["instance_id_fail"].tolist()
+        pass_filters = [s for s in pass_filters if tag in s]
+        fail_filters = [s for s in fail_filters if tag in s]
+        subset_instance = pass_filters + fail_filters
 
         return subset_instance
     except FileNotFoundError:
@@ -52,3 +54,7 @@ def read_sub_set_instance(path=SUBSET_DATASET, tag="scikit-learn"):
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
+
+
+if __name__ == "__main__":
+    print(read_subset_instance(tag="matplotlib__matplotlib"))
