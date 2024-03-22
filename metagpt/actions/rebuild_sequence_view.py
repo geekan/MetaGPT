@@ -486,7 +486,7 @@ class RebuildSequenceView(Action):
         Returns:
             List[str]: A list of participants extracted from the sequence diagram.
         """
-        pattern = r"participant ([a-zA-Z\.0-9_]+)"
+        pattern = r"participant ([\w\.]+)"
         matches = re.findall(pattern, mermaid_sequence_diagram)
         matches = [re.sub(r"[\\/'\"]+", "", i) for i in matches]
         return matches
