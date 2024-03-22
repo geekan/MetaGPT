@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 
 import fire
+from data.load_dataset import load_oracle_dataset
 from tqdm.auto import tqdm
 
-from data.load_dataset import load_oracle_dataset
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils import count_string_tokens
