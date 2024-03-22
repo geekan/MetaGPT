@@ -26,7 +26,7 @@ class EnvType(Enum):
     ANDROID = "Android"
     GYM = "Gym"
     WEREWOLF = "Werewolf"
-    MINCRAFT = "Mincraft"
+    MINECRAFT = "Minecraft"
     STANFORDTOWN = "StanfordTown"
 
 

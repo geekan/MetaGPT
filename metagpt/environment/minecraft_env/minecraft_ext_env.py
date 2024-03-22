@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : The Mincraft external environment to integrate with Mincraft game
+# @Desc   : The Minecraft external environment to integrate with Minecraft game
 #           refs to `voyager bridge.py`
 
 import json
@@ -11,18 +11,18 @@ import requests
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.environment.base_env import ExtEnv, mark_as_writeable
-from metagpt.environment.mincraft_env.const import (
+from metagpt.environment.minecraft_env.const import (
     MC_CKPT_DIR,
     MC_CORE_INVENTORY_ITEMS,
     MC_CURRICULUM_OB,
     MC_DEFAULT_WARMUP,
     METAGPT_ROOT,
 )
-from metagpt.environment.mincraft_env.process_monitor import SubprocessMonitor
+from metagpt.environment.minecraft_env.process_monitor import SubprocessMonitor
 from metagpt.logs import logger
 
 
-class MincraftExtEnv(ExtEnv):
+class MinecraftExtEnv(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     mc_port: Optional[int] = Field(default=None)
@@ -48,7 +48,7 @@ class MincraftExtEnv(ExtEnv):
             self.mineflayer = SubprocessMonitor(
                 commands=[
                     "node",
-                    METAGPT_ROOT.joinpath("metagpt", "environment", "mincraft_env", "mineflayer", "index.js"),
+                    METAGPT_ROOT.joinpath("metagpt", "environment", "minecraft_env", "mineflayer", "index.js"),
                     str(self.server_port),
                 ],
                 name="mineflayer",

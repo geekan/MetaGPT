@@ -4,8 +4,8 @@
 
 from metagpt.const import METAGPT_ROOT
 
-# For Mincraft Game Agent
-MC_CKPT_DIR = METAGPT_ROOT / "data/mincraft/ckpt"
+# For Minecraft Game Agent
+MC_CKPT_DIR = METAGPT_ROOT / "data/minecraft/ckpt"
 MC_LOG_DIR = METAGPT_ROOT / "logs"
 MC_DEFAULT_WARMUP = {
     "context": 15,
