@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
 import uuid
 from enum import Enum
 from pathlib import Path
@@ -20,6 +19,7 @@ from git.repo.fun import is_git_dir
 from gitignore_parser import parse_gitignore
 
 from metagpt.logs import logger
+from metagpt.tools.libs.shell import execute
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
 
@@ -297,23 +297,16 @@ class GitRepository:
         proxy = ["-c", f"http.proxy={ctx.config.proxy}"] if ctx.config.proxy else []
         command = ["git", "clone"] + proxy + [str(url)]
         logger.info(" ".join(command))
-        process = subprocess.Popen(command, cwd=str(to_path), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-        try:
-            # Wait for the process to complete, with a timeout
-            stdout, stderr = process.communicate(timeout=600)
-            info = f"{stdout.decode('utf-8')}\n{stderr.decode('utf-8')}"
-            logger.info(info)
-            dir_name = Path(url).with_suffix("").name
-            to_path = to_path / dir_name
-            if not cls.is_git_dir(to_path):
-                raise ValueError(info)
-            logger.info(f"git clone to {to_path}")
-            return GitRepository(local_path=to_path, auto_init=False)
-        except subprocess.TimeoutExpired:
-            logger.info("The command did not complete within the given timeout.")
-            process.kill()  # Kill the process if it times out
-            stdout, stderr = process.communicate()
-            raise ValueError(f"{stdout.decode('utf-8')}\n{stderr.decode('utf-8')}")
+
+        stdout, stderr = await execute(command=command, cwd=str(to_path), env=env, timeout=600)
+        info = f"{stdout}\n{stderr}"
+        logger.info(info)
+        dir_name = Path(url).with_suffix("").name
+        to_path = to_path / dir_name
+        if not cls.is_git_dir(to_path):
+            raise ValueError(info)
+        logger.info(f"git clone to {to_path}")
+        return GitRepository(local_path=to_path, auto_init=False)
 
     async def checkout(self, commit_id: str):
         self._repository.git.checkout(commit_id)
