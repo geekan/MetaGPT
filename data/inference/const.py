@@ -38,7 +38,7 @@ MATPLOTLIB_IDS = [
 ]
 
 
-def read_sub_set_instance(path=SUBSET_DATASET, tag="scikit-learn"):
+def read_subset_instance(path=SUBSET_DATASET, tag="scikit-learn"):
     try:
         df = pd.read_excel(path)
         pass_filters = df["instance_id_pass"].tolist()
@@ -57,4 +57,4 @@ def read_sub_set_instance(path=SUBSET_DATASET, tag="scikit-learn"):
 
 
 if __name__ == "__main__":
-    print(read_sub_set_instance(tag="matplotlib__matplotlib"))
+    print(read_subset_instance(tag="matplotlib__matplotlib"))
