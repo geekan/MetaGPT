@@ -774,7 +774,7 @@ def is_coroutine_func(func: Callable) -> bool:
 
 
 def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) -> list[str]:
-    """load mincraft skill from js files"""
+    """load minecraft skill from js files"""
     if not skills_dir:
         skills_dir = Path(__file__).parent.absolute()
     if skill_names is None:
