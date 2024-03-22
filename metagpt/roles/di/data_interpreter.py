@@ -16,6 +16,8 @@ from metagpt.strategy.task_type import TaskType
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.utils.common import CodeParser
 
+CODE_AND_TEST_CODE_SPLIT_SYMBOL = "#†††#"
+
 REACT_THINK_PROMPT = """
 # User Requirement
 {user_requirement}
@@ -33,14 +35,14 @@ Output a json following the format:
 
 WRITE_TEST_CODE_PROMPT = """
 NOTICE
-1. Role: You are a QA engineer; the main goal is to design, develop, and execute PEP8 compliant, well-structured, maintainable test cases and scripts for Python 3.9. Your focus should be on ensuring the product quality of the entire project through systematic testing.
+1. Role: You are a QA engineer; the main goal is to design, develop, and execute PEP8 compliant, well-structured, maintainable test cases and scripts in jupyter notebook. Your focus should be on ensuring the product quality of the entire project through systematic testing.
 2. Requirement: Based on the context, develop a comprehensive test suite that adequately covers all relevant aspects of the code file under review. Your test suite will be part of the overall project QA, so please develop complete, robust, and reusable test cases.
-3. Attention1: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script.
+3. Attention1: Use '##' to split sections, not '#'.
 4. Attention2: If there are any settings in your tests, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE.
 5. Attention3: you should correctly use existing variable, instantiate classes or import the necessary classes in test code. 
 6. Think before writing: What should be tested and validated in this document? What edge cases could exist? What might fail?
-7. CAREFULLY CHECK THAT YOU DON'T MISS ANY NECESSARY TEST CASES/SCRIPTS.
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quotes.
+7. CAREFULLY CHECK THAT YOU DON'T MISS ANY NECESSARY TEST CASES and DON'T OMIT THE IMPLEMENTATION OF TEST CODE.
+8. When writing the main function that includes the `argv` and `exit` parameters for executing unit tests, use unittest.main(argv=[''], exit=False) for no command-line arguments, or unittest.main(argv=['arg'], exit=False) with 'arg' replaced by the desired argument value.
 -----
 ## Given the code context to test and precious implementation in jupyter notebook, please write appropriate test cases using Python's unittest framework to verify the correctness and robustness of this code:
 
@@ -143,11 +145,11 @@ class DataInterpreter(Role):
             ### write test code ###
             test_code = await self._write_test_code(code)
 
-            code += "\n" + test_code
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            code_and_test_code = code + f"\n{CODE_AND_TEST_CODE_SPLIT_SYMBOL}\n" + test_code
+            self.working_memory.add(Message(content=code_and_test_code, role="assistant", cause_by=cause_by))
 
             ### execute code ###
-            result, success = await self.execute_code.run(code)
+            result, success = await self.execute_code.run(code_and_test_code)
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
@@ -211,6 +213,7 @@ class DataInterpreter(Role):
         return self.execute_code.nb.cells[-1].source
 
     async def _write_test_code(self, code: str):
+        logger.info("ready to write test code")
         prompt = WRITE_TEST_CODE_PROMPT.format(
             code_to_test=code,
             previous_impl=self.working_memory.get(),
