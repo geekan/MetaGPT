@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import traceback
 from pathlib import Path
 
@@ -11,7 +10,9 @@ from make_datasets.utils import extract_diff
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from tqdm.auto import tqdm
 
-from data.inference.const import SCIKIT_LEARN_IDS
+from data.inference.const import SCIKIT_LEARN_IDS, TESTBED
+from data.inference.make_datasets.parse_diff import extract_scripts_from_codetext
+from data.inference.make_datasets.repo_utils import EnvManager
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
@@ -31,22 +32,15 @@ async def call_chat(inputs, interpreter):
     inputs (str): The inputs to generate completions for.
     interpreter (DataInterpreter): The data interpreter to use for execution.
     """
-    requirement = (
-        "Please rewrite the code to address the issues existing in the repository and generate the correct code."
-    )
+    requirement = "Please rewrite the code and generate test case to address the issues existing in the repository. If the test code passes, it is considered that the execution code has passed and use the `git diff` command to output the patch based on the correct code."
     system_messages = inputs.split("\n", 1)[0]
     user_message = inputs.split("\n", 1)[1]
-
-    # remove patch in user_message
-    cleaned_message = re.sub("<patch>.*?</patch>", "", user_message, flags=re.DOTALL)
-    cleaned_message_lines = cleaned_message.split("\n")
-    while len(cleaned_message_lines) > 0 and cleaned_message_lines[-1] != "</code>":
-        cleaned_message_lines = cleaned_message_lines[:-1]
-
-    cleaned_message = "\n".join(cleaned_message_lines)
+    cleaned_user_message = user_message.split(
+        "I need you to solve this issue by generating a single patch file that I can apply directly to this repository using git apply. Please respond with a single patch file in the following format."
+    )[0]
 
     try:
-        await interpreter.run([requirement, system_messages, cleaned_message])
+        await interpreter.run([requirement, system_messages, cleaned_user_message])
         return interpreter.get_last_cell_source()
     except Exception as e:
         logger.error(f"Error: {e}\nInputs: {inputs}")
@@ -82,21 +76,31 @@ async def openai_inference(
     with open(output_file, "a+") as f:
         for datum in tqdm(test_dataset, desc=f"Inference for {model_name_or_path}"):
             di = DataInterpreter(use_reflection=use_reflection)
-            instance_id = datum["instance_id"]
+            env_manager = EnvManager(testbed=TESTBED)
 
+            instance_id = datum["instance_id"]
+            script_names = extract_scripts_from_codetext(datum["text"])
+            logger.info(script_names)
+            repo = datum["repo"]
+            repo_prefix = repo.replace("/", "__")
+            repo_path = os.path.join(env_manager.testbed, repo_prefix)
+            if not os.path.exists(repo_path):
+                continue
+            os.chdir(repo_path)
+            env_manager.reset_task_env(instance=datum)
             if instance_id in existing_ids:
                 continue
             output_dict = {"instance_id": instance_id}
             output_dict.update(basic_args)
             output_dict["text"] = f"{datum['text']}\n\n"
-            code = await call_chat(
+            response = await call_chat(
                 output_dict["text"],
                 di,
             )
+            logger.info(f"Final response: {response}")
             save_history(di)
-            logger.info(f"Final code: {code}")
-            output_dict["full_output"] = code
-            output_dict["model_patch"] = extract_diff(code)
+            output_dict["full_output"] = response
+            output_dict["model_patch"] = extract_diff(response)
             print(json.dumps(output_dict), file=f, flush=True)
 
 
