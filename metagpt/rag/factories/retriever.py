@@ -20,6 +20,7 @@ from metagpt.rag.schema import (
     BaseRetrieverConfig,
     BM25RetrieverConfig,
     ChromaRetrieverConfig,
+    ElasticsearchKeywordRetrieverConfig,
     ElasticsearchRetrieverConfig,
     FAISSRetrieverConfig,
     IndexRetrieverConfig,
@@ -36,6 +37,7 @@ class RetrieverFactory(ConfigBasedFactory):
             BM25RetrieverConfig: self._create_bm25_retriever,
             ChromaRetrieverConfig: self._create_chroma_retriever,
             ElasticsearchRetrieverConfig: self._create_es_retriever,
+            ElasticsearchKeywordRetrieverConfig: self._create_es_retriever,
         }
         super().__init__(creators)
 

@@ -59,10 +59,17 @@ class ElasticsearchStoreConfig(BaseModel):
 
 
 class ElasticsearchRetrieverConfig(IndexRetrieverConfig):
-    """Config for Elasticsearch-based retrievers."""
+    """Config for Elasticsearch-based retrievers. Support both vector and text."""
 
     store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
     vector_store_query_mode: VectorStoreQueryMode = VectorStoreQueryMode.DEFAULT
+
+
+class ElasticsearchKeywordRetrieverConfig(ElasticsearchRetrieverConfig):
+    """Config for Elasticsearch-based retrievers. Support text only."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
+    vector_store_query_mode: VectorStoreQueryMode = VectorStoreQueryMode.TEXT_SEARCH
 
 
 class BaseRankerConfig(BaseModel):
@@ -127,6 +134,12 @@ class ElasticsearchIndexConfig(VectorIndexConfig):
 
     store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
     persist_path: Union[str, Path] = ""
+
+
+class ElasticsearchKeywordIndexConfig(ElasticsearchIndexConfig):
+    """Config for es-based index. no embedding."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
 
 
 class ObjectNodeMetadata(BaseModel):

@@ -14,6 +14,7 @@ from metagpt.rag.schema import (
     BM25IndexConfig,
     ChromaIndexConfig,
     ElasticsearchIndexConfig,
+    ElasticsearchKeywordIndexConfig,
     FAISSIndexConfig,
 )
 from metagpt.rag.vector_stores.chroma import ChromaVectorStore
@@ -26,6 +27,7 @@ class RAGIndexFactory(ConfigBasedFactory):
             ChromaIndexConfig: self._create_chroma,
             BM25IndexConfig: self._create_bm25,
             ElasticsearchIndexConfig: self._create_es,
+            ElasticsearchKeywordIndexConfig: self._create_es,
         }
         super().__init__(creators)
 
