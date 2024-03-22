@@ -56,7 +56,6 @@ async def openai_inference(
             logger.info(f"{repo_prefix}_{version}")
             data.append(f"{repo_prefix}_{version}")
 
-            # import pdb;pdb.set_trace()
             response = await run_instance(instance=datum)
             if response is None:
                 continue
@@ -65,7 +64,6 @@ async def openai_inference(
             output_dict["full_output"] = response
             output_dict["model_patch"] = extract_diff(response)
             print(json.dumps(output_dict), file=f, flush=True)
-    # print(data)
 
 
 async def main(

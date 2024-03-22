@@ -45,20 +45,6 @@ def read_sub_set_instance(path=SUBSET_DATASET, tag="scikit-learn"):
         fail_filters = df["instance_id_fail"].tolist()
         pass_filters = [s for s in pass_filters if tag in s]
         fail_filters = [s for s in fail_filters if tag in s]
-        print(pass_filters)
-        print(fail_filters)
-        # Filter for instances containing the tag in either column
-        # pass_filter = df["instance_id_pass"].str.contains(tag, na=False)
-        # fail_filter = df["instance_id_fail"].str.contains(tag, na=False)
-
-        # Combine the filters using | (OR operator) for efficiency
-        # combined_filter = pass_filters | fail_filters
-
-        # print(df[combined_filter])
-        # Apply combined filter and select the specific columns
-        # filtered_df = df[combined_filter][["instance_id_pass", "instance_id_fail"]]
-
-        # Flatten the DataFrame into a list and remove NaN values
         subset_instance = pass_filters + fail_filters
 
         return subset_instance
