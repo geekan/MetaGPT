@@ -6,7 +6,7 @@ Author: garylin2099
 from typing import Optional
 
 from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.base_llm import BaseLLM
 
@@ -49,3 +49,6 @@ class HumanProvider(BaseLLM):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT) -> str:
         """dummy implementation of abstract method in base"""
         return ""
+
+    def get_timeout(self, timeout: int) -> int:
+        return timeout or LLM_API_TIMEOUT
