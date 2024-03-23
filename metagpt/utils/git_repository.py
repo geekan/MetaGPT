@@ -17,6 +17,7 @@ from typing import Dict, List
 from git.repo import Repo
 from git.repo.fun import is_git_dir
 from gitignore_parser import parse_gitignore
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.logs import logger
 from metagpt.tools.libs.shell import shell_execute
@@ -287,11 +288,15 @@ class GitRepository:
         return files
 
     @classmethod
+    @retry(wait=wait_random_exponential(min=1, max=15), stop=stop_after_attempt(3))
     async def clone_from(cls, url: str | Path, output_dir: str | Path = None) -> "GitRepository":
         from metagpt.context import Context
 
         to_path = Path(output_dir or Path(__file__).parent / f"../../workspace/downloads/{uuid.uuid4().hex}").resolve()
         to_path.mkdir(parents=True, exist_ok=True)
+        repo_dir = to_path / Path(url).stem
+        if repo_dir.exists():
+            shutil.rmtree(repo_dir, ignore_errors=True)
         ctx = Context()
         env = ctx.new_environ()
         proxy = ["-c", f"http.proxy={ctx.config.proxy}"] if ctx.config.proxy else []
