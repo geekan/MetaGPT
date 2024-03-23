@@ -22,7 +22,7 @@ from metagpt.utils.common import (
 from metagpt.utils.tree import tree
 
 
-async def repo_to_markdown(repo_path: str | Path, output: str | Path = None, gitignore: str | Path = None) -> str:
+async def repo_to_markdown(repo_path: str | Path, output: str | Path = None) -> str:
     """
     Convert a local repository into a markdown representation.
 
@@ -32,17 +32,16 @@ async def repo_to_markdown(repo_path: str | Path, output: str | Path = None, git
     Args:
         repo_path (str | Path): The path to the local repository.
         output (str | Path, optional): The path to save the generated markdown file. Defaults to None.
-        gitignore (str | Path, optional): The path to the .gitignore file. Defaults to None.
 
     Returns:
         str: The markdown representation of the repository.
     """
     repo_path = Path(repo_path).resolve()
-    gitignore = Path(gitignore or Path(__file__).parent / "../../.gitignore").resolve()
+    gitignore_file = repo_path / ".gitignore"
 
-    markdown = await _write_dir_tree(repo_path=repo_path, gitignore=gitignore)
+    markdown = await _write_dir_tree(repo_path=repo_path, gitignore=gitignore_file)
 
-    gitignore_rules = parse_gitignore(full_path=str(gitignore))
+    gitignore_rules = parse_gitignore(full_path=str(gitignore_file)) if gitignore_file.exists() else None
     markdown += await _write_files(repo_path=repo_path, gitignore_rules=gitignore_rules)
 
     if output:
@@ -64,12 +63,12 @@ async def _write_dir_tree(repo_path: Path, gitignore: Path) -> str:
     return doc
 
 
-async def _write_files(repo_path, gitignore_rules) -> str:
+async def _write_files(repo_path, gitignore_rules=None) -> str:
     filenames = list_files(repo_path)
     markdown = ""
     pattern = r"^\..*"  # Hidden folders/files
     for filename in filenames:
-        if gitignore_rules(str(filename)):
+        if gitignore_rules and gitignore_rules(str(filename)):
             continue
         ignore = False
         for i in filename.parts:
