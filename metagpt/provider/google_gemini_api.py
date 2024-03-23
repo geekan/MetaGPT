@@ -60,8 +60,8 @@ class GeminiLLM(BaseLLM):
     def __init_gemini(self, config: LLMConfig):
         if config.proxy:
             logger.info(f"Use proxy: {config.proxy}")
-            os.environ["HTTP_PROXY"] = config.proxy
-            os.environ["HTTP_PROXYS"] = config.proxy
+            os.environ["http_proxy"] = config.proxy
+            os.environ["https_proxy"] = config.proxy
         genai.configure(api_key=config.api_key)
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
