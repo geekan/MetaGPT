@@ -1,14 +1,21 @@
 import asyncio
-
+import os
+import sys
+import metagpt.utils
+from metagpt.logs import logger
+from metagpt.utils.recovery_util import save_history
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
-
 async def main(requirement: str = ""):
+
     di = DataInterpreter()
-    await di.run(requirement)
+    rsp = await di.run(requirement)
+    logger.info(rsp)
+    save_history(role=di)
 
 
 if __name__ == "__main__":
-    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
 
+    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     asyncio.run(main(requirement))
+
