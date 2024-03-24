@@ -27,11 +27,14 @@ def _prepare(inputs):
     requirement = "Please rewrite the code to address the issues. "
     system_messages = inputs.split("\n", 1)[0]
     user_message = inputs.split("\n", 1)[1]
-    cleaned_user_message = re.sub("<patch>.*?</patch>", "", user_message, flags=re.DOTALL)
+    # Replace URLs with an empty string
+    user_message = re.sub(r'https?://\S+', '', user_message)
 
     issues = re.findall("<issue>(.*?)</issue>", user_message, flags=re.DOTALL)
+    codes = re.findall("<code>(.*?)</code>", user_message, flags=re.DOTALL)
+    cleaned_user_message = '\n'.join(issues + codes)
 
-    return requirement, system_messages, cleaned_user_message, issues
+    return requirement, system_messages, cleaned_user_message, issues, codes
 
 
 def construct_prompt(inputs, script_names):
@@ -44,18 +47,21 @@ def construct_prompt(inputs, script_names):
         f"4. use the format as : {PATCH_FORMAT}"
     )
 
-    requirement, system_messages, cleaned_user_message, issues = _prepare(inputs)
-    return requirement, system_messages, cleaned_user_message, issues, prompt
+    requirement, system_messages, cleaned_user_message, issues, code = _prepare(inputs)
+    return requirement, system_messages, cleaned_user_message, issues, code, prompt
 
 
 @handle_exception(exception_type=Exception)
 @retry(wait=wait_random_exponential(min=30, max=600), stop=stop_after_attempt(5))
 async def run_agent(inputs, agent, **kwargs):
     script_names = kwargs.get("script_names", [])
-    requirement, system_messages, cleaned_user_message, issues, prompt = construct_prompt(inputs, script_names)
+    requirement, system_messages, cleaned_user_message, issues, code, prompt = construct_prompt(inputs, script_names)
     system_messages = system_messages.replace(" ", "")
     cleaned_user_message = cleaned_user_message.replace(" ", "")
-    await agent.run([requirement, system_messages, cleaned_user_message, prompt])
+    # Identify the line ranges of the errant code snippets
+    line_ranges = await agent.identify_line_ranges(cleaned_user_message)
+
+    await agent.run([requirement, system_messages, cleaned_user_message, f"\nThe line ranges of the errant code snippets are {line_ranges}"])
     return agent.get_last_cell_source()
 
 
