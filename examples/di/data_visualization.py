@@ -1,7 +1,4 @@
 import asyncio
-import os
-import sys
-import metagpt.utils
 from metagpt.logs import logger
 from metagpt.utils.recovery_util import save_history
 from metagpt.roles.di.data_interpreter import DataInterpreter
