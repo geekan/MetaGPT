@@ -27,11 +27,12 @@ def _prepare(inputs):
     requirement = "Please rewrite the code to address the issues. "
     system_messages = inputs.split("\n", 1)[0]
     user_message = inputs.split("\n", 1)[1]
-    # Replace URLs with an empty string
-    user_message = re.sub(r'https?://\S+', '', user_message)
     cleaned_user_message = re.sub("<patch>.*?</patch>", "", user_message, flags=re.DOTALL)
 
     issues = re.findall("<issue>(.*?)</issue>", user_message, flags=re.DOTALL)
+    issues = [re.sub(r"#{3,4} Versions.*?(?=#{3,4}|\Z)", "", issues[0], flags=re.DOTALL)]
+    traceback = re.findall(r"#{3,4} Actual Results.*", issues[0], flags=re.DOTALL)
+    issues = traceback if traceback else issues
     code = re.findall("<code>(.*?)</code>", user_message, flags=re.DOTALL)
 
     return requirement, system_messages, cleaned_user_message, issues, code
@@ -58,19 +59,16 @@ async def run_agent(inputs, agent, **kwargs):
     requirement, system_messages, cleaned_user_message, issues, code, prompt = construct_prompt(inputs, script_names)
     system_messages = system_messages.replace(" ", "")
     cleaned_user_message = cleaned_user_message.replace(" ", "")
-    # Identify the line ranges of the errant code snippets
-    line_ranges = await agent.identify_line_ranges('\n'.join(issues + code))
+    issue_and_code = f"<issue>\n{issues[0]}\n</issue>\n\n<code>\n{code[0]}\n</code>"
+    await agent.identify_line_ranges(issue_and_code)
 
-    await agent.run([
-        requirement,
-        system_messages,
-        cleaned_user_message,
-        f"\nThe line ranges of the errant code snippets are {line_ranges}"
-    ])
+    if kwargs.get("mode") == "test":
+        return
+    await agent.run([requirement, system_messages, cleaned_user_message, prompt])
     return agent.get_last_cell_source()
 
 
-async def run_instance(instance, use_reflection=True):
+async def run_instance(instance, use_reflection=True, **kwargs):
     ga = GitAgent(use_reflection=use_reflection)
     script_names = extract_scripts_from_codetext(instance["text"])
     ga.script_names = script_names
@@ -79,7 +77,7 @@ async def run_instance(instance, use_reflection=True):
     if repo_path is None:
         return
 
-    response = await run_agent(f"{instance['text']}\n\n", agent=ga, script_names=script_names)
+    response = await run_agent(f"{instance['text']}\n\n", agent=ga, script_names=script_names, **kwargs)
     logger.info(f"Final response: {response}")
     save_history(ga)
     return response
