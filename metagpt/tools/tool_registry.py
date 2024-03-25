@@ -154,10 +154,12 @@ def register_tools_from_file(file_path) -> dict[str, Tool]:
     code = Path(file_path).read_text(encoding="utf-8")
     tool_schemas = convert_code_to_tool_schema_ast(code)
     for name, schemas in tool_schemas.items():
+        tool_code = schemas.pop("code", "")
         TOOL_REGISTRY.register_tool(
             tool_name=name,
             tool_path=file_path,
             schemas=schemas,
+            tool_code=tool_code,
         )
         registered_tools.update({name: TOOL_REGISTRY.get_tool(name)})
     return registered_tools
