@@ -112,6 +112,7 @@ class Context(BaseModel):
         return {
             "workdir": str(self.repo.workdir) if self.repo else "",
             "kwargs": {k: v for k, v in self.kwargs.__dict__.items()},
+            "cost_manager": self.cost_manager.model_dump_json(),
         }
 
     def deserialize(self, serialized_data: Dict[str, Any]):
@@ -133,3 +134,6 @@ class Context(BaseModel):
         if kwargs:
             for k, v in kwargs.items():
                 self.kwargs.set(k, v)
+        cost_manager = serialized_data.get("cost_manager")
+        if cost_manager:
+            self.cost_manager.model_validate_json(cost_manager)

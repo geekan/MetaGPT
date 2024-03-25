@@ -150,6 +150,7 @@ async def test_team_recover_multi_roles_save(mocker, context):
 @pytest.mark.asyncio
 async def test_context(context):
     context.kwargs.set("a", "a")
+    context.cost_manager.max_budget = 9
     company = Team(context=context)
 
     save_to = context.repo.workdir / "serial"
@@ -158,7 +159,8 @@ async def test_context(context):
     company.deserialize(save_to, Context())
     assert company.env.context.repo
     assert company.env.context.repo.workdir == context.repo.workdir
-    assert context.kwargs.a == "a"
+    assert company.env.context.kwargs.a == "a"
+    assert company.env.context.cost_manager.max_budget == context.cost_manager.max_budget
 
 
 if __name__ == "__main__":
