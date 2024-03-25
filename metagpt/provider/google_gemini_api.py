@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
-
+import json
 import os
-from typing import Optional, Union
+from dataclasses import asdict
+from typing import List, Optional, Union
 
 import google.generativeai as genai
 from google.ai import generativelanguage as glm
@@ -11,6 +12,7 @@ from google.generativeai.generative_models import GenerativeModel
 from google.generativeai.types import content_types
 from google.generativeai.types.generation_types import (
     AsyncGenerateContentResponse,
+    BlockedPromptException,
     GenerateContentResponse,
     GenerationConfig,
 )
@@ -141,7 +143,11 @@ class GeminiLLM(BaseLLM):
         )
         collected_content = []
         async for chunk in resp:
-            content = chunk.text
+            try:
+                content = chunk.text
+            except Exception as e:
+                logger.warning(f"messages: {messages}\nerrors: {e}\n{BlockedPromptException(str(chunk))}")
+                raise BlockedPromptException(str(chunk))
             log_llm_stream(content)
             collected_content.append(content)
         log_llm_stream("\n")
@@ -150,3 +156,10 @@ class GeminiLLM(BaseLLM):
         usage = await self.aget_usage(messages, full_content)
         self._update_costs(usage)
         return full_content
+
+    def list_models(self) -> List:
+        models = []
+        for model in genai.list_models(page_size=100):
+            models.append(asdict(model))
+        logger.info(json.dumps(models))
+        return models
