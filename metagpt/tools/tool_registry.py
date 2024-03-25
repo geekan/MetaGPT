@@ -7,17 +7,20 @@
 """
 from __future__ import annotations
 
-import importlib.util
 import inspect
 import os
 from collections import defaultdict
+from pathlib import Path
 
 import yaml
 from pydantic import BaseModel
 
 from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.logs import logger
-from metagpt.tools.tool_convert import convert_code_to_tool_schema
+from metagpt.tools.tool_convert import (
+    convert_code_to_tool_schema,
+    convert_code_to_tool_schema_ast,
+)
 from metagpt.tools.tool_data_type import Tool, ToolSchema
 
 
@@ -27,21 +30,23 @@ class ToolRegistry(BaseModel):
 
     def register_tool(
         self,
-        tool_name,
-        tool_path,
-        schema_path="",
-        tool_code="",
-        tags=None,
-        tool_source_object=None,
-        include_functions=None,
-        verbose=False,
+        tool_name: str,
+        tool_path: str,
+        schemas: dict = None,
+        schema_path: str = "",
+        tool_code: str = "",
+        tags: list[str] = None,
+        tool_source_object=None,  # can be any classes or functions
+        include_functions: list[str] = None,
+        verbose: bool = False,
     ):
         if self.has_tool(tool_name):
             return
 
         schema_path = schema_path or TOOL_SCHEMA_PATH / f"{tool_name}.yml"
 
-        schemas = make_schema(tool_source_object, include_functions, schema_path)
+        if not schemas:
+            schemas = make_schema(tool_source_object, include_functions, schema_path)
 
         if not schemas:
             return
@@ -117,9 +122,6 @@ def make_schema(tool_source_object, include, path):
         schema = convert_code_to_tool_schema(tool_source_object, include=include)
         with open(path, "w", encoding="utf-8") as f:
             yaml.dump(schema, f, sort_keys=False)
-        # import json
-        # with open(str(path).replace("yml", "json"), "w", encoding="utf-8") as f:
-        #     json.dump(schema, f, ensure_ascii=False, indent=4)
     except Exception as e:
         schema = {}
         logger.error(f"Fail to make schema: {e}")
@@ -144,46 +146,30 @@ def validate_tool_names(tools: list[str]) -> dict[str, Tool]:
     return valid_tools
 
 
-def load_module_from_file(filepath):
-    module_name = os.path.splitext(os.path.basename(filepath))[0]
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def register_tools_from_file(file_path) -> dict[str, Tool]:
+    file_name = Path(file_path).name
+    if not file_name.endswith(".py") or file_name == "setup.py" or file_name.startswith("test"):
+        return {}
     registered_tools = {}
-    module = load_module_from_file(file_path)
-    for name, obj in inspect.getmembers(module):
-        if inspect.isclass(obj) or inspect.isfunction(obj):
-            if obj.__module__ == module.__name__:
-                # excluding imported classes and functions, register only those defined in the file
-                if "metagpt" in file_path:
-                    # split to handle ../metagpt/metagpt/tools/... where only metapgt/tools/... is needed
-                    file_path = "metagpt" + file_path.split("metagpt")[-1]
-
-                TOOL_REGISTRY.register_tool(
-                    tool_name=name,
-                    tool_path=file_path,
-                    tool_code="",  # inspect.getsource(obj) will resulted in TypeError, skip it for now
-                    tool_source_object=obj,
-                )
-                registered_tools.update({name: TOOL_REGISTRY.get_tool(name)})
-
+    code = Path(file_path).read_text(encoding="utf-8")
+    tool_schemas = convert_code_to_tool_schema_ast(code)
+    for name, schemas in tool_schemas.items():
+        TOOL_REGISTRY.register_tool(
+            tool_name=name,
+            tool_path=file_path,
+            schemas=schemas,
+        )
+        registered_tools.update({name: TOOL_REGISTRY.get_tool(name)})
     return registered_tools
 
 
 def register_tools_from_path(path) -> dict[str, Tool]:
     tools_registered = {}
-    if os.path.isfile(path) and path.endswith(".py"):
-        # Path is a Python file
+    if os.path.isfile(path):
         tools_registered.update(register_tools_from_file(path))
     elif os.path.isdir(path):
-        # Path is a directory
         for root, _, files in os.walk(path):
             for file in files:
-                if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
-                    tools_registered.update(register_tools_from_file(file_path))
+                file_path = os.path.join(root, file)
+                tools_registered.update(register_tools_from_file(file_path))
     return tools_registered
