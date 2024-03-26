@@ -1,12 +1,34 @@
 # -*- coding: utf-8 -*-
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+import re
 from typing import Literal, Union
 
 from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
+
+IDENTIFY_LINE_RANGES_REQUIREMENT = """
+# Instruction
+Identify the line ranges of the errant code snippets in the provided <code>code</code> blocks based on the given <issue>issue</issue>. If the code is extremely long, focus on the <issue>issue</issue> description to narrow down the areas of concern. The line ranges, provided a list, should be within 50-500 lines and there may be more than one range. In case of uncertainty, output a list containing as many potentially relevant ranges as possible.
+
+# Think about it by following these steps:
+1. Identify the files containing errors based on the <issue>issue</issue> by using a single class or function as the basic unit of investigation.
+2. For each identified file:
+   a. Locate the relevant code section(s) based on the <issue>issue</issue> description.
+   b. Determine the line range(s) within those code sections that need to be modified.
+   c. Ensure the line range(s) fall within the 50-500 line limit, adjusting as necessary.
+3. Output the line ranges as a list.
+
+# Examples:
+1. If file1.py has an error in a specific function, and the line range to be modified is 20-50, output list: ["20-50"]
+2. If file1.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output list: ["20-50", "100-120"]
+3. If file1.py has potential errors related to data processing, but the exact locations are uncertain, and the <issue>issue</issue> mentions issues with reading and writing data, the final output could be: ["50-100", "150-200", "250-300"]
+
+# Issues and Codes
+{issues_and_codes}
+"""
 
 
 class GitAgent(DataInterpreter):
@@ -97,3 +119,15 @@ class GitAgent(DataInterpreter):
                     counter = 0  # redo the task again with help of human suggestions
 
         return code, result, success
+
+    async def identify_line_ranges(self, issues_and_codes):
+        prompt = IDENTIFY_LINE_RANGES_REQUIREMENT.format(issues_and_codes=issues_and_codes)
+        lines_rsp = await self.llm.aask(prompt)
+
+        try:
+            lines = re.findall(r'\["([\d-]+)"\]', lines_rsp)
+        except Exception:
+            # Handle the exception if needed
+            logger.error(f"Can't parse the list: {lines_rsp}")
+            lines = lines_rsp
+        return lines

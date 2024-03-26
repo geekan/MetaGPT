@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 
 import fire
-from data.load_dataset import load_oracle_dataset
 from tqdm.auto import tqdm
 
+from data.load_dataset import load_oracle_dataset
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils import count_string_tokens
@@ -15,13 +15,7 @@ from swe_bench.utils.utils import check_existing_ids, extract_diff
 MAX_TOKEN = 128000
 
 
-async def openai_inference(
-    test_dataset,
-    model_name_or_path,
-    output_file,
-    existing_ids,
-    use_reflection,
-):
+async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, use_reflection, **kwargs):
     """
     Runs inference on a dataset using the openai API.
 
@@ -56,7 +50,7 @@ async def openai_inference(
             logger.info(f"{repo_prefix}_{version}")
             data.append(f"{repo_prefix}_{version}")
 
-            response = await run_instance(instance=datum)
+            response = await run_instance(instance=datum, **kwargs)
             if response is None:
                 continue
             logger.info(f"Final response: {response}")
@@ -72,6 +66,7 @@ async def main(
     model_name_or_path=config.llm.model,
     output_dir="outputs",
     use_reflection=True,
+    **kwargs,
 ):
     """
     Performs inference on SWE-bench dataset using the Data Interpreter.
@@ -100,6 +95,7 @@ async def main(
         "output_file": output_file,
         "existing_ids": existing_ids,
         "use_reflection": use_reflection,
+        "mode": kwargs.get("mode", "test"),
     }
     if model_name_or_path.startswith("gpt"):
         await openai_inference(**inference_args)

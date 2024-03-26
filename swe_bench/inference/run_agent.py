@@ -30,8 +30,12 @@ def _prepare(inputs):
     cleaned_user_message = re.sub("<patch>.*?</patch>", "", user_message, flags=re.DOTALL)
 
     issues = re.findall("<issue>(.*?)</issue>", user_message, flags=re.DOTALL)
+    issues = [re.sub(r"#{3,4} Versions.*?(?=#{3,4}|\Z)", "", issues[0], flags=re.DOTALL)]
+    traceback = re.findall(r"#{3,4} Actual Results.*", issues[0], flags=re.DOTALL)
+    issues = traceback if traceback else issues
+    code = re.findall("<code>(.*?)</code>", user_message, flags=re.DOTALL)
 
-    return requirement, system_messages, cleaned_user_message, issues
+    return requirement, system_messages, cleaned_user_message, issues, code
 
 
 def construct_prompt(inputs, script_names):
@@ -44,22 +48,27 @@ def construct_prompt(inputs, script_names):
         f"4. use the format as : {PATCH_FORMAT}"
     )
 
-    requirement, system_messages, cleaned_user_message, issues = _prepare(inputs)
-    return requirement, system_messages, cleaned_user_message, issues, prompt
+    requirement, system_messages, cleaned_user_message, issues, code = _prepare(inputs)
+    return requirement, system_messages, cleaned_user_message, issues, code, prompt
 
 
 @handle_exception(exception_type=Exception)
 @retry(wait=wait_random_exponential(min=30, max=600), stop=stop_after_attempt(5))
 async def run_agent(inputs, agent, **kwargs):
     script_names = kwargs.get("script_names", [])
-    requirement, system_messages, cleaned_user_message, issues, prompt = construct_prompt(inputs, script_names)
+    requirement, system_messages, cleaned_user_message, issues, code, prompt = construct_prompt(inputs, script_names)
     system_messages = system_messages.replace(" ", "")
     cleaned_user_message = cleaned_user_message.replace(" ", "")
+    issue_and_code = f"<issue>\n{issues[0]}\n</issue>\n\n<code>\n{code[0]}\n</code>"
+    await agent.identify_line_ranges(issue_and_code)
+
+    if kwargs.get("mode") == "test":
+        return
     await agent.run([requirement, system_messages, cleaned_user_message, prompt])
     return agent.get_last_cell_source()
 
 
-async def run_instance(instance, use_reflection=True):
+async def run_instance(instance, use_reflection=True, **kwargs):
     ga = GitAgent(use_reflection=use_reflection)
     script_names = extract_scripts_from_codetext(instance["text"])
     ga.script_names = script_names
@@ -68,7 +77,7 @@ async def run_instance(instance, use_reflection=True):
     if repo_path is None:
         return
 
-    response = await run_agent(f"{instance['text']}\n\n", agent=ga, script_names=script_names)
+    response = await run_agent(f"{instance['text']}\n\n", agent=ga, script_names=script_names, **kwargs)
     logger.info(f"Final response: {response}")
     save_history(ga)
     return response
