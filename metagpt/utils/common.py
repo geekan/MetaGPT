@@ -24,6 +24,7 @@ import platform
 import re
 import sys
 import traceback
+import asyncio
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Tuple, Union
@@ -625,7 +626,7 @@ def serialize_decorator(func):
         try:
             result = await func(self, *args, **kwargs)
             return result
-        except KeyboardInterrupt:
+        except (asyncio.CancelledError, KeyboardInterrupt):
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
         except Exception:
             logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
@@ -638,7 +639,7 @@ def role_raise_decorator(func):
     async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)
-        except KeyboardInterrupt as kbi:
+        except (asyncio.CancelledError, KeyboardInterrupt) as kbi:
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
             if self.latest_observed_msg:
                 self.rc.memory.delete(self.latest_observed_msg)
