@@ -55,7 +55,7 @@ class GitRepository:
         self._dependency = None
         self._gitignore_rules = None
         if local_path:
-            self.open(local_path=local_path, auto_init=auto_init)
+            self.open(local_path=Path(local_path), auto_init=auto_init)
 
     def open(self, local_path: Path, auto_init=False):
         """Open an existing Git repository or initialize a new one if auto_init is True.
@@ -71,7 +71,7 @@ class GitRepository:
         if not auto_init:
             return
         local_path.mkdir(parents=True, exist_ok=True)
-        return self._init(local_path)
+        self._init(local_path)
 
     def _init(self, local_path: Path):
         """Initialize a new Git repository at the specified path.
@@ -306,7 +306,7 @@ class GitRepository:
         stdout, stderr, return_code = await shell_execute(command=command, cwd=str(to_path), env=env, timeout=600)
         info = f"{stdout}\n{stderr}\nexit: {return_code}\n"
         logger.info(info)
-        dir_name = Path(url).with_suffix("").name
+        dir_name = Path(url).stem
         to_path = to_path / dir_name
         if not cls.is_git_dir(to_path):
             raise ValueError(info)
@@ -316,3 +316,7 @@ class GitRepository:
     async def checkout(self, commit_id: str):
         self._repository.git.checkout(commit_id)
         logger.info(f"git checkout {commit_id}")
+
+    def log(self) -> str:
+        """Return git log"""
+        return self._repository.git.log()

@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : context.py
 """
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Any, Optional
@@ -78,11 +80,10 @@ class Context(BaseModel):
         # env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
-    # def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
-    #     """Use a LLM instance"""
-    #     self._llm_config = self.config.get_llm_config(name, provider)
-    #     self._llm = None
-    #     return self._llm
+    def set_repo_dir(self, path: str | Path):
+        repo_path = Path(path)
+        self.git_repo = GitRepository(local_path=repo_path, auto_init=True)
+        self.repo = ProjectRepo(self.git_repo)
 
     def _select_costmanager(self, llm_config: LLMConfig) -> CostManager:
         """Return a CostManager instance"""
