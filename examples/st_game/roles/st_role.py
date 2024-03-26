@@ -36,7 +36,12 @@ from examples.st_game.utils.mg_ga_transform import (
 )
 from examples.st_game.utils.utils import get_embedding, path_finder
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.stanford_town_env.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
 from metagpt.logs import logger
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
@@ -115,10 +120,12 @@ class STRole(Role):
         pt_x = role_env["x"]
         pt_y = role_env["y"]
         self.rc.scratch.curr_tile = (pt_x, pt_y)
-        await self.rc.env.step(
-            EnvAPIAbstract(
-                api_name="add_tiles_event",
-                kwargs={"pt_y": pt_y, "pt_x": pt_x, "event": self.scratch.get_curr_event_and_desc()},
+
+        self.rc.env.step(
+            EnvAction(
+                action_type=EnvActionType.ADD_TILE_EVENT,
+                coord=(pt_x, pt_y),
+                event=self.scratch.get_curr_event_and_desc(),
             )
         )
 
@@ -231,24 +238,24 @@ class STRole(Role):
         # PERCEIVE SPACE
         # We get the nearby tiles given our current tile and the persona's vision
         # radius.
-        nearby_tiles = await self.rc.env.observe(
-            EnvAPIAbstract(
-                api_name="get_nearby_tiles",
-                kwargs={"tile": self.rc.scratch.curr_tile, "vision_r": self.rc.scratch.vision_r},
+        nearby_tiles = self.rc.env.observe(
+            EnvObsParams(
+                obs_type=EnvObsType.TILE_NBR, coord=self.rc.scratch.curr_tile, vision_radius=self.rc.scratch.vision_r
             )
         )
 
         # We then store the perceived space. Note that the s_mem of the persona is
         # in the form of a tree constructed using dictionaries.
         for tile in nearby_tiles:
-            tile_info = await self.rc.env.observe(EnvAPIAbstract(api_name="access_tile", kwargs={"tile": tile}))
+            tile_info = self.rc.env.observe(EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=tile))
             self.rc.spatial_memory.add_tile_info(tile_info)
 
         # PERCEIVE EVENTS.
         # We will perceive events that take place in the same arena as the
         # persona's current arena.
-        curr_arena_path = await self.rc.env.observe(
-            EnvAPIAbstract(api_name="get_tile_path", kwargs={"tile": self.rc.scratch.curr_tile, "level": "arena"})
+
+        curr_arena_path = self.rc.env.observe(
+            EnvObsParams(obs_type=EnvObsType.TILE_PATH, coord=self.rc.scratch.curr_tile, level="arena")
         )
 
         # We do not perceive the same event twice (this can happen if an object is
@@ -260,10 +267,10 @@ class STRole(Role):
         # First, we put all events that are occuring in the nearby tiles into the
         # percept_events_list
         for tile in nearby_tiles:
-            tile_details = await self.rc.env.observe(EnvAPIAbstract(api_name="access_tile", kwargs={"tile": tile}))
+            tile_details = self.rc.env.observe(EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=tile))
             if tile_details["events"]:
-                tmp_arena_path = await self.rc.env.observe(
-                    EnvAPIAbstract(api_name="get_tile_path", kwargs={"tile": tile, "level": "arena"})
+                tmp_arena_path = self.rc.env.observe(
+                    EnvObsParams(obs_type=EnvObsType.TILE_PATH, coord=tile, level="arena")
                 )
 
                 if tmp_arena_path == curr_arena_path:
@@ -418,14 +425,14 @@ class STRole(Role):
             if "<persona>" in plan:
                 # Executing persona-persona interaction.
                 target_p_tile = roles[plan.split("<persona>")[-1].strip()].scratch.curr_tile
-                collision_maze = await self.rc.env.observe(EnvAPIAbstract(api_name="get_collision_maze"))
+                collision_maze = self.rc.env.observe()["collision_maze"]
                 potential_path = path_finder(
                     collision_maze, self.rc.scratch.curr_tile, target_p_tile, collision_block_id
                 )
                 if len(potential_path) <= 2:
                     target_tiles = [potential_path[0]]
                 else:
-                    collision_maze = await self.rc.env.observe(EnvAPIAbstract(api_name="get_collision_maze"))
+                    collision_maze = self.rc.env.observe()["collision_maze"]
                     potential_1 = path_finder(
                         collision_maze,
                         self.rc.scratch.curr_tile,
@@ -455,7 +462,7 @@ class STRole(Role):
                 # Executing a random location action.
                 plan = ":".join(plan.split(":")[:-1])
 
-                address_tiles = await self.rc.env.observe(EnvAPIAbstract(api_name="get_address_tiles"))
+                address_tiles = self.rc.env.observe()["address_tiles"]
                 target_tiles = address_tiles[plan]
                 target_tiles = random.sample(list(target_tiles), 1)
 
@@ -465,7 +472,7 @@ class STRole(Role):
                 # Retrieve the target addresses. Again, plan is an action address in its
                 # string form. <maze.address_tiles> takes this and returns candidate
                 # coordinates.
-                address_tiles = await self.rc.env.observe(EnvAPIAbstract(api_name="get_address_tiles"))
+                address_tiles = self.rc.env.observe()["address_tiles"]
                 if plan not in address_tiles:
                     address_tiles["Johnson Park:park:park garden"]  # ERRORRRRRRR
                 else:
@@ -485,7 +492,7 @@ class STRole(Role):
             persona_name_set = set(roles.keys())
             new_target_tiles = []
             for i in target_tiles:
-                access_tile = await self.rc.env.observe(EnvAPIAbstract(api_name="access_tile", kwargs={"tile": i}))
+                access_tile = self.rc.env.observe(EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=i))
                 curr_event_set = access_tile["events"]
                 pass_curr_tile = False
                 for j in curr_event_set:
@@ -507,7 +514,7 @@ class STRole(Role):
                 # an input, and returns a list of coordinate tuples that becomes the
                 # path.
                 # e.g., [(0, 1), (1, 1), (1, 2), (1, 3), (1, 4)...]
-                collision_maze = await self.rc.env.observe(EnvAPIAbstract(api_name="get_collision_maze"))
+                collision_maze = self.rc.env.observe()["collision_maze"]
                 curr_path = path_finder(collision_maze, curr_tile, i, collision_block_id)
                 if not closest_target_tile:
                     closest_target_tile = i
@@ -539,23 +546,20 @@ class STRole(Role):
         ret = True
         if role_env:
             for key, val in self.game_obj_cleanup.items():
-                await self.rc.env.step(
-                    EnvAPIAbstract(api_name="turn_event_from_tile_idle", kwargs={"curr_event": key, "tile": val})
-                )
+                self.rc.env.step(EnvAction(action_type=EnvActionType.TURN_TILE_EVENT_IDLE, coord=val, event=key))
 
             # reset game_obj_cleanup
             self.game_obj_cleanup = dict()
             curr_tile = self.role_tile
             new_tile = (role_env["x"], role_env["y"])
-            await self.rc.env.step(
-                EnvAPIAbstract(
-                    api_name="remove_subject_events_from_tile", kwargs={"subject": self.name, "tile": curr_tile}
-                )
+            self.rc.env.step(
+                EnvAction(action_type=EnvActionType.RM_TITLE_SUB_EVENT, coord=curr_tile, subject=self.name)
             )
-            await self.rc.env.step(
-                EnvAPIAbstract(
-                    api_name="add_event_from_tile",
-                    kwargs={"curr_event": self.scratch.get_curr_event_and_desc(), "tile": new_tile},
+            self.rc.env.step(
+                EnvAction(
+                    action_type=EnvActionType.ADD_TILE_EVENT,
+                    coord=new_tile,
+                    event=self.scratch.get_curr_event_and_desc(),
                 )
             )
 
@@ -563,16 +567,16 @@ class STRole(Role):
             # the persona gets there, we activate the object action.
             if not self.scratch.planned_path:
                 self.game_obj_cleanup[self.scratch.get_curr_event_and_desc()] = new_tile
-                await self.rc.env.step(
-                    EnvAPIAbstract(
-                        api_name="add_event_from_tile",
-                        kwargs={"curr_event": self.scratch.get_curr_event_and_desc(), "tile": new_tile},
+                self.rc.env.step(
+                    EnvAction(
+                        action_type=EnvActionType.ADD_TILE_EVENT,
+                        coord=new_tile,
+                        event=self.scratch.get_curr_event_and_desc(),
                     )
                 )
+
                 blank = (self.scratch.get_curr_obj_event_and_desc()[0], None, None, None)
-                await self.rc.env.step(
-                    EnvAPIAbstract(api_name="remove_event_from_tile", kwargs={"curr_event": blank, "tile": new_tile})
-                )
+                self.rc.env.step(EnvAction(action_type=EnvActionType.RM_TILE_EVENT, coord=new_tile, event=blank))
 
             # update role's new tile
             self.rc.scratch.curr_tile = new_tile

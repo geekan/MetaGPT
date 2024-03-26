@@ -5,11 +5,20 @@
 
 import math
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Optional
 
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.stanford_town_env.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+    EnvObsValType,
+    get_action_space,
+    get_observation_space,
+)
 from metagpt.utils.common import read_csv_to_list, read_json_file
 
 
@@ -197,7 +206,74 @@ class StanfordTownExtEnv(ExtEnv):
                     else:
                         address_tiles[add] = set([(j, i)])
         values["address_tiles"] = address_tiles
+
+        values["action_space"] = get_action_space((maze_width, maze_height))
+        values["observation_space"] = get_observation_space()
         return values
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, EnvObsValType], dict[str, Any]]:
+        """reset env and get the init observation
+        Return results corresponding to `observation, info`
+        """
+        super().reset(seed=seed, options=options)
+
+        obs = self._get_obs()
+
+        return obs, {}
+
+    def _get_obs(self) -> dict[str, EnvObsValType]:
+        """Get observation"""
+        return {
+            "collision_maze": self.get_collision_maze(),
+            "tiles": self.tiles,
+            "address_tiles": self.get_address_tiles(),
+        }
+
+    def observe(self, obs_params: Optional[EnvObsParams] = None) -> Any:
+        """Get partial or full observation from the env"""
+        obs_type = obs_params.obs_type if obs_params else EnvObsType.NONE
+        if obs_type == EnvObsType.NONE:
+            obs = self._get_obs()
+        elif obs_type == EnvObsType.GET_TITLE:
+            obs = self.access_tile(tile=obs_params.coord)
+        elif obs_type == EnvObsType.TILE_PATH:
+            obs = self.get_tile_path(tile=obs_params.coord, level=obs_params.level)
+        elif obs_type == EnvObsType.TILE_NBR:
+            obs = self.get_nearby_tiles(tile=obs_params.coord, vision_r=obs_params.vision_radius)
+        return obs
+
+    def step(self, action: EnvAction) -> tuple[dict[str, EnvObsValType], float, bool, bool, dict[str, Any]]:
+        """Execute action and then return observation
+        Return results corresponding to `observation, reward, terminated, truncated, info`
+        """
+        terminated = False
+        try:
+            self._execute_env_action(action)
+        except Exception:
+            terminated = True
+
+        obs = self._get_obs()
+
+        ret = (obs, 1.0, terminated, False, {})
+        return ret
+
+    def _execute_env_action(self, action: EnvAction):
+        action_type = action.action_type
+        if action_type == EnvActionType.NONE:
+            pass
+        elif action_type == EnvActionType.ADD_TILE_EVENT:
+            self.add_event_from_tile(curr_event=action.event, tile=action.coord)
+        elif action_type == EnvActionType.RM_TILE_EVENT:
+            self.remove_event_from_tile(curr_event=action.event, tile=action.coord)
+        elif action_type == EnvActionType.TURN_TILE_EVENT_IDLE:
+            self.turn_event_from_tile_idle(curr_event=action.event, tile=action.coord)
+        elif action_type == EnvActionType.RM_TITLE_SUB_EVENT:
+            self.remove_subject_events_from_tile(subject=action.subject, tile=action.coord)
 
     def turn_coordinate_to_tile(self, px_coordinate: tuple[int, int]) -> tuple[int, int]:
         """
@@ -205,7 +281,7 @@ class StanfordTownExtEnv(ExtEnv):
         """
         x = math.ceil(px_coordinate[0] / self.sq_tile_size)
         y = math.ceil(px_coordinate[1] / self.sq_tile_size)
-        return (x, y)
+        return x, y
 
     @mark_as_readable
     def get_collision_maze(self) -> list:
@@ -315,10 +391,6 @@ class StanfordTownExtEnv(ExtEnv):
             for j in range(top_end, bottom_end):
                 nearby_tiles += [(i, j)]
         return nearby_tiles
-
-    @mark_as_writeable
-    def add_tiles_event(self, pt_y: int, pt_x: int, event: Tuple[str, str, str, str]):
-        self.tiles[pt_y][pt_x]["events"].add(event)
 
     @mark_as_writeable
     def add_event_from_tile(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
