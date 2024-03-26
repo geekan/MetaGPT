@@ -2,15 +2,14 @@ import json
 from pathlib import Path
 
 import fire
-
 from tqdm.auto import tqdm
 
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils import count_string_tokens
+from swe_bench.data.load_dataset import load_oracle_dataset
 from swe_bench.inference.run_agent import run_instance
 from swe_bench.utils.utils import check_existing_ids, extract_diff
-from swe_bench.data.load_dataset import load_oracle_dataset
 
 # Replace with your own
 MAX_TOKEN = 128000

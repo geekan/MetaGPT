@@ -3,7 +3,7 @@
 # @Desc    :
 import pandas as pd
 
-from metagpt.const import DATA_PATH, METAGPT_ROOT
+from metagpt.const import METAGPT_ROOT
 
 SUBSET_DATASET = METAGPT_ROOT / "sub_swebench_dataset" / "sub_swebench.csv"
 SUBSET_DATASET_SKLERARN = METAGPT_ROOT / "sub_swebench_dataset" / "scikit-learn-68.csv"
