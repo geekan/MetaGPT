@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -39,7 +39,7 @@ class DataInterpreter(Role):
     use_plan: bool = True
     use_reflection: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
-    tools: Union[str, list[str]] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
+    tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     react_mode: Literal["plan_and_act", "react"] = "plan_and_act"
     max_react_loop: int = 10  # used for react mode
@@ -50,7 +50,7 @@ class DataInterpreter(Role):
         self.use_plan = (
             self.react_mode == "plan_and_act"
         )  # create a flag for convenience, overwrite any passed-in value
-        if self.tools:
+        if self.tools and not self.tool_recommender:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools)
         self.set_actions([WriteAnalysisCode])
         self._set_state(0)
@@ -104,7 +104,7 @@ class DataInterpreter(Role):
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
 
         # tool info
-        if self.tools:
+        if self.tool_recommender:
             context = (
                 self.working_memory.get()[-1].content if self.working_memory.get() else ""
             )  # thoughts from _think stage in 'react' mode
