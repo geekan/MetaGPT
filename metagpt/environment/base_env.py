@@ -134,6 +134,20 @@ class Environment(ExtEnv):
     history: str = ""  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
+
     @model_validator(mode="after")
     def init_roles(self):
         self.add_roles(self.roles.values())
