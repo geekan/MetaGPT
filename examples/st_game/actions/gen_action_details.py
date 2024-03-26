@@ -4,7 +4,7 @@
 
 import random
 
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.stanford_town_env.env_space import EnvObsParams, EnvObsType
 from metagpt.logs import logger
 
 from .st_action import STAction
@@ -367,8 +367,8 @@ class GenActionDetails(STAction):
         return fs
 
     async def run(self, role: "STRole", act_desp: str, act_dura):
-        access_tile = await role.rc.env.observe(
-            EnvAPIAbstract(api_name="access_tile", kwargs={"tile": role.scratch.curr_tile})
+        access_tile = role.rc.env.observe(
+            obs_params=EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=role.scratch.curr_tile)
         )
         act_world = access_tile["world"]
         act_sector = await GenActionSector().run(role, access_tile, act_desp)

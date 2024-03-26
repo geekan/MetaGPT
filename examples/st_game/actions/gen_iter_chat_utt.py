@@ -4,7 +4,7 @@
 
 from examples.st_game.actions.st_action import STAction
 from examples.st_game.utils.utils import extract_first_json_dict
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.stanford_town_env.env_space import EnvObsParams, EnvObsType
 from metagpt.logs import logger
 
 
@@ -113,8 +113,8 @@ class GenIterChatUTT(STAction):
             ]
             return prompt_input
 
-        access_tile = await init_role.rc.env.observe(
-            EnvAPIAbstract(api_name="access_tile", kwargs={"tile": init_role.scratch.curr_tile})
+        access_tile = init_role.rc.env.observe(
+            obs_params=EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=init_role.scratch.curr_tile)
         )
         prompt_input = create_prompt_input(access_tile, init_role, target_role, retrieved, curr_context, curr_chat)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, "iterative_convo_v1.txt")
