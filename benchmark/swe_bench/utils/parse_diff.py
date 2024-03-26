@@ -1,8 +1,7 @@
 import re
 from typing import Dict, List
 
-from swe_bench.utils.enums import FileChangeMode, LineChangeType
-
+from benchmark.swe_bench.utils.enums import FileChangeMode, LineChangeType
 from metagpt.logs import logger
 
 
