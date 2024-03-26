@@ -38,11 +38,9 @@ class ObjectSortPostprocessor(BaseNodePostprocessor):
             return []
 
         self._check_metadata(nodes[0].node)
+
         sort_key = lambda node: json.loads(node.node.metadata["obj_json"])[self.field_name]
         return self._get_sort_func()(self.top_n, nodes, key=sort_key)
-
-    def _get_sort_func(self):
-        return heapq.nlargest if self.order == "desc" else heapq.nsmallest
 
     def _check_metadata(self, node: ObjectNode):
         try:
@@ -52,3 +50,6 @@ class ObjectSortPostprocessor(BaseNodePostprocessor):
 
         if self.field_name not in obj_dict:
             raise ValueError(f"Field '{self.field_name}' not found in object: {obj_dict}")
+
+    def _get_sort_func(self):
+        return heapq.nlargest if self.order == "desc" else heapq.nsmallest
