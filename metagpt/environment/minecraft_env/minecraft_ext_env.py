@@ -5,12 +5,13 @@
 
 import json
 import time
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.environment.base_env import ExtEnv, mark_as_writeable
+from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.minecraft_env.const import (
     MC_CKPT_DIR,
     MC_CORE_INVENTORY_ITEMS,
@@ -37,6 +38,20 @@ class MinecraftExtEnv(ExtEnv):
     connected: bool = Field(default=False)
     server_paused: bool = Field(default=False)
     warm_up: dict = Field(default=dict())
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
 
     @property
     def server(self) -> str:
@@ -115,7 +130,7 @@ class MinecraftExtEnv(ExtEnv):
             return res.json()
 
     @mark_as_writeable
-    def reset(self, *, seed=None, options=None) -> dict:
+    def _reset(self, *, seed=None, options=None) -> dict:
         if options is None:
             options = {}
         if options.get("inventory", {}) and options.get("mode", "hard") != "hard":
@@ -145,7 +160,7 @@ class MinecraftExtEnv(ExtEnv):
         return json.loads(returned_data)
 
     @mark_as_writeable
-    def step(self, code: str, programs: str = "") -> dict:
+    def _step(self, code: str, programs: str = "") -> dict:
         if not self.has_reset:
             raise RuntimeError("Environment has not been reset yet")
         self.check_process()

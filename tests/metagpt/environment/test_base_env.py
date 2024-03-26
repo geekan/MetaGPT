@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of ExtEnv&Env
 
+from typing import Any, Optional
+
 import pytest
 
 from metagpt.environment.api.env_api import EnvAPIAbstract
@@ -12,10 +14,25 @@ from metagpt.environment.base_env import (
     mark_as_readable,
     mark_as_writeable,
 )
+from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 
 
 class ForTestEnv(Environment):
     value: int = 0
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
 
     @mark_as_readable
     def read_api_no_param(self):
