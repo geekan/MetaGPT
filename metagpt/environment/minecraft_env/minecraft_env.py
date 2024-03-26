@@ -282,7 +282,7 @@ class MinecraftEnv(Environment, MinecraftExtEnv):
                     position = event["status"]["position"]
                     blocks.append(block)
                     positions.append(position)
-            new_events = self.step(
+            new_events = self._step(
                 f"await givePlacedItemBack(bot, {json.dumps(blocks)}, {json.dumps(positions)})",
                 programs=self.programs,
             )
@@ -323,7 +323,7 @@ class MinecraftEnv(Environment, MinecraftExtEnv):
                 Exception: If there is an issue retrieving events.
         """
         try:
-            self.reset(
+            self._reset(
                 options={
                     "mode": "soft",
                     "wait_ticks": 20,
@@ -332,13 +332,13 @@ class MinecraftEnv(Environment, MinecraftExtEnv):
             # difficulty = "easy" if len(self.completed_tasks) > 15 else "peaceful"
             difficulty = "peaceful"
 
-            events = self.step("bot.chat(`/time set ${getNextTime()}`);\n" + f"bot.chat('/difficulty {difficulty}');")
+            events = self._step("bot.chat(`/time set ${getNextTime()}`);\n" + f"bot.chat('/difficulty {difficulty}');")
             self.update_event(events)
             return events
         except Exception as e:
             time.sleep(3)  # wait for mineflayer to exit
             # reset bot status here
-            events = self.reset(
+            events = self._reset(
                 options={
                     "mode": "hard",
                     "wait_ticks": 20,
@@ -365,7 +365,7 @@ class MinecraftEnv(Environment, MinecraftExtEnv):
                 Exception: If there is an issue retrieving events.
         """
         try:
-            events = self.step(
+            events = self._step(
                 code=self.code,
                 programs=self.programs,
             )
@@ -374,7 +374,7 @@ class MinecraftEnv(Environment, MinecraftExtEnv):
         except Exception as e:
             time.sleep(3)  # wait for mineflayer to exit
             # reset bot status here
-            events = self.reset(
+            events = self._reset(
                 options={
                     "mode": "hard",
                     "wait_ticks": 20,
