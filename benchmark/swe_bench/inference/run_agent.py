@@ -5,12 +5,12 @@ import re
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from benchmark.swe_bench.gitagent import GitAgent
+from benchmark.swe_bench.make_datasets.make_dataset import reset_task_env
+from benchmark.swe_bench.utils.utils import extract_scripts_from_codetext
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.recovery_util import save_history
-from swe_bench.gitagent import GitAgent
-from swe_bench.make_datasets.make_dataset import reset_task_env
-from swe_bench.utils.utils import extract_scripts_from_codetext
 
 PATCH_FORMAT = """
 ```diff
