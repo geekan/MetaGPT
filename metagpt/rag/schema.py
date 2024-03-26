@@ -101,6 +101,11 @@ class ColbertRerankConfig(BaseRankerConfig):
     keep_retrieval_score: bool = Field(default=False, description="Whether to keep the retrieval score in metadata.")
 
 
+class ObjectRankerConfig(BaseRankerConfig):
+    field_name: str = Field(..., description="field name of the object, field's value must can be compared.")
+    order: Literal["desc", "asc"] = Field(default="desc", description="the direction of order.")
+
+
 class BaseIndexConfig(BaseModel):
     """Common config for index.
 
