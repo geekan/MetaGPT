@@ -6,11 +6,11 @@ from pathlib import Path
 
 from tqdm.auto import tqdm
 
-from data.inference.const import TESTBED
 from metagpt.logs import logger
 from swe_bench.make_datasets.make_instance import prompt_style_2_edits_only
 from swe_bench.utils.parse_diff import filter_changed_line
 from swe_bench.utils.repo_utils import EnvManager
+from swe_bench.inference.const import TESTBED
 
 
 def reset_task_env(instance: dict = {}):

@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from datasets import load_dataset, load_from_disk
 
-from data.inference.const import SCIKIT_LEARN_IDS
+from swe_bench.inference.const import SCIKIT_LEARN_IDS
 
 
 def load_oracle_dataset(dataset_name_or_path: str = "", split: str = "test", existing_ids: list = []):
