@@ -31,7 +31,7 @@ async def test_gen_action_details():
     act_desp = "sleeping"
     act_dura = "120"
 
-    access_tile = await role.rc.env.observe(
+    access_tile = await role.rc.env.read_from_api(
         EnvAPIAbstract(api_name="access_tile", kwargs={"tile": role.scratch.curr_tile})
     )
     act_world = access_tile["world"]
