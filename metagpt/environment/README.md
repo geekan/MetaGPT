@@ -34,5 +34,5 @@ res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
 ## TODO
 - add android app operation assistant under `examples/android_assistant`
 - migrate roles/actions of werewolf game from old version into current version
-- migrate roles/actions of mincraft game from old version into current version
+- migrate roles/actions of minecraft game from old version into current version
 - migrate roles/actions of stanford_town game from old version into current version

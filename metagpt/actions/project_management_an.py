@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 
 REQUIRED_PYTHON_PACKAGES = ActionNode(
     key="Required Python packages",
@@ -119,14 +118,3 @@ REFINED_NODES = [
 
 PM_NODE = ActionNode.from_children("PM_NODE", NODES)
 REFINED_PM_NODE = ActionNode.from_children("REFINED_PM_NODE", REFINED_NODES)
-
-
-def main():
-    prompt = PM_NODE.compile(context="")
-    logger.info(prompt)
-    prompt = REFINED_PM_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()

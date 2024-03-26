@@ -12,8 +12,10 @@ import logging
 import os
 import re
 import uuid
+from pathlib import Path
 from typing import Callable
 
+import aiohttp.web
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
@@ -111,12 +113,13 @@ def proxy():
         while not reader.at_eof():
             writer.write(await reader.read(2048))
         writer.close()
+        await writer.wait_closed()
 
     async def handle_client(reader, writer):
         data = await reader.readuntil(b"\r\n\r\n")
-        print(f"Proxy: {data}")  # checking with capfd fixture
         infos = pattern.match(data)
         host, port = infos.group("host"), infos.group("port")
+        print(f"Proxy: {host}")  # checking with capfd fixture
         port = int(port) if port else 80
         remote_reader, remote_writer = await asyncio.open_connection(host, port)
         if data.startswith(b"CONNECT"):
@@ -171,9 +174,8 @@ def new_filename(mocker):
     yield mocker
 
 
-@pytest.fixture(scope="session")
-def search_rsp_cache():
-    rsp_cache_file_path = TEST_DATA_PATH / "search_rsp_cache.json"  # read repo-provided
+def _rsp_cache(name):
+    rsp_cache_file_path = TEST_DATA_PATH / f"{name}.json"  # read repo-provided
     if os.path.exists(rsp_cache_file_path):
         with open(rsp_cache_file_path, "r") as f1:
             rsp_cache_json = json.load(f1)
@@ -182,6 +184,16 @@ def search_rsp_cache():
     yield rsp_cache_json
     with open(rsp_cache_file_path, "w") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
+
+
+@pytest.fixture(scope="session")
+def search_rsp_cache():
+    yield from _rsp_cache("search_rsp_cache")
+
+
+@pytest.fixture(scope="session")
+def mermaid_rsp_cache():
+    yield from _rsp_cache("mermaid_rsp_cache")
 
 
 @pytest.fixture
@@ -231,3 +243,40 @@ def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, sear
     aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = curl_cffi_mocker.rsp_cache = search_rsp_cache
     aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = curl_cffi_mocker.check_funcs = check_funcs
     yield check_funcs
+
+
+@pytest.fixture
+def http_server():
+    async def handler(request):
+        return aiohttp.web.Response(
+            text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+            <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
+            content_type="text/html",
+        )
+
+    async def start():
+        server = aiohttp.web.Server(handler)
+        runner = aiohttp.web.ServerRunner(server)
+        await runner.setup()
+        site = aiohttp.web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        _, port, *_ = site._server.sockets[0].getsockname()
+        return site, f"http://127.0.0.1:{port}"
+
+    return start
+
+
+@pytest.fixture
+def mermaid_mocker(aiohttp_mocker, mermaid_rsp_cache):
+    check_funcs: dict[tuple[str, str], Callable[[dict], str]] = {}
+    aiohttp_mocker.rsp_cache = mermaid_rsp_cache
+    aiohttp_mocker.check_funcs = check_funcs
+    yield check_funcs
+
+
+@pytest.fixture
+def git_dir():
+    """Fixture to get the unittest directory."""
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
+    return git_dir

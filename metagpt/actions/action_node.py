@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -330,7 +331,7 @@ class ActionNode:
 
     def compile_to(self, i: Dict, schema, kv_sep) -> str:
         if schema == "json":
-            return json.dumps(i, indent=4)
+            return json.dumps(i, indent=4, ensure_ascii=False)
         elif schema == "markdown":
             return dict_to_markdown(i, kv_sep=kv_sep)
         else:
@@ -416,7 +417,7 @@ class ActionNode:
         images: Optional[Union[str, list[str]]] = None,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
-        timeout=3,
+        timeout=USE_CONFIG_TIMEOUT,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
@@ -448,7 +449,9 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=3, exclude=None):
+    async def simple_fill(
+        self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=USE_CONFIG_TIMEOUT, exclude=None
+    ):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -473,7 +476,7 @@ class ActionNode:
         mode="auto",
         strgy="simple",
         images: Optional[Union[str, list[str]]] = None,
-        timeout=3,
+        timeout=USE_CONFIG_TIMEOUT,
         exclude=[],
     ):
         """Fill the node(s) with mode.

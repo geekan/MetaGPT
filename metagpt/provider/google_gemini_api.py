@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+import os
 from typing import Optional, Union
 
 import google.generativeai as genai
@@ -13,19 +14,13 @@ from google.generativeai.types.generation_types import (
     GenerateContentResponse,
     GenerationConfig,
 )
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
+from metagpt.schema import Message
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -55,9 +50,14 @@ class GeminiLLM(BaseLLM):
         self.__init_gemini(config)
         self.config = config
         self.model = "gemini-pro"  # so far only one model
+        self.pricing_plan = self.config.pricing_plan or self.model
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
     def __init_gemini(self, config: LLMConfig):
+        if config.proxy:
+            logger.info(f"Use proxy: {config.proxy}")
+            os.environ["http_proxy"] = config.proxy
+            os.environ["https_proxy"] = config.proxy
         genai.configure(api_key=config.api_key)
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
@@ -68,19 +68,38 @@ class GeminiLLM(BaseLLM):
     def _assistant_msg(self, msg: str) -> dict[str, str]:
         return {"role": "model", "parts": [msg]}
 
+    def _system_msg(self, msg: str) -> dict[str, str]:
+        return {"role": "user", "parts": [msg]}
+
+    def format_msg(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        from metagpt.schema import Message
+
+        if not isinstance(messages, list):
+            messages = [messages]
+
+        # REF: https://ai.google.dev/tutorials/python_quickstart
+        # As a dictionary, the message requires `role` and `parts` keys.
+        # The role in a conversation can either be the `user`, which provides the prompts,
+        # or `model`, which provides the responses.
+        processed_messages = []
+        for msg in messages:
+            if isinstance(msg, str):
+                processed_messages.append({"role": "user", "parts": [msg]})
+            elif isinstance(msg, dict):
+                assert set(msg.keys()) == set(["role", "parts"])
+                processed_messages.append(msg)
+            elif isinstance(msg, Message):
+                processed_messages.append({"role": "user" if msg.role == "user" else "model", "parts": [msg.content]})
+            else:
+                raise ValueError(
+                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
+                )
+        return processed_messages
+
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"contents": messages, "generation_config": GenerationConfig(temperature=0.3), "stream": stream}
         return kwargs
-
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        if self.config.calc_usage:
-            try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"google gemini updats costs failed! exp: {e}")
 
     def get_choice_text(self, resp: GenerateContentResponse) -> str:
         return resp.text
@@ -105,16 +124,18 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict]) -> "AsyncGenerateContentResponse":
+    async def _achat_completion(
+        self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
+    ) -> "AsyncGenerateContentResponse":
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        return await self._achat_completion(messages)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
             **self._const_kwargs(messages, stream=True)
         )
@@ -129,17 +150,3 @@ class GeminiLLM(BaseLLM):
         usage = await self.aget_usage(messages, full_content)
         self._update_costs(usage)
         return full_content
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_random_exponential(min=1, max=60),
-        after=after_log(logger, logger.level("WARNING").name),
-        retry=retry_if_exception_type(ConnectionError),
-        retry_error_callback=log_and_reraise,
-    )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
-        """response in async with stream or non-stream mode"""
-        if stream:
-            return await self._achat_completion_stream(messages)
-        resp = await self._achat_completion(messages)
-        return self.get_choice_text(resp)

@@ -9,10 +9,10 @@ import uuid
 from pathlib import Path
 
 import aioboto3
-import aiofiles
 import pytest
 
 from metagpt.config2 import Config
+from metagpt.configs.s3_config import S3Config
 from metagpt.utils.common import aread
 from metagpt.utils.s3 import S3
 
@@ -30,6 +30,14 @@ async def test_s3(mocker):
     mock_client.__aenter__.return_value = mock_client
     mock_client.__aexit__.return_value = None
     mocker.patch.object(aioboto3.Session, "client", return_value=mock_client)
+    mock_config = mocker.Mock()
+    mock_config.s3 = S3Config(
+        access_key="mock_access_key",
+        secret_key="mock_secret_key",
+        endpoint="http://mock.endpoint",
+        bucket="mock_bucket",
+    )
+    mocker.patch.object(Config, "default", return_value=mock_config)
 
     # Prerequisites
     s3 = Config.default().s3
@@ -37,7 +45,7 @@ async def test_s3(mocker):
     conn = S3(s3)
     object_name = "unittest.bak"
     await conn.upload_file(bucket=s3.bucket, local_path=__file__, object_name=object_name)
-    pathname = (Path(__file__).parent / uuid.uuid4().hex).with_suffix(".bak")
+    pathname = (Path(__file__).parent / "../../../workspace/unittest" / uuid.uuid4().hex).with_suffix(".bak")
     pathname.unlink(missing_ok=True)
     await conn.download_file(bucket=s3.bucket, object_name=object_name, local_path=str(pathname))
     assert pathname.exists()
@@ -45,8 +53,7 @@ async def test_s3(mocker):
     assert url
     bin_data = await conn.get_object(bucket=s3.bucket, object_name=object_name)
     assert bin_data
-    async with aiofiles.open(__file__, mode="r", encoding="utf-8") as reader:
-        data = await reader.read()
+    data = await aread(filename=__file__)
     res = await conn.cache(data, ".bak", "script")
     assert "http" in res
 
@@ -59,8 +66,6 @@ async def test_s3(mocker):
         assert not res
     except Exception:
         pass
-
-    await reader.close()
 
 
 if __name__ == "__main__":

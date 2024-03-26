@@ -204,7 +204,6 @@ class Engineer(Role):
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
-        logger.info("Writing code plan and change..")
         node = await self.rc.todo.run()
         code_plan_and_change = node.instruct_content.model_dump_json()
         dependencies = {
@@ -241,8 +240,8 @@ class Engineer(Role):
     async def _think(self) -> Action | None:
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
-        write_plan_and_change_filters = any_to_str_set([WriteTasks])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode, FixBug])
+        write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
+        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None
@@ -360,9 +359,17 @@ class Engineer(Role):
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.append(SummarizeCode(i_context=ctx, context=self.context, llm=self.llm))
+            new_summarize = SummarizeCode(i_context=ctx, context=self.context, llm=self.llm)
+            for i, act in enumerate(self.summarize_todos):
+                if act.i_context.task_filename == new_summarize.i_context.task_filename:
+                    self.summarize_todos[i] = new_summarize
+                    new_summarize = None
+                    break
+            if new_summarize:
+                self.summarize_todos.append(new_summarize)
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
+            self.summarize_todos.pop(0)
 
     async def _new_code_plan_and_change_action(self):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""

@@ -11,21 +11,13 @@ import pytest
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message
+from tests.metagpt.provider.req_resp_const import (
+    default_resp_cont,
+    get_part_chat_completion,
+    prompt,
+)
 
-default_chat_resp = {
-    "choices": [
-        {
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": "I'am GPT",
-            },
-            "finish_reason": "stop",
-        }
-    ]
-}
-prompt_msg = "who are you"
-resp_content = default_chat_resp["choices"][0]["message"]["content"]
+name = "GPT"
 
 
 class MockBaseLLM(BaseLLM):
@@ -33,16 +25,19 @@ class MockBaseLLM(BaseLLM):
         pass
 
     def completion(self, messages: list[dict], timeout=3):
-        return default_chat_resp
+        return get_part_chat_completion(name)
+
+    async def _achat_completion(self, messages: list[dict], timeout=3):
+        pass
 
     async def acompletion(self, messages: list[dict], timeout=3):
-        return default_chat_resp
+        return get_part_chat_completion(name)
+
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+        pass
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
-        return resp_content
-
-    async def close(self):
-        return default_chat_resp
+        return default_resp_cont
 
 
 def test_base_llm():
@@ -86,25 +81,25 @@ def test_base_llm():
     choice_text = base_llm.get_choice_text(openai_funccall_resp)
     assert choice_text == openai_funccall_resp["choices"][0]["message"]["content"]
 
-    # resp = base_llm.ask(prompt_msg)
-    # assert resp == resp_content
+    # resp = base_llm.ask(prompt)
+    # assert resp == default_resp_cont
 
-    # resp = base_llm.ask_batch([prompt_msg])
-    # assert resp == resp_content
+    # resp = base_llm.ask_batch([prompt])
+    # assert resp == default_resp_cont
 
-    # resp = base_llm.ask_code([prompt_msg])
-    # assert resp == resp_content
+    # resp = base_llm.ask_code([prompt])
+    # assert resp == default_resp_cont
 
 
 @pytest.mark.asyncio
 async def test_async_base_llm():
     base_llm = MockBaseLLM()
 
-    resp = await base_llm.aask(prompt_msg)
-    assert resp == resp_content
+    resp = await base_llm.aask(prompt)
+    assert resp == default_resp_cont
 
-    resp = await base_llm.aask_batch([prompt_msg])
-    assert resp == resp_content
+    resp = await base_llm.aask_batch([prompt])
+    assert resp == default_resp_cont
 
-    # resp = await base_llm.aask_code([prompt_msg])
-    # assert resp == resp_content
+    # resp = await base_llm.aask_code([prompt])
+    # assert resp == default_resp_cont

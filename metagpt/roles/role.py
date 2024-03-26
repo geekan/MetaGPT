@@ -108,12 +108,6 @@ class RoleContext(BaseModel):
     )  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
 
-    def check(self, role_id: str):
-        # if hasattr(CONFIG, "enable_longterm_memory") and CONFIG.enable_longterm_memory:
-        #     self.long_term_memory.recover_memory(role_id, self)
-        #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
-        pass
-
     @property
     def important_memory(self) -> list[Message]:
         """Retrieve information corresponding to the attention action."""
@@ -175,6 +169,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
+        self.llm.cost_manager = self.context.cost_manager
         self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
@@ -281,9 +276,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                 i = action
             self._init_action(i)
             self.actions.append(i)
-            self.states.append(f"{len(self.actions)}. {action}")
+            self.states.append(f"{len(self.actions) - 1}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -304,17 +299,13 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
-            self.planner = Planner(
-                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
-            )
+            self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run)
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
         """
         self.rc.watch = {any_to_str(t) for t in actions}
-        # check RoleContext after adding watch actions
-        self.rc.check(self.role_id)
 
     def is_watch(self, caused_by: str):
         return caused_by in self.rc.watch
@@ -341,6 +332,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if env:
             env.set_addresses(self, self.addresses)
             self.llm.system_prompt = self._get_prefix()
+            self.llm.cost_manager = self.context.cost_manager
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
     def _get_prefix(self):

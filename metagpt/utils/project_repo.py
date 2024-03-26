@@ -33,6 +33,7 @@ from metagpt.const import (
     TASK_PDF_FILE_REPO,
     TEST_CODES_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
+    VISUAL_GRAPH_REPO_FILE_REPO,
 )
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
@@ -69,6 +70,7 @@ class ResourceFileRepositories(FileRepository):
     code_summary: FileRepository
     sd_output: FileRepository
     code_plan_and_change: FileRepository
+    graph_repo: FileRepository
 
     def __init__(self, git_repo):
         super().__init__(git_repo=git_repo, relative_path=RESOURCES_FILE_REPO)
@@ -82,6 +84,7 @@ class ResourceFileRepositories(FileRepository):
         self.code_summary = git_repo.new_file_repository(relative_path=CODE_SUMMARIES_PDF_FILE_REPO)
         self.sd_output = git_repo.new_file_repository(relative_path=SD_OUTPUT_FILE_REPO)
         self.code_plan_and_change = git_repo.new_file_repository(relative_path=CODE_PLAN_AND_CHANGE_PDF_FILE_REPO)
+        self.graph_repo = git_repo.new_file_repository(relative_path=VISUAL_GRAPH_REPO_FILE_REPO)
 
 
 class ProjectRepo(FileRepository):
@@ -133,6 +136,7 @@ class ProjectRepo(FileRepository):
         code_files = self.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
         if not code_files:
             return False
+        return bool(code_files)
 
     def with_src_path(self, path: str | Path) -> ProjectRepo:
         try:

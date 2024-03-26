@@ -26,6 +26,10 @@
 </p>
 
 ## News
+🚀 Mar. 14, 2024: Our **Data Interpreter** paper is on [arxiv](https://arxiv.org/abs/2402.18679). Check the [example](https://docs.deepwisdom.ai/main/en/DataInterpreter/) and [code](https://github.com/geekan/MetaGPT/tree/main/examples/di)!
+
+🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Data Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/di/README.md), a powerful agent capable of solving a wide range of real-world problems.
+
 🚀 Jan. 16, 2024: Our paper [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework
 ](https://arxiv.org/abs/2308.00352) accepted for oral presentation **(top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
 
@@ -51,20 +55,49 @@
 
 <p align="center">Software Company Multi-Agent Schematic (Gradually Implementing)</p>
 
-## Install
+## Get Started
 
-### Pip installation
+### Installation
 
 > Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.  
 > You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-pip install metagpt
-metagpt --init-config  # create ~/.metagpt/config2.yaml, modify it to your own config
+pip install --upgrade metagpt
+# or `pip install --upgrade git+https://github.com/geekan/MetaGPT.git`
+# or `git clone https://github.com/geekan/MetaGPT && cd MetaGPT && pip install --upgrade -e .`
+```
+
+For detailed installation guidance, please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
+ or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
+
+### Configuration
+
+You can init the config of MetaGPT by running the following command, or manually create `~/.metagpt/config2.yaml` file:
+```bash
+# Check https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html for more details
+metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
+```
+
+You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
+
+```yaml
+llm:
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.openai.com/v1"  # or forward url / other llm url
+  api_key: "YOUR_API_KEY"
+```
+
+### Usage
+
+After installation, you can use MetaGPT at CLI
+
+```bash
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
 
-or you can use it as library
+or use it as library
 
 ```python
 from metagpt.software_company import generate_repo, ProjectRepo
@@ -72,28 +105,19 @@ repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path
 print(repo)  # it will print the repo structure with files
 ```
 
-detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
+You can also use its [Data Interpreter](https://github.com/geekan/MetaGPT/tree/main/examples/di)
 
-### Docker installation
-> Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
+```python
+import asyncio
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
-```bash
-# Step 1: Download metagpt official image and prepare config2.yaml
-docker pull metagpt/metagpt:latest
-mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
-vim /opt/metagpt/config/config2.yaml # Change the config
+async def main():
+    di = DataInterpreter()
+    await di.run("Run data analysis on sklearn Iris dataset, include a plot")
 
-# Step 2: Run metagpt demo with container
-docker run --rm \
-    --privileged \
-    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:latest \
-    metagpt "Create a 2048 game"
+asyncio.run(main())  # or await main() in a jupyter notebook setting
 ```
 
-detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
@@ -113,6 +137,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 - 🧑‍💻 Contribution
   - [Develop Roadmap](docs/ROADMAP.md)
 - 🔖 Use Cases
+  - [Data Interpreter](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/interpreter/intro.html)
   - [Debate](https://docs.deepwisdom.ai/main/en/guide/use_cases/multi_agent/debate.html)
   - [Researcher](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/researcher.html)
   - [Recepit Assistant](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/receipt_assistant.html)
@@ -136,7 +161,9 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
+To stay updated with the latest research and development, follow [@MetaGPT_](https://twitter.com/MetaGPT_) on Twitter. 
+
+To cite [MetaGPT](https://arxiv.org/abs/2308.00352) or [Data Interpreter](https://arxiv.org/abs/2402.18679) in publications, please use the following BibTeX entries.
 
 ```bibtex
 @misc{hong2023metagpt,
@@ -147,4 +174,14 @@ For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }
+@misc{hong2024data,
+      title={Data Interpreter: An LLM Agent For Data Science}, 
+      author={Sirui Hong and Yizhang Lin and Bang Liu and Bangbang Liu and Binhao Wu and Danyang Li and Jiaqi Chen and Jiayi Zhang and Jinlin Wang and Li Zhang and Lingyao Zhang and Min Yang and Mingchen Zhuge and Taicheng Guo and Tuo Zhou and Wei Tao and Wenyi Wang and Xiangru Tang and Xiangtao Lu and Xiawu Zheng and Xinbing Liang and Yaying Fei and Yuheng Cheng and Zongze Xu and Chenglin Wu},
+      year={2024},
+      eprint={2402.18679},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+
 ```
+
