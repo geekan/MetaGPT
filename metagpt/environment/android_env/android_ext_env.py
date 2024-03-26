@@ -10,6 +10,7 @@ from pydantic import Field
 
 from metagpt.environment.android_env.const import ADB_EXEC_FAIL
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 
 
 class AndroidExtEnv(ExtEnv):
@@ -18,6 +19,20 @@ class AndroidExtEnv(ExtEnv):
     xml_dir: Optional[Path] = Field(default=None)
     width: int = Field(default=720, description="device screen width")
     height: int = Field(default=1080, description="device screen height")
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
 
     def __init__(self, **data: Any):
         super().__init__(**data)

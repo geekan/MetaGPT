@@ -5,11 +5,12 @@
 import random
 from collections import Counter
 from enum import Enum
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from pydantic import ConfigDict, Field
 
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
 
 
@@ -127,6 +128,20 @@ class WerewolfExtEnv(ExtEnv):
     is_hunted_player_saved: bool = Field(default=False)
     player_poisoned: Optional[str] = Field(default=None)
     player_current_dead: list[str] = Field(default=[])
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
 
     @property
     def living_players(self) -> list[str]:
