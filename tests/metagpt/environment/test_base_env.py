@@ -44,11 +44,11 @@ async def test_ext_env():
     assert len(apis) > 0
     assert len(apis["read_api"]) == 3
 
-    _ = await env.step(EnvAPIAbstract(api_name="write_api", kwargs={"a": 5, "b": 10}))
+    _ = await env.write_thru_api(EnvAPIAbstract(api_name="write_api", kwargs={"a": 5, "b": 10}))
     assert env.value == 15
 
     with pytest.raises(ValueError):
-        await env.observe("not_exist_api")
+        await env.read_from_api("not_exist_api")
 
-    assert await env.observe("read_api_no_param") == 15
-    assert await env.observe(EnvAPIAbstract(api_name="read_api", kwargs={"a": 5, "b": 5})) == 10
+    assert await env.read_from_api("read_api_no_param") == 15
+    assert await env.read_from_api(EnvAPIAbstract(api_name="read_api", kwargs={"a": 5, "b": 5})) == 10
