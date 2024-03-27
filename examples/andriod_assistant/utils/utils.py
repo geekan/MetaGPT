@@ -218,7 +218,6 @@ def draw_grid(img_path: Path, output_path: Path) -> tuple[int, int]:
 
 def area_to_xy(area: int, subarea: str, width: int, height: int, rows: int, cols: int) -> tuple[int, int]:
     area -= 1
-    logger.info(f"{cols}")
     row, col = area // cols, area % cols
     x_0, y_0 = col * (width // cols), row * (height // rows)
     if subarea == "top-left":
