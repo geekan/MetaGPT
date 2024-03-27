@@ -6,6 +6,7 @@ import chromadb
 import faiss
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
 
@@ -25,7 +26,6 @@ from metagpt.rag.schema import (
     FAISSRetrieverConfig,
     IndexRetrieverConfig,
 )
-from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 
 
 class RetrieverFactory(ConfigBasedFactory):

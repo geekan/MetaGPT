@@ -5,6 +5,7 @@ from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_s
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
 
@@ -17,7 +18,6 @@ from metagpt.rag.schema import (
     ElasticsearchKeywordIndexConfig,
     FAISSIndexConfig,
 )
-from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 
 
 class RAGIndexFactory(ConfigBasedFactory):
