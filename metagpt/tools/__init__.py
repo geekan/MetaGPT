@@ -19,6 +19,7 @@ class SearchEngineType(Enum):
     DIRECT_GOOGLE = "google"
     DUCK_DUCK_GO = "ddg"
     CUSTOM_ENGINE = "custom"
+    Bing = "bing"
 
 
 class WebBrowserEngineType(Enum):
