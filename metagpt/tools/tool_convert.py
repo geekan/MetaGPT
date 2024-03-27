@@ -141,7 +141,7 @@ class CodeVisitor(ast.NodeVisitor):
         if node.returns:
             return_annotation = f" -> {ast.unparse(node.returns)}"
 
-        return f"({' ,'.join(args)}){return_annotation}"
+        return f"({', '.join(args)}){return_annotation}"
 
     def get_tool_schemas(self):
         return self.tool_schemas
