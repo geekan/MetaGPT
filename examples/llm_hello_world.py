@@ -6,11 +6,9 @@
 @File    : llm_hello_world.py
 """
 import asyncio
-from pathlib import Path
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.utils.common import encode_image
 
 
 async def main():
