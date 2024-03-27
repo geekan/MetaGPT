@@ -6,6 +6,7 @@ from pathlib import Path
 
 import cv2
 
+from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
 from examples.andriod_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
@@ -15,9 +16,13 @@ from examples.andriod_assistant.utils.schema import (
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree
 from metagpt.actions.action import Action
 from metagpt.config2 import config
-from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.android_env.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
 from metagpt.logs import logger
 
 
@@ -53,19 +58,13 @@ class ManualRecord(Action):
         step = 0
         while True:
             step += 1
-            screenshot_path: Path = await env.observe(
-                EnvAPIAbstract(
-                    api_name="get_screenshot",
-                    # kwargs={"ss_name": f"{demo_name}_{step}", "local_save_dir": self.screenshot_before_path}
-                    kwargs={"ss_name": f"{step}", "local_save_dir": self.screenshot_before_path},
+            screenshot_path: Path = env.observe(
+                EnvObsParams(
+                    obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{step}", local_save_dir=self.screenshot_before_path
                 )
             )
-            xml_path: Path = await env.observe(
-                EnvAPIAbstract(
-                    api_name="get_xml",
-                    # kwargs={"xml_name": f"{demo_name}_{step}", "local_save_dir": self.xml_path}
-                    kwargs={"xml_name": f"{step}", "local_save_dir": self.xml_path},
-                )
+            xml_path: Path = env.observe(
+                EnvObsParams(obs_type=EnvObsType.GET_XML, xml_name=f"{step}", local_save_dir=self.xml_path)
             )
             if not screenshot_path.exists() or not xml_path.exists():
                 return AndroidActionOutput(action_state=RunState.FAIL)
@@ -103,8 +102,8 @@ class ManualRecord(Action):
 
             user_input = "xxx"
             logger.info(
-                "Choose one of the following actions you want to perform on the current screen:\ntap, text, long_press,"
-                "swipe, stop",
+                "Choose one of the following actions you want to perform on the current screen:\n"
+                "tap, text, long_press, swipe, stop",
                 "blue",
             )
 
@@ -126,10 +125,8 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
-                if ret == ADB_EXEC_FAIL:
-                    return AndroidActionOutput(action_state=RunState.FAIL)
-                record_file.write(f"tap({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n")
+                action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
+                log_str = f"tap({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n"
             elif user_input.lower() == ActionOp.TEXT.value:
                 logger.info(
                     f"Which element do you want to input the text string? Choose a numeric tag from 1 to "
@@ -143,8 +140,8 @@ class ManualRecord(Action):
                 user_input = ""
                 while not user_input:
                     user_input = input()
-                await env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": user_input}))
-                record_file.write(f'text({input_area}:sep:"{user_input}"):::{elem_list[int(input_area) - 1].uid}\n')
+                action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=user_input)
+                log_str = f"text({input_area}:sep:'{user_input}'):::{elem_list[int(input_area) - 1].uid}\n"
             elif user_input.lower() == ActionOp.LONG_PRESS.value:
                 logger.info(
                     f"Which element do you want to long press? Choose a numeric tag from 1 to {len(elem_list)}:", "blue"
@@ -154,14 +151,12 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
-                if ret == ADB_EXEC_FAIL:
-                    return AndroidActionOutput(action_state=RunState.FAIL)
-                record_file.write(f"long_press({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n")
+                action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
+                log_str = f"long_press({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n"
             elif user_input.lower() == ActionOp.SWIPE.value:
                 logger.info(
-                    "What is the direction of your swipe? Choose one from the following options:\nup, down, left,"
-                    " right",
+                    "What is the direction of your swipe? Choose one from the following options:\n"
+                    "up, down, left, right",
                     "blue",
                 )
                 user_input = ""
@@ -178,16 +173,20 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = await env.step(
-                    EnvAPIAbstract(api_name="user_swipe", kwargs={"x": x, "y": y, "orient": swipe_dir})
-                )
-                if ret == ADB_EXEC_FAIL:
-                    return AndroidActionOutput(action_state=RunState.FAIL)
-                record_file.write(f"swipe({int(user_input)}:sep:{swipe_dir}):::{elem_list[int(user_input) - 1].uid}\n")
+
+                action = EnvAction(action_type=EnvActionType.USER_SWIPE, coord=(x, y), orient=swipe_dir)
+                log_str = f"swipe({int(user_input)}:sep:{swipe_dir}):::{elem_list[int(user_input) - 1].uid}\n"
             elif user_input.lower() == ActionOp.STOP.value:
                 record_file.write("stop\n")
                 record_file.close()
                 break
             else:
                 break
+
+            obs, _, _, _, info = env.step(action)
+            action_res = info["res"]
+            if action_res == ADB_EXEC_FAIL:
+                return AndroidActionOutput(action_state=RunState.FAIL)
+            record_file.write(log_str)
+
             time.sleep(3)

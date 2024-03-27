@@ -10,6 +10,7 @@ from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
+from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
 from examples.andriod_assistant.utils.schema import (
     AndroidActionOutput,
     AndroidElement,
@@ -34,9 +35,13 @@ from examples.andriod_assistant.utils.utils import (
 )
 from metagpt.actions.action import Action
 from metagpt.config2 import config
-from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.android_env.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
 from metagpt.utils.common import encode_image
 
 
@@ -91,14 +96,11 @@ class ScreenshotParse(Action):
         for path in [task_dir, docs_dir]:
             if not path.exists():
                 path.mkdir(parents=True, exist_ok=True)
-
-        screenshot_path: Path = await env.observe(
-            EnvAPIAbstract(
-                api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
-            )
+        screenshot_path: Path = env.observe(
+            EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_before", local_save_dir=task_dir)
         )
-        xml_path: Path = await env.observe(
-            EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
+        xml_path: Path = env.observe(
+            EnvObsParams(obs_type=EnvObsType.GET_XML, xml_name=f"{round_count}", local_save_dir=task_dir)
         )
         width, height = env.device_shape
         if not screenshot_path.exists() or not xml_path.exists():
@@ -150,41 +152,26 @@ class ScreenshotParse(Action):
 
         if isinstance(op_param, TapOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
         elif isinstance(op_param, TextOp):
-            res = await env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": op_param.input_str}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=op_param.input_str)
         elif isinstance(op_param, LongPressOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
         elif isinstance(op_param, SwipeOp_3):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(
-                EnvAPIAbstract(
-                    api_name="user_swipe",
-                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist},
-                )
+            action = EnvAction(
+                action_type=EnvActionType.USER_SWIPE, coord=(x, y), orient=op_param.swipe_orient, dist=op_param.dist
             )
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, GridOp):
             grid_on = True
         elif isinstance(op_param, TapGridOp) or isinstance(op_param, LongPressGridOp):
             x, y = area_to_xy(op_param.area, op_param.subarea, env.width, env.height, env.rows, env.cols)
             if isinstance(op_param, TapGridOp):
-                res = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
-                if res == ADB_EXEC_FAIL:
-                    return AndroidActionOutput(action_state=RunState.FAIL)
+                action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
             else:
                 # LongPressGridOp
-                res = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
-                if res == ADB_EXEC_FAIL:
-                    return AndroidActionOutput(action_state=RunState.FAIL)
+                action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
         elif isinstance(op_param, SwipeGridOp):
             start_x, start_y = area_to_xy(
                 op_param.start_area, op_param.start_subarea, env.width, env.height, env.rows, env.cols
@@ -192,11 +179,14 @@ class ScreenshotParse(Action):
             end_x, end_y = area_to_xy(
                 op_param.end_area, op_param.end_subarea, env.width, env.height, env.rows, env.cols
             )
-            res = await env.step(
-                EnvAPIAbstract(api_name="user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)})
+            action = EnvAction(
+                action_type=EnvActionType.USER_SWIPE_TO, coord=(start_x, start_y), tgt_coord=(end_x, end_y)
             )
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+
+        obs, _, _, _, info = env.step(action)
+        action_res = info["res"]
+        if action_res == ADB_EXEC_FAIL:
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         if op_param.act_name != "grid":
             grid_on = True
