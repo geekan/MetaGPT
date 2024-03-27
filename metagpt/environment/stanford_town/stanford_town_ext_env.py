@@ -10,11 +10,7 @@ from typing import Any, Optional
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
-<<<<<<< HEAD:metagpt/environment/stanford_town/stanford_town_ext_env.py
 from metagpt.environment.stanford_town.env_space import (
-=======
-from metagpt.environment.stanford_town_env.env_space import (
->>>>>>> 5e6f2757 (add base environment action_space/observation space and update stanford_town_env):metagpt/environment/stanford_town_env/stanford_town_ext_env.py
     EnvAction,
     EnvActionType,
     EnvObsParams,
