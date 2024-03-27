@@ -38,6 +38,7 @@ extras_require = {
         "llama-index-vector-stores-faiss==0.1.1",
         "chromadb==0.4.23",
     ],
+    "web-api": ["flask==3.0.2"],
 }
 
 extras_require["test"] = [
