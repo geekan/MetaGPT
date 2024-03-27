@@ -33,7 +33,9 @@ class RAGLLM(CustomLLM):
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""
-        return LLMMetadata(context_window=self.context_window, num_output=self.num_output, model_name=self.model_name)
+        return LLMMetadata(
+            context_window=self.context_window, num_output=self.num_output, model_name=self.model_name or "unknown"
+        )
 
     @llm_completion_callback()
     def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:

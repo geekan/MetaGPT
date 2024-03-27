@@ -1,11 +1,12 @@
 """RAG schemas."""
 
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Literal, Union
 
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from metagpt.rag.interface import RAGObject
@@ -46,6 +47,35 @@ class ChromaRetrieverConfig(IndexRetrieverConfig):
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
 
 
+class ElasticsearchStoreConfig(BaseModel):
+    index_name: str = Field(default="metagpt", description="Name of the Elasticsearch index.")
+    es_url: str = Field(default=None, description="Elasticsearch URL.")
+    es_cloud_id: str = Field(default=None, description="Elasticsearch cloud ID.")
+    es_api_key: str = Field(default=None, description="Elasticsearch API key.")
+    es_user: str = Field(default=None, description="Elasticsearch username.")
+    es_password: str = Field(default=None, description="Elasticsearch password.")
+    batch_size: int = Field(default=200, description="Batch size for bulk indexing.")
+    distance_strategy: str = Field(default="COSINE", description="Distance strategy to use for similarity search.")
+
+
+class ElasticsearchRetrieverConfig(IndexRetrieverConfig):
+    """Config for Elasticsearch-based retrievers. Support both vector and text."""
+
+    store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
+    vector_store_query_mode: VectorStoreQueryMode = Field(
+        default=VectorStoreQueryMode.DEFAULT, description="default is vector query."
+    )
+
+
+class ElasticsearchKeywordRetrieverConfig(ElasticsearchRetrieverConfig):
+    """Config for Elasticsearch-based retrievers. Support text only."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
+    vector_store_query_mode: Literal[VectorStoreQueryMode.TEXT_SEARCH] = Field(
+        default=VectorStoreQueryMode.TEXT_SEARCH, description="text query only."
+    )
+
+
 class BaseRankerConfig(BaseModel):
     """Common config for rankers.
 
@@ -53,7 +83,6 @@ class BaseRankerConfig(BaseModel):
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     top_n: int = Field(default=5, description="The number of top results to return.")
 
 
@@ -66,12 +95,24 @@ class LLMRankerConfig(BaseRankerConfig):
     )
 
 
+class ColbertRerankConfig(BaseRankerConfig):
+    model: str = Field(default="colbert-ir/colbertv2.0", description="Colbert model name.")
+    device: str = Field(default="cpu", description="Device to use for sentence transformer.")
+    keep_retrieval_score: bool = Field(default=False, description="Whether to keep the retrieval score in metadata.")
+
+
+class ObjectRankerConfig(BaseRankerConfig):
+    field_name: str = Field(..., description="field name of the object, field's value must can be compared.")
+    order: Literal["desc", "asc"] = Field(default="desc", description="the direction of order.")
+
+
 class BaseIndexConfig(BaseModel):
     """Common config for index.
 
     If add new subconfig, it is necessary to add the corresponding instance implementation in rag.factories.index.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     persist_path: Union[str, Path] = Field(description="The directory of saved data.")
 
 
@@ -93,6 +134,19 @@ class ChromaIndexConfig(VectorIndexConfig):
 
 class BM25IndexConfig(BaseIndexConfig):
     """Config for bm25-based index."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
+
+
+class ElasticsearchIndexConfig(VectorIndexConfig):
+    """Config for es-based index."""
+
+    store_config: ElasticsearchStoreConfig = Field(..., description="ElasticsearchStore config.")
+    persist_path: Union[str, Path] = ""
+
+
+class ElasticsearchKeywordIndexConfig(ElasticsearchIndexConfig):
+    """Config for es-based index. no embedding."""
 
     _no_embedding: bool = PrivateAttr(default=True)
 
