@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
-
-from typing import Optional, Union
+import json
+import os
+from dataclasses import asdict
+from typing import List, Optional, Union
 
 import google.generativeai as genai
 from google.ai import generativelanguage as glm
@@ -10,14 +12,17 @@ from google.generativeai.generative_models import GenerativeModel
 from google.generativeai.types import content_types
 from google.generativeai.types.generation_types import (
     AsyncGenerateContentResponse,
+    BlockedPromptException,
     GenerateContentResponse,
     GenerationConfig,
 )
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.logs import log_llm_stream
+from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.schema import Message
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -51,6 +56,10 @@ class GeminiLLM(BaseLLM):
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
     def __init_gemini(self, config: LLMConfig):
+        if config.proxy:
+            logger.info(f"Use proxy: {config.proxy}")
+            os.environ["http_proxy"] = config.proxy
+            os.environ["https_proxy"] = config.proxy
         genai.configure(api_key=config.api_key)
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
@@ -60,6 +69,35 @@ class GeminiLLM(BaseLLM):
 
     def _assistant_msg(self, msg: str) -> dict[str, str]:
         return {"role": "model", "parts": [msg]}
+
+    def _system_msg(self, msg: str) -> dict[str, str]:
+        return {"role": "user", "parts": [msg]}
+
+    def format_msg(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        from metagpt.schema import Message
+
+        if not isinstance(messages, list):
+            messages = [messages]
+
+        # REF: https://ai.google.dev/tutorials/python_quickstart
+        # As a dictionary, the message requires `role` and `parts` keys.
+        # The role in a conversation can either be the `user`, which provides the prompts,
+        # or `model`, which provides the responses.
+        processed_messages = []
+        for msg in messages:
+            if isinstance(msg, str):
+                processed_messages.append({"role": "user", "parts": [msg]})
+            elif isinstance(msg, dict):
+                assert set(msg.keys()) == set(["role", "parts"])
+                processed_messages.append(msg)
+            elif isinstance(msg, Message):
+                processed_messages.append({"role": "user" if msg.role == "user" else "model", "parts": [msg.content]})
+            else:
+                raise ValueError(
+                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
+                )
+        return processed_messages
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"contents": messages, "generation_config": GenerationConfig(temperature=0.3), "stream": stream}
@@ -88,22 +126,28 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> "AsyncGenerateContentResponse":
+    async def _achat_completion(
+        self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
+    ) -> "AsyncGenerateContentResponse":
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
             **self._const_kwargs(messages, stream=True)
         )
         collected_content = []
         async for chunk in resp:
-            content = chunk.text
+            try:
+                content = chunk.text
+            except Exception as e:
+                logger.warning(f"messages: {messages}\nerrors: {e}\n{BlockedPromptException(str(chunk))}")
+                raise BlockedPromptException(str(chunk))
             log_llm_stream(content)
             collected_content.append(content)
         log_llm_stream("\n")
@@ -112,3 +156,10 @@ class GeminiLLM(BaseLLM):
         usage = await self.aget_usage(messages, full_content)
         self._update_costs(usage)
         return full_content
+
+    def list_models(self) -> List:
+        models = []
+        for model in genai.list_models(page_size=100):
+            models.append(asdict(model))
+        logger.info(json.dumps(models))
+        return models

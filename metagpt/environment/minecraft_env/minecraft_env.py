@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : MG Mincraft Env
+# @Desc   : MG Minecraft Env
 #           refs to `voyager voyager.py`
 
 import json
@@ -12,15 +12,15 @@ from pydantic import ConfigDict, Field
 
 from metagpt.config2 import config as CONFIG
 from metagpt.environment.base_env import Environment
-from metagpt.environment.mincraft_env.const import MC_CKPT_DIR
-from metagpt.environment.mincraft_env.mincraft_ext_env import MincraftExtEnv
+from metagpt.environment.minecraft_env.const import MC_CKPT_DIR
+from metagpt.environment.minecraft_env.minecraft_ext_env import MinecraftExtEnv
 from metagpt.logs import logger
 from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json_file
 
 
-class MincraftEnv(Environment, MincraftExtEnv):
-    """MincraftEnv, including shared memory of cache and infomation between roles"""
+class MinecraftEnv(Environment, MinecraftExtEnv):
+    """MinecraftEnv, including shared memory of cache and information between roles"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

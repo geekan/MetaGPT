@@ -11,6 +11,7 @@ import pytest
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 from tests.metagpt.provider.req_resp_const import (
     default_resp_cont,
     get_part_chat_completion,
@@ -22,7 +23,7 @@ name = "GPT"
 
 class MockBaseLLM(BaseLLM):
     def __init__(self, config: LLMConfig = None):
-        pass
+        self.config = config or mock_llm_config
 
     def completion(self, messages: list[dict], timeout=3):
         return get_part_chat_completion(name)

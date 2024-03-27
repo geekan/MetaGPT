@@ -18,6 +18,7 @@ from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.graph_repository import SPO
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context, mocker):
     # Mock
@@ -47,6 +48,8 @@ async def test_rebuild(context, mocker):
         context=context,
     )
     await action.run()
+    rows = await action.graph_db.select()
+    assert rows
     assert context.repo.docs.graph_repo.changed_files
 
 

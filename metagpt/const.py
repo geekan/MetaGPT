@@ -123,7 +123,6 @@ BASE64_FORMAT = "base64"
 
 # REDIS
 REDIS_KEY = "REDIS_KEY"
-LLM_API_TIMEOUT = 300
 
 # Message id
 IGNORED_MESSAGE_ID = "0"
@@ -132,3 +131,7 @@ IGNORED_MESSAGE_ID = "0"
 GENERALIZATION = "Generalize"
 COMPOSITION = "Composite"
 AGGREGATION = "Aggregate"
+
+# Timeout
+USE_CONFIG_TIMEOUT = 0  # Using llm.timeout configuration.
+LLM_API_TIMEOUT = 300
