@@ -63,6 +63,7 @@ class ExtractReadMe(Action):
                 "You are a tool can summarize git repository README.md file.",
                 "Return the summary about what is the repository.",
             ],
+            stream=False,
         )
         return summary
 
@@ -77,6 +78,7 @@ class ExtractReadMe(Action):
                 f"2. cd `{self.install_to_path}`;\n"
                 f"3. install the repository.",
             ],
+            stream=False,
         )
         return install
 
@@ -89,6 +91,7 @@ class ExtractReadMe(Action):
                 "Return a bash code block of markdown object to configure the repository if necessary, otherwise return"
                 " a empty bash code block of markdown object",
             ],
+            stream=False,
         )
         return configuration
 
@@ -100,13 +103,21 @@ class ExtractReadMe(Action):
                 "You are a tool can summarize all usages of git repository according to README.md file.",
                 "Return a list of code block of markdown objects to demonstrates the usage of the repository.",
             ],
+            stream=False,
         )
         return usage
 
     async def _get(self) -> str:
         if self._readme is not None:
             return self._readme
-        filename = Path(self.i_context).resolve() / "README.md"
+        root = Path(self.i_context).resolve()
+        filename = None
+        for file_path in root.iterdir():
+            if file_path.is_file() and file_path.stem == "README":
+                filename = file_path
+                break
+        if not filename:
+            return ""
         self._readme = await aread(filename=filename, encoding="utf-8")
         self._filename = str(filename)
         return self._readme
