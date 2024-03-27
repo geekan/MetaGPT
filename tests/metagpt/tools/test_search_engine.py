@@ -37,7 +37,7 @@ class MockSearchEnine:
         (SearchEngineType.SERPER_GOOGLE, None, 6, False),
         (SearchEngineType.DUCK_DUCK_GO, None, 8, True),
         (SearchEngineType.DUCK_DUCK_GO, None, 6, False),
-        (SearchEngineType.Bing, None, 6, False),
+        (SearchEngineType.BING, None, 6, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 8, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
     ],
