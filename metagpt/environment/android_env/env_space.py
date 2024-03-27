@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   :
 
+from pathlib import Path
+from typing import Union
 
 import numpy as np
 import numpy.typing as npt
@@ -61,7 +63,7 @@ class EnvObsParams(BaseEnvObsParams):
     obs_type: int = Field(default=EnvObsType.NONE, description="observation type")
     ss_name: str = Field(default="", description="screenshot file name")
     xml_name: str = Field(default="", description="xml file name")
-    local_save_dir: str = Field(default="", description="local dir to save file")
+    local_save_dir: Union[str, Path] = Field(default="", description="local dir to save file")
 
 
 EnvObsValType = str

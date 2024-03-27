@@ -42,6 +42,7 @@ from metagpt.environment.android_env.env_space import (
     EnvObsParams,
     EnvObsType,
 )
+from metagpt.logs import logger
 from metagpt.utils.common import encode_image
 
 
@@ -60,8 +61,13 @@ class ScreenshotParse(Action):
             doc_path = docs_idr.joinpath(f"{elem.uid}.txt")
             if not doc_path.exists():
                 continue
+            try:
+                doc_content = ast.literal_eval(doc_path.read_text())
+            except Exception as exp:
+                logger.error(f"ast parse doc: {doc_path} failed, exp: {exp}")
+                continue
+
             ui_doc += f"Documentation of UI element labeled with the numeric tag '{i + 1}':\n"
-            doc_content = ast.literal_eval(open(doc_path, "r").read())
             if doc_content["tap"]:
                 ui_doc += f"This UI element is clickable. {doc_content['tap']}\n\n"
             if doc_content["text"]:

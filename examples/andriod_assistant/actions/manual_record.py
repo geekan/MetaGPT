@@ -13,7 +13,10 @@ from examples.andriod_assistant.utils.schema import (
     RunState,
     SwipeOp,
 )
-from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree
+from examples.andriod_assistant.utils.utils import (
+    draw_bbox_multi,
+    elem_list_from_xml_tree,
+)
 from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.environment.android_env.android_env import AndroidEnv
@@ -38,7 +41,6 @@ class ManualRecord(Action):
     screenshot_after_path: Path = ""
     xml_path: Path = ""
 
-    # async def run(self, demo_name: str, task_desc: str,task_dir: Path, env: AndroidEnv):
     async def run(self, task_desc: str, task_dir: Path, env: AndroidEnv):
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
@@ -50,11 +52,10 @@ class ManualRecord(Action):
             if not path.exists():
                 path.mkdir(parents=True, exist_ok=True)
 
-        with open(self.record_path, "w") as file:
-            file.write("")
+        self.record_path.write_text("")
         record_file = open(self.record_path, "w")
-        with open(self.task_desc_path, "w") as f:
-            f.write(task_desc)
+        self.task_desc_path.write_text(task_desc)
+
         step = 0
         while True:
             step += 1
@@ -68,32 +69,10 @@ class ManualRecord(Action):
             )
             if not screenshot_path.exists() or not xml_path.exists():
                 return AndroidActionOutput(action_state=RunState.FAIL)
-            clickable_list = []
-            focusable_list = []
-            traverse_xml_tree(xml_path, clickable_list, "clickable", True)
-            traverse_xml_tree(xml_path, focusable_list, "focusable", True)
-            elem_list = []
-            for elem in clickable_list:
-                if elem.uid in self.useless_list:
-                    continue
-                elem_list.append(elem)
-            for elem in focusable_list:
-                if elem.uid in self.useless_list:
-                    continue
-                bbox = elem.bbox
-                center = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
-                close = False
-                for e in clickable_list:
-                    bbox = e.bbox
-                    center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
-                    dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                    if dist <= config.get_other("min_dist"):
-                        close = True
-                        break
-                if not close:
-                    elem_list.append(elem)
+
+            elem_list = elem_list_from_xml_tree(xml_path, self.useless_list, config.get_other("min_dist"))
+
             screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{step}_labeled.png")
-            # screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{demo_name}_{step}_labeled.png")
             labeled_img = draw_bbox_multi(screenshot_path, screenshot_labeled_path, elem_list)
 
             cv2.imshow("image", labeled_img)

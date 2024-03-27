@@ -80,6 +80,14 @@ class AndroidAssistant(Role):
         logger.debug(f"react result {result}")
         return result
 
+    async def _observe(self, ignore_memory=True) -> int:
+        """ignore old memory to make it run multi rounds inside a role"""
+        newest_msg = self.rc.memory.get(k=1)[0]
+        if RunState.SUCCESS not in newest_msg.content:
+            ignore_memory = False
+            logger.error("Latest action_state is FINISH or FAIL, won't react in remainder rounds", "red")
+        return await super()._observe(ignore_memory)
+
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         todo = self.rc.todo
@@ -90,7 +98,6 @@ class AndroidAssistant(Role):
                 app_name=config.get_other("app_name", "demo"),
                 task_dir=self.task_dir,
                 docs_dir=self.docs_dir,
-                env=self.rc.env,
             )
         elif isinstance(todo, SelfLearnAndReflect):
             resp = await todo.run(
@@ -117,12 +124,12 @@ class AndroidAssistant(Role):
                 logger.info(f"grid_on:  {resp.data.get('grid_on')}")
                 self.grid_on = resp.data.get("grid_on")
         msg = Message(
-            content=f"RoundCount: {self.round_count}",
+            content=f"RoundCount: {self.round_count}, action_state: {resp.action_state}",
             role=self.profile,
             cause_by=type(resp),
             send_from=self.name,
             send_to=self.name,
         )
-        # self.publish_message(msg)
+
         self.rc.memory.add(msg)
         return msg

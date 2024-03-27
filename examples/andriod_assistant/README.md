@@ -31,7 +31,7 @@ coming soon
 ## Run It
 You can run Android Assisant by running the following command line:
 ```bash
-python run_assistant.py "your task description" --stage "your choice(learn/act)" --mode "your choice(auto/manual)" --app-name "app name"
+python run_assistant.py "your task description" --stage "your choice(learn or act)" --mode "your choice(auto or manual)" --app-name "app name"
 ```
 And the specific parameters are as follows:
 ```text

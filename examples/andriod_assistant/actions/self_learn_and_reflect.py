@@ -34,9 +34,9 @@ from examples.andriod_assistant.utils.schema import (
 from examples.andriod_assistant.utils.utils import (
     draw_bbox_multi,
     elem_bbox_to_xy,
+    elem_list_from_xml_tree,
     reflect_parse_extarct,
     screenshot_parse_extract,
-    traverse_xml_tree,
 )
 from metagpt.actions.action import Action
 from metagpt.config2 import config
@@ -67,8 +67,7 @@ class SelfLearnAndReflect(Action):
         self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
         for path in [task_dir, docs_dir]:
-            if not path.exists():
-                path.mkdir(parents=True, exist_ok=True)
+            path.mkdir(parents=True, exist_ok=True)
         resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
         resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
@@ -85,30 +84,8 @@ class SelfLearnAndReflect(Action):
         if not screenshot_path.exists() or not xml_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
 
-        clickable_list = []
-        focusable_list = []
-        traverse_xml_tree(xml_path, clickable_list, "clickable", True)
-        traverse_xml_tree(xml_path, focusable_list, "focusable", True)
-        elem_list = []
-        for elem in clickable_list:
-            if elem.uid in self.useless_list:
-                continue
-            elem_list.append(elem)
-        for elem in focusable_list:
-            if elem.uid in self.useless_list:
-                continue
-            bbox = elem.bbox
-            center = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
-            close = False
-            for e in clickable_list:
-                bbox = e.bbox
-                center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
-                dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                if dist <= config.get_other("min_dist"):
-                    close = True
-                    break
-            if not close:
-                elem_list.append(elem)
+        elem_list = elem_list_from_xml_tree(xml_path, self.useless_list, config.get_other("min_dist"))
+
         screenshot_before_labeled_path = task_dir.joinpath(f"{round_count}_before_labeled.png")
         draw_bbox_multi(screenshot_path, screenshot_before_labeled_path, elem_list)
         img_base64 = encode_image(screenshot_before_labeled_path)
@@ -210,8 +187,13 @@ class SelfLearnAndReflect(Action):
             return AndroidActionOutput(action_state=RunState.FINISH)
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
-        # TODO 这里经常出现错误
-        logger.info(f"Error 高发地区, 长度为{len(self.elem_list)}，ui_erea为{self.ui_area}")
+
+        logger.info(
+            f"reflect_parse_extarct decision: {op_param.decision}, "
+            f"elem_list size: {len(self.elem_list)}, ui_area: {self.ui_area}"
+        )
+        # TODO here will cause `IndexError: list index out of range`.
+        #  Maybe you should clink back to the desktop in the simulator
         resource_id = self.elem_list[int(self.ui_area) - 1].uid
         if op_param.decision == Decision.INEFFECTIVE.value:
             self.useless_list.append(resource_id)
@@ -228,7 +210,12 @@ class SelfLearnAndReflect(Action):
             doc = op_param.documentation
             doc_path = docs_dir.joinpath(f"{resource_id}.txt")
             if doc_path.exists():
-                doc_content = ast.literal_eval(open(doc_path).read())
+                try:
+                    doc_content = ast.literal_eval(doc_path.read_text())
+                except Exception as exp:
+                    logger.error(f"ast parse doc: {doc_path} failed, exp: {exp}")
+                    return AndroidActionOutput(action_state=RunState.FAIL)
+
                 if doc_content[self.act_name]:
                     logger.info(f"Documentation for the element {resource_id} already exists.")
                     return AndroidActionOutput(action_state=RunState.FAIL)
@@ -237,6 +224,3 @@ class SelfLearnAndReflect(Action):
                 setattr(doc_content, self.act_name, doc)
             doc_path.write_text(str(doc_content))
         return AndroidActionOutput(data={"last_act": last_act})
-
-
-# TODO 如何处理 FINISH 状态，这一点应该需要与role 联动才能解决
