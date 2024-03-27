@@ -8,6 +8,7 @@ import re
 import time
 from typing import Any, Iterable
 
+from llama_index.vector_stores.chroma import ChromaVectorStore
 from pydantic import ConfigDict, Field
 
 from metagpt.config2 import config as CONFIG
@@ -15,7 +16,6 @@ from metagpt.environment.base_env import Environment
 from metagpt.environment.minecraft_env.const import MC_CKPT_DIR
 from metagpt.environment.minecraft_env.minecraft_ext_env import MinecraftExtEnv
 from metagpt.logs import logger
-from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json_file
 
 
