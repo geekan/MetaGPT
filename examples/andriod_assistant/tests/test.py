@@ -2,22 +2,20 @@
 # -*- coding: utf-8 -*-
 # @Desc   : test case (imgs from appagent's)
 
-
 import ast
 import asyncio
 import re
 from pathlib import Path
 
-from actions.parse_record_an import RECORD_PARSE_NODE
-from prompts.operation_prompt import (
+from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
+from examples.andriod_assistant.prompts.operation_prompt import (
     long_press_doc_template,
     refine_doc_suffix,
     swipe_doc_template,
     tap_doc_template,
     text_doc_template,
 )
-from utils.schema import ActionOp, SwipeOp
-
+from examples.andriod_assistant.utils.schema import ActionOp, SwipeOp
 from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.logs import logger
@@ -62,7 +60,7 @@ async def manual_test():
             prompt_template = swipe_doc_template
             context = prompt_template.format(swipe_dir=swipe_dir, ui_element=swipe_area)
         else:
-            print("Error occurs")
+            logger.error("Error occurs")
 
         task_desc_path = TASK_DESC_PATH
         task_desc = open(task_desc_path, "r").read()
@@ -108,4 +106,3 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(manual_test())
     loop.close()
-    print("OK")

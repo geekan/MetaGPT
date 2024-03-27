@@ -15,6 +15,7 @@ from examples.andriod_assistant.prompts.assistant_prompt import (
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_template,
 )
+from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
 from examples.andriod_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
@@ -39,9 +40,13 @@ from examples.andriod_assistant.utils.utils import (
 )
 from metagpt.actions.action import Action
 from metagpt.config2 import config
-from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.android_env.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
 from metagpt.logs import logger
 from metagpt.utils.common import encode_image
 
@@ -71,13 +76,11 @@ class SelfLearnAndReflect(Action):
     async def run_self_learn(
         self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        screenshot_path: Path = await env.observe(
-            EnvAPIAbstract(
-                api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
-            )
+        screenshot_path: Path = env.observe(
+            EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_before", local_save_dir=task_dir)
         )
-        xml_path: Path = await env.observe(
-            EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
+        xml_path: Path = env.observe(
+            EnvObsParams(obs_type=EnvObsType.GET_XML, xml_name=f"{round_count}", local_save_dir=task_dir)
         )
         if not screenshot_path.exists() or not xml_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
@@ -116,7 +119,7 @@ class SelfLearnAndReflect(Action):
         context = self_explore_template.format(task_description=task_desc, last_act=last_act)
 
         node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])
-        print(f"fill result:{node}")
+        logger.debug(f"fill result:{node}")
         if "error" in node.content:
             return AndroidActionOutput(action_state=RunState.FAIL)
         prompt = node.compile(context=context, schema="json", mode="auto")
@@ -132,31 +135,25 @@ class SelfLearnAndReflect(Action):
         if isinstance(op_param, TapOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
         elif isinstance(op_param, TextOp):
-            res = await env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": op_param.input_str}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=op_param.input_str)
         elif isinstance(op_param, LongPressOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+            action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
         elif isinstance(op_param, SwipeOp_3):
             self.ui_area = op_param.area
             self.swipe_orient = op_param.swipe_orient
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = await env.step(
-                EnvAPIAbstract(
-                    api_name="user_swipe",
-                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist},
-                )
+            action = EnvAction(
+                action_type=EnvActionType.USER_SWIPE, coord=(x, y), orient=op_param.swipe_orient, dist=op_param.dist
             )
-            if res == ADB_EXEC_FAIL:
-                return AndroidActionOutput(action_state=RunState.FAIL)
+
+        obs, _, _, _, info = env.step(action)
+        action_res = info["res"]
+        if action_res == ADB_EXEC_FAIL:
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         self.elem_list = elem_list
         self.act_name = op_param.act_name
@@ -165,10 +162,8 @@ class SelfLearnAndReflect(Action):
     async def run_reflect(
         self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        screenshot_path: Path = await env.observe(
-            EnvAPIAbstract(
-                api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_after", "local_save_dir": task_dir}
-            )
+        screenshot_path: Path = env.observe(
+            EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_after", local_save_dir=task_dir)
         )
         if not screenshot_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
@@ -226,8 +221,9 @@ class SelfLearnAndReflect(Action):
                 self.useless_list.append(resource_id)
                 last_act = "NONE"
                 if op_param.decision == Decision.BACK.value:
-                    res = await env.step(EnvAPIAbstract(api_name="system_back"))
-                    if res == ADB_EXEC_FAIL:
+                    action = EnvAction(action_type=EnvActionType.SYSTEM_BACK)
+                    obs, _, _, _, info = env.step(action)
+                    if info["res"] == ADB_EXEC_FAIL:
                         return AndroidActionOutput(action_state=RunState.FAIL)
             doc = op_param.documentation
             doc_path = docs_dir.joinpath(f"{resource_id}.txt")

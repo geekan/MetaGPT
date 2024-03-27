@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : test on android emulator action. After Modify Role Test, this script is discarded.
+
 import asyncio
 import time
 from pathlib import Path
 
-from actions.manual_record import ManualRecord
-from actions.parse_record import ParseRecord
-from actions.screenshot_parse import ScreenshotParse
-from actions.self_learn_and_reflect import SelfLearnAndReflect
-
+from examples.andriod_assistant.actions.manual_record import ManualRecord
+from examples.andriod_assistant.actions.parse_record import ParseRecord
+from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
+from examples.andriod_assistant.actions.self_learn_and_reflect import (
+    SelfLearnAndReflect,
+)
 from metagpt.environment.android_env.android_env import AndroidEnv
 
 TASK_PATH = Path("apps/Contacts")
@@ -77,4 +79,3 @@ if __name__ == "__main__":
 
     loop.run_until_complete(asyncio.gather(*test_action_list))
     loop.close()
-    print("Finish")

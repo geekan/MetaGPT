@@ -77,7 +77,7 @@ class AndroidAssistant(Role):
     async def react(self) -> Message:
         self.round_count += 1
         result = await super().react()
-        print(f"react result {result}")
+        logger.debug(f"react result {result}")
         return result
 
     async def _act(self) -> Message:
