@@ -3,8 +3,8 @@
 # @Desc   : the unittest of MinecraftExtEnv
 
 
-from metagpt.environment.minecraft_env.const import MC_CKPT_DIR
-from metagpt.environment.minecraft_env.minecraft_ext_env import MinecraftExtEnv
+from metagpt.environment.minecraft.const import MC_CKPT_DIR
+from metagpt.environment.minecraft.minecraft_ext_env import MinecraftExtEnv
 
 
 def test_minecraft_ext_env():
