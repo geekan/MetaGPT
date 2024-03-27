@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict
 
 from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
-from metagpt.const import TUTORIAL_PATH
+from metagpt.const import TUTORIAL_PATH, METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
@@ -40,7 +40,7 @@ class TutorialAssistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.set_actions([WriteDirectory(language=self.language)])
+        self.set_actions([WriteDirectory(language=self.language, stream_pipe=self.stream_pipe)])
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _handle_directory(self, titles: Dict) -> Message:
@@ -58,7 +58,7 @@ class TutorialAssistant(Role):
         self.total_content += f"# {self.main_title}"
         actions = list()
         for first_dir in titles.get("directory"):
-            actions.append(WriteContent(language=self.language, directory=first_dir))
+            actions.append(WriteContent(language=self.language, directory=first_dir, stream_pipe=self.stream_pipe))
             key = list(first_dir.keys())[0]
             directory += f"- {key}\n"
             for second_dir in first_dir[key]:
@@ -91,4 +91,8 @@ class TutorialAssistant(Role):
         root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         await File.write(root_path, f"{self.main_title}.md", self.total_content.encode("utf-8"))
         msg.content = str(root_path / f"{self.main_title}.md")
+
+        if self.stream_pipe:
+            self.stream_pipe.set_k_message("file_name", msg.content.replace(str(METAGPT_ROOT), ""))
+            self.stream_pipe.with_finish()
         return msg

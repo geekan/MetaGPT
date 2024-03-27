@@ -73,6 +73,8 @@ class ZhiPuAILLM(BaseLLM):
                 content = self.get_choice_delta_text(chunk)
                 collected_content.append(content)
                 log_llm_stream(content)
+                if self.stream_pipe:
+                    self.stream_pipe.set_message(content)
 
         log_llm_stream("\n")
 

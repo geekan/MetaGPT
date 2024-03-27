@@ -87,6 +87,9 @@ class OpenAILLM(BaseLLM):
                 chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], "finish_reason") else None
             )
             log_llm_stream(chunk_message)
+            if self.stream_pipe:
+                self.stream_pipe.set_message(chunk_message)
+
             collected_messages.append(chunk_message)
             if finish_reason:
                 if hasattr(chunk, "usage"):

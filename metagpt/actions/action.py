@@ -23,6 +23,7 @@ from metagpt.schema import (
     TestingContext,
 )
 from metagpt.utils.project_repo import ProjectRepo
+from metagpt.utils.stream_pipe import StreamPipe
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
@@ -35,6 +36,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
+    stream_pipe: Optional[StreamPipe] = None
 
     @property
     def repo(self) -> ProjectRepo:
@@ -90,6 +92,8 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""
+        if self.stream_pipe and not self.llm.stream_pipe:
+            self.llm.stream_pipe = self.stream_pipe
         return await self.llm.aask(prompt, system_msgs)
 
     async def _run_action_node(self, *args, **kwargs):
