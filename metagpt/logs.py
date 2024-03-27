@@ -35,8 +35,7 @@ logger = define_log_level()
 
 
 def log_llm_stream(msg):
-  if _print_level in ["DEBUG"]:
-        _llm_stream_log(msg)
+    _llm_stream_log(msg)
 
 
 def set_llm_stream_logfunc(func):
@@ -44,4 +43,6 @@ def set_llm_stream_logfunc(func):
     _llm_stream_log = func
 
 
-_llm_stream_log = partial(print, end="")
+def _llm_stream_log(msg):
+    if _print_level in ["DEBUG"]:
+        print(msg, end="")
