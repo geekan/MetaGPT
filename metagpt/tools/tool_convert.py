@@ -1,3 +1,4 @@
+import ast
 import inspect
 
 from metagpt.utils.parse_docstring import GoogleDocstringParser, remove_spaces
@@ -5,7 +6,8 @@ from metagpt.utils.parse_docstring import GoogleDocstringParser, remove_spaces
 PARSER = GoogleDocstringParser
 
 
-def convert_code_to_tool_schema(obj, include: list[str] = None):
+def convert_code_to_tool_schema(obj, include: list[str] = None) -> dict:
+    """Converts an object (function or class) to a tool schema by inspecting the object"""
     docstring = inspect.getdoc(obj)
     # assert docstring, "no docstring found for the objects, skip registering"
 
@@ -25,6 +27,23 @@ def convert_code_to_tool_schema(obj, include: list[str] = None):
         schema = function_docstring_to_schema(obj, docstring)
 
     return schema
+
+
+def convert_code_to_tool_schema_ast(code: str) -> list[dict]:
+    """Converts a code string to a list of tool schemas by parsing the code with AST"""
+
+    # Modify the AST nodes to include parent references, enabling to attach methods to their class
+    def add_parent_references(node, parent=None):
+        for child in ast.iter_child_nodes(node):
+            child.parent = parent
+            add_parent_references(child, parent=node)
+
+    visitor = CodeVisitor(code)
+    parsed_code = ast.parse(code)
+    add_parent_references(parsed_code)
+    visitor.visit(parsed_code)
+
+    return visitor.get_tool_schemas()
 
 
 def function_docstring_to_schema(fn_obj, docstring) -> dict:
@@ -62,3 +81,67 @@ def get_class_method_docstring(cls, method_name):
             if method.__doc__:
                 return method.__doc__
     return None  # No docstring found in the class hierarchy
+
+
+class CodeVisitor(ast.NodeVisitor):
+    """Visit and convert the AST nodes within a code file to tool schemas"""
+
+    def __init__(self, source_code: str):
+        self.tool_schemas = {}  # {tool_name: tool_schema}
+        self.source_code = source_code
+
+    def visit_ClassDef(self, node):
+        class_schemas = {"type": "class", "description": remove_spaces(ast.get_docstring(node)), "methods": {}}
+        for body_node in node.body:
+            if isinstance(body_node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+                not body_node.name.startswith("_") or body_node.name == "__init__"
+            ):
+                func_schemas = self._get_function_schemas(body_node)
+                class_schemas["methods"].update({body_node.name: func_schemas})
+        class_schemas["code"] = ast.get_source_segment(self.source_code, node)
+        self.tool_schemas[node.name] = class_schemas
+
+    def visit_FunctionDef(self, node):
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node):
+        self._visit_function(node)
+
+    def _visit_function(self, node):
+        if isinstance(node.parent, ast.ClassDef) or node.name.startswith("_"):
+            return
+        function_schemas = self._get_function_schemas(node)
+        function_schemas["code"] = ast.get_source_segment(self.source_code, node)
+        self.tool_schemas[node.name] = function_schemas
+
+    def _get_function_schemas(self, node):
+        docstring = remove_spaces(ast.get_docstring(node))
+        overall_desc, param_desc = PARSER.parse(docstring)
+        return {
+            "type": "async_function" if isinstance(node, ast.AsyncFunctionDef) else "function",
+            "description": overall_desc,
+            "signature": self._get_function_signature(node),
+            "parameters": param_desc,
+        }
+
+    def _get_function_signature(self, node):
+        args = []
+        defaults = dict(zip([arg.arg for arg in node.args.args][-len(node.args.defaults) :], node.args.defaults))
+        for arg in node.args.args:
+            arg_str = arg.arg
+            if arg.annotation:
+                annotation = ast.unparse(arg.annotation)
+                arg_str += f": {annotation}"
+            if arg.arg in defaults:
+                default_value = ast.unparse(defaults[arg.arg])
+                arg_str += f" = {default_value}"
+            args.append(arg_str)
+
+        return_annotation = ""
+        if node.returns:
+            return_annotation = f" -> {ast.unparse(node.returns)}"
+
+        return f"({', '.join(args)}){return_annotation}"
+
+    def get_tool_schemas(self):
+        return self.tool_schemas
