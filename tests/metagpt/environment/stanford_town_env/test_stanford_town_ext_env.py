@@ -4,18 +4,18 @@
 
 from pathlib import Path
 
-from metagpt.environment.stanford_town_env.env_space import (
+from metagpt.environment.stanford_town.env_space import (
     EnvAction,
     EnvActionType,
     EnvObsParams,
     EnvObsType,
 )
-from metagpt.environment.stanford_town_env.stanford_town_ext_env import (
-    StanfordTownExtEnv,
-)
+from metagpt.environment.stanford_town.stanford_town_ext_env import StanfordTownExtEnv
 
 maze_asset_path = (
-    Path(__file__).absolute().parent.joinpath("..", "..", "..", "..", "examples/st_game/static_dirs/assets/the_ville")
+    Path(__file__)
+    .absolute()
+    .parent.joinpath("..", "..", "..", "..", "examples/stanford_town/static_dirs/assets/the_ville")
 )
 
 
