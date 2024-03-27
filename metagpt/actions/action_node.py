@@ -463,7 +463,6 @@ class ActionNode:
             self.instruct_content = scontent
         else:
             self.content = await self.llm.aask(prompt)
-            logger.info(self.content)
             self.instruct_content = None
 
         return self
