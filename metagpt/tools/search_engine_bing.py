@@ -58,7 +58,10 @@ class BingAPIWrapper(BaseModel):
         }
         result = await self.results(params)
         search_results = result["webPages"]["value"]
-        focus = focus or ["snippet", "url", "name"]
+        focus = focus or ["snippet", "link", "title"]
+        for item_dict in search_results:
+            item_dict["link"] = item_dict["url"]
+            item_dict["title"] = item_dict["name"]
         details = [{i: j for i, j in item_dict.items() if i in focus} for item_dict in search_results]
         if as_string:
             return safe_results(details)
