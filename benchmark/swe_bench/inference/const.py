@@ -5,8 +5,8 @@ import pandas as pd
 
 from metagpt.const import METAGPT_ROOT
 
-SUBSET_DATASET = METAGPT_ROOT / "sub_swebench_dataset" / "sub_swebench.csv"
-SUBSET_DATASET_SKLERARN = METAGPT_ROOT / "sub_swebench_dataset" / "scikit-learn-68.csv"
+SUBSET_DATASET = METAGPT_ROOT / "benchmark" / "swe_bench" / "sub_swebench_dataset" / "sub_swebench.csv"
+SUBSET_DATASET_SKLERARN = METAGPT_ROOT / "benchmark" / "sub_swebench_dataset" / "scikit-learn-68.csv"
 TESTBED = METAGPT_ROOT / "benchmark" / "swe_bench" / "data" / "repos"
 
 # SCIKIT_LEARN_IDS: A list of instance identifiers from 'sub_swebench.csv' within SUBSET_DATASET.
