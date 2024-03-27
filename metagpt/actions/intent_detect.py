@@ -51,19 +51,6 @@ SOP_CONFIG = [
 ]
 
 
-class _IntentDetectIntention(BaseModel):
-    """
-    Represents detected intentions.
-
-    Attributes:
-        ref (str): The reference to the original words.
-        intent (str): The detected intention of the referenced words.
-    """
-
-    ref: str
-    intent: str
-
-
 class IntentDetectClarification(BaseModel):
     """
     Represents clarifications for unclear intentions.
@@ -77,19 +64,6 @@ class IntentDetectClarification(BaseModel):
     clarification: str
 
 
-class _IntentDetectDialogIntentions(BaseModel):
-    """
-    Represents dialog intentions.
-
-    Attributes:
-        intentions (List[IntentDetectIntention]): List of detected intentions.
-        clarifications (List[IntentDetectClarification]): List of clarifications for unclear intentions.
-    """
-
-    intentions: List[_IntentDetectIntention]
-    clarifications: List[IntentDetectClarification]
-
-
 class IntentDetectIntentionRef(BaseModel):
     """
     Represents intentions along with their references.
@@ -101,49 +75,6 @@ class IntentDetectIntentionRef(BaseModel):
 
     intent: str
     refs: List[str]
-
-
-class _IntentDetectUnrefs(BaseModel):
-    """
-    Represents unreferenced content along with reasons.
-
-    Attributes:
-        ref (str): The unreferenced original text.
-        reason (str): Explanation for why it is unreferenced.
-    """
-
-    ref: str
-    reason: str
-
-
-class _IntentSOP(BaseModel):
-    """
-    Represents a mapping between an intention and a Standard Operating Procedure (SOP).
-
-    Attributes:
-        intent (str): The intention related to the SOP.
-        sop (str): The description of the Standard Operating Procedure.
-        sop_index (int): The index of the description of the Standard Operating Procedure.
-        reason (str): Explanation for why the intention is unreferenced.
-    """
-
-    intent: str
-    sop: str
-    sop_index: int
-    reason: str
-
-
-class _IntentDetectReferences(BaseModel):
-    """
-    Represents references to intentions and unreferenced content.
-
-    Attributes:
-        intentions (List[IntentDetectIntentionRef]): List of intentions with their references.
-        unrefs (List[IntentDetectUnrefs]): List of unreferenced content with reasons.
-    """
-
-    intentions: List[IntentDetectIntentionRef]
-    unrefs: List[_IntentDetectUnrefs]
 
 
 class IntentDetectIntentionSOP(BaseModel):
@@ -187,9 +118,31 @@ class IntentDetect(Action):
             Result object containing the outcome of intention detection.
     """
 
-    _dialog_intentions: _IntentDetectDialogIntentions = None
-    _references: _IntentDetectReferences = None
-    _intent_to_sops: List[_IntentSOP] = None
+    class IntentDetectDialogIntentions(BaseModel):
+        class IntentDetectIntention(BaseModel):
+            ref: str
+            intent: str
+
+        intentions: List[IntentDetectIntention]
+        clarifications: List[IntentDetectClarification]
+
+    class IntentDetectReferences(BaseModel):
+        class IntentDetectUnrefs(BaseModel):
+            ref: str
+            reason: str
+
+        intentions: List[IntentDetectIntentionRef]
+        unrefs: List[IntentDetectUnrefs]
+
+    class IntentSOP(BaseModel):
+        intent: str
+        sop: str
+        sop_index: int
+        reason: str
+
+    _dialog_intentions: IntentDetectDialogIntentions = None
+    _references: IntentDetectReferences = None
+    _intent_to_sops: List[IntentSOP] = None
     result: IntentDetectResult = None
 
     async def run(self, with_messages: List[Message] = None, **kwargs) -> Message:
@@ -240,7 +193,7 @@ class IntentDetect(Action):
         json_blocks = parse_json_code_block(rsp)
         if not json_blocks:
             return []
-        self._dialog_intentions = _IntentDetectDialogIntentions.model_validate_json(json_blocks[0])
+        self._dialog_intentions = self.IntentDetectDialogIntentions.model_validate_json(json_blocks[0])
         return [i.intent for i in self._dialog_intentions.intentions]
 
     async def _get_references(self, msg_markdown: str, intentions: List[str]):
@@ -267,7 +220,7 @@ class IntentDetect(Action):
         json_blocks = parse_json_code_block(rsp)
         if not json_blocks:
             return []
-        self._references = _IntentDetectReferences.model_validate_json(json_blocks[0])
+        self._references = self.IntentDetectReferences.model_validate_json(json_blocks[0])
 
     async def _get_sops(self):
         intention_list = ""
@@ -296,7 +249,7 @@ class IntentDetect(Action):
         logger.debug(rsp)
         json_blocks = parse_json_code_block(rsp)
         vv = json.loads(json_blocks[0])
-        self._intent_to_sops = [_IntentSOP.model_validate(i) for i in vv]
+        self._intent_to_sops = [self.IntentSOP.model_validate(i) for i in vv]
 
     @staticmethod
     def _message_to_markdown(messages) -> str:
