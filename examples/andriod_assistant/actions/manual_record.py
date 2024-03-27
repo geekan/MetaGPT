@@ -82,8 +82,7 @@ class ManualRecord(Action):
             user_input = "xxx"
             logger.info(
                 "Choose one of the following actions you want to perform on the current screen:\n"
-                "tap, text, long_press, swipe, stop",
-                "blue",
+                "tap, text, long_press, swipe, stop"
             )
 
             while (
@@ -93,15 +92,13 @@ class ManualRecord(Action):
                 and user_input.lower() != ActionOp.SWIPE.value
                 and user_input.lower() != ActionOp.STOP.value
             ):
-                user_input = input()
+                user_input = input("user_input: ")
 
             if user_input.lower() == ActionOp.TAP.value:
-                logger.info(
-                    f"Which element do you want to tap? Choose a numeric tag from 1 to {len(elem_list)}:", "blue"
-                )
+                logger.info(f"Which element do you want to tap? Choose a numeric tag from 1 to {len(elem_list)}:")
                 user_input = "xxx"
                 while not user_input.isnumeric() or int(user_input) > len(elem_list) or int(user_input) < 1:
-                    user_input = input()
+                    user_input = input("user_input: ")
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
                 action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
@@ -109,25 +106,24 @@ class ManualRecord(Action):
             elif user_input.lower() == ActionOp.TEXT.value:
                 logger.info(
                     f"Which element do you want to input the text string? Choose a numeric tag from 1 to "
-                    f"{len(elem_list)}:",
-                    "blue",
+                    f"{len(elem_list)}:"
                 )
                 input_area = "xxx"
                 while not input_area.isnumeric() or int(input_area) > len(elem_list) or int(input_area) < 1:
-                    input_area = input()
-                logger.info("Enter your input text below:", "blue")
+                    input_area = input("user_input: ")
+                logger.info("Enter your input text below:")
                 user_input = ""
                 while not user_input:
-                    user_input = input()
+                    user_input = input("user_input: ")
                 action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=user_input)
                 log_str = f"text({input_area}:sep:'{user_input}'):::{elem_list[int(input_area) - 1].uid}\n"
             elif user_input.lower() == ActionOp.LONG_PRESS.value:
                 logger.info(
-                    f"Which element do you want to long press? Choose a numeric tag from 1 to {len(elem_list)}:", "blue"
+                    f"Which element do you want to long press? Choose a numeric tag from 1 to {len(elem_list)}:"
                 )
                 user_input = "xxx"
                 while not user_input.isnumeric() or int(user_input) > len(elem_list) or int(user_input) < 1:
-                    user_input = input()
+                    user_input = input("user_input: ")
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
                 action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
@@ -135,8 +131,7 @@ class ManualRecord(Action):
             elif user_input.lower() == ActionOp.SWIPE.value:
                 logger.info(
                     "What is the direction of your swipe? Choose one from the following options:\n"
-                    "up, down, left, right",
-                    "blue",
+                    "up, down, left, right"
                 )
                 user_input = ""
                 while (
@@ -145,11 +140,11 @@ class ManualRecord(Action):
                     and user_input != SwipeOp.LEFT.value
                     and user_input != SwipeOp.RIGHT.value
                 ):
-                    user_input = input()
+                    user_input = input("user_input: ")
                 swipe_dir = user_input
                 logger.info(f"Which element do you want to swipe? Choose a numeric tag from 1 to {len(elem_list)}:")
                 while not user_input.isnumeric() or int(user_input) > len(elem_list) or int(user_input) < 1:
-                    user_input = input()
+                    user_input = input("user_input: ")
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
 

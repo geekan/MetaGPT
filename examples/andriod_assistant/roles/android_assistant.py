@@ -47,25 +47,30 @@ class AndroidAssistant(Role):
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,
         run the learn first and then do the act stage or learn it during the action.
         """
-        if config.get_other("stage") == "learn" and config.get_other("mode") == "manual":
+        stage = config.get_other("stage")
+        mode = config.get_other("mode")
+        if stage == "learn" and mode == "manual":
             # choose ManualRecord and then run ParseRecord
             # Remember, only run each action only one time, no need to run n_round.
             self.set_actions([ManualRecord, ParseRecord])
             self.task_dir = data_dir.joinpath(app_name, f"manual_learn_{cur_datetime}")
             self.docs_dir = data_dir.joinpath(app_name, "manual_docs")
-        elif config.get_other("stage") == "learn" and config.get_other("mode") == "auto":
+        elif stage == "learn" and mode == "auto":
             # choose SelfLearnAndReflect to run
             self.set_actions([SelfLearnAndReflect])
             self.task_dir = data_dir.joinpath(app_name, f"auto_learn_{cur_datetime}")
             self.docs_dir = data_dir.joinpath(app_name, "auto_docs")
-        elif config.get_other("stage") == "act":
+        elif stage == "act":
             # choose ScreenshotParse to run
             self.set_actions([ScreenshotParse])
             self.task_dir = data_dir.joinpath(app_name, f"act_{cur_datetime}")
-            if config.get_other("mode") == "manual":
+            if mode == "manual":
                 self.docs_dir = data_dir.joinpath(app_name, "manual_docs")
             else:
                 self.docs_dir = data_dir.joinpath(app_name, "auto_docs")
+        else:
+            raise ValueError(f"invalid stage: {stage}, mode: {mode}")
+
         self._check_dir()
 
         self._set_react_mode(RoleReactMode.BY_ORDER)
@@ -82,10 +87,11 @@ class AndroidAssistant(Role):
 
     async def _observe(self, ignore_memory=True) -> int:
         """ignore old memory to make it run multi rounds inside a role"""
-        newest_msg = self.rc.memory.get(k=1)[0]
-        if RunState.SUCCESS not in newest_msg.content:
+        newest_msgs = self.rc.memory.get(k=1)
+        newest_msg = newest_msgs[0] if newest_msgs else None
+        if newest_msg and (RunState.SUCCESS not in newest_msg.content):
             ignore_memory = False
-            logger.error("Latest action_state is FINISH or FAIL, won't react in remainder rounds", "red")
+            logger.error("Latest action_state is FINISH or FAIL, won't react in remainder rounds")
         return await super()._observe(ignore_memory)
 
     async def _act(self) -> Message:
