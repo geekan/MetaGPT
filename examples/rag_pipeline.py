@@ -189,8 +189,6 @@ class RAGExample:
 
         Query Result:
         Bob likes traveling.
-
-        If `Unclosed client session`, it's llamaindex elasticsearch problem, maybe fixed later.
         """
         self._print_title("Init And Query Elasticsearch")
 
