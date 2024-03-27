@@ -76,7 +76,6 @@ class Team(BaseModel):
 
     def hire(self, roles: list[Role]):
         """Hire roles to cooperate"""
-        roles[0]
         self.env.add_roles(roles)
 
     @property

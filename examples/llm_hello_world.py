@@ -40,15 +40,6 @@ async def main():
     if hasattr(llm, "completion"):
         logger.info(llm.completion(hello_msg))
 
-    # check llm-vision capacity if it supports
-    invoice_path = Path(__file__).parent.joinpath("..", "tests", "data", "invoices", "invoice-2.png")
-    img_base64 = encode_image(invoice_path)
-    try:
-        res = await llm.aask(msg="if this is a invoice, just return True else return False", images=[img_base64])
-        assert "true" in res.lower()
-    except Exception:
-        pass
-
 
 if __name__ == "__main__":
     asyncio.run(main())
