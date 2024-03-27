@@ -8,16 +8,18 @@ from typing import Any, Optional
 
 from pydantic import Field
 
-from metagpt.const import ADB_EXEC_FAIL
-from metagpt.environment.base_env import (
-    Environment,
-    ExtEnv,
-    mark_as_readable,
-    mark_as_writeable,
+from metagpt.environment.android.const import ADB_EXEC_FAIL
+from metagpt.environment.android.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+    EnvObsValType,
 )
+from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 
 
-class AndroidExtEnv(Environment, ExtEnv):
+class AndroidExtEnv(ExtEnv):
     device_id: Optional[str] = Field(default=None)
     screenshot_dir: Optional[Path] = Field(default=None)
     xml_dir: Optional[Path] = Field(default=None)
@@ -26,10 +28,69 @@ class AndroidExtEnv(Environment, ExtEnv):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        if data.get("device_id"):
+        device_id = data.get("device_id")
+        if device_id:
+            devices = self.list_devices()
+            if device_id not in devices:
+                raise RuntimeError(f"device-id: {device_id} not found")
             (width, height) = self.device_shape
             self.width = data.get("width", width)
             self.height = data.get("height", height)
+
+            self.create_device_path(self.screenshot_dir)
+            self.create_device_path(self.xml_dir)
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        super().reset(seed=seed, options=options)
+
+        obs = self._get_obs()
+
+        return obs, {}
+
+    def _get_obs(self) -> dict[str, EnvObsValType]:
+        pass
+
+    def observe(self, obs_params: Optional[EnvObsParams] = None) -> Any:
+        obs_type = obs_params.obs_type if obs_params else EnvObsType.NONE
+        if obs_type == EnvObsType.NONE:
+            pass
+        elif obs_type == EnvObsType.GET_SCREENSHOT:
+            obs = self.get_screenshot(ss_name=obs_params.ss_name, local_save_dir=obs_params.local_save_dir)
+        elif obs_type == EnvObsType.GET_XML:
+            obs = self.get_xml(xml_name=obs_params.xml_name, local_save_dir=obs_params.local_save_dir)
+        return obs
+
+    def step(self, action: EnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        res = self._execute_env_action(action)
+
+        obs = {}
+
+        ret = (obs, 1.0, False, False, {"res": res})
+        return ret
+
+    def _execute_env_action(self, action: EnvAction):
+        action_type = action.action_type
+        res = None
+        if action_type == EnvActionType.NONE:
+            pass
+        elif action_type == EnvActionType.SYSTEM_BACK:
+            res = self.system_back()
+        elif action_type == EnvActionType.SYSTEM_TAP:
+            res = self.system_tap(x=action.coord[0], y=action.coord[1])
+        elif action_type == EnvActionType.USER_INPUT:
+            res = self.user_input(input_txt=action.input_txt)
+        elif action_type == EnvActionType.USER_LONGPRESS:
+            res = self.user_longpress(x=action.coord[0], y=action.coord[1])
+        elif action_type == EnvActionType.USER_SWIPE:
+            res = self.user_swipe(x=action.coord[0], y=action.coord[1], orient=action.orient, dist=action.dist)
+        elif action_type == EnvActionType.USER_SWIPE_TO:
+            res = self.user_swipe_to(start=action.coord, end=action.tgt_coord)
+        return res
 
     @property
     def adb_prefix_si(self):
@@ -53,6 +114,12 @@ class AndroidExtEnv(Environment, ExtEnv):
         if not res.returncode:
             exec_res = res.stdout.strip()
         return exec_res
+
+    def create_device_path(self, folder_path: Path):
+        adb_cmd = f"{self.adb_prefix_shell} mkdir {folder_path} -p"
+        res = self.execute_adb_with_cmd(adb_cmd)
+        if res == ADB_EXEC_FAIL:
+            raise RuntimeError(f"create device path: {folder_path} failed")
 
     @property
     def device_shape(self) -> tuple[int, int]:
