@@ -28,11 +28,9 @@ RECORD_PATH = TASK_PATH.joinpath("record.txt")
 TASK_DESC_PATH = TASK_PATH.joinpath("task_desc.txt")
 DOCS_DIR = TASK_PATH.joinpath("storage")
 
-testaction = Action(name="test")
+test_action = Action(name="test")
 
 
-# TODO test for parse record
-# 仅使用一张图像进行测试
 async def manual_test():
     img_before_base64 = encode_image(TEST_BEFORE_PATH)
     img_after_base64 = encode_image(TEST_AFTER_PATH)
@@ -90,10 +88,9 @@ async def manual_test():
         logger.info(f"Waiting for GPT-4V to generate documentation for the element {resource_id}")
 
         node = await RECORD_PARSE_NODE.fill(
-            context=context, llm=testaction.llm, images=[img_before_base64, img_after_base64]
+            context=context, llm=test_action.llm, images=[img_before_base64, img_after_base64]
         )
 
-        # log_path = task_dir.joinpath(f"log_{app_name}_{demo_name}.txt")
         node.compile(context=context, schema="json", mode="auto")
         msg = node.content
         doc_content[action_type] = msg
