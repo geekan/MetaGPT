@@ -12,34 +12,40 @@ from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
 from examples.andriod_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
 )
+from examples.andriod_assistant.utils.const import ROOT_PATH
 from metagpt.environment.android_env.android_env import AndroidEnv
 
-TASK_PATH = Path("apps/Contacts")
+TASK_PATH = ROOT_PATH.joinpath("unitest_Contacts")
 DEMO_NAME = str(time.time())
-SELF_EXPLORE_DOC_PATH = TASK_PATH.joinpath("autodocs")
-PARSE_RECORD_DOC_PATH = TASK_PATH.joinpath("demodocs")
+SELF_EXPLORE_DOC_PATH = TASK_PATH.joinpath("auto_docs")
+PARSE_RECORD_DOC_PATH = TASK_PATH.joinpath("demo_docs")
+
+device_id = "emulator-5554"
+xml_dir = Path("/sdcard")
+screenshot_dir = Path("/sdcard/Pictures/Screenshots")
 
 test_env_self_learn_android = AndroidEnv(
-    device_id="emulator-5554",
-    xml_dir=Path("/sdcard"),
-    screenshot_dir=Path("/sdcard/Pictures/Screenshots"),
+    device_id=device_id,
+    xml_dir=xml_dir,
+    screenshot_dir=screenshot_dir,
 )
 test_self_learning = SelfLearnAndReflect()
 
 test_env_manual_learn_android = AndroidEnv(
-    device_id="emulator-5554",
-    xml_dir=Path("/sdcard"),
-    screenshot_dir=Path("/sdcard/Pictures/Screenshots"),
+    device_id=device_id,
+    xml_dir=xml_dir,
+    screenshot_dir=screenshot_dir,
 )
 test_manual_record = ManualRecord()
 test_manual_parse = ParseRecord()
 
 test_env_screenshot_parse_android = AndroidEnv(
-    device_id="emulator-5554",
-    xml_dir=Path("/sdcard"),
-    screenshot_dir=Path("/sdcard/Pictures/Screenshots"),
+    device_id=device_id,
+    xml_dir=xml_dir,
+    screenshot_dir=screenshot_dir,
 )
 test_screenshot_parse = ScreenshotParse()
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

@@ -14,6 +14,7 @@ from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
 from examples.andriod_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
 )
+from examples.andriod_assistant.utils.const import ROOT_PATH
 from examples.andriod_assistant.utils.schema import AndroidActionOutput, RunState
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.config2 import config
@@ -40,8 +41,7 @@ class AndroidAssistant(Role):
         self._watch([UserRequirement, AndroidActionOutput])
         self.task_desc = config.get_other("task_desc", "Just explore any app in this phone!")
         app_name = config.get_other("app_name", "demo")
-        curr_path = Path(__file__).parent
-        data_dir = curr_path.joinpath("..", "output")
+        data_dir = ROOT_PATH.joinpath("output")
         cur_datetime = datetime.fromtimestamp(int(time.time())).strftime("%Y-%m-%d_%H-%M-%S")
 
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,

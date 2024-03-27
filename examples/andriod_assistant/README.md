@@ -17,13 +17,13 @@ pip install -r requirements.txt
 By designating the app to explore and the method of learning (automatic or manual demonstration), you can facilitate Android Assistant to master the functions of various apps, thereby generating respective documentation for later use during the phase termed as "Automation of routine tasks". For any given task objective, conducting approximately 20 cycles of exploration can considerably enhance the performance. You can experiment with both the automatic learning and manual demonstration modes for the "contacts" app by implementing the ensuing commands:
 
 ```bash
-python run_assistant.py "your task description" --stage "learn" --mode "auto/manual" --app-name "Contacts"
+python run_assistant.py "your task description" --stage "learn" --mode "auto or manual" --app-name "Contacts"
 ```
 ## Free Your Hands
 Once the Android Assistant has completed ample exploration, you are all set to automate your tasks! By utilizing either text description or voice input, you can instruct the Android Assistant to perform the desired tasks across various applications. For the specific command processes, please see the following recommendations:
 ### By Text
 ```bash
-python run_assistant.py "your task description" --stage "act" --mode "auto/manual" --app-name "app names"
+python run_assistant.py "your task description" --stage "act" --mode "auto or manual" --app-name "app names"
 ```
 ### By Voice
 coming soon

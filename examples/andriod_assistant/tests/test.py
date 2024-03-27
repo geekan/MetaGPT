@@ -5,7 +5,6 @@
 import ast
 import asyncio
 import re
-from pathlib import Path
 
 from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
 from examples.andriod_assistant.prompts.operation_prompt import (
@@ -15,17 +14,19 @@ from examples.andriod_assistant.prompts.operation_prompt import (
     tap_doc_template,
     text_doc_template,
 )
+from examples.andriod_assistant.utils.const import ROOT_PATH
 from examples.andriod_assistant.utils.schema import ActionOp, SwipeOp
 from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.common import encode_image
 
-TEST_BEFORE_PATH = Path("apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_1.png")
-TEST_AFTER_PATH = Path("apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_2.png")
-RECORD_PATH = Path("apps/demo_Contacts/record.txt")
-TASK_DESC_PATH = Path("apps/demo_Contacts/task_desc.txt")
-DOCS_DIR = Path("storage")
+TASK_PATH = ROOT_PATH.parent.joinpath("data/demo_Contacts")
+TEST_BEFORE_PATH = TASK_PATH.joinpath("labeled_screenshots/demo_Contacts_2024-01-24_12-07-55_3.png")
+TEST_AFTER_PATH = TASK_PATH.joinpath("labeled_screenshots/demo_Contacts_2024-01-24_12-07-55_4.png")
+RECORD_PATH = TASK_PATH.joinpath("record.txt")
+TASK_DESC_PATH = TASK_PATH.joinpath("task_desc.txt")
+DOCS_DIR = TASK_PATH.joinpath("storage")
 
 testaction = Action(name="test")
 
