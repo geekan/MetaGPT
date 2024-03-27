@@ -160,8 +160,7 @@ class SelfLearnAndReflect(Action):
                 action = "h_swipe"
         else:
             # TODO Test for assignment, This error is eupiped with the next.
-            logger.info(f"Warning: current action name:{self.act_name}")
-            logger.info("Warning: act_name parse wrong!")
+            logger.warning(f"Current action name parse failed, it's `{self.act_name}`")
             action = None
         context = reflect_template.format(
             action=action, ui_element=str(self.ui_area), task_desc=task_desc, last_act=last_act
