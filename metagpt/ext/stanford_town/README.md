@@ -1,7 +1,7 @@
 ## Stanford Town Game
 
 ### Pre-Description
-In order to facilitate GA( [generative_agents](https://github.com/joonspk-research/generative_agents) )'s frontend docking data (to avoid changing its code), you can set the value `temp_storage_path` to `temp_storage` of `generative_agents` when start `run_st_game.py`. like 
+In order to facilitate GA( [generative_agents](https://github.com/joonspk-research/generative_agents) )'s frontend docking data (to avoid changing its code), you can set the value `temp_storage_path` to `temp_storage` of `generative_agents` when start `run_st_game.py`. like
 
 `python3 run_st_game.py --temp_storage_path path/to/ga/temp_storage xxx`  
 
