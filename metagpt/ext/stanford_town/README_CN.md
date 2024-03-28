@@ -1,15 +1,15 @@
 ## Stanford Town Game
 
 ### 前置
-`examples/stanford_town/utils/const.py`配置的路径为当前项目的存储路径，为了方便GA（ [generative_agents](https://github.com/joonspk-research/generative_agents) ）的前端对接数据（避免改动它那块的代码），可在启动`run_st_game.py`加上`temp_storage_path`指向`generative_agents`对应的`temp_storage`路径。比如
+为了方便GA（ [generative_agents](https://github.com/joonspk-research/generative_agents) ）的前端对接数据（避免改动它那块的代码），可在启动`run_st_game.py`加上`temp_storage_path`指向`generative_agents`对应的`temp_storage`路径。比如
 
 `python3 run_st_game.py --temp_storage_path path/to/ga/temp_storage xxx`   
 
 或将`const.py`下的
 
 ```
-STORAGE_PATH = ROOT_PATH.joinpath("storage")
-TEMP_STORAGE_PATH = ROOT_PATH.joinpath("temp_storage")
+STORAGE_PATH = EXAMPLE_PATH.joinpath("storage")
+TEMP_STORAGE_PATH = EXAMPLE_PATH.joinpath("temp_storage")
 # 更新为
 STORAGE_PATH = Path("{path/to/ga/storage}")
 TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
