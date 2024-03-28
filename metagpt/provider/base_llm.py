@@ -28,7 +28,6 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
-from metagpt.utils.stream_pipe import StreamPipe
 
 
 class BaseLLM(ABC):
@@ -43,7 +42,6 @@ class BaseLLM(ABC):
     cost_manager: Optional[CostManager] = None
     model: Optional[str] = None  # deprecated
     pricing_plan: Optional[str] = None
-    stream_pipe: Optional[StreamPipe] = None
 
     @abstractmethod
     def __init__(self, config: LLMConfig):

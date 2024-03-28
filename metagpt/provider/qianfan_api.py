@@ -124,8 +124,6 @@ class QianFanLLM(BaseLLM):
             content = chunk.body.get("result", "")
             usage = chunk.body.get("usage", {})
             log_llm_stream(content)
-            if self.stream_pipe:
-                self.stream_pipe.set_message(content)
             collected_content.append(content)
         log_llm_stream("\n")
 

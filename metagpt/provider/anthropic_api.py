@@ -62,9 +62,6 @@ class AnthropicLLM(BaseLLM):
             elif event_type == "content_block_delta":
                 content = event.delta.text
                 log_llm_stream(content)
-                if self.stream_pipe:
-                    self.stream_pipe.set_message(content)
-
                 collected_content.append(content)
             elif event_type == "message_delta":
                 usage.output_tokens = event.usage.output_tokens  # update final output_tokens

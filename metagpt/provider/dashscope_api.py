@@ -221,8 +221,6 @@ class DashScopeLLM(BaseLLM):
             content = chunk.output.choices[0]["message"]["content"]
             usage = dict(chunk.usage)  # each chunk has usage
             log_llm_stream(content)
-            if self.stream_pipe:
-                self.stream_pipe.set_message(content)
             collected_content.append(content)
         log_llm_stream("\n")
         self._update_costs(usage)

@@ -83,8 +83,6 @@ class OllamaLLM(BaseLLM):
                 content = self.get_choice_text(chunk)
                 collected_content.append(content)
                 log_llm_stream(content)
-                if self.stream_pipe:
-                    self.stream_pipe.set_message(content)
             else:
                 # stream finished
                 usage = self.get_usage(chunk)

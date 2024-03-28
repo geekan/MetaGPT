@@ -39,8 +39,6 @@ from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
-from metagpt.utils.stream_pipe import StreamPipe
-
 
 if TYPE_CHECKING:
     from metagpt.environment import Environment  # noqa: F401
@@ -140,8 +138,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     role_id: str = ""
     states: list[str] = []
-
-    stream_pipe: Optional[StreamPipe] = None
 
     # scenarios to set action system_prompt:
     #   1. `__init__` while using Role(actions=[...])

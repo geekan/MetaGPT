@@ -149,8 +149,6 @@ class GeminiLLM(BaseLLM):
                 logger.warning(f"messages: {messages}\nerrors: {e}\n{BlockedPromptException(str(chunk))}")
                 raise BlockedPromptException(str(chunk))
             log_llm_stream(content)
-            if self.stream_pipe:
-                self.stream_pipe.set_message(content)
             collected_content.append(content)
         log_llm_stream("\n")
 
