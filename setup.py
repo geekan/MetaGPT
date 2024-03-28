@@ -39,6 +39,7 @@ extras_require = {
         "llama-index-vector-stores-elasticsearch==0.1.6",
         "llama-index-vector-stores-chroma==0.1.6",
     ],
+    "web-api": ["flask==3.0.2"],
 }
 
 extras_require["test"] = [
