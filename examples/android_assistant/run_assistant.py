@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : the entry of android assistant including learning and acting stage
+#           See the usage README inside `metagpt/ext/android_assistant`
 
 import asyncio
 from pathlib import Path

@@ -64,7 +64,7 @@ async def test_ext_env():
     _ = await env.write_thru_api(EnvAPIAbstract(api_name="write_api", kwargs={"a": 5, "b": 10}))
     assert env.value == 15
 
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         await env.read_from_api("not_exist_api")
 
     assert await env.read_from_api("read_api_no_param") == 15
