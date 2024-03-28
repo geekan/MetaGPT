@@ -7,23 +7,23 @@ import ast
 import re
 from pathlib import Path
 
-from examples.android_assistant.actions.parse_record_an import RECORD_PARSE_NODE
-from examples.android_assistant.prompts.operation_prompt import (
+from metagpt.actions.action import Action
+from metagpt.config2 import config
+from metagpt.ext.android_assistant.actions.parse_record_an import RECORD_PARSE_NODE
+from metagpt.ext.android_assistant.prompts.operation_prompt import (
     long_press_doc_template,
     refine_doc_suffix,
     swipe_doc_template,
     tap_doc_template,
     text_doc_template,
 )
-from examples.android_assistant.utils.schema import (
+from metagpt.ext.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     RecordLogItem,
     RunState,
     SwipeOp,
 )
-from metagpt.actions.action import Action
-from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.common import encode_image
 

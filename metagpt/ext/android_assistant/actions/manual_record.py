@@ -6,25 +6,25 @@ from pathlib import Path
 
 import cv2
 
-from examples.android_assistant.utils.const import ADB_EXEC_FAIL
-from examples.android_assistant.utils.schema import (
+from metagpt.actions.action import Action
+from metagpt.config2 import config
+from metagpt.environment.android.android_env import AndroidEnv
+from metagpt.environment.android.const import ADB_EXEC_FAIL
+from metagpt.environment.android.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
+from metagpt.ext.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     RunState,
     SwipeOp,
 )
-from examples.android_assistant.utils.utils import (
+from metagpt.ext.android_assistant.utils.utils import (
     draw_bbox_multi,
     elem_list_from_xml_tree,
-)
-from metagpt.actions.action import Action
-from metagpt.config2 import config
-from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.android_env.env_space import (
-    EnvAction,
-    EnvActionType,
-    EnvObsParams,
-    EnvObsType,
 )
 from metagpt.logs import logger
 

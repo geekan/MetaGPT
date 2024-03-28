@@ -9,11 +9,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import pytest
-<<<<<<< HEAD
 from pydantic import BaseModel, Field, ValidationError
-=======
-from pydantic import ValidationError
->>>>>>> 7f8ae1f2 (update gpt4-v)
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode

@@ -8,16 +8,16 @@ from typing import Optional
 
 from pydantic import Field
 
-from examples.android_assistant.actions.manual_record import ManualRecord
-from examples.android_assistant.actions.parse_record import ParseRecord
-from examples.android_assistant.actions.screenshot_parse import ScreenshotParse
-from examples.android_assistant.actions.self_learn_and_reflect import (
-    SelfLearnAndReflect,
-)
-from examples.android_assistant.utils.const import ROOT_PATH
-from examples.android_assistant.utils.schema import AndroidActionOutput, RunState
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.config2 import config
+from metagpt.const import EXAMPLE_PATH
+from metagpt.ext.android_assistant.actions.manual_record import ManualRecord
+from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
+from metagpt.ext.android_assistant.actions.screenshot_parse import ScreenshotParse
+from metagpt.ext.android_assistant.actions.self_learn_and_reflect import (
+    SelfLearnAndReflect,
+)
+from metagpt.ext.android_assistant.utils.schema import AndroidActionOutput, RunState
 from metagpt.logs import logger
 from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
@@ -31,6 +31,7 @@ class AndroidAssistant(Role):
     task_desc: str = ""
     round_count: int = 0
     last_act: str = ""
+    output_root_dir: Optional[Path] = Field(default=None)
     task_dir: Optional[Path] = Field(default=None)
     docs_dir: Optional[Path] = Field(default=None)
     grid_on: bool = Field(default=False)
@@ -41,7 +42,7 @@ class AndroidAssistant(Role):
         self._watch([UserRequirement, AndroidActionOutput])
         self.task_desc = config.get_other("task_desc", "Just explore any app in this phone!")
         app_name = config.get_other("app_name", "demo")
-        data_dir = ROOT_PATH.joinpath("output")
+        data_dir = self.output_root_dir.absolute() or EXAMPLE_PATH.joinpath("android_assistant/output")
         cur_datetime = datetime.fromtimestamp(int(time.time())).strftime("%Y-%m-%d_%H-%M-%S")
 
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,

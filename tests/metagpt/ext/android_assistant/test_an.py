@@ -6,16 +6,17 @@ import asyncio
 import time
 from pathlib import Path
 
-from examples.android_assistant.actions.manual_record import ManualRecord
-from examples.android_assistant.actions.parse_record import ParseRecord
-from examples.android_assistant.actions.screenshot_parse import ScreenshotParse
-from examples.android_assistant.actions.self_learn_and_reflect import (
+from metagpt.const import TEST_DATA_PATH
+from metagpt.environment.android.android_env import AndroidEnv
+from metagpt.ext.android_assistant.actions.manual_record import ManualRecord
+from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
+from metagpt.ext.android_assistant.actions.screenshot_parse import ScreenshotParse
+from metagpt.ext.android_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
 )
-from examples.android_assistant.utils.const import ROOT_PATH
-from metagpt.environment.android_env.android_env import AndroidEnv
 
-TASK_PATH = ROOT_PATH.joinpath("unitest_Contacts")
+TASK_PATH = TEST_DATA_PATH.joinpath("andriod_assistant/unitest_Contacts")
+TASK_PATH.mkdir(parents=True, exist_ok=True)
 DEMO_NAME = str(time.time())
 SELF_EXPLORE_DOC_PATH = TASK_PATH.joinpath("auto_docs")
 PARSE_RECORD_DOC_PATH = TASK_PATH.joinpath("demo_docs")

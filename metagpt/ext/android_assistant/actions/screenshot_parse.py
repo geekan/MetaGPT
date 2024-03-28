@@ -5,13 +5,24 @@
 import ast
 from pathlib import Path
 
-from examples.android_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.android_assistant.prompts.assistant_prompt import (
+from metagpt.actions.action import Action
+from metagpt.config2 import config
+from metagpt.environment.android.android_env import AndroidEnv
+from metagpt.environment.android.const import ADB_EXEC_FAIL
+from metagpt.environment.android.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
+from metagpt.ext.android_assistant.actions.screenshot_parse_an import (
+    SCREENSHOT_PARSE_NODE,
+)
+from metagpt.ext.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
-from examples.android_assistant.utils.const import ADB_EXEC_FAIL
-from examples.android_assistant.utils.schema import (
+from metagpt.ext.android_assistant.utils.schema import (
     AndroidActionOutput,
     AndroidElement,
     GridOp,
@@ -25,22 +36,13 @@ from examples.android_assistant.utils.schema import (
     TapOp,
     TextOp,
 )
-from examples.android_assistant.utils.utils import (
+from metagpt.ext.android_assistant.utils.utils import (
     area_to_xy,
     draw_bbox_multi,
     draw_grid,
     elem_bbox_to_xy,
     screenshot_parse_extract,
     traverse_xml_tree,
-)
-from metagpt.actions.action import Action
-from metagpt.config2 import config
-from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.android_env.env_space import (
-    EnvAction,
-    EnvActionType,
-    EnvObsParams,
-    EnvObsType,
 )
 from metagpt.logs import logger
 from metagpt.utils.common import encode_image

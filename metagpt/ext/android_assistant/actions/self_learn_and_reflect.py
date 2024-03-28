@@ -5,18 +5,29 @@
 import ast
 from pathlib import Path
 
-from examples.android_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.android_assistant.actions.self_learn_reflect_an import (
+from metagpt.actions.action import Action
+from metagpt.config2 import config
+from metagpt.environment.android.android_env import AndroidEnv
+from metagpt.environment.android.const import ADB_EXEC_FAIL
+from metagpt.environment.android.env_space import (
+    EnvAction,
+    EnvActionType,
+    EnvObsParams,
+    EnvObsType,
+)
+from metagpt.ext.android_assistant.actions.screenshot_parse_an import (
+    SCREENSHOT_PARSE_NODE,
+)
+from metagpt.ext.android_assistant.actions.self_learn_reflect_an import (
     SELF_LEARN_REFLECT_NODE,
 )
-from examples.android_assistant.prompts.assistant_prompt import (
+from metagpt.ext.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_reflect_template as reflect_template,
 )
-from examples.android_assistant.prompts.assistant_prompt import (
+from metagpt.ext.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_template,
 )
-from examples.android_assistant.utils.const import ADB_EXEC_FAIL
-from examples.android_assistant.utils.schema import (
+from metagpt.ext.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     AndroidElement,
@@ -31,21 +42,12 @@ from examples.android_assistant.utils.schema import (
     TapOp,
     TextOp,
 )
-from examples.android_assistant.utils.utils import (
+from metagpt.ext.android_assistant.utils.utils import (
     draw_bbox_multi,
     elem_bbox_to_xy,
     elem_list_from_xml_tree,
     reflect_parse_extarct,
     screenshot_parse_extract,
-)
-from metagpt.actions.action import Action
-from metagpt.config2 import config
-from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.environment.android_env.env_space import (
-    EnvAction,
-    EnvActionType,
-    EnvObsParams,
-    EnvObsType,
 )
 from metagpt.logs import logger
 from metagpt.utils.common import encode_image

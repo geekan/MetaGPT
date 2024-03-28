@@ -7,9 +7,9 @@ from pathlib import Path
 
 import typer
 
-from examples.android_assistant.roles.android_assistant import AndroidAssistant
 from metagpt.config2 import config
-from metagpt.environment.android_env.android_env import AndroidEnv
+from metagpt.environment.android.android_env import AndroidEnv
+from metagpt.ext.android_assistant.roles.android_assistant import AndroidAssistant
 from metagpt.team import Team
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -61,7 +61,7 @@ def startup(
         )
     )
 
-    team.hire([AndroidAssistant()])
+    team.hire([AndroidAssistant(output_root_dir=Path(__file__))])
     team.invest(investment)
     team.run_project(idea=task_desc)
     asyncio.run(team.run(n_round=n_round))

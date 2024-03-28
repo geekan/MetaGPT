@@ -4,11 +4,11 @@
 
 import asyncio
 
-from examples.android_assistant.actions.parse_record import ParseRecord
-from examples.android_assistant.utils.const import ROOT_PATH
 from metagpt.actions.action import Action
+from metagpt.const import TEST_DATA_PATH
+from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
 
-TASK_PATH = ROOT_PATH.parent.joinpath("data/demo_Contacts")
+TASK_PATH = TEST_DATA_PATH.joinpath("andriod_assistant/demo_Contacts")
 TEST_BEFORE_PATH = TASK_PATH.joinpath("labeled_screenshots/0_labeled.png")
 TEST_AFTER_PATH = TASK_PATH.joinpath("labeled_screenshots/1_labeled.png")
 RECORD_PATH = TASK_PATH.joinpath("record.txt")
