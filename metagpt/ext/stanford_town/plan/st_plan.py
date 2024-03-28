@@ -448,7 +448,7 @@ async def generate_new_decomp_schedule(
     count = 0  # enumerate count
     truncated_fin = False
 
-    print("DEBUG::: ", scratch.name)
+    logger.debug(f"DEBUG::: {scratch.name}")
     for act, dur in scratch.f_daily_schedule:
         if (dur_sum >= start_hour * 60) and (dur_sum < end_hour * 60):
             main_act_dur += [[act, dur]]
@@ -463,7 +463,7 @@ async def generate_new_decomp_schedule(
                 )  # DEC 7 DEBUG;.. is the +1 the right thing to do???
                 # DEC 7 DEBUG;.. is the +1 the right thing to do???
                 # truncated_act_dur[-1][-1] -= (dur_sum - today_min_pass + 1)
-                print("DEBUG::: ", truncated_act_dur)
+                logger.debug(f"DEBUG::: {truncated_act_dur}")
 
                 # DEC 7 DEBUG;.. is the +1 the right thing to do???
                 # truncated_act_dur[-1][-1] -= (dur_sum - today_min_pass)
@@ -550,10 +550,6 @@ async def _long_term_planning(role: "STRole", new_day: bool):
         created, expiration, s, p, o, thought, keywords, thought_poignancy, thought_embedding_pair, None
     )
 
-    # print("Sleeping for 20 seconds...")
-    # time.sleep(10)
-    # print("Done sleeping!")
-
 
 async def _determine_action(role: "STRole"):
     """
@@ -636,22 +632,20 @@ async def _determine_action(role: "STRole"):
     # Generate an <Action> instance from the action description and duration. By
     # this point, we assume that all the relevant actions are decomposed and
     # ready in f_daily_schedule.
-    print("DEBUG LJSDLFSKJF")
+    logger.debug("DEBUG LJSDLFSKJF")
     for i in role.scratch.f_daily_schedule:
-        print(i)
-    print(curr_index)
-    print(len(role.scratch.f_daily_schedule))
-    print(role.scratch.name)
-    print("------")
+        logger.debug(i)
+    logger.debug(curr_index)
+    logger.debug(len(role.scratch.f_daily_schedule))
+    logger.debug(role.scratch.name)
 
     # 1440
     x_emergency = 0
     for i in role.scratch.f_daily_schedule:
         x_emergency += i[1]
-    # print ("x_emergency", x_emergency)
 
     if 1440 - x_emergency > 0:
-        print("x_emergency__AAA", x_emergency)
+        logger.info(f"x_emergency__AAA: {x_emergency}")
     role.scratch.f_daily_schedule += [["sleeping", 1440 - x_emergency]]
 
     act_desp, act_dura = role.scratch.f_daily_schedule[curr_index]
@@ -675,14 +669,12 @@ def revise_identity(role: "STRole"):
         for i in val:
             statements += f"{i.created.strftime('%A %B %d -- %H:%M %p')}: {i.embedding_key}\n"
 
-    # print (";adjhfno;asdjao;idfjo;af", p_name)
     plan_prompt = statements + "\n"
     plan_prompt += f"Given the statements above, is there anything that {p_name} should remember as they plan for"
     plan_prompt += f" *{role.scratch.curr_time.strftime('%A %B %d')}*? "
     plan_prompt += "If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement)\n\n"
     plan_prompt += f"Write the response from {p_name}'s perspective."
     plan_note = LLM().ask(plan_prompt)
-    # print (plan_note)
 
     thought_prompt = statements + "\n"
     thought_prompt += (
@@ -690,7 +682,6 @@ def revise_identity(role: "STRole"):
     )
     thought_prompt += f"Write the response from {p_name}'s perspective."
     thought_note = LLM().ask(thought_prompt)
-    # print (thought_note)
 
     currently_prompt = (
         f"{p_name}'s status from {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n"
@@ -701,11 +692,7 @@ def revise_identity(role: "STRole"):
     currently_prompt += f"It is now {role.scratch.curr_time.strftime('%A %B %d')}. Given the above, write {p_name}'s status for {role.scratch.curr_time.strftime('%A %B %d')} that reflects {p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}. Write this in third-person talking about {p_name}."
     currently_prompt += "If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement).\n\n"
     currently_prompt += "Follow this format below:\nStatus: <new status>"
-    # print ("DEBUG ;adjhfno;asdjao;asdfsidfjo;af", p_name)
-    # print (currently_prompt)
     new_currently = LLM().ask(currently_prompt)
-    # print (new_currently)
-    # print (new_currently[10:])
 
     role.scratch.currently = new_currently
 
@@ -716,5 +703,4 @@ def revise_identity(role: "STRole"):
 
     new_daily_req = LLM().ask(daily_req_prompt)
     new_daily_req = new_daily_req.replace("\n", " ")
-    print("WE ARE HERE!!!", new_daily_req)
     role.scratch.daily_plan_req = new_daily_req
