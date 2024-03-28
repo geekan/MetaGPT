@@ -47,10 +47,8 @@ class ManualRecord(Action):
         self.screenshot_before_path = Path(task_dir) / "raw_screenshots"
         self.screenshot_after_path = Path(task_dir) / "labeled_screenshots"
         self.xml_path = Path(task_dir) / "xml"
-
         for path in [self.screenshot_before_path, self.screenshot_after_path, self.xml_path]:
-            if not path.exists():
-                path.mkdir(parents=True, exist_ok=True)
+            path.mkdir(parents=True, exist_ok=True)
 
         self.record_path.write_text("")
         record_file = open(self.record_path, "w")

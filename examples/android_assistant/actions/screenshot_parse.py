@@ -100,8 +100,7 @@ class ScreenshotParse(Action):
         env: AndroidEnv,
     ):
         for path in [task_dir, docs_dir]:
-            if not path.exists():
-                path.mkdir(parents=True, exist_ok=True)
+            path.mkdir(parents=True, exist_ok=True)
         screenshot_path: Path = env.observe(
             EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_before", local_save_dir=task_dir)
         )
