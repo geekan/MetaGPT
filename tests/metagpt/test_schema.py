@@ -349,6 +349,15 @@ class TestPlan:
         plan._update_current_task()
         assert plan.current_task_id == "2"
 
+    def test_finish_all_task(self):
+        task1 = Task(task_id="1", is_finished=True)
+        task2 = Task(task_id="2")
+        task3 = Task(task_id="3")
+        plan = Plan(goal="Test", tasks=[task1, task2, task3])
+        plan.finished_all_tasks()
+        assert len(plan.get_finished_tasks()) == 3
+        assert plan.current_task_id == "3"
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

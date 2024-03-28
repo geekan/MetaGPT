@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Iterable, Literal, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -283,7 +283,13 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.actions.append(i)
             self.states.append(f"{len(self.actions) - 1}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
+    def _set_react_mode(
+        self,
+        react_mode: str,
+        max_react_loop: int = 1,
+        review_type: Literal["human", "llm", "disabled"] = "llm",
+        use_tools: bool = False,
+    ):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -304,7 +310,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
-            self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run)
+            self.planner = Planner(
+                goal=self.goal, working_memory=self.rc.working_memory, review_type=review_type, use_tools=use_tools
+            )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
