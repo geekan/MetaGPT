@@ -22,7 +22,7 @@ class EnvAPIRegistry(BaseModel):
 
     def get(self, api_name: str):
         if api_name not in self.registry:
-            raise ValueError
+            raise KeyError(f"api_name: {api_name} not found")
         return self.registry.get(api_name)
 
     def __getitem__(self, api_name: str) -> Callable:
