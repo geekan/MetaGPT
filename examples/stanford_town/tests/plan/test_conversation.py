@@ -11,7 +11,7 @@ from examples.stanford_town.roles.st_role import STRole
 from examples.stanford_town.utils.const import MAZE_ASSET_PATH, STORAGE_PATH
 from examples.stanford_town.utils.mg_ga_transform import get_reverie_meta
 from examples.stanford_town.utils.utils import copy_folder
-from metagpt.environment.stanford_town.stanford_town_env import StanfordTownEnv
+from metagpt.environment import StanfordTownEnv
 
 
 async def init_two_roles(fork_sim_code: str = "base_the_ville_isabella_maria_klaus") -> Tuple["STRole"]:
