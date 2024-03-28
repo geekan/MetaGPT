@@ -45,7 +45,12 @@ from metagpt.schema import (
     Documents,
     Message,
 )
-from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set, aread
+from metagpt.utils.common import (
+    any_to_name,
+    any_to_str,
+    any_to_str_set,
+    get_project_srcs_path,
+)
 
 IS_PASS_PROMPT = """
 {context}
@@ -239,8 +244,7 @@ class Engineer(Role):
 
     async def _think(self) -> Action | None:
         if not self.src_workspace:
-            name = await self._get_src_workspace_name()
-            self.src_workspace = self.git_repo.workdir / name
+            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
         write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
@@ -384,10 +388,3 @@ class Engineer(Role):
     def action_description(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
-
-    async def _get_src_workspace_name(self):
-        name = self.git_repo.workdir.name
-        src_workspace_filename = self.git_repo.workdir / ".src_workspace"
-        if src_workspace_filename.exists():
-            name = await aread(filename=src_workspace_filename)
-        return name

@@ -879,3 +879,13 @@ def get_markdown_codeblock_type(filename: str = None, mime_type: str = None) -> 
         "application/xml": "xml",
     }
     return mappings.get(mime_type, "text")
+
+
+def get_project_srcs_path(workdir: str | Path) -> Path:
+    src_workdir_path = workdir / ".src_workspace"
+    if src_workdir_path.exists():
+        with open(src_workdir_path, "r") as file:
+            src_name = file.read()
+    else:
+        src_name = Path(workdir).name
+    return Path(workdir) / src_name
