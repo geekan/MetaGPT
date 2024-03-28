@@ -28,10 +28,17 @@ class AndroidExtEnv(ExtEnv):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        if data.get("device_id"):
+        device_id = data.get("device_id")
+        if device_id:
+            devices = self.list_devices()
+            if device_id not in devices:
+                raise RuntimeError(f"device-id: {device_id} not found")
             (width, height) = self.device_shape
             self.width = data.get("width", width)
             self.height = data.get("height", height)
+
+            self.create_device_path(self.screenshot_dir)
+            self.create_device_path(self.xml_dir)
 
     def reset(
         self,
@@ -101,11 +108,18 @@ class AndroidExtEnv(ExtEnv):
         return f"adb -s {self.device_id} "
 
     def execute_adb_with_cmd(self, adb_cmd: str) -> str:
+        adb_cmd = adb_cmd.replace("\\", "/")
         res = subprocess.run(adb_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         exec_res = ADB_EXEC_FAIL
         if not res.returncode:
             exec_res = res.stdout.strip()
         return exec_res
+
+    def create_device_path(self, folder_path: Path):
+        adb_cmd = f"{self.adb_prefix_shell} mkdir {folder_path} -p"
+        res = self.execute_adb_with_cmd(adb_cmd)
+        if res == ADB_EXEC_FAIL:
+            raise RuntimeError(f"create device path: {folder_path} failed")
 
     @property
     def device_shape(self) -> tuple[int, int]:
