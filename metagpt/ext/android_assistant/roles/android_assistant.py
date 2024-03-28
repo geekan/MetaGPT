@@ -42,7 +42,9 @@ class AndroidAssistant(Role):
         self._watch([UserRequirement, AndroidActionOutput])
         self.task_desc = config.get_other("task_desc", "Just explore any app in this phone!")
         app_name = config.get_other("app_name", "demo")
-        data_dir = self.output_root_dir.absolute() or EXAMPLE_PATH.joinpath("android_assistant/output")
+        data_dir = self.output_root_dir.absolute().joinpath("output") or EXAMPLE_PATH.joinpath(
+            "android_assistant/output"
+        )
         cur_datetime = datetime.fromtimestamp(int(time.time())).strftime("%Y-%m-%d_%H-%M-%S")
 
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,

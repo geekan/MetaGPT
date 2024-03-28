@@ -62,7 +62,7 @@ def startup(
         )
     )
 
-    team.hire([AndroidAssistant(output_root_dir=Path(__file__))])
+    team.hire([AndroidAssistant(output_root_dir=Path(__file__).parent)])
     team.invest(investment)
     team.run_project(idea=task_desc)
     asyncio.run(team.run(n_round=n_round))
