@@ -13,8 +13,8 @@ from examples.stanford_town.actions.gen_action_details import (
 )
 from examples.stanford_town.roles.st_role import STRole
 from examples.stanford_town.utils.const import MAZE_ASSET_PATH
+from metagpt.environment import StanfordTownEnv
 from metagpt.environment.api.env_api import EnvAPIAbstract
-from metagpt.environment.stanford_town.stanford_town_env import StanfordTownEnv
 
 
 @pytest.mark.asyncio
