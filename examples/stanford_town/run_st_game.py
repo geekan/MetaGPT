@@ -7,15 +7,15 @@ from typing import Optional
 
 import fire
 
-from examples.stanford_town.roles.st_role import STRole
-from examples.stanford_town.stanford_town import StanfordTown
-from examples.stanford_town.utils.const import STORAGE_PATH
-from examples.stanford_town.utils.mg_ga_transform import (
+from metagpt.ext.stanford_town.roles.st_role import STRole
+from metagpt.ext.stanford_town.stanford_town import StanfordTown
+from metagpt.ext.stanford_town.utils.const import STORAGE_PATH
+from metagpt.ext.stanford_town.utils.mg_ga_transform import (
     get_reverie_meta,
     write_curr_sim_code,
     write_curr_step,
 )
-from examples.stanford_town.utils.utils import copy_folder
+from metagpt.ext.stanford_town.utils.utils import copy_folder
 from metagpt.logs import logger
 
 
