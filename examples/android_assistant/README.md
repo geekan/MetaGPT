@@ -1,39 +1,68 @@
-# The Android Assisant
-The Android assistant can learn from your daily operations or automatically learn, and perform App operations according to your instructions, thereby realizing any of your needs on the phone and freeing up your hands.  
+# MetaGPT Android Assistant
 
-## Install
+The MetaGPT Android Assistant is an intelligent assistance tool driven by a multi-modal large language model based on the advanced MetaGPT framework.
+It has the ability to self-learn, mastering users' daily usage patterns through learning, and can automatically complete various application operations according to user instructions, achieving comprehensive liberation of users' hands.
+Next, we will introduce the functions of the MetaGPT Android Assistant and how to use it.
 
-### Device Simulator
-1. Firstly, install ADB on the PC, which enables your PC to interact with Android devices
-2. Connect the Android device to the computer's USB port
-3. If you do not have an Android device, you can download Android Studio and use its Android emulator to carry out the subsequent operations. The steps to install the Android emulator can be found here:[快速安装Android Studio & Simulator](https://dev.weixin.qq.com/docs/framework/dev/framework/env/android-simulator.html)）
+## Features
 
-### Install Requirments
-You can run the following command line:
+The operation of the MetaGPT Android Assistant mainly includes two stages: learning and automatic execution. Below, we introduce the specific features of the MetaGPT Android Assistant from these two stages.
+
+### Learning Stage
+
+By learning from human demonstrations or exploring apps based on human instructions, the MetaGPT Android Assistant can learn the functionality of apps, generate corresponding operation documents for use in the subsequent "automatic execution" stage. Approximately 20 rounds of exploration for any given task objective can significantly improve performance.
+
+By setting the stage to "learn", you can ask the Android Assistant to enter the self-learning stage. By setting the mode to auto, you can instruct the Android Assistant to learn through automatic exploration; by setting the mode to manual, you can instruct the Android Assistant to learn through human manual demonstration. In the usage section, we provide detailed explanations of the script parameters.
+You can try experimenting with automatic exploration and manual demonstration modes on the "Messenger" app with the following commands:
+
 ```bash
-pip install -r requirements.txt
+cd examples/android_assistant
+python run_assistant.py "your task description" --stage "learn" --mode "auto or manual" --app-name "Messenger"
 ```
-## Experiential Learning
-By designating the app to explore and the method of learning (automatic or manual demonstration), you can facilitate Android Assistant to master the functions of various apps, thereby generating respective documentation for later use during the phase termed as "Automation of routine tasks". For any given task objective, conducting approximately 20 cycles of exploration can considerably enhance the performance. You can experiment with both the automatic learning and manual demonstration modes for the "contacts" app by implementing the ensuing commands:
+
+#### Learning Based on Human Demonstration
+When asking the Android Assistant to perform self-exploration during the self-learning stage, you can free your hands. However, when instructing it to learn according to your commands, you need to follow the instructions in the terminal for the Android Assistant to accurately learn your operation methods.
+A possible example is as follows:
 
 ```bash
-python run_assistant.py "your task description" --stage "learn" --mode "auto or manual" --app-name "Contacts"
+cd examples/android_assistant
+python run_assistant.py "Send 'When will we release this feature?' to +86 8888888" --stage "learn" --mode "manual" --app-name "Messenger"
 ```
-## Free Your Hands
-Once the Android Assistant has completed ample exploration, you are all set to automate your tasks! By utilizing either text description or voice input, you can instruct the Android Assistant to perform the desired tasks across various applications. For the specific command processes, please see the following recommendations:
-### By Text
-```bash
-python run_assistant.py "your task description" --stage "act" --mode "auto or manual" --app-name "app names"
-```
-### By Voice
-coming soon
 
-## Run It
-You can run Android Assisant by running the following command line:
+After running this command, you will have a conversation similar to the following in the terminal, directing the Android Assistant to learn your demonstration behavior:
+
 ```bash
-python run_assistant.py "your task description" --stage "your choice(learn or act)" --mode "your choice(auto or manual)" --app-name "app name"
+| INFO     | examples.android_assistant.actions.manual_record:run:96 - Which element do you want to tap? Choose a numeric tag from 1 to 11:
+user_input: 8
+| INFO     | examples.android_assistant.actions.manual_record:run:81 - Choose one of the following actions you want to perform on the current screen:
+tap, text, long_press, swipe, stop
+user_input: tap
 ```
-And the specific parameters are as follows:
+
+### Automatic Execution Stage
+After the Android Assistant completes the learning stage, you can command it to complete tasks on the phone through text descriptions. By configuring the operation documents from the self-learning stage, the Android Assistant has richer prior knowledge, and its execution capabilities are further enhanced.
+You can instruct the Android Assistant to send messages in the "Messenger" app with the following command:
+```bash
+python run_assistant.py "your task description" --stage "act" --mode "auto or manual" --app-name "Messenger"
+```
+Where, selecting mode as auto will cause the Android Assistant to use the operation documents accumulated during self-exploration; selecting mode as manual will cause the Android Assistant to use the operation documents accumulated during human demonstration learning.
+
+## Installation
+To use the Android Assistant, you first need to meet the following conditions:
+1. Complete the installation of the MetaGPT environment.
+2. Install [Android Debug Bridge (ADB)](https://developer.android.com/tools/adb?hl=zh-cn) on your PC, which enables interaction between your PC and Android devices.
+3. Install Android Studio and within it, install the Android emulator to provide an environment for the Android Assistant to learn and execute. For information on how to install the Android emulator, refer to [Quick Installation of Android Studio & Simulator](https://dev.weixin.qq.com/docs/framework/dev/framework/env/android-simulator.html).
+4. (Optional) Connect your Android device to the USB port of your PC, which can also provide an environment for the Android Assistant to learn and execute.
+
+Note ⚠️: When operating with the Android emulator, the emulator model we use is Medium Phone, which is recommended for first-time users to complete the operation.
+
+After completing these operations, you can enter the following command to check if ADB is installed successfully and if the Android device is connected:
+```bash
+adb devices
+```
+
+## Usage
+The MetaGPT Android Assistant is designed within the MetaGPT framework as a collection of Roles and multiple Actions. You can run it by executing the `run_assistant.py` script. The specific parameter description of this script is as follows:
 ```text
 Usage: run_assistant.py [OPTIONS] TASK_DESC
 
@@ -69,3 +98,7 @@ Options:
                                   emulator-5554]
   --help                          Show this message and exit.
 ```
+
+## Acknowledgements
+The MetaGPT Android Assistant has referenced some ideas and code from the [Appagent](https://github.com/mnotgod96/AppAgent) project. We thank the developers of the Appagent project.
+
