@@ -3,7 +3,6 @@
 from llama_index.core.llms import LLM
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
-from llama_index.postprocessor.colbert_rerank import ColbertRerank
 
 from metagpt.rag.factories.base import ConfigBasedFactory
 from metagpt.rag.rankers.object_ranker import ObjectSortPostprocessor
@@ -38,6 +37,12 @@ class RankerFactory(ConfigBasedFactory):
         return LLMRerank(**config.model_dump())
 
     def _create_colbert_ranker(self, config: ColbertRerankConfig, **kwargs) -> LLMRerank:
+        try:
+            from llama_index.postprocessor.colbert_rerank import ColbertRerank
+        except ImportError:
+            raise ImportError(
+                "`llama-index-postprocessor-colbert-rerank` package not found, please run `pip install llama-index-postprocessor-colbert-rerank`"
+            )
         return ColbertRerank(**config.model_dump())
 
     def _create_object_ranker(self, config: ObjectRankerConfig, **kwargs) -> LLMRerank:
