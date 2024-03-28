@@ -267,7 +267,7 @@ class Engineer(Role):
             return self.rc.todo
         return None
 
-    async def _new_coding_context(self, filename, dependency) -> CodingContext:
+    async def _new_coding_context(self, filename, dependency) -> Optional[CodingContext]:
         old_code_doc = await self.project_repo.srcs.get(filename)
         if not old_code_doc:
             old_code_doc = Document(root_path=str(self.project_repo.src_relative_path), filename=filename, content="")
@@ -283,6 +283,8 @@ class Engineer(Role):
             elif str(i.parent) == CODE_PLAN_AND_CHANGE_FILE_REPO:
                 code_plan_and_change_doc = await self.project_repo.docs.code_plan_and_change.get(i.name)
         if not task_doc or not design_doc:
+            if filename == "__init__.py":  # `__init__.py` created by `init_python_folder`
+                return None
             logger.error(f'Detected source code "{filename}" from an unknown origin.')
             raise ValueError(f'Detected source code "{filename}" from an unknown origin.')
         context = CodingContext(
@@ -294,8 +296,10 @@ class Engineer(Role):
         )
         return context
 
-    async def _new_coding_doc(self, filename, dependency):
+    async def _new_coding_doc(self, filename, dependency) -> Optional[Document]:
         context = await self._new_coding_context(filename, dependency)
+        if not context:
+            return None  # `__init__.py` created by `init_python_folder`
         coding_doc = Document(
             root_path=str(self.project_repo.src_relative_path), filename=filename, content=context.model_dump_json()
         )
@@ -352,6 +356,8 @@ class Engineer(Role):
             if filename in changed_files.docs:
                 continue
             coding_doc = await self._new_coding_doc(filename=filename, dependency=dependency)
+            if not coding_doc:
+                continue  # `__init__.py` created by `init_python_folder`
             changed_files.docs[filename] = coding_doc
             self.code_todos.append(WriteCode(i_context=coding_doc, context=self.context, llm=self.llm))
 

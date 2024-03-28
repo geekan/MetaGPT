@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+
+This script defines an action to import a Git repository into the MetaGPT project format, enabling incremental
+ appending of requirements.
+The MetaGPT project format encompasses a structured representation of project data compatible with MetaGPT's
+ capabilities, facilitating the integration of Git repositories into MetaGPT workflows while allowing for the gradual
+ addition of requirements.
+
+"""
 import json
 import re
 from pathlib import Path
@@ -30,11 +39,30 @@ from metagpt.utils.project_repo import ProjectRepo
 
 
 class ImportRepo(Action):
-    repo_path: str
-    graph_db: Optional[GraphRepository] = None
-    rid: str = ""
+    """
+    An action to import a Git repository into a graph database and create related artifacts.
+
+    Attributes:
+        repo_path (str): The URL of the Git repository to import.
+        graph_db (Optional[GraphRepository]): The output graph database of the Git repository.
+        rid (str): The output requirement ID.
+    """
+
+    repo_path: str  # input, git repo url.
+    graph_db: Optional[GraphRepository] = None  # output. graph db of the git repository
+    rid: str = ""  # output, requirement ID.
 
     async def run(self, with_messages: List[Message] = None, **kwargs) -> Message:
+        """
+        Runs the import process for the Git repository.
+
+        Args:
+            with_messages (List[Message], optional): Additional messages to include.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            Message: A message indicating the completion of the import process.
+        """
         await self._create_repo()
         await self._create_prd()
         await self._create_system_design()

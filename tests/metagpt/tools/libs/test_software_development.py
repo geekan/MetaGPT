@@ -12,6 +12,7 @@ from metagpt.tools.libs import (
     write_prd,
     write_project_plan,
 )
+from metagpt.tools.libs.software_development import import_git_repo
 
 
 @pytest.mark.asyncio
@@ -51,6 +52,13 @@ NameError: name 'x' is not defined
 
     git_log = await git_archive(new_path)
     assert git_log
+
+
+@pytest.mark.asyncio
+async def test_import_repo():
+    url = "https://github.com/spec-first/connexion.git"
+    path = await import_git_repo(url)
+    assert path
 
 
 if __name__ == "__main__":
