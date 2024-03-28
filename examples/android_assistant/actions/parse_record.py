@@ -36,12 +36,13 @@ class ParseRecord(Action):
     screenshot_after_path: Path = ""
 
     async def run(self, app_name: str, task_dir: Path, docs_dir: Path):
-        docs_dir.mkdir(parents=True, exist_ok=True)
         doc_count = 0
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
         self.screenshot_before_path = Path(task_dir) / "raw_screenshots"
         self.screenshot_after_path = Path(task_dir) / "labeled_screenshots"
+        for path in [self.screenshot_before_path, self.screenshot_after_path]:
+            path.mkdir(parents=True, exist_ok=True)
 
         task_desc = self.task_desc_path.read_text()
 
