@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import shutil
+import uuid
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List
@@ -16,8 +17,10 @@ from typing import Dict, List
 from git.repo import Repo
 from git.repo.fun import is_git_dir
 from gitignore_parser import parse_gitignore
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.logs import logger
+from metagpt.tools.libs.shell import shell_execute
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
 
@@ -52,7 +55,7 @@ class GitRepository:
         self._dependency = None
         self._gitignore_rules = None
         if local_path:
-            self.open(local_path=local_path, auto_init=auto_init)
+            self.open(local_path=Path(local_path), auto_init=auto_init)
 
     def open(self, local_path: Path, auto_init=False):
         """Open an existing Git repository or initialize a new one if auto_init is True.
@@ -68,7 +71,7 @@ class GitRepository:
         if not auto_init:
             return
         local_path.mkdir(parents=True, exist_ok=True)
-        return self._init(local_path)
+        self._init(local_path)
 
     def _init(self, local_path: Path):
         """Initialize a new Git repository at the specified path.
@@ -248,6 +251,8 @@ class GitRepository:
             if not directory_path.exists():
                 return []
             for file_path in directory_path.iterdir():
+                if not file_path.is_relative_to(root_relative_path):
+                    continue
                 if file_path.is_file():
                     rpath = file_path.relative_to(root_relative_path)
                     files.append(str(rpath))
@@ -283,3 +288,37 @@ class GitRepository:
                 continue
             files.append(filename)
         return files
+
+    @classmethod
+    @retry(wait=wait_random_exponential(min=1, max=15), stop=stop_after_attempt(3))
+    async def clone_from(cls, url: str | Path, output_dir: str | Path = None) -> "GitRepository":
+        from metagpt.context import Context
+
+        to_path = Path(output_dir or Path(__file__).parent / f"../../workspace/downloads/{uuid.uuid4().hex}").resolve()
+        to_path.mkdir(parents=True, exist_ok=True)
+        repo_dir = to_path / Path(url).stem
+        if repo_dir.exists():
+            shutil.rmtree(repo_dir, ignore_errors=True)
+        ctx = Context()
+        env = ctx.new_environ()
+        proxy = ["-c", f"http.proxy={ctx.config.proxy}"] if ctx.config.proxy else []
+        command = ["git", "clone"] + proxy + [str(url)]
+        logger.info(" ".join(command))
+
+        stdout, stderr, return_code = await shell_execute(command=command, cwd=str(to_path), env=env, timeout=600)
+        info = f"{stdout}\n{stderr}\nexit: {return_code}\n"
+        logger.info(info)
+        dir_name = Path(url).stem
+        to_path = to_path / dir_name
+        if not cls.is_git_dir(to_path):
+            raise ValueError(info)
+        logger.info(f"git clone to {to_path}")
+        return GitRepository(local_path=to_path, auto_init=False)
+
+    async def checkout(self, commit_id: str):
+        self._repository.git.checkout(commit_id)
+        logger.info(f"git checkout {commit_id}")
+
+    def log(self) -> str:
+        """Return git log"""
+        return self._repository.git.log()

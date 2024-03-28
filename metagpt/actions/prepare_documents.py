@@ -14,8 +14,6 @@ from typing import Optional
 from metagpt.actions import Action, ActionOutput
 from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.utils.file_repository import FileRepository
-from metagpt.utils.git_repository import GitRepository
-from metagpt.utils.project_repo import ProjectRepo
 
 
 class PrepareDocuments(Action):
@@ -38,8 +36,7 @@ class PrepareDocuments(Action):
         if path.exists() and not self.config.inc:
             shutil.rmtree(path)
         self.config.project_path = path
-        self.context.git_repo = GitRepository(local_path=path, auto_init=True)
-        self.context.repo = ProjectRepo(self.context.git_repo)
+        self.context.set_repo_dir(path)
 
     async def run(self, with_messages, **kwargs):
         """Create and initialize the workspace folder, initialize the Git environment."""
