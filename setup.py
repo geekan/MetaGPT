@@ -87,4 +87,5 @@ setup(
             "metagpt=metagpt.software_company:app",
         ],
     },
+    include_package_data=True,
 )
