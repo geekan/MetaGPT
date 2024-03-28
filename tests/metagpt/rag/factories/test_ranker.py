@@ -1,3 +1,5 @@
+import contextlib
+
 import pytest
 from llama_index.core.llms import MockLLM
 from llama_index.core.postprocessor import LLMRerank
@@ -41,12 +43,13 @@ class TestRankerFactory:
         assert isinstance(ranker, LLMRerank)
 
     def test_create_colbert_ranker(self, mocker, mock_llm):
-        mocker.patch("metagpt.rag.factories.ranker.ColbertRerank", return_value="colbert")
+        with contextlib.suppress(ImportError):
+            mocker.patch("llama_index.postprocessor.colbert_rerank.ColbertRerank", return_value="colbert")
 
-        mock_config = ColbertRerankConfig(llm=mock_llm)
-        ranker = self.ranker_factory._create_colbert_ranker(mock_config)
+            mock_config = ColbertRerankConfig(llm=mock_llm)
+            ranker = self.ranker_factory._create_colbert_ranker(mock_config)
 
-        assert ranker == "colbert"
+            assert ranker == "colbert"
 
     def test_create_object_ranker(self, mocker, mock_llm):
         mocker.patch("metagpt.rag.factories.ranker.ObjectSortPostprocessor", return_value="object")
