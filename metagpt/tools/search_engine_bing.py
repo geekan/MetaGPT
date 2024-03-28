@@ -7,7 +7,6 @@ import warnings
 from typing import Optional
 
 import aiohttp
-
 from pydantic import BaseModel, ConfigDict, model_validator
 
 
@@ -32,11 +31,11 @@ class BingAPIWrapper(BaseModel):
         return {"Ocp-Apim-Subscription-Key": self.api_key}
 
     async def run(
-            self,
-            query: str,
-            max_results: int = 8,
-            as_string: bool = True,
-            focus: list[str] | None = None,
+        self,
+        query: str,
+        max_results: int = 8,
+        as_string: bool = True,
+        focus: list[str] | None = None,
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Bing API.
 
@@ -76,8 +75,9 @@ class BingAPIWrapper(BaseModel):
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get(self.bing_url, params=params, headers=self.header,
-                                           proxy=self.proxy) as response:
+            async with self.aiosession.get(
+                self.bing_url, params=params, headers=self.header, proxy=self.proxy
+            ) as response:
                 response.raise_for_status()
                 res = await response.json()
 
