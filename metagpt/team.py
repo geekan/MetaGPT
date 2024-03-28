@@ -56,8 +56,10 @@ class Team(BaseModel):
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
         team_info_path = stg_path.joinpath("team.json")
+        serialized_data = self.model_dump()
+        serialized_data["context"] = self.env.context.serialize()
 
-        write_json_file(team_info_path, self.model_dump())
+        write_json_file(team_info_path, serialized_data)
 
     @classmethod
     def deserialize(cls, stg_path: Path, context: Context = None) -> "Team":
@@ -71,6 +73,7 @@ class Team(BaseModel):
 
         team_info: dict = read_json_file(team_info_path)
         ctx = context or Context()
+        ctx.deserialize(team_info.pop("context", None))
         team = Team(**team_info, context=ctx)
         return team
 
