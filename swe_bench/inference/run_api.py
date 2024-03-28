@@ -15,7 +15,7 @@ from swe_bench.utils.utils import check_existing_ids, extract_diff
 MAX_TOKEN = 128000
 
 
-async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, use_reflection, **kwargs):
+async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, **kwargs):
     """
     Runs inference on a dataset using the openai API.
 
@@ -95,7 +95,7 @@ async def main(
         "output_file": output_file,
         "existing_ids": existing_ids,
         "use_reflection": use_reflection,
-        "mode": kwargs.get("mode", "test"),
+        "identify_scope": kwargs.get("identify_scope", "no"),
     }
     if model_name_or_path.startswith("gpt"):
         await openai_inference(**inference_args)

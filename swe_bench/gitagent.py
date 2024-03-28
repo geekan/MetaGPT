@@ -11,20 +11,29 @@ from metagpt.schema import Message
 
 IDENTIFY_LINE_RANGES_REQUIREMENT = """
 # Instruction
-Identify the line ranges of the errant code snippets in the provided <code>code</code> blocks based on the given <issue>issue</issue>. If the code is extremely long, focus on the <issue>issue</issue> description to narrow down the areas of concern. The line ranges, provided a list, should be within 50-500 lines and there may be more than one range. In case of uncertainty, output a list containing as many potentially relevant ranges as possible.
+Identify the code files to be modified and their line ranges, provided python dict, in the provided <code>code</code> blocks based on the given <issue>issue</issue> in the Issues and Codes containing accessible code files with {script_names}. If the code is extremely long, focus on the <issue>issue</issue> description to narrow down the areas of concern. The line ranges should be within 50-300 lines and there may be more than one range in every files.
 
 # Think about it by following these steps:
 1. Identify the files containing errors based on the <issue>issue</issue> by using a single class or function as the basic unit of investigation.
 2. For each identified file:
    a. Locate the relevant code section(s) based on the <issue>issue</issue> description.
    b. Determine the line range(s) within those code sections that need to be modified.
-   c. Ensure the line range(s) fall within the 50-500 line limit, adjusting as necessary.
-3. Output the line ranges as a list.
+   c. Ensure the line range(s) fall within the 50-300 line limit, adjusting as necessary.
+3. Output the code files to be modified and line ranges as a dict.
 
 # Examples:
-1. If file1.py has an error in a specific function, and the line range to be modified is 20-50, output list: ["20-50"]
-2. If file1.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output list: ["20-50", "100-120"]
-3. If file1.py has potential errors related to data processing, but the exact locations are uncertain, and the <issue>issue</issue> mentions issues with reading and writing data, the final output could be: ["50-100", "150-200", "250-300"]
+1. If file1.py has an error in a specific function with line ranges 20-50, output dict: 
+```python
+{{"file1.py":["20-50"]}}
+```
+2. If file1.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output dict: 
+```python
+{{"file1.py":["20-50", "100-120"]}}
+```
+3. If file1.py has an error in a specific function with line ranges 20-50, and file2.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output dict: 
+```python
+{{"file1.py":["20-50"], "file2.py":["20-50", "100-120"]}}
+```
 
 # Issues and Codes
 {issues_and_codes}
@@ -105,6 +114,7 @@ class GitAgent(DataInterpreter):
             result, format_prompt = await self.review_patch(code)
 
             success = await self.critique(result, format_prompt)
+            # success = True
             await self.execute_code.run(code)
             ### execute code ###
             # todo: execute: git apply
@@ -120,14 +130,10 @@ class GitAgent(DataInterpreter):
 
         return code, result, success
 
-    async def identify_line_ranges(self, issues_and_codes):
-        prompt = IDENTIFY_LINE_RANGES_REQUIREMENT.format(issues_and_codes=issues_and_codes)
+    # TODO retry 3 times
+    async def identify_line_ranges(self, script_names, issues_and_codes):
+        prompt = IDENTIFY_LINE_RANGES_REQUIREMENT.format(script_names=script_names, issues_and_codes=issues_and_codes)
         lines_rsp = await self.llm.aask(prompt)
-
-        try:
-            lines = re.findall(r'\["([\d-]+)"\]', lines_rsp)
-        except Exception:
-            # Handle the exception if needed
-            logger.error(f"Can't parse the list: {lines_rsp}")
-            lines = lines_rsp
+        match = re.search(r'python\s*(\{.*?\})\s*', lines_rsp, re.DOTALL)
+        lines = eval(match.group(1)) if match else {}
         return lines
