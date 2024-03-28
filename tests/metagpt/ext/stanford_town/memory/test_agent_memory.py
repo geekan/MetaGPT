@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from metagpt.ext.stanford_town.memory import AgentMemory
+from metagpt.ext.stanford_town.memory.agent_memory import AgentMemory
 from metagpt.ext.stanford_town.memory.retrieve import agent_retrieve
 from metagpt.ext.stanford_town.utils.const import STORAGE_PATH
 from metagpt.logs import logger

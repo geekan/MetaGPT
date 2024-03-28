@@ -40,7 +40,6 @@ async def test_gen_action_details():
     sector = await GenActionSector().run(role, access_tile, act_desp)
     arena = await GenActionArena().run(role, act_desp, act_world, sector)
     temp_address = f"{act_world}:{sector}:{arena}"
-    print(temp_address)
     obj = await GenActionObject().run(role, act_desp, temp_address)
 
     act_obj_desp = await GenActObjDescription().run(role, obj, act_desp)

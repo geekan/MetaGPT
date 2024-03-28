@@ -100,14 +100,14 @@ class TaskDecomp(STAction):
 
             curr_time_range = ""
 
-            print("DEBUG")
-            print(role.scratch.f_daily_schedule_hourly_org)
-            print(all_indices)
+            logger.debug("DEBUG")
+            logger.debug(role.scratch.f_daily_schedule_hourly_org)
+            logger.debug(all_indices)
 
             summ_str = f'Today is {role.scratch.curr_time.strftime("%B %d, %Y")}. '
             summ_str += "From "
             for index in all_indices:
-                print("index", index)
+                logger.debug(f"index {index}")
                 if index < len(role.scratch.f_daily_schedule_hourly_org):
                     start_min = 0
                     for i in range(index):
@@ -161,7 +161,6 @@ class TaskDecomp(STAction):
         for fi_task, fi_duration in fin_output:
             ftime_sum += fi_duration
 
-        # print ("for debugging... line 365", fin_output)
         fin_output[-1][1] += truncated_act_dur - ftime_sum
         output = fin_output
 

@@ -77,7 +77,7 @@ class GenIterChatUTT(STAction):
             if role.rc.memory.chat_list:
                 if int((scratch.curr_time - role.rc.memory.chat_list[-1].created).total_seconds() / 60) > 480:
                     prev_convo_insert = ""
-            print(prev_convo_insert)
+            logger.info(f"prev_convo_insert: {prev_convo_insert}")
 
             curr_sector = f"{access_tile['sector']}"
             curr_arena = f"{access_tile['arena']}"
