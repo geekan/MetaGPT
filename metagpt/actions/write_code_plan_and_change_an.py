@@ -128,6 +128,9 @@ CODE_PLAN_AND_CHANGE_CONTEXT = """
 ## User New Requirements
 {requirement}
 
+## Issue
+{issue}
+
 ## PRD
 {prd}
 
@@ -211,7 +214,8 @@ class WriteCodePlanAndChange(Action):
         design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
         task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
-            requirement=self.i_context.requirement,
+            requirement=f"```text\n{self.i_context.requirement}\n```",
+            issue=f"```text\n{self.i_context.issue}\n```",
             prd=prd_doc.content,
             design=design_doc.content,
             task=task_doc.content,
