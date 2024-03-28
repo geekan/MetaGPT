@@ -239,7 +239,7 @@ class Engineer(Role):
 
     async def _think(self) -> Action | None:
         if not self.src_workspace:
-            name = self._get_src_workspace_name()
+            name = await self._get_src_workspace_name()
             self.src_workspace = self.git_repo.workdir / name
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
         write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
