@@ -11,9 +11,13 @@ from metagpt.rag.schema import (
     BM25RetrieverConfig,
     ChromaIndexConfig,
     ChromaRetrieverConfig,
+    ElasticsearchIndexConfig,
+    ElasticsearchRetrieverConfig,
+    ElasticsearchStoreConfig,
     FAISSRetrieverConfig,
     LLMRankerConfig,
 )
+from metagpt.utils.exceptions import handle_exception
 
 DOC_PATH = EXAMPLE_DATA_PATH / "rag/writer.txt"
 QUESTION = "What are key qualities to be a good writer?"
@@ -39,12 +43,22 @@ class Player(BaseModel):
 class RAGExample:
     """Show how to use RAG."""
 
-    def __init__(self):
-        self.engine = SimpleEngine.from_docs(
-            input_files=[DOC_PATH],
-            retriever_configs=[FAISSRetrieverConfig(), BM25RetrieverConfig()],
-            ranker_configs=[LLMRankerConfig()],
-        )
+    def __init__(self, engine: SimpleEngine = None):
+        self._engine = engine
+
+    @property
+    def engine(self):
+        if not self._engine:
+            self._engine = SimpleEngine.from_docs(
+                input_files=[DOC_PATH],
+                retriever_configs=[FAISSRetrieverConfig(), BM25RetrieverConfig()],
+                ranker_configs=[LLMRankerConfig()],
+            )
+        return self._engine
+
+    @engine.setter
+    def engine(self, value: SimpleEngine):
+        self._engine = value
 
     async def run_pipeline(self, question=QUESTION, print_title=True):
         """This example run rag pipeline, use faiss&bm25 retriever and llm ranker, will print something like:
@@ -97,6 +111,7 @@ class RAGExample:
         self.engine.add_docs([travel_filepath])
         await self.run_pipeline(question=travel_question, print_title=False)
 
+    @handle_exception
     async def add_objects(self, print_title=True):
         """This example show how to add objects.
 
@@ -154,20 +169,41 @@ class RAGExample:
         """
         self._print_title("Init And Query ChromaDB")
 
-        # save index
+        # 1. save index
         output_dir = DATA_PATH / "rag"
         SimpleEngine.from_docs(
             input_files=[TRAVEL_DOC_PATH],
             retriever_configs=[ChromaRetrieverConfig(persist_path=output_dir)],
         )
 
-        # load index
-        engine = SimpleEngine.from_index(
-            index_config=ChromaIndexConfig(persist_path=output_dir),
+        # 2. load index
+        engine = SimpleEngine.from_index(index_config=ChromaIndexConfig(persist_path=output_dir))
+
+        # 3. query
+        answer = await engine.aquery(TRAVEL_QUESTION)
+        self._print_query_result(answer)
+
+    @handle_exception
+    async def init_and_query_es(self):
+        """This example show how to use es. how to save and load index. will print something like:
+
+        Query Result:
+        Bob likes traveling.
+        """
+        self._print_title("Init And Query Elasticsearch")
+
+        # 1. create es index and save docs
+        store_config = ElasticsearchStoreConfig(index_name="travel", es_url="http://127.0.0.1:9200")
+        engine = SimpleEngine.from_docs(
+            input_files=[TRAVEL_DOC_PATH],
+            retriever_configs=[ElasticsearchRetrieverConfig(store_config=store_config)],
         )
 
-        # query
-        answer = engine.query(TRAVEL_QUESTION)
+        # 2. load index
+        engine = SimpleEngine.from_index(index_config=ElasticsearchIndexConfig(store_config=store_config))
+
+        # 3. query
+        answer = await engine.aquery(TRAVEL_QUESTION)
         self._print_query_result(answer)
 
     @staticmethod
@@ -205,6 +241,7 @@ async def main():
     await e.add_objects()
     await e.init_objects()
     await e.init_and_query_chromadb()
+    await e.init_and_query_es()
 
 
 if __name__ == "__main__":
