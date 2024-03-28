@@ -15,7 +15,7 @@ from metagpt.environment.stanford_town.stanford_town_ext_env import StanfordTown
 maze_asset_path = (
     Path(__file__)
     .absolute()
-    .parent.joinpath("..", "..", "..", "..", "examples/stanford_town/static_dirs/assets/the_ville")
+    .parent.joinpath("..", "..", "..", "..", "metagpt/ext/stanford_town/static_dirs/assets/the_ville")
 )
 
 

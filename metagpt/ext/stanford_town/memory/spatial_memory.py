@@ -9,6 +9,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from metagpt.logs import logger
 from metagpt.utils.common import read_json_file, write_json_file
 
 
@@ -23,12 +24,12 @@ class MemoryTree(BaseModel):
             dash = " >" * depth
             if isinstance(tree, list):
                 if tree:
-                    print(dash, tree)
+                    logger.info(f"{dash} {tree}")
                 return
 
             for key, val in tree.items():
                 if key:
-                    print(dash, key)
+                    logger.info(f"{dash} {tree}")
                 _print_tree(val, depth + 1)
 
         _print_tree(self.tree, 0)
