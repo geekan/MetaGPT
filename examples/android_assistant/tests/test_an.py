@@ -6,13 +6,13 @@ import asyncio
 import time
 from pathlib import Path
 
-from examples.andriod_assistant.actions.manual_record import ManualRecord
-from examples.andriod_assistant.actions.parse_record import ParseRecord
-from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
-from examples.andriod_assistant.actions.self_learn_and_reflect import (
+from examples.android_assistant.actions.manual_record import ManualRecord
+from examples.android_assistant.actions.parse_record import ParseRecord
+from examples.android_assistant.actions.screenshot_parse import ScreenshotParse
+from examples.android_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
 )
-from examples.andriod_assistant.utils.const import ROOT_PATH
+from examples.android_assistant.utils.const import ROOT_PATH
 from metagpt.environment.android_env.android_env import AndroidEnv
 
 TASK_PATH = ROOT_PATH.joinpath("unitest_Contacts")

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import typer
 
-from examples.andriod_assistant.roles.android_assistant import AndroidAssistant
+from examples.android_assistant.roles.android_assistant import AndroidAssistant
 from metagpt.config2 import config
 from metagpt.environment.android_env.android_env import AndroidEnv
 from metagpt.team import Team

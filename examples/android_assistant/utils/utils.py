@@ -10,7 +10,7 @@ from xml.etree.ElementTree import Element, iterparse
 import cv2
 import pyshine as ps
 
-from examples.andriod_assistant.utils.schema import (
+from examples.android_assistant.utils.schema import (
     ActionOp,
     AndroidElement,
     BaseGridOpParam,

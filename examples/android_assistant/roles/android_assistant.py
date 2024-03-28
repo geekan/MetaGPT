@@ -8,14 +8,14 @@ from typing import Optional
 
 from pydantic import Field
 
-from examples.andriod_assistant.actions.manual_record import ManualRecord
-from examples.andriod_assistant.actions.parse_record import ParseRecord
-from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
-from examples.andriod_assistant.actions.self_learn_and_reflect import (
+from examples.android_assistant.actions.manual_record import ManualRecord
+from examples.android_assistant.actions.parse_record import ParseRecord
+from examples.android_assistant.actions.screenshot_parse import ScreenshotParse
+from examples.android_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
 )
-from examples.andriod_assistant.utils.const import ROOT_PATH
-from examples.andriod_assistant.utils.schema import AndroidActionOutput, RunState
+from examples.android_assistant.utils.const import ROOT_PATH
+from examples.android_assistant.utils.schema import AndroidActionOutput, RunState
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.config2 import config
 from metagpt.logs import logger

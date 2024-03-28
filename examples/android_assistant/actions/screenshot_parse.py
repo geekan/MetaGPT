@@ -5,13 +5,13 @@
 import ast
 from pathlib import Path
 
-from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.andriod_assistant.prompts.assistant_prompt import (
+from examples.android_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
+from examples.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
-from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
-from examples.andriod_assistant.utils.schema import (
+from examples.android_assistant.utils.const import ADB_EXEC_FAIL
+from examples.android_assistant.utils.schema import (
     AndroidActionOutput,
     AndroidElement,
     GridOp,
@@ -25,7 +25,7 @@ from examples.andriod_assistant.utils.schema import (
     TapOp,
     TextOp,
 )
-from examples.andriod_assistant.utils.utils import (
+from examples.android_assistant.utils.utils import (
     area_to_xy,
     draw_bbox_multi,
     draw_grid,
