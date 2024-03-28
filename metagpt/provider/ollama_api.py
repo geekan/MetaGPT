@@ -23,7 +23,7 @@ class OllamaLLM(BaseLLM):
         self.__init_ollama(config)
         self.client = GeneralAPIRequestor(base_url=config.base_url)
         self.config = config
-        self.suffix_url = "/chat"
+        self.suffix_url = "/api/chat"
         self.http_method = "post"
         self.use_system_prompt = False
         self.cost_manager = TokenCostManager()
