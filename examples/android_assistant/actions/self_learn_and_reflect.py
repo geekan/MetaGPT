@@ -5,18 +5,18 @@
 import ast
 from pathlib import Path
 
-from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.andriod_assistant.actions.self_learn_reflect_an import (
+from examples.android_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
+from examples.android_assistant.actions.self_learn_reflect_an import (
     SELF_LEARN_REFLECT_NODE,
 )
-from examples.andriod_assistant.prompts.assistant_prompt import (
+from examples.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_reflect_template as reflect_template,
 )
-from examples.andriod_assistant.prompts.assistant_prompt import (
+from examples.android_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_template,
 )
-from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
-from examples.andriod_assistant.utils.schema import (
+from examples.android_assistant.utils.const import ADB_EXEC_FAIL
+from examples.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     AndroidElement,
@@ -31,7 +31,7 @@ from examples.andriod_assistant.utils.schema import (
     TapOp,
     TextOp,
 )
-from examples.andriod_assistant.utils.utils import (
+from examples.android_assistant.utils.utils import (
     draw_bbox_multi,
     elem_bbox_to_xy,
     elem_list_from_xml_tree,

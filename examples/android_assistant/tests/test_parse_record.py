@@ -4,8 +4,8 @@
 
 import asyncio
 
-from examples.andriod_assistant.actions.parse_record import ParseRecord
-from examples.andriod_assistant.utils.const import ROOT_PATH
+from examples.android_assistant.actions.parse_record import ParseRecord
+from examples.android_assistant.utils.const import ROOT_PATH
 from metagpt.actions.action import Action
 
 TASK_PATH = ROOT_PATH.parent.joinpath("data/demo_Contacts")

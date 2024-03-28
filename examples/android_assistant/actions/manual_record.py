@@ -6,14 +6,14 @@ from pathlib import Path
 
 import cv2
 
-from examples.andriod_assistant.utils.const import ADB_EXEC_FAIL
-from examples.andriod_assistant.utils.schema import (
+from examples.android_assistant.utils.const import ADB_EXEC_FAIL
+from examples.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     RunState,
     SwipeOp,
 )
-from examples.andriod_assistant.utils.utils import (
+from examples.android_assistant.utils.utils import (
     draw_bbox_multi,
     elem_list_from_xml_tree,
 )

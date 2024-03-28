@@ -7,15 +7,15 @@ import ast
 import re
 from pathlib import Path
 
-from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
-from examples.andriod_assistant.prompts.operation_prompt import (
+from examples.android_assistant.actions.parse_record_an import RECORD_PARSE_NODE
+from examples.android_assistant.prompts.operation_prompt import (
     long_press_doc_template,
     refine_doc_suffix,
     swipe_doc_template,
     tap_doc_template,
     text_doc_template,
 )
-from examples.andriod_assistant.utils.schema import (
+from examples.android_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
     RecordLogItem,
