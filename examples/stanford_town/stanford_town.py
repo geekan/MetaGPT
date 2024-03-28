@@ -7,7 +7,7 @@ from typing import Any, Optional
 from examples.stanford_town.roles.st_role import STRole
 from examples.stanford_town.utils.const import MAZE_ASSET_PATH
 from metagpt.context import Context
-from metagpt.environment.stanford_town.stanford_town_env import StanfordTownEnv
+from metagpt.environment import StanfordTownEnv
 from metagpt.logs import logger
 from metagpt.team import Team
 

@@ -11,7 +11,7 @@ from examples.stanford_town.actions.run_reflect_action import (
 )
 from examples.stanford_town.roles.st_role import STRole
 from examples.stanford_town.utils.const import MAZE_ASSET_PATH
-from metagpt.environment.stanford_town.stanford_town_env import StanfordTownEnv
+from metagpt.environment import StanfordTownEnv
 
 
 @pytest.mark.asyncio
