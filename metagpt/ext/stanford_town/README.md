@@ -1,15 +1,15 @@
 ## Stanford Town Game
 
 ### Pre-Description
-The path configured in `examples/stanford_town/utils/const.py` is the storage path of the current project. In order to facilitate GA( [generative_agents](https://github.com/joonspk-research/generative_agents) )'s frontend docking data (to avoid changing its code), you can set the value `temp_storage_path` to `temp_storage` of `generative_agents` when start `run_st_game.py`. like 
+In order to facilitate GA( [generative_agents](https://github.com/joonspk-research/generative_agents) )'s frontend docking data (to avoid changing its code), you can set the value `temp_storage_path` to `temp_storage` of `generative_agents` when start `run_st_game.py`. like 
 
 `python3 run_st_game.py --temp_storage_path path/to/ga/temp_storage xxx`  
 
 Or change the path under `const.py` like beflow  
 
 ```
-STORAGE_PATH = ROOT_PATH.joinpath("storage")
-TEMP_STORAGE_PATH = ROOT_PATH.joinpath("temp_storage")
+STORAGE_PATH = EXAMPLE_PATH.joinpath("storage")
+TEMP_STORAGE_PATH = EXAMPLE_PATH.joinpath("temp_storage")
 # updated
 STORAGE_PATH = Path("{path/to/ga/storage}")
 TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
