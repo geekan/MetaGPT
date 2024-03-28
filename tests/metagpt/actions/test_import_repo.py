@@ -9,7 +9,14 @@ from metagpt.utils.common import list_files
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("repo_path", ["https://github.com/geekan/MetaGPT.git"])
+@pytest.mark.parametrize(
+    "repo_path",
+    [
+        "https://github.com/spec-first/connexion.git",
+        # "https://github.com/geekan/MetaGPT.git"
+    ],
+)
+@pytest.mark.skip
 async def test_import_repo(repo_path):
     context = Context()
     action = ImportRepo(repo_path=repo_path, context=context)

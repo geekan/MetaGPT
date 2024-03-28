@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Set
+from typing import List, Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
@@ -50,6 +50,7 @@ from metagpt.utils.common import (
     any_to_str,
     any_to_str_set,
     get_project_srcs_path,
+    init_python_folder,
 )
 
 IS_PASS_PROMPT = """
@@ -310,6 +311,7 @@ class Engineer(Role):
             task_doc = await self.project_repo.docs.task.get(filename)
             code_plan_and_change_doc = await self.project_repo.docs.code_plan_and_change.get(filename)
             task_list = self._parse_tasks(task_doc)
+            await self._init_python_folder(task_list)
             for task_filename in task_list:
                 old_code_doc = await self.project_repo.srcs.get(task_filename)
                 if not old_code_doc:
@@ -363,6 +365,8 @@ class Engineer(Role):
             ctx = CodeSummarizeContext.loads(filenames=list(dependencies))
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
+            if not ctx.design_filename or not ctx.task_filename:
+                continue  # cause by `__init__.py` which is created by `init_python_folder`
             ctx.codes_filenames = filenames
             new_summarize = SummarizeCode(i_context=ctx, context=self.context, llm=self.llm)
             for i, act in enumerate(self.summarize_todos):
@@ -388,3 +392,11 @@ class Engineer(Role):
     def action_description(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
+
+    async def _init_python_folder(self, task_list: List[str]):
+        for i in task_list:
+            filename = Path(i)
+            if filename.suffix != ".py":
+                continue
+            workdir = self.src_workspace / filename.parent
+            await init_python_folder(workdir)

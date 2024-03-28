@@ -889,3 +889,11 @@ def get_project_srcs_path(workdir: str | Path) -> Path:
     else:
         src_name = Path(workdir).name
     return Path(workdir) / src_name
+
+
+async def init_python_folder(workdir: str | Path):
+    init_filename = Path(workdir) / "__init__.py"
+    if init_filename.exists():
+        return
+    async with aiofiles.open(init_filename, "a"):
+        os.utime(init_filename, None)
