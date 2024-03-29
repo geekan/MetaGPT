@@ -8,16 +8,14 @@ import re
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from benchmark.swe_bench.gitagent import GitAgent
+from benchmark.swe_bench.inference.gen_symbol_changes import SYMBOL_CHANGES_FILE
 from benchmark.swe_bench.make_datasets.make_dataset import reset_task_env
+from benchmark.swe_bench.utils.jaccard_retriever import jaccard_retriever
 from benchmark.swe_bench.utils.utils import extract_scripts_from_codetext
 from metagpt.logs import logger
+from metagpt.utils.common import CodeParser
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.recovery_util import save_history
-from swe_bench.gitagent import GitAgent
-from swe_bench.inference.gen_symbol_changes import SYMBOL_CHANGES_FILE
-from swe_bench.make_datasets.make_dataset import reset_task_env
-from swe_bench.utils.jaccard_retriever import jaccard_retriever
-from swe_bench.utils.utils import extract_scripts_from_codetext
 
 PATCH_FORMAT = """
 ```diff
@@ -104,11 +102,13 @@ async def run_agent(inputs, agent, **kwargs):
 
     # locating ranges by using llm or retrieve mode
     logger.info("Start locating ranges...")
-    ranges = await locating_ranges(agent, instance_id, issues_and_code, locating_mode, script_names)
-    ranges_content = f"\nThe locating range of code to be modified in file is: '''\n{str(ranges)}'''\n"
-    logger.info(f"this is ranges_content: \n{ranges_content}")
-
-    await agent.run([requirement, system_messages, "\n".join(issues_and_code), ranges_content, prompt])
+    if locating_mode:
+        ranges = await locating_ranges(agent, instance_id, issues_and_code, locating_mode, script_names)
+        ranges_content = f"\nThe locating range of code to be modified in file is: '''\n{str(ranges)}'''\n"
+        logger.info(ranges_content)
+        await agent.run([requirement, system_messages, "\n".join(issues_and_code), ranges_content, prompt])
+    else:
+        await agent.run([requirement, system_messages, "\n".join(issues_and_code), prompt])
     return agent.get_last_cell_source()
 
 
@@ -142,6 +142,7 @@ async def locating_ranges(agent, instance_id, issues_and_code, locating_mode, sc
 
 
 async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_code):
+    # read symbol changes file
     with open(SYMBOL_CHANGES_FILE, "r") as f:
         symbol_changes_list = json.load(f)
     sc_value = []
@@ -150,10 +151,12 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
         if not sc_value:
             continue
         break
-    # If there are n files, ranges contain n functions or class
+    # If there are n files, ranges contain n code snippets
     ranges = []
+    # retrieve code snippets by jaccard
     if "jaccard" == locating_mode:
         for i in range(len(sc_value)):
+            # retrieve code snippets by jaccard
             retrieved_codes = jaccard_retriever(
                 code=issues_and_code[0],
                 candidates=sc_value[i],
@@ -163,6 +166,7 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
         ranges_list = []
         for function_file in ranges:
             function_name = function_file.split(".")[-1]
+            # extract code snippets based on function name
             pattern = r"(\d*\s*def\s+{function_name}\s*\(.*?\)\s*:\s*.*?)def".format(
                 function_name=re.escape(function_name)
             )
@@ -171,7 +175,7 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
             if content:
                 ranges_list.append(f"--- {function_file}\n{content}")
         ranges = "\n".join(ranges_list)
-
+    # retrieve code snippets by bm25
     elif "bm25" == locating_mode:
         pass
     return ranges
@@ -187,6 +191,7 @@ async def locating_ranges_by_llm(agent, issues_and_code, script_names):
         match = re.search(pattern, issues_and_code[1], re.DOTALL)
         content = match.group(1).strip() if match else ""
         code_snippets = []
+        # extract code snippets based on lines scope
         for value in values:
             start, end = tuple(int(x) for x in value.split("-"))
             pattern = re.compile(r"^(?:.*\n){%d}(.*(?:\n.*?){%d})" % (start, end - start + 1), re.MULTILINE)
@@ -204,14 +209,15 @@ async def locating_lines(agent, script_names, issues_and_codes):
     retries = 0
     lines = {}
 
+    # retry 3 times if locating lines failed
     while retries < max_retries:
         try:
             prompt = LOCATING_LINE_RANGES_REQUIREMENT.format(
                 script_names=script_names, issues_and_codes=issues_and_codes
             )
             lines_rsp = await agent.llm.aask(prompt)
-            match = re.search(r"python\s*(\{.*?\})\s*", lines_rsp, re.DOTALL)
-            lines = eval(match.group(1)) if match else {}
+            # parse lines dict
+            lines = eval(CodeParser.parse_code(block="", text=lines_rsp))
             break
         except (ValueError, SyntaxError) as e:
             retries += 1

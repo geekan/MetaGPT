@@ -3,15 +3,16 @@ import json
 import pandas as pd
 from pandas import Series
 
-from data.inference.const import SCIKIT_LEARN_IDS
-from swe_bench.utils.ast_parser import ASTParser
-from swe_bench.utils.parse_diff import filter_changed_line
-from swe_bench.utils.repo_controller import init_repo
+from benchmark.swe_bench.inference.const import SCIKIT_LEARN_IDS
+from benchmark.swe_bench.utils.ast_parser import ASTParser
+from benchmark.swe_bench.utils.parse_diff import filter_changed_line
+from benchmark.swe_bench.utils.repo_controller import init_repo
+from metagpt.const import METAGPT_ROOT
 
 # your parquet file path
-PARQUET_FILE = "./data/dev.parquet"
+PARQUET_FILE = f"{METAGPT_ROOT}/benchmark/sub_swebench_dataset/oracle_test.parquet"
 # symbol changes list file path
-SYMBOL_CHANGES_FILE = "./data/symbol_changes_list.json"
+SYMBOL_CHANGES_FILE = f"{METAGPT_ROOT}/benchmark/sub_swebench_dataset/symbol_changes_list.json"
 
 
 def gen_symbol_changes(swe_row: Series):
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     symbol_changes_list = []
     for i, row in filtered_df.iterrows():
         instance_id = row["instance_id"]
-        symbol_changes = gen_symbol_changes(row, mg_symbol_changes)
+        symbol_changes = gen_symbol_changes(row)
         sc_list = []
         for sc in symbol_changes:
             function = sc["function"]

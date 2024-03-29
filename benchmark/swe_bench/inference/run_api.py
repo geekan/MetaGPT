@@ -15,14 +15,7 @@ from metagpt.utils import count_string_tokens
 MAX_TOKEN = 128000
 
 
-async def openai_inference(
-    test_dataset,
-    model_name_or_path,
-    output_file,
-    existing_ids,
-    use_reflection,
-    **kwargs
-):
+async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, use_reflection, **kwargs):
     """
     Runs inference on a dataset using the openai API.
 
@@ -102,7 +95,7 @@ async def main(
         "output_file": output_file,
         "existing_ids": existing_ids,
         "use_reflection": use_reflection,
-        "locating_mode": kwargs.get("locating_mode", "no"),
+        "locating_mode": kwargs.get("locating_mode", ""),
     }
     if model_name_or_path.startswith("gpt"):
         await openai_inference(**inference_args)
