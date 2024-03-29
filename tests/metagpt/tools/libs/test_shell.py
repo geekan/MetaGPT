@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from metagpt.tools.libs.shell import execute
+from metagpt.tools.libs.shell import shell_execute
 
 
 @pytest.mark.asyncio
@@ -14,7 +14,7 @@ from metagpt.tools.libs.shell import execute
     ],
 )
 async def test_shell(command, expect_stdout, expect_stderr):
-    stdout, stderr = await execute(command)
+    stdout, stderr = await shell_execute(command)
     assert expect_stdout in stdout
     assert stderr == expect_stderr
 

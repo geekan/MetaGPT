@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from metagpt.actions.intent_detect import IntentDetect
+from metagpt.actions.intent_detect import IntentDetect, LightIntentDetect
+from metagpt.logs import logger
 from metagpt.schema import Message
 
 DEMO_CONTENT = [
@@ -56,6 +57,19 @@ async def test_intent_detect(content: str, context):
     assert action._references
     assert action._intent_to_sops
     assert action.result
+    logger.info(action.result.model_dump_json())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "content",
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT)],
+)
+async def test_light_intent_detect(content: str, context):
+    action = LightIntentDetect(context=context)
+    messages = [Message.model_validate(i) for i in json.loads(content)]
+    rsp = await action.run(messages)
+    assert isinstance(rsp, Message)
 
 
 if __name__ == "__main__":
