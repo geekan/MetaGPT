@@ -1,12 +1,13 @@
 import json
+from pathlib import Path
 
 import pandas as pd
 from pandas import Series
 
 from benchmark.swe_bench.inference.const import SCIKIT_LEARN_IDS
+from benchmark.swe_bench.make_datasets.make_dataset import reset_task_env
 from benchmark.swe_bench.utils.ast_parser import ASTParser
 from benchmark.swe_bench.utils.parse_diff import filter_changed_line
-from benchmark.swe_bench.utils.repo_controller import init_repo
 from metagpt.const import METAGPT_ROOT
 
 # your parquet file path
@@ -16,15 +17,15 @@ SYMBOL_CHANGES_FILE = f"{METAGPT_ROOT}/benchmark/sub_swebench_dataset/symbol_cha
 
 
 def gen_symbol_changes(swe_row: Series):
-    # row 即为符合 swe 原始数据集格式的一行
-    repo = init_repo(swe_row)
+    # row is a row that matches the format of the original swe data set.
+    patch, repo, repo_path = reset_task_env(swe_row)
     patch = swe_row["patch"]
     file_changes = filter_changed_line(patch)
     pr_symbol_changes = []
     for file_name, changes in file_changes.items():
         if not str(file_name).endswith(".py"):
             continue
-        code_path = repo.local_path / file_name
+        code_path = Path(repo_path) / file_name
         if not code_path.exists():
             continue
         ap = ASTParser(str(file_name), code_path, set(i["line"] for i in changes))
@@ -35,7 +36,7 @@ def gen_symbol_changes(swe_row: Series):
 
 
 if __name__ == "__main__":
-    # 读取 Parquet 文件
+    # read parquet file
     df = pd.read_parquet(PARQUET_FILE)
     mg_symbol_changes = [
         {

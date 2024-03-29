@@ -15,15 +15,19 @@ from metagpt.utils import count_string_tokens
 MAX_TOKEN = 128000
 
 
-async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, use_reflection, **kwargs):
+async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, **kwargs):
     """
     Runs inference on a dataset using the openai API.
 
     Args:
-    test_dataset (datasets.Dataset): The dataset to run inference on.
-    model_name_or_path (str): The name or path of the model to use.
-    output_file (str): The path to the output file.
-    existing_ids (set): A set of ids that have already been processed.
+        test_dataset (datasets.Dataset): The dataset to run inference on.
+        model_name_or_path (str): The name or path of the model to use.
+        output_file (str): The path to the output file.
+        existing_ids (set): A set of ids that have already been processed.
+        **kwargs: Additional keyword arguments, e.g. use_reflection(bool), locating_mode(str)
+
+    Returns:
+        None
     """
     test_dataset = test_dataset.filter(
         lambda x: count_string_tokens(x["text"], model_name_or_path) <= MAX_TOKEN,
@@ -50,7 +54,7 @@ async def openai_inference(test_dataset, model_name_or_path, output_file, existi
             logger.info(f"{repo_prefix}_{version}")
             data.append(f"{repo_prefix}_{version}")
 
-            response = await run_instance(instance=datum, use_reflection=use_reflection, **kwargs)
+            response = await run_instance(instance=datum, **kwargs)
             if response is None:
                 continue
             logger.info(f"Final response: {response}")
@@ -65,17 +69,17 @@ async def main(
     split="test",
     model_name_or_path=config.llm.model,
     output_dir="outputs",
-    use_reflection=True,
     **kwargs,
 ):
     """
     Performs inference on SWE-bench dataset using the Data Interpreter.
 
     Args:
-    dataset_name_or_path: HuggingFace dataset name or local path
-    split: Dataset split to use (default: test)
-    model_name_or_path: Name of the model to use (default: config.llm.model)
-    param output_dir: Path to the output directory (default: outputs)
+        dataset_name_or_path: HuggingFace dataset name or local path
+        split: Dataset split to use (default: test)
+        model_name_or_path: Name of the model to use (default: config.llm.model)
+        output_dir: Path to the output directory (default: outputs)
+        **kwargs: Additional keyword arguments, e.g. use_reflection(bool), locating_mode(str)
     """
     model_nickname = Path(model_name_or_path).name if isinstance(model_name_or_path, Path) else model_name_or_path
     output_file = f"{model_nickname}__{dataset_name_or_path.split('/')[-1]}__{split}"
@@ -94,11 +98,9 @@ async def main(
         "model_name_or_path": model_name_or_path,
         "output_file": output_file,
         "existing_ids": existing_ids,
-        "use_reflection": use_reflection,
-        "locating_mode": kwargs.get("locating_mode", ""),
     }
     if model_name_or_path.startswith("gpt"):
-        await openai_inference(**inference_args)
+        await openai_inference(**inference_args, **kwargs)
     else:
         raise ValueError(f"Invalid model name or path {model_name_or_path}")
     logger.info("Done!")

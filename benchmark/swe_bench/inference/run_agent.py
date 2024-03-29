@@ -29,12 +29,12 @@ PATCH_FORMAT = """
 
 LOCATING_LINE_RANGES_REQUIREMENT = """
 # Instruction
-Locating the code files to be modified and their line ranges, provided python dict, in the provided <code>code</code> blocks based on the given <issue>issue</issue> in the Issues and Codes containing accessible code files with {script_names}. If the code is extremely long, focus on the <issue>issue</issue> description to narrow down the areas of concern. The line ranges should be within 50-300 lines and there may be more than one range in every files.
+Locating the code files to be modified and their line ranges, provided python dict, in the provided <code>code</code> blocks based on the given <traceback>traceback</traceback> in the Traceback and Codes containing accessible code files with {script_names}. If the code is extremely long, focus on the <traceback>traceback</traceback> description to narrow down the areas of concern. The line ranges should be within 50-300 lines and there may be more than one range in every files.
 
 # Think about it by following these steps:
-1. Locating the files containing errors based on the <issue>issue</issue> by using a single class or function as the basic unit of investigation.
+1. Locating the files containing errors based on the <traceback>traceback</traceback> by using a single class or function as the basic unit of investigation.
 2. For each locating file:
-   a. Locate the relevant code section(s) based on the <issue>issue</issue> description.
+   a. Locate the relevant code section(s) based on the <traceback>traceback</traceback>.
    b. Determine the line range(s) within those code sections that need to be modified.
    c. Ensure the line range(s) fall within the 50-300 line limit, adjusting as necessary.
 3. Output the code files to be modified and line ranges as a dict.
@@ -53,8 +53,8 @@ Locating the code files to be modified and their line ranges, provided python di
 {{"file1.py":["20-50"], "file2.py":["20-50", "100-120"]}}
 ```
 
-# Issues and Codes
-{issues_and_codes}
+# Traceback and Codes
+{traceback_and_code}
 """
 
 
@@ -64,16 +64,26 @@ def _prepare(inputs):
     user_message = inputs.split("\n", 1)[1]
     # Replace URLs with an empty string
     user_message = re.sub(r"https?://\S+", "", user_message)
-    cleaned_user_message = re.sub("<patch>.*?</patch>", "", user_message, flags=re.DOTALL)
 
+    # Extract the issue description, actual result and code from user_message
     issues = re.findall("<issue>(.*?)</issue>", user_message, flags=re.DOTALL)
+
+    # Extract the issue description by matching 1 or more '#' characters
+    problem = "###".join(re.split(re.compile(r"#+"), issues[0])[:2])
+
+    # Extract the traceback and code
     issues_ = re.sub(r"#{3,4} Versions.*?(?=#{3,4}|\Z)", "", issues[0], flags=re.DOTALL)
     traceback = re.findall(r"#{3,4} Actual Results.*", issues_, flags=re.DOTALL)
     issues = traceback if traceback else issues
     code = re.findall("<code>(.*?)</code>", user_message, flags=re.DOTALL)
-    issues_and_code = [f"<issue>\n{issues[0]}\n</issue>", f"<code>\n{code[0]}\n</code>"]
 
-    return requirement, system_messages, cleaned_user_message, issues_and_code
+    issues_and_code = [
+        f"<problem>\n{problem}\n</problem>",
+        f"<traceback>\n{issues[0]}\n</traceback>",
+        f"<code>\n{code[0]}\n</code>",
+    ]
+
+    return requirement, system_messages, issues_and_code
 
 
 def construct_prompt(inputs, script_names):
@@ -86,8 +96,8 @@ def construct_prompt(inputs, script_names):
         f"4. use the format as : {PATCH_FORMAT}"
     )
 
-    requirement, system_messages, cleaned_user_message, issues_and_code = _prepare(inputs)
-    return requirement, system_messages, cleaned_user_message, issues_and_code, prompt
+    requirement, system_messages, issues_and_code = _prepare(inputs)
+    return requirement, system_messages, issues_and_code, prompt
 
 
 @handle_exception(exception_type=Exception)
@@ -96,24 +106,30 @@ async def run_agent(inputs, agent, **kwargs):
     script_names = kwargs.get("script_names", [])
     instance_id = kwargs.get("instance_id", "")
     locating_mode = kwargs.get("locating_mode")
-    requirement, system_messages, cleaned_user_message, issues_and_code, prompt = construct_prompt(inputs, script_names)
+
+    # requirement tell the agent to rewrite the code to address the issues;
+    # system_messages is the goal for swe-bench;
+    # issues_and_code is a list containing problem, traceback and code;
+    # prompt serves as COT for the agent
+    requirement, system_messages, issues_and_code, prompt = construct_prompt(inputs, script_names)
     system_messages = system_messages.replace(" ", "")
-    cleaned_user_message = cleaned_user_message.replace(" ", "")
 
     # locating ranges by using llm or retrieve mode
-    logger.info("Start locating ranges...")
     if locating_mode:
-        ranges = await locating_ranges(agent, instance_id, issues_and_code, locating_mode, script_names)
-        ranges_content = f"\nThe locating range of code to be modified in file is: '''\n{str(ranges)}'''\n"
+        logger.info("Start locating ranges...")
+        ranges = await locating_ranges(agent, instance_id, issues_and_code[1:], locating_mode, script_names)
+        ranges_content = f"\nThe locating range of code to be modified in files is: \n{str(ranges)}\n"
         logger.info(ranges_content)
-        await agent.run([requirement, system_messages, "\n".join(issues_and_code), ranges_content, prompt])
+        new_issues_and_code = "\n".join(issues_and_code[:2]) + ranges_content
+        await agent.run([requirement, system_messages, new_issues_and_code, prompt])
+    # normal run without locating ranges
     else:
         await agent.run([requirement, system_messages, "\n".join(issues_and_code), prompt])
     return agent.get_last_cell_source()
 
 
-async def run_instance(instance, use_reflection=True, **kwargs):
-    ga = GitAgent(use_reflection=use_reflection)
+async def run_instance(instance, **kwargs):
+    ga = GitAgent(use_reflection=kwargs.get("use_reflection", True))
     script_names = extract_scripts_from_codetext(instance["text"])
     ga.script_names = script_names
 
@@ -121,6 +137,7 @@ async def run_instance(instance, use_reflection=True, **kwargs):
     if repo_path is None:
         return
 
+    # todo
     response = await run_agent(
         f"{instance['text']}\n\n", agent=ga, script_names=script_names, instance_id=instance["instance_id"], **kwargs
     )
@@ -129,19 +146,19 @@ async def run_instance(instance, use_reflection=True, **kwargs):
     return response
 
 
-async def locating_ranges(agent, instance_id, issues_and_code, locating_mode, script_names):
+async def locating_ranges(agent, instance_id, traceback_and_code, locating_mode, script_names):
     # get locating ranges by llm
     if locating_mode == "llm":
-        ranges = await locating_ranges_by_llm(agent, issues_and_code, script_names)
+        ranges = await locating_ranges_by_llm(agent, traceback_and_code, script_names)
     # get locating ranges by retrieve
     elif locating_mode in ["jaccard", "bm25"]:
-        ranges = await locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_code)
+        ranges = await locating_ranges_by_retrieve(locating_mode, instance_id, traceback_and_code)
     else:
         ranges = None
     return ranges
 
 
-async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_code):
+async def locating_ranges_by_retrieve(locating_mode, instance_id, traceback_and_code):
     # read symbol changes file
     with open(SYMBOL_CHANGES_FILE, "r") as f:
         symbol_changes_list = json.load(f)
@@ -158,7 +175,7 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
         for i in range(len(sc_value)):
             # retrieve code snippets by jaccard
             retrieved_codes = jaccard_retriever(
-                code=issues_and_code[0],
+                traceback=traceback_and_code[0],
                 candidates=sc_value[i],
             )
             ranges.append(sc_value[i][retrieved_codes[0]] if sc_value and retrieved_codes else "")
@@ -170,7 +187,7 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
             pattern = r"(\d*\s*def\s+{function_name}\s*\(.*?\)\s*:\s*.*?)def".format(
                 function_name=re.escape(function_name)
             )
-            match = re.search(pattern, issues_and_code[1], re.DOTALL)
+            match = re.search(pattern, traceback_and_code[1], re.DOTALL)
             content = match.group(1).strip() if match else ""
             if content:
                 ranges_list.append(f"--- {function_file}\n{content}")
@@ -181,14 +198,14 @@ async def locating_ranges_by_retrieve(locating_mode, instance_id, issues_and_cod
     return ranges
 
 
-async def locating_ranges_by_llm(agent, issues_and_code, script_names):
+async def locating_ranges_by_llm(agent, traceback_and_code, script_names):
     # ranges_rsp is a dict, key and value are filename and lines scope respectively
-    ranges_rsp = await locating_lines(agent, script_names, "\n".join(issues_and_code))
+    ranges_rsp = await locating_lines(agent, script_names, "\n".join(traceback_and_code))
     # split code based on filename and lines
     codes = []
     for key, values in ranges_rsp.items():
         pattern = r"\[start of {file}\](.*?)\[end of {file}\]".format(file=re.escape(key))
-        match = re.search(pattern, issues_and_code[1], re.DOTALL)
+        match = re.search(pattern, traceback_and_code[1], re.DOTALL)
         content = match.group(1).strip() if match else ""
         code_snippets = []
         # extract code snippets based on lines scope
@@ -204,7 +221,7 @@ async def locating_ranges_by_llm(agent, issues_and_code, script_names):
     return ranges
 
 
-async def locating_lines(agent, script_names, issues_and_codes):
+async def locating_lines(agent, script_names, traceback_and_code):
     max_retries = 3
     retries = 0
     lines = {}
@@ -213,7 +230,7 @@ async def locating_lines(agent, script_names, issues_and_codes):
     while retries < max_retries:
         try:
             prompt = LOCATING_LINE_RANGES_REQUIREMENT.format(
-                script_names=script_names, issues_and_codes=issues_and_codes
+                script_names=script_names, traceback_and_code=traceback_and_code
             )
             lines_rsp = await agent.llm.aask(prompt)
             # parse lines dict

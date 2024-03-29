@@ -83,7 +83,6 @@ class GitAgent(DataInterpreter):
             result, format_prompt = await self.review_patch(code)
 
             success = await self.critique(result, format_prompt)
-            # success = True
             await self.execute_code.run(code)
             ### execute code ###
             # todo: execute: git apply

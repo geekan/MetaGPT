@@ -15,8 +15,9 @@ try:
     if not os.path.exists(SYMBOL_CHANGES_FILE):
         # 执行生成 symbol changes 的脚本
         runpy.run_path(path_name="gen_symbol_changes.py", run_name="__main__")
-    # sys.argv = ["run_api.py", "--dataset_name_or_path", f"princeton-nlp/{dataset_path}", "--output_dir", "./outputs", "--locating_mode", "llm"]
     sys.argv = ["run_api.py", "--dataset_name_or_path", f"princeton-nlp/{dataset_path}", "--output_dir", "./outputs"]
+    # locating_mode can be "llm" or "jaccard"
+    sys.argv.extend(["--locating_mode", "jaccard"])
     # 执行脚本
     runpy.run_path(path_name="run_api.py", run_name="__main__")
 finally:
