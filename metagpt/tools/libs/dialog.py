@@ -81,7 +81,7 @@ async def intent_detect(messages: List[Message]) -> IntentDetectResult:
 
 
 @register_tool(tags=["dialog", "software development intent detect"])
-async def software_development_intent_detect(messages: List[Message]) -> List[str]:
+async def software_development_intent_detect(messages: List[Message]) -> IntentDetectResult:
     """Detects software development intent from a list of dialog messages.
 
     Args:
@@ -101,16 +101,39 @@ async def software_development_intent_detect(messages: List[Message]) -> List[st
         >>> messages = [Message.model_validate(i) for i in dialog]
         >>> result = await software_development_intent_detect(messages)
         >>> print(result)
-        [
-            "Writes a PRD based on software requirements.",
-            "Writes a design to the project repository, based on the PRD of the project.",
-            "Writes a project plan to the project repository, based on the design of the project.",
-            "Writes codes to the project repository, based on the project plan of the project.",
-            "Run QA test on the project repository.",
-            "Stage and commit changes for the project repository using Git."
-        ]
+        {
+            "clarifications": [],
+            "intentions": [
+                {
+                    "intention": {
+                        "intent": "Request to build a service that can receive text messages and ...",
+                        "refs": [
+                            "Can you build TextToSummarize which is a SMS number that I can text ..."
+                        ]
+                    },
+                    "sop": {
+                        "description": "Intentions related to or including software development, such as ...",
+                        "sop": [
+                            "Writes a PRD based on software requirements.",
+                            "Writes a design to the project repository, based on the PRD of the project.",
+                            "Writes a project plan to the project repository, based on the design of the project.",
+                            "Writes codes to the project repository, based on the project plan of the project.",
+                            "Run QA test on the project repository.",
+                            "Stage and commit changes for the project repository using Git."
+                        ]
+                    }
+                },
+                {
+                    "intention": {
+                        "intent": "Request for a phone number to send text messages for the summarization service",
+                        "refs": []
+                    },
+                    "sop": null
+                }
+            ]
+        }
     """
     ctx = Context()
     action = LightIntentDetect(context=ctx)
     await action.run(messages)
-    return action.result[0].sop if action.result else []
+    return action.result

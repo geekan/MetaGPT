@@ -24,9 +24,9 @@ async def test_intent_detect():
 async def test_software_develop_intent_detect():
     messages = [Message.model_validate(i) for i in DEMO_CONTENT]
     result = await software_development_intent_detect(messages)
-    assert isinstance(result, list)
+    assert isinstance(result, IntentDetectResult)
     assert result
-    logger.info(f"dialog:{DEMO_CONTENT}\nresult:{result}")
+    logger.info(f"dialog:{DEMO_CONTENT}\nresult:{result.model_dump_json()}")
 
 
 if __name__ == "__main__":

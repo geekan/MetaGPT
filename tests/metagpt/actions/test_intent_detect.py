@@ -70,6 +70,9 @@ async def test_light_intent_detect(content: str, context):
     messages = [Message.model_validate(i) for i in json.loads(content)]
     rsp = await action.run(messages)
     assert isinstance(rsp, Message)
+    assert action._dialog_intentions
+    assert action._intent_to_sops
+    assert action.result
 
 
 if __name__ == "__main__":
