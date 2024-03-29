@@ -41,7 +41,7 @@ class ConfigBasedFactory(GenericFactory):
         if creator:
             return creator(key, **kwargs)
 
-        raise ValueError(f"Unknown config: {key}")
+        raise ValueError(f"Unknown config: `{type(key)}`, {key}")
 
     @staticmethod
     def _val_from_config_or_kwargs(key: str, config: object = None, **kwargs) -> Any:

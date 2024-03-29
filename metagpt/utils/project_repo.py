@@ -35,6 +35,7 @@ from metagpt.const import (
     TEST_OUTPUTS_FILE_REPO,
     VISUAL_GRAPH_REPO_FILE_REPO,
 )
+from metagpt.utils.common import get_project_srcs_path
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
 
@@ -129,11 +130,10 @@ class ProjectRepo(FileRepository):
         return self._git_repo.new_file_repository(self._srcs_path)
 
     def code_files_exists(self) -> bool:
-        git_workdir = self.git_repo.workdir
-        src_workdir = git_workdir / git_workdir.name
+        src_workdir = get_project_srcs_path(self.git_repo.workdir)
         if not src_workdir.exists():
             return False
-        code_files = self.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
+        code_files = self.with_src_path(path=src_workdir).srcs.all_files
         if not code_files:
             return False
         return bool(code_files)

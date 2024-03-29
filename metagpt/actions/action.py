@@ -104,3 +104,8 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
         if self.node:
             return await self._run_action_node(*args, **kwargs)
         raise NotImplementedError("The run method should be implemented in a subclass.")
+
+    def override_context(self):
+        """Set `private_context` and `context` to the same `Context` object."""
+        if not self.private_context:
+            self.private_context = self.context

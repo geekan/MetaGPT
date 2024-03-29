@@ -340,10 +340,7 @@ class ActionNode:
     def tagging(self, text, schema, tag="") -> str:
         if not tag:
             return text
-        if schema == "json":
-            return f"[{tag}]\n" + text + f"\n[/{tag}]"
-        else:  # markdown
-            return f"[{tag}]\n" + text + f"\n[/{tag}]"
+        return f"[{tag}]\n{text}\n[/{tag}]"
 
     def _compile_f(self, schema, mode, tag, format_func, kv_sep, exclude=None) -> str:
         nodes = self.to_dict(format_func=format_func, mode=mode, exclude=exclude)
@@ -375,7 +372,7 @@ class ActionNode:
             schema="markdown": 编译context, example(markdown), instruction(markdown), constraint, action
         """
         if schema == "raw":
-            return context + "\n\n## Actions\n" + LANGUAGE_CONSTRAINT + "\n" + self.instruction
+            return f"{context}\n\n## Actions\n{LANGUAGE_CONSTRAINT}\n{self.instruction}"
 
         ### 直接使用 pydantic BaseModel 生成 instruction 与 example，仅限 JSON
         # child_class = self._create_children_class()
