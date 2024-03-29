@@ -1,43 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import re
 from typing import Literal, Union
 
 from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
-
-IDENTIFY_LINE_RANGES_REQUIREMENT = """
-# Instruction
-Identify the code files to be modified and their line ranges, provided python dict, in the provided <code>code</code> blocks based on the given <issue>issue</issue> in the Issues and Codes containing accessible code files with {script_names}. If the code is extremely long, focus on the <issue>issue</issue> description to narrow down the areas of concern. The line ranges should be within 50-300 lines and there may be more than one range in every files.
-
-# Think about it by following these steps:
-1. Identify the files containing errors based on the <issue>issue</issue> by using a single class or function as the basic unit of investigation.
-2. For each identified file:
-   a. Locate the relevant code section(s) based on the <issue>issue</issue> description.
-   b. Determine the line range(s) within those code sections that need to be modified.
-   c. Ensure the line range(s) fall within the 50-300 line limit, adjusting as necessary.
-3. Output the code files to be modified and line ranges as a dict.
-
-# Examples:
-1. If file1.py has an error in a specific function with line ranges 20-50, output dict: 
-```python
-{{"file1.py":["20-50"]}}
-```
-2. If file1.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output dict: 
-```python
-{{"file1.py":["20-50", "100-120"]}}
-```
-3. If file1.py has an error in a specific function with line ranges 20-50, and file2.py have errors in different functions with line ranges 20-50 and 100-120 respectively, output dict: 
-```python
-{{"file1.py":["20-50"], "file2.py":["20-50", "100-120"]}}
-```
-
-# Issues and Codes
-{issues_and_codes}
-"""
 
 
 class GitAgent(DataInterpreter):
@@ -129,11 +98,3 @@ class GitAgent(DataInterpreter):
                     counter = 0  # redo the task again with help of human suggestions
 
         return code, result, success
-
-    # TODO retry 3 times
-    async def identify_line_ranges(self, script_names, issues_and_codes):
-        prompt = IDENTIFY_LINE_RANGES_REQUIREMENT.format(script_names=script_names, issues_and_codes=issues_and_codes)
-        lines_rsp = await self.llm.aask(prompt)
-        match = re.search(r'python\s*(\{.*?\})\s*', lines_rsp, re.DOTALL)
-        lines = eval(match.group(1)) if match else {}
-        return lines

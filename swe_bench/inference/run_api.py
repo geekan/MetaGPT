@@ -95,7 +95,7 @@ async def main(
         "output_file": output_file,
         "existing_ids": existing_ids,
         "use_reflection": use_reflection,
-        "identify_scope": kwargs.get("identify_scope", "no"),
+        "locating_mode": kwargs.get("locating_mode", "no"),
     }
     if model_name_or_path.startswith("gpt"):
         await openai_inference(**inference_args)

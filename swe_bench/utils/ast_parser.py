@@ -15,7 +15,7 @@ class ASTParser(ast.NodeVisitor):
             "method": [],
         }
 
-        self.source_code = Path.read_text(code_path, encoding='utf-8')
+        self.source_code = Path.read_text(code_path, encoding="utf-8")
         self.tree = ast.parse(self.source_code)
         self.valid_line_set = valid_line_set
 
@@ -29,37 +29,20 @@ class ASTParser(ast.NodeVisitor):
         return self.file_name + "." + node_full_name
 
     def get_node_full_name_by_import(self, node):
-        if hasattr(node, 'end_lineno'):  # Python 3.8+
+        if hasattr(node, "end_lineno"):  # Python 3.8+
             # 获取从开始行号到结束行号的所有行内容
-            import_statement_lines = self.source_code.splitlines()[node.lineno - 1:node.end_lineno]
-            complete_statement = ''.join([line.strip() for line in import_statement_lines])
+            import_statement_lines = self.source_code.splitlines()[node.lineno - 1 : node.end_lineno]
+            complete_statement = "".join([line.strip() for line in import_statement_lines])
         else:  # 在Python 3.8之前的版本中，没有end_lineno
             # 只能获取开始的行
             complete_statement = self.source_code.splitlines()[node.lineno - 1].strip()
         # import 节点没有 name，这里将完整的语句作为节点名称
-        setattr(node, 'name', complete_statement)
+        setattr(node, "name", complete_statement)
         return self.get_node_full_name(node)
 
     def traverse(self, node, parent_node=None):
         if parent_node and not isinstance(parent_node, ast.Module):
             self.node_parents[node] = parent_node
-        # if not hasattr(node, "lineno"):
-        #     pass
-
-        # node_start_line = getattr(node, 'lineno', None)
-        # node_end_line = getattr(node, 'end_lineno', node_start_line)  # 如果没有end_lineno，则使用lineno
-        # if node_start_line and node_end_line:
-        #     # 创建节点覆盖的行号集合
-        #     node_line_set = set(range(node_start_line, node_end_line + 1))
-        #     # 求交集
-        #     intersection = self.valid_line_set.intersection(node_line_set)
-        #
-        #     if not intersection:
-        #         pass  # 如果交集为空，表示此节点不在有效行内，终止处理
-        #     else:
-                # if isinstance(node, ast.ClassDef):
-                #     node_full_name = self.get_node_full_name(node)
-                #     self.symbol_changes["class"].append(node_full_name)
 
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             node_full_name = self.get_node_full_name(node)
