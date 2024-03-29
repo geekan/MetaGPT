@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from datasets import load_dataset, load_from_disk
 
-from data.inference.const import SCIKIT_LEARN_IDS
+from benchmark.swe_bench.inference.const import SCIKIT_LEARN_IDS
 
 
 def load_oracle_dataset(dataset_name_or_path: str = "", split: str = "test", existing_ids: list = []):
@@ -20,13 +20,13 @@ def load_oracle_dataset(dataset_name_or_path: str = "", split: str = "test", exi
     lens = np.array(list(map(len, dataset["text"])))
     dataset = dataset.select(np.argsort(lens))
 
-    if len(existing_ids) > 0:
+    if existing_ids:
         dataset = dataset.filter(
             lambda x: x["instance_id"] not in existing_ids,
             desc="Filtering out existing ids",
             load_from_cache_file=False,
         )
-    if len(SCIKIT_LEARN_IDS) > 0:
+    if SCIKIT_LEARN_IDS:
         dataset = dataset.filter(
             lambda x: x["instance_id"] in SCIKIT_LEARN_IDS,
             desc="Filtering out subset_instance_ids",

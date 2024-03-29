@@ -1,8 +1,8 @@
 import re
 from typing import Dict, List
 
+from benchmark.swe_bench.utils.enums import FileChangeMode, LineChangeType
 from metagpt.logs import logger
-from swe_bench.utils.enums import FileChangeMode, LineChangeType
 
 
 def extract_changes_from_patch(diff: str) -> List[Dict[str, any]]:

@@ -4,18 +4,25 @@ from pathlib import Path
 import fire
 from tqdm.auto import tqdm
 
-from data.load_dataset import load_oracle_dataset
+from benchmark.swe_bench.data.load_dataset import load_oracle_dataset
+from benchmark.swe_bench.inference.run_agent import run_instance
+from benchmark.swe_bench.utils.utils import check_existing_ids, extract_diff
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils import count_string_tokens
-from swe_bench.inference.run_agent import run_instance
-from swe_bench.utils.utils import check_existing_ids, extract_diff
 
 # Replace with your own
 MAX_TOKEN = 128000
 
 
-async def openai_inference(test_dataset, model_name_or_path, output_file, existing_ids, **kwargs):
+async def openai_inference(
+    test_dataset,
+    model_name_or_path,
+    output_file,
+    existing_ids,
+    use_reflection,
+    **kwargs
+):
     """
     Runs inference on a dataset using the openai API.
 
@@ -50,7 +57,7 @@ async def openai_inference(test_dataset, model_name_or_path, output_file, existi
             logger.info(f"{repo_prefix}_{version}")
             data.append(f"{repo_prefix}_{version}")
 
-            response = await run_instance(instance=datum, **kwargs)
+            response = await run_instance(instance=datum, use_reflection=use_reflection, **kwargs)
             if response is None:
                 continue
             logger.info(f"Final response: {response}")
