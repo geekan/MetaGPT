@@ -1,7 +1,6 @@
 # MetaGPT Android Assistant
 
-The MetaGPT Android Assistant is an intelligent assistance tool driven by a multi-modal large language model based on the advanced MetaGPT framework.
-It has the ability to self-learn, mastering users' daily usage patterns through learning, and can automatically complete various application operations according to user instructions, achieving comprehensive liberation of users' hands.
+The MetaGPT Android Assistant is an intelligent assistance tool driven by a multi-modal large language model based on the advanced MetaGPT framework.  It has the ability to self-learn, mastering users' daily usage patterns through learning, and can automatically complete various application operations according to user instructions, achieving comprehensive liberation of users' hands.
 Next, we will introduce the functions of the MetaGPT Android Assistant and how to use it.
 
 ## Features
@@ -12,16 +11,15 @@ The operation of the MetaGPT Android Assistant mainly includes two stages: learn
 
 By learning from human demonstrations or exploring apps based on human instructions, the MetaGPT Android Assistant can learn the functionality of apps, generate corresponding operation documents for use in the subsequent "automatic execution" stage. Approximately 20 rounds of exploration for any given task objective can significantly improve performance.
 
-By setting the stage to "learn", you can ask the Android Assistant to enter the self-learning stage. By setting the mode to auto, you can instruct the Android Assistant to learn through automatic exploration; by setting the mode to manual, you can instruct the Android Assistant to learn through human manual demonstration. In the usage section, we provide detailed explanations of the script parameters.
-You can try experimenting with automatic exploration and manual demonstration modes on the "Messenger" app with the following commands:
+By setting the `stage` to `learn`, you can ask the Android Assistant to enter the learning stage. By setting the `mode` to `auto`, you can instruct the Android Assistant to learn through automatic exploration; by setting the mode to manual, you can instruct the Android Assistant to learn through human manual demonstration. In the usage section, we provide detailed explanations of the script parameters. You can try experimenting with automatic exploration and manual demonstration modes on the "Messenger" app with the following commands:
 
 ```bash
 cd examples/android_assistant
-python run_assistant.py "your task description" --stage "learn" --mode "auto or manual" --app-name "Messenger"
+python run_assistant.py "Send 'When will we release this feature?' to +86 8888888" --stage "learn" --mode "auto or manual" --app-name "Messenger"
 ```
 
 #### Learning Based on Human Demonstration
-When asking the Android Assistant to perform self-exploration during the self-learning stage, you can free your hands. However, when instructing it to learn according to your commands, you need to follow the instructions in the terminal for the Android Assistant to accurately learn your operation methods.
+When asking the Android Assistant to perform self-exploration during the learning stage, you can free your hands. However, when instructing it to learn according to your commands, you need to follow the instructions in the terminal for the Android Assistant to accurately learn your operation methods.
 A possible example is as follows:
 
 ```bash
@@ -29,7 +27,9 @@ cd examples/android_assistant
 python run_assistant.py "Send 'When will we release this feature?' to +86 8888888" --stage "learn" --mode "manual" --app-name "Messenger"
 ```
 
-After running this command, you will have a conversation similar to the following in the terminal, directing the Android Assistant to learn your demonstration behavior:
+After running this command, you will first see a screenshot of an Android screen that has been marked at various interactive locations, as shown in the figure below:
+##### TODO Add Image
+After remembering the location where you want to operate, a request similar to the one below will be output in the terminal. Reply to it and thereby direct the Android assistant to learn your demonstration action:
 
 ```bash
 | INFO     | examples.android_assistant.actions.manual_record:run:96 - Which element do you want to tap? Choose a numeric tag from 1 to 11:
@@ -43,9 +43,9 @@ user_input: tap
 After the Android Assistant completes the learning stage, you can command it to complete tasks on the phone through text descriptions. By configuring the operation documents from the self-learning stage, the Android Assistant has richer prior knowledge, and its execution capabilities are further enhanced.
 You can instruct the Android Assistant to send messages in the "Messenger" app with the following command:
 ```bash
-python run_assistant.py "your task description" --stage "act" --mode "auto or manual" --app-name "Messenger"
+python run_assistant.py "Send 'When will we release this feature?' to +86 8888888" --stage "act" --mode "auto or manual" --app-name "Messenger"
 ```
-Where, selecting mode as auto will cause the Android Assistant to use the operation documents accumulated during self-exploration; selecting mode as manual will cause the Android Assistant to use the operation documents accumulated during human demonstration learning.
+Specifically, by selecting `auto` for `mode`, the Android assistant will employ the operational records compiled through self-exploration. Alternatively, if `manual` is chosen as the `mode`, the Android assistant will leverage the operation manuals accrued from learning via human demonstration.
 
 ## Installation
 To use the Android Assistant, you first need to meet the following conditions:
@@ -100,5 +100,5 @@ Options:
 ```
 
 ## Acknowledgements
-The MetaGPT Android Assistant has referenced some ideas and code from the [Appagent](https://github.com/mnotgod96/AppAgent) project. We thank the developers of the Appagent project.
+The MetaGPT Android Assistant has referenced some ideas and code from the [AppAgent](https://github.com/mnotgod96/AppAgent) project. We thank the developers of the Appagent project.
 

@@ -10,16 +10,14 @@ MetaGPT 安卓助理的执行主要包含两个阶段，分别为自我学习与
 
 ### 自我学习阶段
 
-通过学习人类演示或基于人类指令对app进行探索，MetaGPT
-安卓助理可以对app的功能进行学习，生成相应的操作文档，为后续的“自动执行”阶段使用。对于任何给定的任务目标，进行约20轮的探索可以显著提高性能。
+通过学习人类演示或基于人类指令对app进行探索，MetaGPT安卓助理可以对app的功能进行学习，生成相应的操作文档，为后续的“自动执行”阶段使用。对于任何给定的任务目标，进行约20轮的探索可以显著提高性能。
 
-通过设定stage 为 "learn" 可要求安卓助理进入自我学习阶段。通过设定 mode 为
-auto，可要求安卓助理通过自动探索学习，通过设定 mode 为 manual，可要求安卓助理通过人类手动演示学习。在使用章节，我们对脚本的参数进行了详细的说明。
+通过设定`stage`为`learn`可要求安卓助理进入自我学习阶段。通过设定`mode`为`auto`，可要求安卓助理通过自动探索学习，通过设定`mode`为`manual`，可要求安卓助理通过人类手动演示学习。在使用章节，我们对脚本的参数进行了详细的说明。
 您可以尝试对“Messenger”应用程序进行自动探索和手动演示模式的实验，具体命令如下：
 
 ```bash
 cd examples/android_assistant
-python run_assistant.py "your task description" --stage "learn" --mode "auto or manual" --app-name "Messenger"
+python run_assistant.py "Send 'When will we release this feature? to +86 8888888'" --stage "learn" --mode "auto or manual" --app-name "Messenger"
 ```
 
 #### 基于人类演示的学习
@@ -31,7 +29,9 @@ cd examples/android_assistant
 python run_assistant.py "Send 'When will we release this feature? to +86 8888888'" --stage "learn" --mode "manual" --app-name "Messenger"
 ```
 
-在运行这一指令后，你将在终端中产生与下面类似的对话，进而指挥安卓助理学习你的演示行为：
+在运行这一指令后，你将首先看到一个在各个可交互的位置进行了标记的安卓屏幕的截图，如下图：
+###### TODO Add Image
+在记住你要操作的位置之后，终端中将会输出与下面类似的要求，回复它，进而指挥安卓助理学习你的演示行为：
 
 ```bash
 | INFO     | examples.android_assistant.actions.manual_record:run:96 - Which element do you want to tap? Choose a numeric tag from 1 to 11:
@@ -44,9 +44,9 @@ user_input: tap
 在安卓助理完成了自我学习阶段之后，您可以通过文本描述的方式，指挥安卓助理在手机中完成任务。通过为其配置自我学习阶段的操作文档，安卓助理具备了更丰富的前置知识，执行能力进一步得到提升。
 你可以通过以下指令，指挥安卓助理在“Messenger”应用中发送信息：
 ```bash
-python run_assistant.py "your task description" --stage "act" --mode "auto or manual" --app-name "Messenger"
+python run_assistant.py "Send 'When will we release this feature? to +86 8888888'" --stage "act" --mode "auto or manual" --app-name "Messenger"
 ```
-其中，mode选择auto，将导致安卓助理使用自我探索中积累的操作文档；mode选择 manual，将导致安卓助理使用人类演示学习中积累的操作文档。
+其中，`mode`选择`auto`，安卓助理将使用自我探索中积累的操作文档；`mode`选择`manual`，安卓助理将使用人类演示学习中积累的操作文档。
 
 ## 安装
 为了使用安卓助理，你首先需要满足以下条件：
@@ -62,7 +62,7 @@ python run_assistant.py "your task description" --stage "act" --mode "auto or ma
 adb devices
 ```
 ## 使用
-MetaGPT 安卓助理在MetaGPT框架中被设计为一个Role与多个Action的集合，你可以通过运行`run_assistant.py`脚本来运行它。这一脚本具体的参数说明如下：
+MetaGPT 安卓助理在MetaGPT框架中被设计为一个`Role`与多个`Action`的集合，你可以通过运行`run_assistant.py`脚本来运行它。这一脚本具体的参数说明如下：
 ```text
 用法：run_assistant.py [选项] 任务描述
 
@@ -95,4 +95,4 @@ MetaGPT 安卓助理在MetaGPT框架中被设计为一个Role与多个Action的�
 ```
 
 ## 致谢
-MetaGPT 安卓助理参考了 [Appagent](https://github.com/mnotgod96/AppAgent) 项目的部分思路与代码，感谢 Appagent 项目的开发者们。
+MetaGPT 安卓助理参考了 [AppAgent](https://github.com/mnotgod96/AppAgent) 项目的部分思路与代码，感谢 Appagent 项目的开发者们。
