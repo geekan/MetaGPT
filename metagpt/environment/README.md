@@ -21,7 +21,7 @@ observe & step inside role's actions
 from metagpt.environment.api.env_api import EnvAPIAbstract
 
 # get screenshot from ExtEnv
-screenshot_path: Path = env.observe(
+screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
