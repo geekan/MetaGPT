@@ -30,7 +30,9 @@ python run_assistant.py "Send 'When will we release this feature? to +86 8888888
 ```
 
 在运行这一指令后，你将首先看到一个在各个可交互的位置进行了标记的安卓屏幕的截图，如下图：
-###### TODO Add Image
+
+<img src="./resources/manual_example.png" width = 30%>
+
 在记住你要操作的位置之后，终端中将会输出与下面类似的要求，回复它，进而指挥安卓助理学习你的演示行为：
 
 ```bash

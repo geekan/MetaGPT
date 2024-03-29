@@ -28,7 +28,9 @@ python run_assistant.py "Send 'When will we release this feature?' to +86 888888
 ```
 
 After running this command, you will first see a screenshot of an Android screen that has been marked at various interactive locations, as shown in the figure below:
-##### TODO Add Image
+
+<img src="./resources/manual_example.png" width = 30%>
+
 After remembering the location where you want to operate, a request similar to the one below will be output in the terminal. Reply to it and thereby direct the Android assistant to learn your demonstration action:
 
 ```bash

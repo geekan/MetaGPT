@@ -73,6 +73,7 @@ class ManualRecord(Action):
             screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{step}_labeled.png")
             labeled_img = draw_bbox_multi(screenshot_path, screenshot_labeled_path, elem_list)
 
+            cv2.namedWindow('image', cv2.WINDOW_NORMAL)
             cv2.imshow("image", labeled_img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
