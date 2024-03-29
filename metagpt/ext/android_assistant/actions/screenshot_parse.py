@@ -25,16 +25,16 @@ from metagpt.ext.android_assistant.prompts.assistant_prompt import (
 from metagpt.ext.android_assistant.utils.schema import (
     AndroidActionOutput,
     AndroidElement,
-    GridOp,
-    LongPressGridOp,
-    LongPressOp,
+    GridOpParam,
+    LongPressGridOpParam,
+    LongPressOpParam,
     OpLogItem,
     RunState,
-    SwipeGridOp,
-    SwipeOp_3,
-    TapGridOp,
-    TapOp,
-    TextOp,
+    SwipeGridOpParam,
+    SwipeOpParam,
+    TapGridOpParam,
+    TapOpParam,
+    TextOpParam,
 )
 from metagpt.ext.android_assistant.utils.utils import (
     area_to_xy,
@@ -109,7 +109,6 @@ class ScreenshotParse(Action):
         xml_path: Path = env.observe(
             EnvObsParams(obs_type=EnvObsType.GET_XML, xml_name=f"{round_count}", local_save_dir=task_dir)
         )
-        width, height = env.device_shape
         if not screenshot_path.exists() or not xml_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
 
@@ -153,33 +152,34 @@ class ScreenshotParse(Action):
 
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on)
         if op_param.param_state == RunState.FINISH:
+            logger.info(f"op_param: {op_param}")
             return AndroidActionOutput(action_state=RunState.FINISH)
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
 
-        if isinstance(op_param, TapOp):
+        if isinstance(op_param, TapOpParam):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
-        elif isinstance(op_param, TextOp):
+        elif isinstance(op_param, TextOpParam):
             action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=op_param.input_str)
-        elif isinstance(op_param, LongPressOp):
+        elif isinstance(op_param, LongPressOpParam):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
-        elif isinstance(op_param, SwipeOp_3):
+        elif isinstance(op_param, SwipeOpParam):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(
                 action_type=EnvActionType.USER_SWIPE, coord=(x, y), orient=op_param.swipe_orient, dist=op_param.dist
             )
-        elif isinstance(op_param, GridOp):
+        elif isinstance(op_param, GridOpParam):
             grid_on = True
-        elif isinstance(op_param, TapGridOp) or isinstance(op_param, LongPressGridOp):
+        elif isinstance(op_param, TapGridOpParam) or isinstance(op_param, LongPressGridOpParam):
             x, y = area_to_xy(op_param.area, op_param.subarea, env.width, env.height, env.rows, env.cols)
-            if isinstance(op_param, TapGridOp):
+            if isinstance(op_param, TapGridOpParam):
                 action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
             else:
-                # LongPressGridOp
+                # LongPressGridOpParam
                 action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
-        elif isinstance(op_param, SwipeGridOp):
+        elif isinstance(op_param, SwipeGridOpParam):
             start_x, start_y = area_to_xy(
                 op_param.start_area, op_param.start_subarea, env.width, env.height, env.rows, env.cols
             )
@@ -190,12 +190,13 @@ class ScreenshotParse(Action):
                 action_type=EnvActionType.USER_SWIPE_TO, coord=(start_x, start_y), tgt_coord=(end_x, end_y)
             )
 
-        obs, _, _, _, info = env.step(action)
-        action_res = info["res"]
-        if action_res == ADB_EXEC_FAIL:
-            return AndroidActionOutput(action_state=RunState.FAIL)
+        if not grid_on:
+            obs, _, _, _, info = env.step(action)
+            action_res = info["res"]
+            if action_res == ADB_EXEC_FAIL:
+                return AndroidActionOutput(action_state=RunState.FAIL)
 
         if op_param.act_name != "grid":
-            grid_on = True
+            grid_on = False
 
         return AndroidActionOutput(data={"grid_on": grid_on})

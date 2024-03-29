@@ -96,26 +96,26 @@ class BaseOpParam(BaseModel):
     param_state: RunState = Field(default=RunState.SUCCESS, description="return state when extract params")
 
 
-class TapOp(BaseOpParam):
+class TapOpParam(BaseOpParam):
     area: int = Field(default=-1)
 
 
-class TextOp(BaseOpParam):
+class TextOpParam(BaseOpParam):
     input_str: str = Field(default="")
 
 
-class LongPressOp(BaseOpParam):
+class LongPressOpParam(BaseOpParam):
     area: int = Field(default=-1)
 
 
-# Modify This SwipeOp to SwipeOp_3, Need better name
-class SwipeOp_3(BaseOpParam):
+# Modify This SwipeOp to SwipeOpParam, Need better name
+class SwipeOpParam(BaseOpParam):
     area: int = Field(default=-1)
     swipe_orient: str = Field(default="up")
     dist: str = Field(default="")
 
 
-class GridOp(BaseModel):
+class GridOpParam(BaseOpParam):
     act_name: str = Field(default="")
 
 
@@ -126,17 +126,17 @@ class BaseGridOpParam(BaseOpParam):
         return f"{act_name}_grid"
 
 
-class TapGridOp(BaseGridOpParam):
+class TapGridOpParam(BaseGridOpParam):
     area: int = Field(default=-1)
     subarea: str = Field(default="")
 
 
-class LongPressGridOp(BaseGridOpParam):
+class LongPressGridOpParam(BaseGridOpParam):
     area: int = Field(default=-1)
     subarea: str = Field(default="")
 
 
-class SwipeGridOp(BaseGridOpParam):
+class SwipeGridOpParam(BaseGridOpParam):
     start_area: int = Field(default=-1)
     start_subarea: str = Field(default="")
     end_area: int = Field(default=-1)

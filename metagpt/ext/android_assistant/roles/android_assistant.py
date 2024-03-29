@@ -92,9 +92,10 @@ class AndroidAssistant(Role):
         """ignore old memory to make it run multi rounds inside a role"""
         newest_msgs = self.rc.memory.get(k=1)
         newest_msg = newest_msgs[0] if newest_msgs else None
-        if newest_msg and (RunState.FAIL.value in newest_msg.content):
+        if newest_msg and (RunState.SUCCESS.value.upper() not in newest_msg.content):
             ignore_memory = False
-            logger.error("Latest action_state is FAIL, won't react in remainder rounds")
+            state_val = newest_msg.content.split(".")[-1]  # RoundCount: 1, action_state: RunState.SUCCESS
+            logger.warning(f"Latest action_state is {state_val}, will run in the remainder rounds without `react`")
         return await super()._observe(ignore_memory)
 
     async def _act(self) -> Message:
@@ -104,7 +105,6 @@ class AndroidAssistant(Role):
             resp = await todo.run(task_dir=self.task_dir, task_desc=self.task_desc, env=self.rc.env)
         elif isinstance(todo, ParseRecord):
             resp = await todo.run(
-                app_name=config.get_other("app_name", "demo"),
                 task_dir=self.task_dir,
                 docs_dir=self.docs_dir,
             )

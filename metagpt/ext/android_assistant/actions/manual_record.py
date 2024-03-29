@@ -161,4 +161,6 @@ class ManualRecord(Action):
                 return AndroidActionOutput(action_state=RunState.FAIL)
             record_file.write(log_str)
 
-            time.sleep(3)
+            time.sleep(1)
+
+        return AndroidActionOutput(action_state=RunState.SUCCESS)

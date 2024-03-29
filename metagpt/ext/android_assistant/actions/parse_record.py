@@ -35,7 +35,7 @@ class ParseRecord(Action):
     screenshot_before_path: Path = ""
     screenshot_after_path: Path = ""
 
-    async def run(self, app_name: str, task_dir: Path, docs_dir: Path):
+    async def run(self, task_dir: Path, docs_dir: Path):
         doc_count = 0
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
@@ -112,7 +112,7 @@ class ParseRecord(Action):
                 )
                 if "error" in node.content:
                     return AndroidActionOutput(action_state=RunState.FAIL)
-                log_path = task_dir.joinpath(f"log_{app_name}.txt")
+                log_path = task_dir.joinpath("log_parse_record.txt")
                 prompt = node.compile(context=context, schema="json", mode="auto")
                 msg = node.content
                 doc_content[action_type] = msg
@@ -132,3 +132,5 @@ class ParseRecord(Action):
                 logger.info(f"Documentation generated and saved to {doc_path}")
 
             logger.info(f"Documentation generation phase completed. {doc_count} docs generated.")
+
+        return AndroidActionOutput(action_state=RunState.FINISH)

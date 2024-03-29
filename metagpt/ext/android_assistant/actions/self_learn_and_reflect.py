@@ -33,14 +33,14 @@ from metagpt.ext.android_assistant.utils.schema import (
     AndroidElement,
     Decision,
     DocContent,
-    LongPressOp,
+    LongPressOpParam,
     OpLogItem,
     ReflectLogItem,
     RunState,
     SwipeOp,
-    SwipeOp_3,
-    TapOp,
-    TextOp,
+    SwipeOpParam,
+    TapOpParam,
+    TextOpParam,
 )
 from metagpt.ext.android_assistant.utils.utils import (
     draw_bbox_multi,
@@ -71,6 +71,9 @@ class SelfLearnAndReflect(Action):
         for path in [task_dir, docs_dir]:
             path.mkdir(parents=True, exist_ok=True)
         resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
+        if resp.action_state != RunState.SUCCESS:
+            return resp
+
         resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
 
@@ -111,17 +114,17 @@ class SelfLearnAndReflect(Action):
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
 
-        if isinstance(op_param, TapOp):
+        if isinstance(op_param, TapOpParam):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
-        elif isinstance(op_param, TextOp):
+        elif isinstance(op_param, TextOpParam):
             action = EnvAction(action_type=EnvActionType.USER_INPUT, input_txt=op_param.input_str)
-        elif isinstance(op_param, LongPressOp):
+        elif isinstance(op_param, LongPressOpParam):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(action_type=EnvActionType.USER_LONGPRESS, coord=(x, y))
-        elif isinstance(op_param, SwipeOp_3):
+        elif isinstance(op_param, SwipeOpParam):
             self.ui_area = op_param.area
             self.swipe_orient = op_param.swipe_orient
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)

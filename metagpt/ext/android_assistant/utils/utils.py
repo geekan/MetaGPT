@@ -16,16 +16,16 @@ from metagpt.ext.android_assistant.utils.schema import (
     BaseGridOpParam,
     BaseOpParam,
     Decision,
-    GridOp,
-    LongPressGridOp,
-    LongPressOp,
+    GridOpParam,
+    LongPressGridOpParam,
+    LongPressOpParam,
     ReflectOp,
     RunState,
-    SwipeGridOp,
-    SwipeOp_3,
-    TapGridOp,
-    TapOp,
-    TextOp,
+    SwipeGridOpParam,
+    SwipeOpParam,
+    TapGridOpParam,
+    TapOpParam,
+    TextOpParam,
 )
 from metagpt.logs import logger
 
@@ -260,7 +260,9 @@ def reflect_parse_extarct(parsed_json: dict) -> ReflectOp:
     return op
 
 
-def screenshot_parse_extract(parsed_json: dict, grid_on: bool = False) -> Union[BaseOpParam, BaseGridOpParam, GridOp]:
+def screenshot_parse_extract(
+    parsed_json: dict, grid_on: bool = False
+) -> Union[BaseOpParam, BaseGridOpParam, GridOpParam]:
     act = parsed_json.get("Action")
     last_act = parsed_json.get("Summary")
     act_name = act.split("(")[0]
@@ -284,44 +286,44 @@ def op_params_clean(params: list[str]) -> list[Union[int, str]]:
     return param_values
 
 
-def screenshot_parse_extract_without_grid(act_name: str, act: str, last_act: str) -> Union[BaseOpParam, GridOp]:
+def screenshot_parse_extract_without_grid(act_name: str, act: str, last_act: str) -> Union[BaseOpParam, GridOpParam]:
     if act_name == ActionOp.TAP.value:
         area = int(re.findall(r"tap\((.*?)\)", act)[0])
-        op = TapOp(act_name=act_name, area=area, last_act=last_act)
+        op = TapOpParam(act_name=act_name, area=area, last_act=last_act)
     elif act_name == ActionOp.TEXT.value:
         input_str = re.findall(r"text\((.*?)\)", act)[0][1:-1]
-        op = TextOp(act_name=act_name, input_str=input_str, last_act=last_act)
+        op = TextOpParam(act_name=act_name, input_str=input_str, last_act=last_act)
     elif act_name == ActionOp.LONG_PRESS.value:
         area = int(re.findall(r"long_press\((.*?)\)", act)[0])
-        op = LongPressOp(act_name=act_name, area=area, last_act=last_act)
+        op = LongPressOpParam(act_name=act_name, area=area, last_act=last_act)
     elif act_name == ActionOp.SWIPE.value:
         params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)  # area, swipe_orient, dist
-        op = SwipeOp_3(act_name=act_name, area=params[0], swipe_orient=params[1], dist=params[2], last_act=last_act)
+        op = SwipeOpParam(act_name=act_name, area=params[0], swipe_orient=params[1], dist=params[2], last_act=last_act)
     elif act_name == ActionOp.GRID.value:
-        op = GridOp(act_name=act_name)
+        op = GridOpParam(act_name=act_name)
     else:
         op = BaseOpParam(param_state=RunState.FAIL)
     return op
 
 
-def screenshot_parse_extract_with_grid(act_name: str, act: str, last_act: str) -> Union[BaseGridOpParam, GridOp]:
+def screenshot_parse_extract_with_grid(act_name: str, act: str, last_act: str) -> Union[BaseGridOpParam, GridOpParam]:
     if act_name == ActionOp.TAP.value:
         params = re.findall(r"tap\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)
-        op = TapGridOp(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
+        op = TapGridOpParam(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
     elif act_name == ActionOp.LONG_PRESS.value:
         params = re.findall(r"long_press\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)
-        op = LongPressGridOp(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
+        op = LongPressGridOpParam(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
     elif act_name == ActionOp.SWIPE.value:
         params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)
-        op = SwipeGridOp(
+        op = SwipeGridOpParam(
             act_name=act_name, start_area=params[0], start_subarea=params[1], end_area=params[2], end_subarea=params[3]
         )
     elif act_name == ActionOp.GRID.value:
-        op = GridOp(act_name=act_name)
+        op = GridOpParam(act_name=act_name)
     else:
         op = BaseGridOpParam(param_state=RunState.FAIL)
     return op
