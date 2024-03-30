@@ -14,7 +14,7 @@ from tests.metagpt.actions.test_intent_detect import DEMO_CONTENT
 @pytest.mark.parametrize("user_messages", [[Message.model_validate(i) for i in DEMO_CONTENT if i["role"] == "user"]])
 async def test_mgx(user_messages: List[Message]):
     ctx = Context()
-    mgx = MGX(context=ctx)
+    mgx = MGX(context=ctx, tools=["<all>"])
 
     for i in user_messages:
         await mgx.run(i)

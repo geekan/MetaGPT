@@ -4,7 +4,7 @@
 import asyncio
 from typing import Dict, List
 
-from metagpt.actions.intent_detect import IntentDetect
+from metagpt.actions.intent_detect import LightIntentDetect
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
@@ -15,7 +15,7 @@ class MGX(DataInterpreter):
     intents: Dict = {}
 
     async def _intent_detect(self, user_msgs: List[Message] = None, **kwargs):
-        todo = IntentDetect(context=self.context)
+        todo = LightIntentDetect(context=self.context)
         await todo.run(user_msgs)
         logger.info(f"intent_desp is {todo.result.model_dump_json()}")
 
@@ -27,8 +27,14 @@ class MGX(DataInterpreter):
             intention_ref = "\n".join(i.intention.refs)
             self.intents[intention_ref] = i.sop.sop
             logger.debug(f"refs: {intention_ref}, sop: {i.sop.sop}")
-            sop_str = "\n".join(i.sop.sop)
-            return f"{intention_ref}\n---\n{sop_str}"
+            sop_str = "\n".join([f"- {i}" for i in i.sop.sop])
+            markdown = (
+                f"### User Requirement Detail\n```text\n{intention_ref}\n````\n"
+                f"### Knowledge\nTo meet user requirements, the following standard operating procedure(SOP)"
+                f" must be used:\n"
+                f"{sop_str}"
+            )
+            return markdown
         return intention_ref
 
     async def _plan_and_act(self) -> Message:

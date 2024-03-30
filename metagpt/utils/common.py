@@ -26,7 +26,7 @@ import sys
 import traceback
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Tuple, Union
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
@@ -271,7 +271,7 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, block: Optional[str], text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*?)```"

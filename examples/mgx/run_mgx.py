@@ -11,7 +11,7 @@ requirement = (
 
 
 async def main(requirement: str = ""):
-    mgx = MGX(ususe_intent=True)
+    mgx = MGX(use_intent=True)
     await mgx.run(requirement)
 
 
