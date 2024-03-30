@@ -2,7 +2,6 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 import asyncio
-import json
 from typing import Dict, List
 
 from metagpt.actions.intent_detect import IntentDetect
@@ -17,20 +16,20 @@ class MGX(DataInterpreter):
 
     async def _intent_detect(self, user_msgs: List[Message] = None, **kwargs):
         todo = IntentDetect(context=self.context)
-        intent_desp = await todo.run(user_msgs)
-        intent_desp = json.loads(intent_desp.content)
-        logger.info(f"intent_desp is {intent_desp}")
+        await todo.run(user_msgs)
+        logger.info(f"intent_desp is {todo.result.model_dump_json()}")
 
         # Extract intent and sop prompt
-        intents = intent_desp.get("intentions", [{}])[0]
-        # Optional: handle the case where intentions might be empty or malformatted
-        intention_ref = intents.get("intention", {}).get("refs", [None])[0]
-        sop = intents.get("sop", {}).get("sop", None)
-        self.intents.update({intention_ref: sop})
-
-        if sop is None:
-            return intention_ref
-        return intention_ref + "\n---" + "\n".join(intents["sop"]["sop"])
+        intention_ref = ""
+        for i in todo.result.intentions:
+            if not i.sop:
+                continue
+            intention_ref = "\n".join(i.intention.refs)
+            self.intents[intention_ref] = i.sop.sop
+            logger.debug(f"refs: {intention_ref}, sop: {i.sop.sop}")
+            sop_str = "\n".join(i.sop.sop)
+            return f"{intention_ref}\n---\n{sop_str}"
+        return intention_ref
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
