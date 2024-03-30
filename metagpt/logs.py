@@ -6,6 +6,8 @@
 @File    : logs.py
 """
 
+from __future__ import annotations
+
 import sys
 from datetime import datetime
 from functools import partial
@@ -34,9 +36,22 @@ def log_llm_stream(msg):
     _llm_stream_log(msg)
 
 
+def log_tool_output(output: str, tool_name: str = "", tags: list[str] = None):
+    """interface for logging tool output, can be set to log tool output in different ways to different places with set_tool_output_logfunc"""
+    _tool_output_log(output)
+
+
 def set_llm_stream_logfunc(func):
     global _llm_stream_log
     _llm_stream_log = func
 
 
+def set_tool_output_logfunc(func):
+    global _tool_output_log
+    _tool_output_log = func
+
+
 _llm_stream_log = partial(print, end="")
+
+
+_tool_output_log = partial(print, end="")

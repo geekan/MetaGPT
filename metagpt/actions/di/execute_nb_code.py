@@ -106,7 +106,7 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: list[str], keep_len: int = 2000) -> Tuple[bool, str]:
+    def parse_outputs(self, outputs: list[str], keep_len: int = 5000) -> Tuple[bool, str]:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
         parsed_output, is_success = [], True
