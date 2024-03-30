@@ -145,10 +145,13 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## Support
 
-### Discard Join US
-📢 Join Our [Discord Channel](https://discord.gg/ZRHeExS6xv)!
+### Discord Join US
 
-Looking forward to seeing you there! 🎉
+📢 Join Our [Discord Channel](https://discord.gg/ZRHeExS6xv)! Looking forward to seeing you there! 🎉
+
+### Contributor form
+
+📝 [Fill out the form](https://airtable.com/appInfdG0eJ9J4NNL/pagK3Fh1sGclBvVkV/form) to become a contributor. We are looking forward to your participation!
 
 ### Contact Information
 
