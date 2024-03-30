@@ -244,15 +244,6 @@ class RebuildSequenceView(Action):
         class_view = await self._get_uml_class_view(ns_class_name)
         source_code = await self._get_source_code(ns_class_name)
 
-        # prompt_blocks = [
-        #     "## Instruction\n"
-        #     "You are a python code to UML 2.0 Use Case translator.\n"
-        #     'The generated UML 2.0 Use Case must include the roles or entities listed in "Participants".\n'
-        #     "The functional descriptions of Actors and Use Cases in the generated UML 2.0 Use Case must not "
-        #     'conflict with the information in "Mermaid Class Views".\n'
-        #     'The section under `if __name__ == "__main__":` of "Source Code" contains information about external '
-        #     "system interactions with the internal system.\n"
-        # ]
         prompt_blocks = []
         block = "## Participants\n"
         for p in participants:
@@ -340,6 +331,7 @@ class RebuildSequenceView(Action):
             system_msgs=[
                 "You are a Mermaid Sequence Diagram translator in function detail.",
                 "Translate the markdown text to a Mermaid Sequence Diagram.",
+                "Response must be concise.",
                 "Return a markdown mermaid code block.",
             ],
             stream=False,
@@ -440,7 +432,7 @@ class RebuildSequenceView(Action):
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_PAGE_INFO)
         filename = split_namespace(ns_class_name=ns_class_name)[0]
         if not rows:
-            src_filename = RebuildSequenceView._get_full_filename(root=self.i_context, pathname=filename)
+            src_filename = RebuildSequenceView.get_full_filename(root=self.i_context, pathname=filename)
             if not src_filename:
                 return ""
             return await aread(filename=src_filename, encoding="utf-8")
@@ -450,7 +442,7 @@ class RebuildSequenceView(Action):
         )
 
     @staticmethod
-    def _get_full_filename(root: str | Path, pathname: str | Path) -> Path | None:
+    def get_full_filename(root: str | Path, pathname: str | Path) -> Path | None:
         """
         Convert package name to the full path of the module.
 
@@ -466,7 +458,7 @@ class RebuildSequenceView(Action):
             "metagpt/management/skill_manager.py", then the returned value will be
             "/User/xxx/github/MetaGPT/metagpt/management/skill_manager.py"
         """
-        if re.match(r"^/.+", pathname):
+        if re.match(r"^/.+", str(pathname)):
             return pathname
         files = list_files(root=root)
         postfix = "/" + str(pathname)

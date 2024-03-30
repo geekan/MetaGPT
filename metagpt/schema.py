@@ -677,13 +677,14 @@ class BugFixContext(BaseContext):
 
 class CodePlanAndChangeContext(BaseModel):
     requirement: str = ""
+    issue: str = ""
     prd_filename: str = ""
     design_filename: str = ""
     task_filename: str = ""
 
     @staticmethod
     def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
-        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""))
+        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""), issue=kwargs.get("issue", ""))
         for filename in filenames:
             filename = Path(filename)
             if filename.is_relative_to(PRDS_FILE_REPO):

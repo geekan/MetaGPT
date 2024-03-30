@@ -47,7 +47,7 @@ class Config(CLIParams, YamlModel):
     # Key Parameters
     llm: LLMConfig
 
-    # Global Proxy. Will be used if llm.proxy is not set
+    # Global Proxy. Not used by LLM, but by other tools such as browsers.
     proxy: str = ""
 
     # Tool Parameters

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, ProjectManager
 from metagpt.team import Team
@@ -144,6 +145,22 @@ async def test_team_recover_multi_roles_save(mocker, context):
     assert new_company.env.get_role(role_b.profile).rc.state == 1
 
     await new_company.run(n_round=4)
+
+
+@pytest.mark.asyncio
+async def test_context(context):
+    context.kwargs.set("a", "a")
+    context.cost_manager.max_budget = 9
+    company = Team(context=context)
+
+    save_to = context.repo.workdir / "serial"
+    company.serialize(save_to)
+
+    company.deserialize(save_to, Context())
+    assert company.env.context.repo
+    assert company.env.context.repo.workdir == context.repo.workdir
+    assert company.env.context.kwargs.a == "a"
+    assert company.env.context.cost_manager.max_budget == context.cost_manager.max_budget
 
 
 if __name__ == "__main__":

@@ -155,18 +155,9 @@ class IntentDetect(Action):
         """
         msg_markdown = self._message_to_markdown(with_messages)
         intentions = await self._get_intentions(msg_markdown)
-        logger.info(intentions)
         await self._get_references(msg_markdown, intentions)
         await self._get_sops()
-        self.result = IntentDetectResult(clarifications=self._dialog_intentions.clarifications)
-        sops = {i.description: i for i in SOP_CONFIG}
-        intent_to_sops = {i.intent: i.sop for i in self._intent_to_sops if i.sop != ""}
-        for i in self._references.intentions:
-            item = IntentDetectIntentionSOP(intention=i)
-            key = intent_to_sops.get(i.intent)
-            if key:
-                item.sop = sops.get(key)
-            self.result.intentions.append(item)
+        await self._merge()
 
         return Message(
             content=self.result.model_dump_json(), role="assistant", cause_by=self, instruct_content=self.result
@@ -252,6 +243,45 @@ class IntentDetect(Action):
         vv = json.loads(json_blocks[0])
         self._intent_to_sops = [self.IntentSOP.model_validate(i) for i in vv]
 
+    async def _merge(self):
+        self.result = IntentDetectResult(clarifications=self._dialog_intentions.clarifications)
+        sops = {i.description: i for i in SOP_CONFIG}
+        intent_to_sops = {i.intent: i.sop for i in self._intent_to_sops if i.sop != ""}
+
+        distinct = {}
+        for i in self._intent_to_sops:
+            if i.sop_index == 0:  # 1-based index
+                ref = self._get_intent_ref(i.intent)
+                item = IntentDetectIntentionSOP(intention=ref)
+                self.result.intentions.append(item)
+                continue
+            distinct[i.sop_index] = [i.intent] + distinct.get(i.sop_index, [])
+
+        merge_intents = {}
+        for sop_index, intents in distinct.items():
+            if len(intents) > 1:
+                merge_intents[sop_index] = intents
+                continue
+            intent_ref = self._get_intent_ref(intents[0])
+            item = IntentDetectIntentionSOP(intention=intent_ref)
+            key = intent_to_sops.get(intents[0])
+            if key:
+                item.sop = sops.get(key)
+            self.result.intentions.append(item)
+
+        for sop_index, intents in merge_intents.items():
+            intent_ref = IntentDetectIntentionRef(intent="\n".join(intents), refs=[])
+            for i in intents:
+                ref = self._get_intent_ref(i)
+                intent_ref.refs.extend(ref.refs)
+            item = IntentDetectIntentionSOP(intention=intent_ref)
+            item.sop = SOP_CONFIG[sop_index - 1]  # 1-based index
+            self.result.intentions.append(item)
+
+    def _get_intent_ref(self, intent: str):
+        mappings = {i.intent: i for i in self._references.intentions}
+        return mappings[intent]
+
     @staticmethod
     def _message_to_markdown(messages) -> str:
         markdown = ""
@@ -259,3 +289,86 @@ class IntentDetect(Action):
             content = i.content.replace("\n", " ")
             markdown += f"> {i.role}: {content}\n>\n"
         return markdown
+
+
+class LightIntentDetect(IntentDetect):
+    async def run(self, with_messages: List[Message] = None, **kwargs) -> Message:
+        """
+        Runs the intention detection action.
+
+        Args:
+            with_messages (List[Message]): List of messages representing the conversation content.
+            **kwargs: Additional keyword arguments.
+        """
+        msg_markdown = self._message_to_markdown(with_messages)
+        await self._get_intentions(msg_markdown)
+        await self._get_sops()
+        await self._merge()
+
+        return Message(content="", role="assistant", cause_by=self)
+
+    async def _get_sops(self):
+        intention_list = ""
+        for i, v in enumerate(self._dialog_intentions.intentions):
+            intention_list += f"{i + 1}. intent: {v.intent}\n   - ref: {v.ref}\n"
+        sop_list = ""
+        for i, v in enumerate(SOP_CONFIG):
+            sop_list += f"{i + 1}. {v.description}\n"
+        prompt = f"## Intentions\n{intention_list}\n---\n## SOPs\n{sop_list}\n"
+        rsp = await self.llm.aask(
+            prompt,
+            system_msgs=[
+                "You are a tool that matches user intentions with Standard Operating Procedures (SOPs).",
+                'You search for matching SOPs under "SOPs" based on user intentions in "Intentions" and their related original descriptions.',
+                'Inspect each intention in "Intentions".',
+                "Return a markdown JSON list of objects, where each object contains:\n"
+                '- an "intent" key containing the intention from the "Intentions" section;\n'
+                '- a "sop" key containing the SOP description from the "SOPs" section; filled with an empty string if no match.\n'
+                '- a "sop_index" key containing the int type index of SOP description from the "SOPs" section; filled with 0 if no match.\n'
+                '- a "reason" key explaining why it is matching/mismatching.\n',
+            ],
+            stream=False,
+        )
+        logger.debug(rsp)
+        json_blocks = parse_json_code_block(rsp)
+        vv = json.loads(json_blocks[0])
+        self._intent_to_sops = [self.IntentSOP.model_validate(i) for i in vv]
+
+    async def _merge(self):
+        self.result = IntentDetectResult(clarifications=[])
+        sops = {i.description: i for i in SOP_CONFIG}
+        intent_to_sops = {i.intent: i.sop for i in self._intent_to_sops if i.sop != ""}
+
+        distinct = {}
+        for i in self._intent_to_sops:
+            if i.sop_index == 0:  # 1-based index
+                ref = self._get_intent_ref(i.intent)
+                item = IntentDetectIntentionSOP(intention=IntentDetectIntentionRef(intent=i.intent, refs=[ref]))
+                self.result.intentions.append(item)
+                continue
+            distinct[i.sop_index] = [i.intent] + distinct.get(i.sop_index, [])
+
+        merge_intents = {}
+        for sop_index, intents in distinct.items():
+            if len(intents) > 1:
+                merge_intents[sop_index] = intents
+                continue
+            ref = self._get_intent_ref(intents[0])
+            item = IntentDetectIntentionSOP(intention=IntentDetectIntentionRef(intent=intents[0], refs=[ref]))
+            key = intent_to_sops.get(intents[0])
+            if key:
+                item.sop = sops.get(key)
+            self.result.intentions.append(item)
+
+        for sop_index, intents in merge_intents.items():
+            intent_ref = IntentDetectIntentionRef(intent="\n".join(intents), refs=[])
+            for i in intents:
+                ref = self._get_intent_ref(i)
+                intent_ref.refs.append(ref)
+            item = IntentDetectIntentionSOP(intention=intent_ref)
+            item.sop = SOP_CONFIG[sop_index - 1]  # 1-based index
+            self.result.intentions.append(item)
+
+    def _get_intent_ref(self, intent: str) -> str:
+        mappings = {i.intent: i.ref for i in self._dialog_intentions.intentions}
+        return mappings[intent]
