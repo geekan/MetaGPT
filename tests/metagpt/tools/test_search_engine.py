@@ -11,7 +11,6 @@ from typing import Callable
 
 import pytest
 
-from metagpt.config2 import config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
@@ -38,6 +37,7 @@ class MockSearchEnine:
         (SearchEngineType.SERPER_GOOGLE, None, 6, False),
         (SearchEngineType.DUCK_DUCK_GO, None, 8, True),
         (SearchEngineType.DUCK_DUCK_GO, None, 6, False),
+        (SearchEngineType.BING, None, 6, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 8, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
     ],
@@ -53,14 +53,11 @@ async def test_search_engine(
     search_engine_config = {"engine": search_engine_type, "run_func": run_func}
 
     if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
-        assert config.search
         search_engine_config["api_key"] = "mock-serpapi-key"
     elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
-        assert config.search
         search_engine_config["api_key"] = "mock-google-key"
         search_engine_config["cse_id"] = "mock-google-cse"
     elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
-        assert config.search
         search_engine_config["api_key"] = "mock-serper-key"
 
     async def test(search_engine):

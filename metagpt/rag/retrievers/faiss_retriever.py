@@ -8,7 +8,7 @@ class FAISSRetriever(VectorIndexRetriever):
     """FAISS retriever."""
 
     def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
-        """Support add nodes"""
+        """Support add nodes."""
         self._index.insert_nodes(nodes, **kwargs)
 
     def persist(self, persist_dir: str, **kwargs) -> None:

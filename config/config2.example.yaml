@@ -4,6 +4,7 @@ llm:
   api_key: "YOUR_API_KEY"
   model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
   proxy: "YOUR_PROXY"  # for LLM API requests
+  # timeout: 600 # Optional. If set to 0, default value is 300.
   pricing_plan: "" # Optional. If invalid, it will be automatically filled in with the value of the `model`.
   # Azure-exclusive pricing plan mappings：
   # - gpt-3.5-turbo 4k: "gpt-3.5-turbo-1106"

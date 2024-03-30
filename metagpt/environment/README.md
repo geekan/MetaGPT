@@ -21,7 +21,7 @@ observe & step inside role's actions
 from metagpt.environment.api.env_api import EnvAPIAbstract
 
 # get screenshot from ExtEnv
-screenshot_path: Path = env.observe(
+screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
@@ -34,5 +34,5 @@ res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
 ## TODO
 - add android app operation assistant under `examples/android_assistant`
 - migrate roles/actions of werewolf game from old version into current version
-- migrate roles/actions of mincraft game from old version into current version
+- migrate roles/actions of minecraft game from old version into current version
 - migrate roles/actions of stanford_town game from old version into current version

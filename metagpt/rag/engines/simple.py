@@ -130,10 +130,12 @@ class SimpleEngine(RetrieverQueryEngine):
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
         """
+        objs = objs or []
+        retriever_configs = retriever_configs or []
+
         if not objs and any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
             raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
-        objs = objs or []
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
         index = VectorStoreIndex(
             nodes=nodes,
