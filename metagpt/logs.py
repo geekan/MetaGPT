@@ -36,7 +36,7 @@ def log_llm_stream(msg):
     _llm_stream_log(msg)
 
 
-def log_tool_output(output: str, tool_name: str = "", tags: list[str] = None):
+def log_tool_output(output: dict, tool_name: str = "", tags: list[str] = None):
     """interface for logging tool output, can be set to log tool output in different ways to different places with set_tool_output_logfunc"""
     _tool_output_log(output)
 

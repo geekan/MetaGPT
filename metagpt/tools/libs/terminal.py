@@ -43,14 +43,14 @@ class Terminal:
             f'echo "{self.end_marker}"' + self.command_terminator
         )  # Unique marker to signal command end
         self.process.stdin.flush()
-        log_tool_output(output=cmd + self.command_terminator, tool_name="Terminal")  # log the command
+        log_tool_output(output={"cmd": cmd + self.command_terminator}, tool_name="Terminal")  # log the command
 
         # Read the output until the unique marker is found
         while True:
             line = self.process.stdout.readline()
             if line.strip() == self.end_marker:
                 break
-            log_tool_output(output=line, tool_name="Terminal")  # log stdout in real-time
+            log_tool_output(output={"output": line}, tool_name="Terminal")  # log stdout in real-time
             cmd_output.append(line)
 
         return "".join(cmd_output)
