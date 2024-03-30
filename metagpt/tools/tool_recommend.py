@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import jieba
 import numpy as np
 from pydantic import BaseModel, field_validator
 from rank_bm25 import BM25Okapi
@@ -182,7 +181,7 @@ class BM25ToolRecommender(ToolRecommender):
         self.bm25 = BM25Okapi(tokenized_corpus)
 
     def _tokenize(self, text):
-        return jieba.lcut(text)  # FIXME: needs more sophisticated tokenization
+        return text.split()  # FIXME: needs more sophisticated tokenization
 
     async def recall_tools(self, context: str = "", plan: Plan = None, topk: int = 20) -> list[Tool]:
         query = plan.current_task.instruction if plan else context
@@ -193,7 +192,7 @@ class BM25ToolRecommender(ToolRecommender):
         recalled_tools = [list(self.tools.values())[index] for index in top_indexes]
 
         logger.info(
-            f"Recalled tools: \n{[tool.name for tool in recalled_tools]}; Scores: {[doc_scores[index] for index in top_indexes]}"
+            f"Recalled tools: \n{[tool.name for tool in recalled_tools]}; Scores: {[np.round(doc_scores[index], 4) for index in top_indexes]}"
         )
 
         return recalled_tools
