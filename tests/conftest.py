@@ -113,12 +113,13 @@ def proxy():
         while not reader.at_eof():
             writer.write(await reader.read(2048))
         writer.close()
+        await writer.wait_closed()
 
     async def handle_client(reader, writer):
         data = await reader.readuntil(b"\r\n\r\n")
-        print(f"Proxy: {data}")  # checking with capfd fixture
         infos = pattern.match(data)
         host, port = infos.group("host"), infos.group("port")
+        print(f"Proxy: {host}")  # checking with capfd fixture
         port = int(port) if port else 80
         remote_reader, remote_writer = await asyncio.open_connection(host, port)
         if data.startswith(b"CONNECT"):
@@ -257,10 +258,10 @@ def http_server():
         server = aiohttp.web.Server(handler)
         runner = aiohttp.web.ServerRunner(server)
         await runner.setup()
-        site = aiohttp.web.TCPSite(runner, "localhost", 0)
+        site = aiohttp.web.TCPSite(runner, "127.0.0.1", 0)
         await site.start()
-        host, port = site._server.sockets[0].getsockname()
-        return site, f"http://{host}:{port}"
+        _, port, *_ = site._server.sockets[0].getsockname()
+        return site, f"http://127.0.0.1:{port}"
 
     return start
 

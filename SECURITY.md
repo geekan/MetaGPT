@@ -4,9 +4,9 @@
 
 | Version | Supported          |
 |---------|--------------------|
- | 7.x     | :x:                |
- | 6.x     | :x:                |
-| < 6.x   | :x:                |
+ | 0.7.x   | :x:                |
+ | 0.6.x   | :x:                |
+| < 0.6.x | :x:                |
 
 
 ## Reporting a Vulnerability

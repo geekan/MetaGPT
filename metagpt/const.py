@@ -49,6 +49,7 @@ METAGPT_ROOT = get_metagpt_root()  # Dependent on METAGPT_PROJECT_ROOT
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
 
 EXAMPLE_PATH = METAGPT_ROOT / "examples"
+EXAMPLE_DATA_PATH = EXAMPLE_PATH / "data"
 DATA_PATH = METAGPT_ROOT / "data"
 TEST_DATA_PATH = METAGPT_ROOT / "tests/data"
 RESEARCH_PATH = DATA_PATH / "research"
@@ -122,7 +123,6 @@ BASE64_FORMAT = "base64"
 
 # REDIS
 REDIS_KEY = "REDIS_KEY"
-LLM_API_TIMEOUT = 300
 
 # Message id
 IGNORED_MESSAGE_ID = "0"
@@ -131,3 +131,7 @@ IGNORED_MESSAGE_ID = "0"
 GENERALIZATION = "Generalize"
 COMPOSITION = "Composite"
 AGGREGATION = "Aggregate"
+
+# Timeout
+USE_CONFIG_TIMEOUT = 0  # Using llm.timeout configuration.
+LLM_API_TIMEOUT = 300

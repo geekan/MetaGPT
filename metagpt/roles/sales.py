@@ -11,7 +11,6 @@ from typing import Optional
 from pydantic import Field, model_validator
 
 from metagpt.actions import SearchAndSummarize, UserRequirement
-from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Role
 from metagpt.tools.search_engine import SearchEngine
 
@@ -27,7 +26,7 @@ class Sales(Role):
         "delivered with the professionalism and courtesy expected of a seasoned sales guide."
     )
 
-    store: Optional[BaseStore] = Field(default=None, exclude=True)
+    store: Optional[object] = Field(default=None, exclude=True)  # must inplement tools.SearchInterface
 
     @model_validator(mode="after")
     def validate_stroe(self):

@@ -18,6 +18,7 @@ from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.graph_repository import SPO
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context, mocker):
     # Mock

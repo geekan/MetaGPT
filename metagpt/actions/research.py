@@ -134,7 +134,7 @@ class CollectLinks(Action):
                     break
 
         model_name = config.llm.model
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, 4096)
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, config.llm.max_token)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
