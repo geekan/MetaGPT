@@ -46,7 +46,7 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.logs import logger
+from metagpt.logs import log_tool_output, logger
 from metagpt.repo_parser import DotClassInfo
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
@@ -433,6 +433,11 @@ class Plan(BaseModel):
             # Combine the common prefix with the remainder of the new tasks
             final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
             self.tasks = final_tasks
+
+        log_tool_output(
+            {"output": "\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])},
+            tool_name="Plan",
+        )
 
         # Update current_task_id to the first unfinished task in the merged list
         self._update_current_task()
