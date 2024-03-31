@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
+from metagpt.logs import ToolName, ToolOutputItem, log_tool_output
 from metagpt.schema import BugFixContext, Message
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
@@ -48,6 +49,17 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     role = ProductManager(context=ctx)
     msg = await role.run(with_message=Message(content=idea, cause_by=UserRequirement))
     await role.run(with_message=msg)
+
+    outputs = [
+        ToolOutputItem(name="PRD File", value=str(ctx.repo.docs.prd.workdir / i))
+        for i in ctx.repo.docs.prd.changed_files.keys()
+    ]
+    for i in ctx.repo.resources.competitive_analysis.changed_files.keys():
+        outputs.append(
+            ToolOutputItem(name="Competitive Analysis", value=str(ctx.repo.resources.competitive_analysis.workdir / i))
+        )
+    log_tool_output(output=outputs, tool_name=ToolName.WritePRD)
+
     return ctx.repo.docs.prd.workdir
 
 
@@ -79,6 +91,21 @@ async def write_design(prd_path: str | Path) -> Path:
 
     role = Architect(context=ctx)
     await role.run(with_message=Message(content="", cause_by=WritePRD))
+
+    outputs = [
+        ToolOutputItem(name="Intermedia Design File", value=str(ctx.repo.docs.system_design.workdir / i))
+        for i in ctx.repo.docs.system_design.changed_files.keys()
+    ]
+    for i in ctx.repo.resources.system_design.changed_files.keys():
+        outputs.append(ToolOutputItem(name="Design File", value=str(ctx.repo.resources.system_design.workdir / i)))
+    for i in ctx.repo.resources.data_api_design.changed_files.keys():
+        outputs.append(
+            ToolOutputItem(name="Class Diagram File", value=str(ctx.repo.resources.data_api_design.workdir / i))
+        )
+    for i in ctx.repo.resources.seq_flow.changed_files.keys():
+        outputs.append(ToolOutputItem(name="Sequence Diagram File", value=str(ctx.repo.resources.seq_flow.workdir / i)))
+    log_tool_output(output=outputs, tool_name=ToolName.WriteDesign)
+
     return ctx.repo.docs.system_design.workdir
 
 
@@ -110,6 +137,13 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
 
     role = ProjectManager(context=ctx)
     await role.run(with_message=Message(content="", cause_by=WriteDesign))
+
+    outputs = [
+        ToolOutputItem(name="Project Plan", value=str(ctx.repo.docs.task.workdir / i))
+        for i in ctx.repo.docs.task.changed_files.key()
+    ]
+    log_tool_output(output=outputs, tool_name=ToolName.WriteProjectPlan)
+
     return ctx.repo.docs.task.workdir
 
 
@@ -153,6 +187,13 @@ async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
     me = {any_to_str(role), role.name}
     while me.intersection(msg.send_to):
         msg = await role.run(with_message=msg)
+
+    outputs = [
+        ToolOutputItem(name="Source File", value=str(ctx.repo.srcs.workdir / i))
+        for i in ctx.repo.srcs.changed_files.keys()
+    ]
+    log_tool_output(output=outputs, tool_name=ToolName.WriteCode)
+
     return ctx.repo.srcs.workdir
 
 
@@ -192,6 +233,13 @@ async def run_qa_test(src_path: str | Path) -> Path:
 
     while not env.is_idle:
         await env.run()
+
+    outputs = [
+        ToolOutputItem(name="Unit Test File", value=str(ctx.repo.tests.workdir / i))
+        for i in ctx.repo.tests.changed_files.keys()
+    ]
+    log_tool_output(output=outputs, tool_name=ToolName.WriteUntTest)
+
     return ctx.repo.tests.workdir
 
 
@@ -237,6 +285,13 @@ async def fix_bug(project_path: str | Path, issue: str) -> Path:
     me = {any_to_str(role), role.name}
     while me.intersection(msg.send_to):
         msg = await role.run(with_message=msg)
+
+    outputs = [
+        ToolOutputItem(name="Changed File", value=str(ctx.repo.srcs.workdir / i))
+        for i in ctx.repo.srcs.changed_files.keys()
+    ]
+    log_tool_output(output=outputs, tool_name=ToolName.FixBug)
+
     return project_path
 
 
@@ -269,6 +324,10 @@ async def git_archive(project_path: str | Path) -> str:
     ctx = Context()
     ctx.set_repo_dir(project_path)
     ctx.git_repo.archive()
+
+    outputs = [ToolOutputItem(name="Git Commit", value=str(ctx.repo.workdir))]
+    log_tool_output(output=outputs, tool_name=ToolName.GitArchive)
+
     return ctx.git_repo.log()
 
 
@@ -298,4 +357,8 @@ async def import_git_repo(url: str) -> Path:
     ctx = Context()
     action = ImportRepo(repo_path=url, context=ctx)
     await action.run()
+
+    outputs = [ToolOutputItem(name="MetaGPT Project", value=str(ctx.repo.workdir))]
+    log_tool_output(output=outputs, tool_name=ToolName.ImportRepo)
+
     return ctx.repo.workdir

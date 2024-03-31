@@ -246,6 +246,7 @@ class IntentDetect(Action):
     async def _merge(self):
         self.result = IntentDetectResult(clarifications=self._dialog_intentions.clarifications)
         distinct = {}
+        # Consolidate intentions under the same SOP.
         for i in self._intent_to_sops:
             if i.sop_index == 0:  # 1-based index
                 refs = self._get_intent_ref(i.intent)
@@ -260,12 +261,14 @@ class IntentDetect(Action):
             if len(intents) > 1:
                 merge_intents[sop_index] = intents
                 continue
+            # Merge single intention
             refs = self._get_intent_ref(intents[0])
             item = IntentDetectIntentionSOP(intention=IntentDetectIntentionRef(intent=intents[0], refs=refs))
             sop_index = intent_to_sops.get(intents[0])
             item.sop = SOP_CONFIG[sop_index - 1]  # 1-based index
             self.result.intentions.append(item)
 
+        # Merge repetitive intentions into one
         for sop_index, intents in merge_intents.items():
             intent_ref = IntentDetectIntentionRef(intent="\n".join(intents), refs=[])
             for i in intents:
@@ -338,6 +341,7 @@ class LightIntentDetect(IntentDetect):
     async def _merge(self):
         self.result = IntentDetectResult(clarifications=[])
         distinct = {}
+        # Consolidate intentions under the same SOP.
         for i in self._intent_to_sops:
             if i.sop_index == 0:  # 1-based index
                 ref = self._get_intent_ref(i.intent)
@@ -352,6 +356,7 @@ class LightIntentDetect(IntentDetect):
             if len(intents) > 1:
                 merge_intents[sop_index] = intents
                 continue
+            # Merge single intention
             ref = self._get_intent_ref(intents[0])
             item = IntentDetectIntentionSOP(intention=IntentDetectIntentionRef(intent=intents[0], refs=[ref]))
             sop_index = intent_to_sops.get(intents[0])  # 1-based
@@ -359,6 +364,7 @@ class LightIntentDetect(IntentDetect):
                 item.sop = SOP_CONFIG[sop_index - 1]  # 1-based index
             self.result.intentions.append(item)
 
+        # Merge repetitive intentions into one
         for sop_index, intents in merge_intents.items():
             intent_ref = IntentDetectIntentionRef(intent="\n".join(intents), refs=[])
             for i in intents:

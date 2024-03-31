@@ -21,6 +21,7 @@ import os.path
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
+from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
@@ -785,3 +786,26 @@ class UMLClassView(UMLClassMeta):
             method.return_type = i.return_args.type_
             class_view.methods.append(method)
         return class_view
+
+
+class BaseEnum(Enum):
+    """Base class for enums."""
+
+    def __new__(cls, value, desc=None):
+        """
+        Construct an instance of the enum member.
+
+        Args:
+            cls: The class.
+            value: The value of the enum member.
+            desc: The description of the enum member. Defaults to None.
+        """
+        if issubclass(cls, str):
+            obj = str.__new__(cls, value)
+        elif issubclass(cls, int):
+            obj = int.__new__(cls, value)
+        else:
+            obj = object.__new__(cls)
+        obj._value_ = value
+        obj.desc = desc
+        return obj

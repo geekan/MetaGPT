@@ -11,10 +11,34 @@ from __future__ import annotations
 import sys
 from datetime import datetime
 from functools import partial
+from typing import List
 
 from loguru import logger as _logger
+from pydantic import BaseModel, Field
 
 from metagpt.const import METAGPT_ROOT
+from metagpt.schema import BaseEnum
+
+
+class ToolOutputItem(BaseModel):
+    type_: str = Field(alias="type", default="str", description="Data type of `value` field.")
+    name: str
+    value: str
+
+
+class ToolName(str, BaseEnum):
+    Terminal = "Terminal"
+    Plan = "Plan"
+    Browser = "Browser"
+    Files = "Files"
+    WritePRD = "WritePRD"
+    WriteDesign = "WriteDesign"
+    WriteProjectPlan = "WriteProjectPlan"
+    WriteCode = "WriteCode"
+    WriteUntTest = "WriteUntTest"
+    FixBug = "FixBug"
+    GitArchive = "GitArchive"
+    ImportRepo = "ImportRepo"
 
 
 def define_log_level(print_level="INFO", logfile_level="DEBUG", name: str = None):
@@ -36,9 +60,13 @@ def log_llm_stream(msg):
     _llm_stream_log(msg)
 
 
-def log_tool_output(output: dict, tool_name: str = ""):
+def log_tool_output(output: ToolOutputItem | List[ToolOutputItem], tool_name: str = ""):
     """interface for logging tool output, can be set to log tool output in different ways to different places with set_tool_output_logfunc"""
-    _tool_output_log(output)
+    if not _tool_output_log or not output:
+        return
+
+    outputs = output if isinstance(output, list) else [output]
+    _tool_output_log(output=[i.model_dump() for i in outputs], tool_name=tool_name)
 
 
 def set_llm_stream_logfunc(func):

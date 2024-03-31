@@ -22,9 +22,11 @@ class MGX(DataInterpreter):
         # Extract intent and sop prompt
         intention_ref = ""
         for i in todo.result.intentions:
+            if not intention_ref:
+                intention_ref = "\n".join(i.intention.refs)
             if not i.sop:
                 continue
-            intention_ref = "\n".join(i.intention.refs)
+
             self.intents[intention_ref] = i.sop.sop
             logger.debug(f"refs: {intention_ref}, sop: {i.sop.sop}")
             sop_str = "\n".join([f"- {i}" for i in i.sop.sop])
