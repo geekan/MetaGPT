@@ -32,8 +32,8 @@ class MGX(DataInterpreter):
             sop_str = "\n".join([f"- {i}" for i in i.sop.sop])
             markdown = (
                 f"### User Requirement Detail\n```text\n{intention_ref}\n````\n"
-                f"### Knowledge\nTo meet user requirements, the following standard operating procedure(SOP)"
-                f" must be used:\n"
+                f"### Knowledge\nTo meet user requirements, the following standard operating procedure(SOP) must be"
+                f" used. SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.\n"
                 f"{sop_str}"
             )
             return markdown

@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
-from metagpt.logs import ToolName, ToolOutputItem, log_tool_output
-from metagpt.schema import BugFixContext, Message
+from metagpt.logs import ToolOutputItem, log_tool_output
+from metagpt.schema import BugFixContext, Message, ToolName
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
 
@@ -86,7 +86,8 @@ async def write_design(prd_path: str | Path) -> Path:
     from metagpt.roles import Architect
 
     ctx = Context()
-    project_path = Path(prd_path).parent.parent
+    prd_path = Path(prd_path)
+    project_path = (Path(prd_path) if not prd_path.is_file() else prd_path.parent) / "../.."
     ctx.set_repo_dir(project_path)
 
     role = Architect(context=ctx)
@@ -132,7 +133,8 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
     from metagpt.roles import ProjectManager
 
     ctx = Context()
-    project_path = Path(system_design_path).parent.parent
+    system_design_path = Path(system_design_path)
+    project_path = (system_design_path if not system_design_path.is_file() else system_design_path.parent) / "../.."
     ctx.set_repo_dir(project_path)
 
     role = ProjectManager(context=ctx)
@@ -149,7 +151,7 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
 
 @register_tool(tags=["software development", "Engineer"])
 async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
-    """Writes codes to the project repository, based on the project plan of the project.
+    """Writes code to implement designed features according to the project plan and adds them to the project repository.
 
     Args:
         task_path (str|Path): The path to task files under the project directory.
@@ -179,7 +181,8 @@ async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
 
     ctx = Context()
     ctx.config.inc = inc
-    project_path = Path(task_path).parent.parent
+    task_path = Path(task_path)
+    project_path = (task_path if not task_path.is_file() else task_path.parent) / "../.."
     ctx.set_repo_dir(project_path)
 
     role = Engineer(context=ctx)
@@ -220,7 +223,8 @@ async def run_qa_test(src_path: str | Path) -> Path:
     from metagpt.roles import QaEngineer
 
     ctx = Context()
-    project_path = Path(src_path).parent
+    src_path = Path(src_path)
+    project_path = (src_path if not src_path.is_file() else src_path.parent) / ".."
     ctx.set_repo_dir(project_path)
     ctx.src_workspace = ctx.git_repo.workdir / ctx.git_repo.workdir.name
 

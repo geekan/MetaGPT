@@ -16,6 +16,10 @@ from tests.metagpt.actions.test_intent_detect import DEMO1_CONTENT, DEMO_CONTENT
     [
         [Message.model_validate(i) for i in DEMO_CONTENT if i["role"] == "user"],
         [Message.model_validate(i) for i in DEMO1_CONTENT if i["role"] == "user"],
+        [
+            Message(role="user", content='Create a "2048 game"'),
+            Message(role="user", content='"IndentationError: expected an indented block"'),
+        ],
     ],
 )
 async def test_mgx(user_messages: List[Message]):

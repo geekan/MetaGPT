@@ -46,7 +46,6 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.logs import log_tool_output, logger
 from metagpt.repo_parser import DotClassInfo
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
@@ -434,8 +433,12 @@ class Plan(BaseModel):
             final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
             self.tasks = final_tasks
 
+        from metagpt.logs import ToolOutputItem, log_tool_output
+
         log_tool_output(
-            {"output": "\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])},
+            ToolOutputItem(
+                name="output", value="\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])
+            ),
             tool_name="Plan",
         )
 
@@ -814,3 +817,18 @@ class BaseEnum(Enum):
         obj._value_ = value
         obj.desc = desc
         return obj
+
+
+class ToolName(str, BaseEnum):
+    Terminal = "Terminal"
+    Plan = "Plan"
+    Browser = "Browser"
+    Files = "Files"
+    WritePRD = "WritePRD"
+    WriteDesign = "WriteDesign"
+    WriteProjectPlan = "WriteProjectPlan"
+    WriteCode = "WriteCode"
+    WriteUntTest = "WriteUntTest"
+    FixBug = "FixBug"
+    GitArchive = "GitArchive"
+    ImportRepo = "ImportRepo"

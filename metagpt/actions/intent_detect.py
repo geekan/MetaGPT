@@ -43,7 +43,7 @@ SOP_CONFIG = [
             "Writes a PRD based on software requirements.",
             "Writes a design to the project repository, based on the PRD of the project.",
             "Writes a project plan to the project repository, based on the design of the project.",
-            "Writes codes to the project repository, based on the project plan of the project.",
+            "Writes code to implement designed features according to the project plan and adds them to the project repository.",
             # "Run QA test on the project repository.",
             "Stage and commit changes for the project repository using Git.",
         ],
