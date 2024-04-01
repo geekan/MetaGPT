@@ -55,6 +55,13 @@ SOP_CONFIG = [
             "Stage and commit changes for the project repository using Git.",
         ],
     ),
+    SOPItem(
+        description="download repository from git and format the project to MetaGPT project",
+        sop=[
+            "Imports a project from a Git website and formats it to MetaGPT project format to enable incremental appending requirements.",
+            "Stage and commit changes for the project repository using Git.",
+        ],
+    ),
 ]
 
 

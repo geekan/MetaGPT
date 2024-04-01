@@ -130,11 +130,15 @@ DEMO2_CONTENT = [
     {"role": "user", "content": "TypeError: __init__() takes 1 positional argument but 2 were given"},
 ]
 
+DEMO3_CONTENT = [
+    {"role": "user", "content": "git clone 'https://github.com/spec-first/connexion' and format to MetaGPT project"}
+]
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "content",
-    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT)],
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT), json.dumps(DEMO3_CONTENT)],
 )
 async def test_intent_detect(content: str, context):
     action = IntentDetect(context=context)
@@ -151,7 +155,7 @@ async def test_intent_detect(content: str, context):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "content",
-    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT)],
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT), json.dumps(DEMO3_CONTENT)],
 )
 async def test_light_intent_detect(content: str, context):
     action = LightIntentDetect(context=context)
