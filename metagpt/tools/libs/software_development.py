@@ -7,7 +7,7 @@ from typing import Optional
 
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import ToolOutputItem, log_tool_output
-from metagpt.schema import BugFixContext, Message, ToolName
+from metagpt.schema import BugFixContext, Message
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
 
@@ -58,7 +58,7 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
         outputs.append(
             ToolOutputItem(name="Competitive Analysis", value=str(ctx.repo.resources.competitive_analysis.workdir / i))
         )
-    log_tool_output(output=outputs, tool_name=ToolName.WritePRD)
+    log_tool_output(output=outputs, tool_name=write_prd.__name__)
 
     return ctx.repo.docs.prd.workdir
 
@@ -105,7 +105,7 @@ async def write_design(prd_path: str | Path) -> Path:
         )
     for i in ctx.repo.resources.seq_flow.changed_files.keys():
         outputs.append(ToolOutputItem(name="Sequence Diagram File", value=str(ctx.repo.resources.seq_flow.workdir / i)))
-    log_tool_output(output=outputs, tool_name=ToolName.WriteDesign)
+    log_tool_output(output=outputs, tool_name=write_design.__name__)
 
     return ctx.repo.docs.system_design.workdir
 
@@ -142,9 +142,9 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
 
     outputs = [
         ToolOutputItem(name="Project Plan", value=str(ctx.repo.docs.task.workdir / i))
-        for i in ctx.repo.docs.task.changed_files.key()
+        for i in ctx.repo.docs.task.changed_files.keys()
     ]
-    log_tool_output(output=outputs, tool_name=ToolName.WriteProjectPlan)
+    log_tool_output(output=outputs, tool_name=write_project_plan.__name__)
 
     return ctx.repo.docs.task.workdir
 
@@ -195,7 +195,7 @@ async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
         ToolOutputItem(name="Source File", value=str(ctx.repo.srcs.workdir / i))
         for i in ctx.repo.srcs.changed_files.keys()
     ]
-    log_tool_output(output=outputs, tool_name=ToolName.WriteCode)
+    log_tool_output(output=outputs, tool_name=write_codes.__name__)
 
     return ctx.repo.srcs.workdir
 
@@ -242,7 +242,7 @@ async def run_qa_test(src_path: str | Path) -> Path:
         ToolOutputItem(name="Unit Test File", value=str(ctx.repo.tests.workdir / i))
         for i in ctx.repo.tests.changed_files.keys()
     ]
-    log_tool_output(output=outputs, tool_name=ToolName.WriteUntTest)
+    log_tool_output(output=outputs, tool_name=run_qa_test.__name__)
 
     return ctx.repo.tests.workdir
 
@@ -294,7 +294,7 @@ async def fix_bug(project_path: str | Path, issue: str) -> Path:
         ToolOutputItem(name="Changed File", value=str(ctx.repo.srcs.workdir / i))
         for i in ctx.repo.srcs.changed_files.keys()
     ]
-    log_tool_output(output=outputs, tool_name=ToolName.FixBug)
+    log_tool_output(output=outputs, tool_name=fix_bug.__name__)
 
     return project_path
 
@@ -330,7 +330,7 @@ async def git_archive(project_path: str | Path) -> str:
     ctx.git_repo.archive()
 
     outputs = [ToolOutputItem(name="Git Commit", value=str(ctx.repo.workdir))]
-    log_tool_output(output=outputs, tool_name=ToolName.GitArchive)
+    log_tool_output(output=outputs, tool_name=git_archive.__name__)
 
     return ctx.git_repo.log()
 
@@ -363,6 +363,6 @@ async def import_git_repo(url: str) -> Path:
     await action.run()
 
     outputs = [ToolOutputItem(name="MetaGPT Project", value=str(ctx.repo.workdir))]
-    log_tool_output(output=outputs, tool_name=ToolName.ImportRepo)
+    log_tool_output(output=outputs, tool_name=import_git_repo.__name__)
 
     return ctx.repo.workdir

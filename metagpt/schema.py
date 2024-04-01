@@ -817,18 +817,3 @@ class BaseEnum(Enum):
         obj._value_ = value
         obj.desc = desc
         return obj
-
-
-class ToolName(str, BaseEnum):
-    Terminal = "Terminal"
-    Plan = "Plan"
-    Browser = "Browser"
-    Files = "Files"
-    WritePRD = "WritePRD"
-    WriteDesign = "WriteDesign"
-    WriteProjectPlan = "WriteProjectPlan"
-    WriteCode = "WriteCode"
-    WriteUntTest = "WriteUntTest"
-    FixBug = "FixBug"
-    GitArchive = "GitArchive"
-    ImportRepo = "ImportRepo"
