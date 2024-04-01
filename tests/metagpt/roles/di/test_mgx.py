@@ -7,7 +7,11 @@ import pytest
 from metagpt.context import Context
 from metagpt.roles.di.mgx import MGX
 from metagpt.schema import Message
-from tests.metagpt.actions.test_intent_detect import DEMO1_CONTENT, DEMO_CONTENT
+from tests.metagpt.actions.test_intent_detect import (
+    DEMO1_CONTENT,
+    DEMO2_CONTENT,
+    DEMO_CONTENT,
+)
 
 
 @pytest.mark.asyncio
@@ -16,10 +20,7 @@ from tests.metagpt.actions.test_intent_detect import DEMO1_CONTENT, DEMO_CONTENT
     [
         [Message.model_validate(i) for i in DEMO_CONTENT if i["role"] == "user"],
         [Message.model_validate(i) for i in DEMO1_CONTENT if i["role"] == "user"],
-        [
-            Message(role="user", content='Create a "2048 game"'),
-            Message(role="user", content='"IndentationError: expected an indented block"'),
-        ],
+        [Message.model_validate(i) for i in DEMO2_CONTENT if i["role"] == "user"],
     ],
 )
 async def test_mgx(user_messages: List[Message]):

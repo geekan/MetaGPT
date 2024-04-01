@@ -42,11 +42,17 @@ DEMO1_CONTENT = [
     }
 ]
 
+DEMO2_CONTENT = [
+    {"role": "user", "content": 'Create a "2048 game"'},
+    {"role": "assistant", "content": ""},
+    {"role": "user", "content": "TypeError: __init__() takes 1 positional argument but 2 were given"},
+]
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "content",
-    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT)],
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT)],
 )
 async def test_intent_detect(content: str, context):
     action = IntentDetect(context=context)
@@ -63,7 +69,7 @@ async def test_intent_detect(content: str, context):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "content",
-    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT)],
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT)],
 )
 async def test_light_intent_detect(content: str, context):
     action = LightIntentDetect(context=context)

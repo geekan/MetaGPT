@@ -47,7 +47,14 @@ SOP_CONFIG = [
             # "Run QA test on the project repository.",
             "Stage and commit changes for the project repository using Git.",
         ],
-    )
+    ),
+    SOPItem(
+        description="Error message, issues, fix bug",
+        sop=[
+            "Fix bugs in the project repository.",
+            "Stage and commit changes for the project repository using Git.",
+        ],
+    ),
 ]
 
 
