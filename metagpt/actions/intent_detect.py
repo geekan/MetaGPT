@@ -38,7 +38,7 @@ class SOPItem(BaseModel):
 
 SOP_CONFIG = [
     SOPItem(
-        description="Intentions related to or including software development, such as developing or building software, games, programming, app, websites, etc.",
+        description="Intentions related to or including software development, such as developing or building software, games, programming, app, websites, etc. Excluding bug fixes, report any issues.",
         sop=[
             "Writes a PRD based on software requirements.",
             "Writes a design to the project repository, based on the PRD of the project.",
@@ -49,7 +49,7 @@ SOP_CONFIG = [
         ],
     ),
     SOPItem(
-        description="Error message, issues, fix bug",
+        description="Error message, issues, fix bug, exception description",
         sop=[
             "Fix bugs in the project repository.",
             "Stage and commit changes for the project repository using Git.",

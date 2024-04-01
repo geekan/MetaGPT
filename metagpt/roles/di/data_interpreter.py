@@ -153,7 +153,7 @@ class DataInterpreter(Role):
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        user_requirement = self.get_memories()[0].content
+        user_requirement = self.get_memories()[0].content  # issue: 1）多次用户交互时，永远只读用户的第1次request；2）prerequisite没处理
 
         code = await todo.run(
             user_requirement=user_requirement,
