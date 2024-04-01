@@ -209,9 +209,9 @@ class Engineer(Role):
         code_plan_and_change = node.instruct_content.model_dump_json()
         dependencies = {
             REQUIREMENT_FILENAME,
-            self.rc.todo.i_context.prd_filename,
-            self.rc.todo.i_context.design_filename,
-            self.rc.todo.i_context.task_filename,
+            str(self.project_repo.docs.prd.root_path / self.rc.todo.i_context.prd_filename),
+            str(self.project_repo.docs.system_design.root_path / self.rc.todo.i_context.design_filename),
+            str(self.project_repo.docs.task.root_path / self.rc.todo.i_context.task_filename),
         }
         code_plan_and_change_filepath = Path(self.rc.todo.i_context.design_filename)
         await self.project_repo.docs.code_plan_and_change.save(
