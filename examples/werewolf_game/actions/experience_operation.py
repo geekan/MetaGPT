@@ -17,7 +17,7 @@ EMB_FN = embedding_functions.OpenAIEmbeddingFunction(
     api_base=CONFIG.openai_api_base,
     api_type=CONFIG.openai_api_type,
     model_name="text-embedding-ada-002",
-    api_version="2",
+    # api_version="2",
 )
 
 class AddNewExperiences(Action):
