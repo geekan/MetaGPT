@@ -53,7 +53,7 @@ Specifically, by selecting `auto` for `mode`, the Android assistant will employ 
 To use the Android Assistant, you first need to meet the following conditions:
 1. Complete the installation of the MetaGPT environment.
 2. Install [Android Debug Bridge (ADB)](https://developer.android.com/tools/adb?hl=zh-cn) on your PC, which enables interaction between your PC and Android devices.
-3. Install Android Studio and within it, install the Android emulator to provide an environment for the Android Assistant to learn and execute. For information on how to install the Android emulator, refer to [Quick Installation of Android Studio & Simulator](https://dev.weixin.qq.com/docs/framework/dev/framework/env/android-simulator.html).
+3. Install Android Studio and within it, install the Android emulator to provide an environment for the Android Assistant to learn and execute. For information on how to install the Android emulator, refer to [Quick Installation of Android Studio & Emulator](https://docs.expo.dev/workflow/android-studio-emulator/).
 4. (Optional) Connect your Android device to the USB port of your PC, which can also provide an environment for the Android Assistant to learn and execute.
 
 Note ⚠️: When operating with the Android emulator, the emulator model we use is Medium Phone, which is recommended for first-time users to complete the operation.

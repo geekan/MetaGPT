@@ -54,7 +54,7 @@ python run_assistant.py "Send 'When will we release this feature? to +86 8888888
 为了使用安卓助理，你首先需要满足以下条件：
 1. 完成MetaGPT环境的安装
 2. 在你的PC上安装[Android Debug Bridge(ADB)](https://developer.android.com/tools/adb?hl=zh-cn)，ADB可以使你的PC与安卓设备进行交互。
-3. 安装Android Studio，在其中安装Android模拟器，以为安卓助手提供学习与执行的环境。关于如何安装Android模拟器，可以参考[快速安装Android Studio & Simulator](https://dev.weixin.qq.com/docs/framework/dev/framework/env/android-simulator.html)。
+3. 安装Android Studio，在其中安装Android模拟器，以为安卓助手提供学习与执行的环境。关于如何安装Android模拟器，可以参考[快速安装Android Studio & Emulator](https://dev.weixin.qq.com/docs/framework/dev/framework/env/android-simulator.html)。
 4. (Optional) 将你的安卓设备连接到PC的USB端口上，这同样可以为安卓助手提供学习与执行的环境。
 
 注意 ⚠️：在使用Android模拟器进行操作时，我们使用的模拟器型号为Medium Phone，建议第一次尝试此类应用的用户使用这一型号完成操作。
