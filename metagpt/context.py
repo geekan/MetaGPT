@@ -7,7 +7,7 @@
 """
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -78,12 +78,6 @@ class Context(BaseModel):
         # env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
-    # def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
-    #     """Use a LLM instance"""
-    #     self._llm_config = self.config.get_llm_config(name, provider)
-    #     self._llm = None
-    #     return self._llm
-
     def _select_costmanager(self, llm_config: LLMConfig) -> CostManager:
         """Return a CostManager instance"""
         if llm_config.api_type == LLMType.FIREWORKS:
@@ -108,3 +102,38 @@ class Context(BaseModel):
         if llm.cost_manager is None:
             llm.cost_manager = self._select_costmanager(llm_config)
         return llm
+
+    def serialize(self) -> Dict[str, Any]:
+        """Serialize the object's attributes into a dictionary.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing serialized data.
+        """
+        return {
+            "workdir": str(self.repo.workdir) if self.repo else "",
+            "kwargs": {k: v for k, v in self.kwargs.__dict__.items()},
+            "cost_manager": self.cost_manager.model_dump_json(),
+        }
+
+    def deserialize(self, serialized_data: Dict[str, Any]):
+        """Deserialize the given serialized data and update the object's attributes accordingly.
+
+        Args:
+            serialized_data (Dict[str, Any]): A dictionary containing serialized data.
+        """
+        if not serialized_data:
+            return
+        workdir = serialized_data.get("workdir")
+        if workdir:
+            self.git_repo = GitRepository(local_path=workdir, auto_init=True)
+            self.repo = ProjectRepo(self.git_repo)
+            src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
+            if src_workspace.exists():
+                self.src_workspace = src_workspace
+        kwargs = serialized_data.get("kwargs")
+        if kwargs:
+            for k, v in kwargs.items():
+                self.kwargs.set(k, v)
+        cost_manager = serialized_data.get("cost_manager")
+        if cost_manager:
+            self.cost_manager.model_validate_json(cost_manager)
