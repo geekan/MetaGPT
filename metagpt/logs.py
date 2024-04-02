@@ -6,13 +6,27 @@
 @File    : logs.py
 """
 
+from __future__ import annotations
+
 import sys
 from datetime import datetime
 from functools import partial
 
 from loguru import logger as _logger
+from pydantic import BaseModel, Field
 
 from metagpt.const import METAGPT_ROOT
+
+
+class ToolLogItem(BaseModel):
+    type_: str = Field(alias="type", default="str", description="Data type of `value` field.")
+    name: str
+    value: str
+
+
+TOOL_LOG_END_MARKER = ToolLogItem(
+    type="str", name="end_marker", value="#END#"
+)  # A special log item to suggest the end of a stream log
 
 
 def define_log_level(print_level="INFO", logfile_level="DEBUG", name: str = None):
@@ -34,9 +48,22 @@ def log_llm_stream(msg):
     _llm_stream_log(msg)
 
 
+def log_tool_output(output: ToolLogItem | list[ToolLogItem], tool_name: str = ""):
+    """interface for logging tool output, can be set to log tool output in different ways to different places with set_tool_output_logfunc"""
+    _tool_output_log(output=output, tool_name=tool_name)
+
+
 def set_llm_stream_logfunc(func):
     global _llm_stream_log
     _llm_stream_log = func
 
 
+def set_tool_output_logfunc(func):
+    global _tool_output_log
+    _tool_output_log = func
+
+
 _llm_stream_log = partial(print, end="")
+
+
+_tool_output_log = lambda output, tool_name: print(output)

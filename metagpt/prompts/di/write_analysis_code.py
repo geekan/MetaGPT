@@ -1,4 +1,8 @@
-INTERPRETER_SYSTEM_MSG = """As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook. Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function."""
+INTERPRETER_SYSTEM_MSG = """
+As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook.
+Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
+If you want to use shell command such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available before trying ! in notebook block.
+"""
 
 STRUCTUAL_PROMPT = """
 # User Requirement
