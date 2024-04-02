@@ -56,9 +56,9 @@ class ScreenshotParse(Action):
             return ""
 
         ui_doc = """
-        You also have access to the following documentations that describes the functionalities of UI 
-        elements you can interact on the screen. These docs are crucial for you to determine the target of your 
-        next action. You should always prioritize these documented elements for interaction:"""
+You also have access to the following documentations that describes the functionalities of UI 
+elements you can interact on the screen. These docs are crucial for you to determine the target of your 
+next action. You should always prioritize these documented elements for interaction: """
         for i, elem in enumerate(elem_list):
             doc_path = docs_idr.joinpath(f"{elem.uid}.txt")
             if not doc_path.exists():
@@ -157,6 +157,7 @@ class ScreenshotParse(Action):
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
 
+        last_act = op_param.last_act
         if isinstance(op_param, TapOpParam):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             action = EnvAction(action_type=EnvActionType.SYSTEM_TAP, coord=(x, y))
@@ -199,4 +200,4 @@ class ScreenshotParse(Action):
         if op_param.act_name != "grid":
             grid_on = False
 
-        return AndroidActionOutput(data={"grid_on": grid_on})
+        return AndroidActionOutput(data={"grid_on": grid_on, "last_act": last_act})

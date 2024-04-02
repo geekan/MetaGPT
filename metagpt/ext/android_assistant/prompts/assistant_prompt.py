@@ -39,7 +39,7 @@ other elements with numeric tags cannot help with the task. The function will br
 smartphone screen into small areas and this will give you more freedom to choose any part of the screen to tap, long 
 press, or swipe.
 {ui_document}
-The task you need to complete is to {task_description}. Your past actions to proceed with this task are summarized as 
+The task you need to complete is to: {task_description}. Your past actions to proceed with this task are summarized as 
 follows: {last_act}
 Now, given the documentation and the following labeled screenshot, you need to think and call the function needed to 
 proceed with the task. Your output should include three parts in the given format:
@@ -78,7 +78,7 @@ bottom, and bottom-right.
 A simple use case can be swipe(21, "center", 25, "right"), which performs a swipe starting from the center of grid area 
 21 to the right part of grid area 25.
 
-The task you need to complete is to {task_description}. Your past actions to proceed with this task are summarized as 
+The task you need to complete is to: {task_description}. Your past actions to proceed with this task are summarized as 
 follows: {last_act}
 Now, given the following labeled screenshot, you need to think and call the function needed to proceed with the task. 
 Your output should include three parts in the given format:

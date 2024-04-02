@@ -30,7 +30,7 @@ class AndroidAssistant(Role):
 
     task_desc: str = ""
     round_count: int = 0
-    last_act: str = ""
+    last_act: str = "None"
     output_root_dir: Optional[Path] = Field(default=None)
     task_dir: Optional[Path] = Field(default=None)
     docs_dir: Optional[Path] = Field(default=None)
@@ -131,7 +131,8 @@ class AndroidAssistant(Role):
             )
             if resp.action_state == RunState.SUCCESS:
                 logger.info(f"grid_on:  {resp.data.get('grid_on')}")
-                self.grid_on = resp.data.get("grid_on")
+                self.grid_on = resp.data.get("grid_on", False)
+                self.last_act = resp.data.get("last_act", "None")
         msg = Message(
             content=f"RoundCount: {self.round_count}, action_state: {resp.action_state}",
             role=self.profile,

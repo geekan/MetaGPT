@@ -92,7 +92,7 @@ class RunState(Enum):
 
 class BaseOpParam(BaseModel):
     act_name: str = Field(default="", validate_default=True)
-    last_act: str = Field(default="")
+    last_act: str = Field(default="None")
     param_state: RunState = Field(default=RunState.SUCCESS, description="return state when extract params")
 
 
