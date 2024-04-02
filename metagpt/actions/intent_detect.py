@@ -13,6 +13,7 @@ Dependencies:
 
 """
 import json
+import re
 from typing import List
 
 from pydantic import BaseModel, Field
@@ -395,3 +396,41 @@ class LightIntentDetect(IntentDetect):
             if i.intent == intent:
                 refs.append(i.ref)
         return "\n".join(refs)
+
+
+class SentenceIntentDetect(IntentDetect):
+    sop: List[str] = None
+
+    async def run(self, with_messages: List[Message] = None, **kwargs) -> Message:
+        """
+        Runs the intention detection action.
+
+        Args:
+            with_messages (List[Message]): List of messages representing the conversation content.
+            **kwargs: Additional keyword arguments.
+        """
+        msg_markdown = self._message_to_markdown(with_messages)
+        self.sop = await self._get_intentions(msg_markdown)
+        return Message(content="", role="assistant", cause_by=self)
+
+    async def _get_intentions(self, msg_markdown: str) -> List[str]:
+        prompt = f"## Dialog\n{msg_markdown}\n"
+        prompt += "## Intentions\n"
+        for i, v in enumerate(SOP_CONFIG):
+            prompt += f"{i + 1}. {v.description}\n"
+        prompt += f"{len(SOP_CONFIG) + 1}. Others"
+        rsp = await self.llm.aask(
+            prompt,
+            system_msgs=[
+                'You are a tool for selecting a suitable intention from the "Intentions" section.',
+                'Select the intention that matches the conversation in the "Dialog" section from the "Intentions" section.',
+                'If no matching intention is found, choose "Others".',
+                "Return the integer index of your choice.",
+            ],
+            stream=False,
+        )
+        logger.debug(rsp)
+        idx = int(re.findall(r"\b\d+\b", rsp)[0]) - 1
+        if idx < len(SOP_CONFIG):
+            return SOP_CONFIG[idx].sop
+        return []

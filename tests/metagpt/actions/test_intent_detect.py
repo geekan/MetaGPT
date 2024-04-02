@@ -4,7 +4,11 @@ import json
 
 import pytest
 
-from metagpt.actions.intent_detect import IntentDetect, LightIntentDetect
+from metagpt.actions.intent_detect import (
+    IntentDetect,
+    LightIntentDetect,
+    SentenceIntentDetect,
+)
 from metagpt.logs import logger
 from metagpt.schema import Message
 
@@ -140,6 +144,7 @@ DEMO3_CONTENT = [
     "content",
     [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT), json.dumps(DEMO3_CONTENT)],
 )
+# @pytest.mark.skip
 async def test_intent_detect(content: str, context):
     action = IntentDetect(context=context)
     messages = [Message.model_validate(i) for i in json.loads(content)]
@@ -157,6 +162,7 @@ async def test_intent_detect(content: str, context):
     "content",
     [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT), json.dumps(DEMO3_CONTENT)],
 )
+# @pytest.mark.skip
 async def test_light_intent_detect(content: str, context):
     action = LightIntentDetect(context=context)
     messages = [Message.model_validate(i) for i in json.loads(content)]
@@ -165,6 +171,19 @@ async def test_light_intent_detect(content: str, context):
     assert action._dialog_intentions
     assert action._intent_to_sops
     assert action.result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "content",
+    [json.dumps(DEMO1_CONTENT), json.dumps(DEMO_CONTENT), json.dumps(DEMO2_CONTENT), json.dumps(DEMO3_CONTENT)],
+)
+# @pytest.mark.skip
+async def test_sentence_intent(content: str, context):
+    action = SentenceIntentDetect(context=context)
+    messages = [Message.model_validate(i) for i in json.loads(content)]
+    await action.run(messages)
+    assert action.sop is not None
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 import asyncio
 from typing import Dict, List
 
-from metagpt.actions.intent_detect import LightIntentDetect
+from metagpt.actions.intent_detect import SentenceIntentDetect
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
@@ -15,21 +15,16 @@ class MGX(DataInterpreter):
     intents: Dict = {}
 
     async def _intent_detect(self, user_msgs: List[Message] = None, **kwargs):
-        todo = LightIntentDetect(context=self.context)
+        todo = SentenceIntentDetect(context=self.context)
         await todo.run(user_msgs)
-        logger.info(f"intent_desp is {todo.result.model_dump_json()}")
+        logger.info(f"intent_desp is {todo.sop}")
 
         # Extract intent and sop prompt
-        intention_ref = ""
-        for i in todo.result.intentions:
-            if not intention_ref:
-                intention_ref = "\n".join(i.intention.refs)
-            if not i.sop:
-                continue
-
-            self.intents[intention_ref] = i.sop.sop
-            logger.debug(f"refs: {intention_ref}, sop: {i.sop.sop}")
-            sop_str = "\n".join([f"- {i}" for i in i.sop.sop])
+        intention_ref = "\n".join([i.content for i in user_msgs])
+        if todo.sop:
+            self.intents[intention_ref] = todo.sop
+            logger.debug(f"refs: {intention_ref}, sop: {todo.sop}")
+            sop_str = "\n".join([f"- {i}" for i in todo.sop])
             markdown = (
                 f"### User Requirement Detail\n```text\n{intention_ref}\n````\n"
                 f"### Knowledge\nTo meet user requirements, the following standard operating procedure(SOP) must be"

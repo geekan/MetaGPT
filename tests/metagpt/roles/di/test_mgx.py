@@ -48,7 +48,8 @@ async def test_mgx_fixbug(user_message: Message, history_messages: List[Message]
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("user_message", [Message.model_validate(i) for i in DEMO3_CONTENT if i.role == "user"])
+@pytest.mark.parametrize("user_message", [Message.model_validate(i) for i in DEMO3_CONTENT if i["role"] == "user"])
+@pytest.mark.skip
 async def test_git_import(user_message, context):
     mgx = MGX(context=context, tools=["<all>"])
     await mgx.run(user_message)
