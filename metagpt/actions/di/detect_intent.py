@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-This script is designed to classify intentions from complete conversation content.
-
-Usage:
-    This script can be used to classify intentions from a conversation. It utilizes models for detecting intentions
-    from the text provided and categorizes them accordingly. If the intention of certain words or phrases is unclear,
-    it prompts the user for clarification.
-
-Dependencies:
-    This script depends on the metagpt library, pydantic, and other utilities for message parsing and interaction.
-
-"""
 from __future__ import annotations
 
 import asyncio
