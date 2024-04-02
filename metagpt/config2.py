@@ -75,7 +75,7 @@ class Config(CLIParams, YamlModel):
     iflytek_api_key: str = ""
     azure_tts_subscription_key: str = ""
     azure_tts_region: str = ""
-    other: dict = dict()  # other dict
+    _extra: dict = dict()  # extra config dict
 
     @classmethod
     def from_home(cls, path):
@@ -128,11 +128,13 @@ class Config(CLIParams, YamlModel):
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
 
-    def set_other(self, other: dict):
-        self.other = other
+    @property
+    def extra(self):
+        return self._extra
 
-    def get_other(self, key: str, default_value: str = None):
-        return self.other.get(key, default_value)
+    @extra.setter
+    def extra(self, value: dict):
+        self._extra = value
 
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""

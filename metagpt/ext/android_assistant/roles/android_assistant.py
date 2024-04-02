@@ -40,8 +40,9 @@ class AndroidAssistant(Role):
         super().__init__(**data)
 
         self._watch([UserRequirement, AndroidActionOutput])
-        self.task_desc = config.get_other("task_desc", "Just explore any app in this phone!")
-        app_name = config.get_other("app_name", "demo")
+        extra_config = config.extra
+        self.task_desc = extra_config.get("task_desc", "Just explore any app in this phone!")
+        app_name = extra_config.get("app_name", "demo")
         data_dir = self.output_root_dir.absolute().joinpath("output") or EXAMPLE_PATH.joinpath(
             "android_assistant/output"
         )
@@ -50,8 +51,8 @@ class AndroidAssistant(Role):
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,
         run the learn first and then do the act stage or learn it during the action.
         """
-        stage = config.get_other("stage")
-        mode = config.get_other("mode")
+        stage = extra_config.get("stage")
+        mode = extra_config.get("mode")
         if stage == "learn" and mode == "manual":
             # choose ManualRecord and then run ParseRecord
             # Remember, only run each action only one time, no need to run n_round.

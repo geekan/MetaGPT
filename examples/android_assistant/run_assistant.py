@@ -40,19 +40,17 @@ def startup(
     ),
     device_id: str = typer.Option(default="emulator-5554", help="The Android device_id"),
 ):
-    config.set_other(
-        {
-            "stage": stage,
-            "mode": mode,
-            "app_name": app_name,
-            "task_desc": task_desc,
-            "refine_doc": refine_doc,
-            "min_dist": min_dist,
-            "android_screenshot_dir": android_screenshot_dir,
-            "android_xml_dir": android_xml_dir,
-            "device_id": device_id,
-        }
-    )
+    config.extra = {
+        "stage": stage,
+        "mode": mode,
+        "app_name": app_name,
+        "task_desc": task_desc,
+        "refine_doc": refine_doc,
+        "min_dist": min_dist,
+        "android_screenshot_dir": android_screenshot_dir,
+        "android_xml_dir": android_xml_dir,
+        "device_id": device_id,
+    }
 
     team = Team(
         env=AndroidEnv(

@@ -10,6 +10,7 @@ from xml.etree.ElementTree import Element, iterparse
 import cv2
 import pyshine as ps
 
+from metagpt.config2 import config
 from metagpt.ext.android_assistant.utils.schema import (
     ActionOp,
     AndroidElement,
@@ -47,6 +48,7 @@ def get_id_from_element(elem: Element) -> str:
 
 def traverse_xml_tree(xml_path: Path, elem_list: list[AndroidElement], attrib: str, add_index=False):
     path = []
+    extra_config = config.extra
     for event, elem in iterparse(str(xml_path), ["start", "end"]):
         if event == "start":
             path.append(elem)
@@ -68,9 +70,7 @@ def traverse_xml_tree(xml_path: Path, elem_list: list[AndroidElement], attrib: s
                     bbox = e.bbox
                     center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                     dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                    # TODO Modify config to default 30. It should be modified back config after single action test
-                    # if dist <= config.get_other("min_dist"):
-                    if dist <= 30:
+                    if dist <= extra_config.get("min_dist", 30):
                         close = True
                         break
                 if not close:

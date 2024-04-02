@@ -80,6 +80,7 @@ class SelfLearnAndReflect(Action):
     async def run_self_learn(
         self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
+        extra_config = config.extra
         screenshot_path: Path = env.observe(
             EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_before", local_save_dir=task_dir)
         )
@@ -89,7 +90,7 @@ class SelfLearnAndReflect(Action):
         if not screenshot_path.exists() or not xml_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
 
-        elem_list = elem_list_from_xml_tree(xml_path, self.useless_list, config.get_other("min_dist"))
+        elem_list = elem_list_from_xml_tree(xml_path, self.useless_list, extra_config.get("min_dist", 30))
 
         screenshot_before_labeled_path = task_dir.joinpath(f"{round_count}_before_labeled.png")
         draw_bbox_multi(screenshot_path, screenshot_before_labeled_path, elem_list)

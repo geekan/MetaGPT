@@ -45,6 +45,7 @@ class ParseRecord(Action):
             path.mkdir(parents=True, exist_ok=True)
 
         task_desc = self.task_desc_path.read_text()
+        extra_config = config.extra
 
         with open(self.record_path, "r") as record_file:
             record_step_count = len(record_file.readlines()) - 1
@@ -90,7 +91,7 @@ class ParseRecord(Action):
                         continue
 
                     if doc_content[action_type]:
-                        if config.get_other("doc_refine"):
+                        if extra_config.get("doc_refine", False):
                             refine_context = refine_doc_suffix.format(old_doc=doc_content[action_type])
                             context += refine_context
                             logger.info(

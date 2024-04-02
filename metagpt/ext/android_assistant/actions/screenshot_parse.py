@@ -101,6 +101,7 @@ next action. You should always prioritize these documented elements for interact
         grid_on: bool,
         env: AndroidEnv,
     ):
+        extra_config = config.extra
         for path in [task_dir, docs_dir]:
             path.mkdir(parents=True, exist_ok=True)
         screenshot_path: Path = env.observe(
@@ -125,7 +126,7 @@ next action. You should always prioritize these documented elements for interact
                 bbox = e.bbox
                 center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                 dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                if dist <= config.get_other("min_dist"):
+                if dist <= extra_config.get("min_dist", 30):
                     close = True
                     break
             if not close:
