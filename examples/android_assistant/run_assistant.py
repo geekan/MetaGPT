@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the entry of android assistant including learning and acting stage
 #           See the usage README inside `metagpt/ext/android_assistant`
+#           README see `metagpt/ext/android_assistant/README.md`
 
 import asyncio
 from pathlib import Path

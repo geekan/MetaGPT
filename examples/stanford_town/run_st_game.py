@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : entry of Stanford Town(ST/st) game
+#           README see `metagpt/ext/stanford_town/README.md`
 
 import asyncio
 from typing import Optional
