@@ -45,7 +45,7 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.logs import log_tool_output, logger
+from metagpt.logs import ToolLogItem, log_tool_output, logger
 from metagpt.repo_parser import DotClassInfo
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
@@ -434,7 +434,9 @@ class Plan(BaseModel):
             self.tasks = final_tasks
 
         log_tool_output(
-            {"output": "\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])},
+            ToolLogItem(
+                name="output", value="\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])
+            ),
             tool_name="Plan",
         )
 
