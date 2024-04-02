@@ -104,3 +104,15 @@ Options:
 ## Acknowledgements
 The MetaGPT Android Assistant has referenced some ideas and code from the [AppAgent](https://github.com/mnotgod96/AppAgent) project. We thank the developers of the Appagent project.
 
+### Citation
+
+```bib
+@misc{yang2023appagent,
+      title={AppAgent: Multimodal Agents as Smartphone Users}, 
+      author={Chi Zhang and Zhao Yang and Jiaxuan Liu and Yucheng Han and Xin Chen and Zebiao Huang and Bin Fu and Gang Yu},
+      year={2023},
+      eprint={2312.13771},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```

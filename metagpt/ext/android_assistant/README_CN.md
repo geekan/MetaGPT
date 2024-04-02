@@ -98,3 +98,16 @@ MetaGPT 安卓助理在MetaGPT框架中被设计为一个`Role`与多个`Action`
 
 ## 致谢
 MetaGPT 安卓助理参考了 [AppAgent](https://github.com/mnotgod96/AppAgent) 项目的部分思路与代码，感谢 Appagent 项目的开发者们。
+
+### 引用
+
+```bib
+@misc{yang2023appagent,
+      title={AppAgent: Multimodal Agents as Smartphone Users}, 
+      author={Chi Zhang and Zhao Yang and Jiaxuan Liu and Yucheng Han and Xin Chen and Zebiao Huang and Bin Fu and Gang Yu},
+      year={2023},
+      eprint={2312.13771},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
