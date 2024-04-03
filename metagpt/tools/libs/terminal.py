@@ -1,6 +1,6 @@
 import subprocess
 
-from metagpt.logs import log_tool_output
+from metagpt.logs import TOOL_LOG_END_MARKER, ToolLogItem, log_tool_output
 from metagpt.tools.tool_registry import register_tool
 
 
@@ -11,7 +11,6 @@ class Terminal:
     def __init__(self):
         self.shell_command = ["bash"]  # FIXME: should consider windows support later
         self.command_terminator = "\n"
-        self.end_marker = "#END_MARKER#"
 
         # Start a persistent shell process
         self.process = subprocess.Popen(
@@ -40,17 +39,22 @@ class Terminal:
         # Send the command
         self.process.stdin.write(cmd + self.command_terminator)
         self.process.stdin.write(
-            f'echo "{self.end_marker}"' + self.command_terminator
+            f'echo "{TOOL_LOG_END_MARKER.value}"' + self.command_terminator
         )  # Unique marker to signal command end
         self.process.stdin.flush()
-        log_tool_output(output={"cmd": cmd + self.command_terminator}, tool_name="Terminal")  # log the command
+        log_tool_output(
+            output=ToolLogItem(name="cmd", value=cmd + self.command_terminator), tool_name="Terminal"
+        )  # log the command
 
         # Read the output until the unique marker is found
         while True:
             line = self.process.stdout.readline()
-            if line.strip() == self.end_marker:
+            if line.strip() == TOOL_LOG_END_MARKER.value:
+                log_tool_output(TOOL_LOG_END_MARKER)
                 break
-            log_tool_output(output={"output": line}, tool_name="Terminal")  # log stdout in real-time
+            log_tool_output(
+                output=ToolLogItem(name="output", value=line), tool_name="Terminal"
+            )  # log stdout in real-time
             cmd_output.append(line)
 
         return "".join(cmd_output)

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
-from metagpt.logs import ToolOutputItem, log_tool_output
+from metagpt.logs import log_tool_output
 from metagpt.schema import BugFixContext, Message
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
