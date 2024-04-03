@@ -4,7 +4,7 @@
 import asyncio
 from typing import Dict, List
 
-from metagpt.actions.intent_detect import SentenceIntentDetect
+from metagpt.actions.di.detect_intent import DetectIntent
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
@@ -14,25 +14,11 @@ class MGX(DataInterpreter):
     use_intent: bool = True
     intents: Dict = {}
 
-    async def _intent_detect(self, user_msgs: List[Message] = None, **kwargs):
-        todo = SentenceIntentDetect(context=self.context)
-        await todo.run(user_msgs)
-        logger.info(f"intent_desp is {todo.sop}")
-
-        # Extract intent and sop prompt
-        intention_ref = "\n".join([i.content for i in user_msgs])
-        if todo.sop:
-            self.intents[intention_ref] = todo.sop
-            logger.debug(f"refs: {intention_ref}, sop: {todo.sop}")
-            sop_str = "\n".join([f"- {i}" for i in todo.sop])
-            markdown = (
-                f"### User Requirement Detail\n```text\n{intention_ref}\n````\n"
-                f"### Knowledge\nTo meet user requirements, the following standard operating procedure(SOP) must be"
-                f" used. SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.\n"
-                f"{sop_str}"
-            )
-            return markdown
-        return intention_ref
+    async def _detect_intent(self, user_msgs: List[Message] = None, **kwargs):
+        todo = DetectIntent(context=self.context)
+        request_with_sop, sop_type = await todo.run(user_msgs)
+        logger.info(f"{sop_type} {request_with_sop}")
+        return request_with_sop
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
@@ -41,7 +27,7 @@ class MGX(DataInterpreter):
         goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
         if self.use_intent:  # add mode
             user_message = Message(content=goal, role="user")
-            goal = await self._intent_detect(user_msgs=[user_message])
+            goal = await self._detect_intent(user_msgs=[user_message])
         logger.info(f"Goal is {goal}")
 
         await self.planner.update_plan(goal=goal)
