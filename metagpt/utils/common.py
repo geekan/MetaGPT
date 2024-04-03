@@ -26,7 +26,7 @@ import sys
 import traceback
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Tuple, Union
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
@@ -271,7 +271,7 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, block: Optional[str], text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*?)```"
@@ -822,19 +822,78 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
-def get_markdown_codeblock_type(filename: str) -> str:
+async def get_mime_type(filename: str | Path, force_read: bool = False) -> str:
+    guess_mime_type, _ = mimetypes.guess_type(filename.name)
+    if not guess_mime_type:
+        ext_mappings = {".yml": "text/yaml", ".yaml": "text/yaml"}
+        guess_mime_type = ext_mappings.get(filename.suffix)
+    if not force_read and guess_mime_type:
+        return guess_mime_type
+
+    from metagpt.tools.libs.shell import shell_execute  # avoid circular import
+
+    text_set = {
+        "application/json",
+        "application/vnd.chipnuts.karaoke-mmd",
+        "application/javascript",
+        "application/xml",
+        "application/x-sh",
+        "application/sql",
+        "text/yaml",
+    }
+
+    try:
+        stdout, _, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        ix = stdout.rfind(" ")
+        mime_type = stdout[ix:].strip()
+        if mime_type == "text/plain" and guess_mime_type in text_set:
+            return guess_mime_type
+        return mime_type
+    except Exception as e:
+        logger.debug(f"file:{filename}, error:{e}")
+        return "unknown"
+
+
+def get_markdown_codeblock_type(filename: str = None, mime_type: str = None) -> str:
     """Return the markdown code-block type corresponding to the file extension."""
-    mime_type, _ = mimetypes.guess_type(filename)
+    if not filename and not mime_type:
+        raise ValueError("Either filename or mime_type must be valid.")
+
+    if not mime_type:
+        mime_type, _ = mimetypes.guess_type(filename)
     mappings = {
         "text/x-shellscript": "bash",
         "text/x-c++src": "cpp",
         "text/css": "css",
         "text/html": "html",
         "text/x-java": "java",
-        "application/javascript": "javascript",
-        "application/json": "json",
         "text/x-python": "python",
         "text/x-ruby": "ruby",
+        "text/x-c": "cpp",
+        "text/yaml": "yaml",
+        "application/javascript": "javascript",
+        "application/json": "json",
         "application/sql": "sql",
+        "application/vnd.chipnuts.karaoke-mmd": "mermaid",
+        "application/x-sh": "bash",
+        "application/xml": "xml",
     }
     return mappings.get(mime_type, "text")
+
+
+def get_project_srcs_path(workdir: str | Path) -> Path:
+    src_workdir_path = workdir / ".src_workspace"
+    if src_workdir_path.exists():
+        with open(src_workdir_path, "r") as file:
+            src_name = file.read()
+    else:
+        src_name = Path(workdir).name
+    return Path(workdir) / src_name
+
+
+async def init_python_folder(workdir: str | Path):
+    init_filename = Path(workdir) / "__init__.py"
+    if init_filename.exists():
+        return
+    async with aiofiles.open(init_filename, "a"):
+        os.utime(init_filename, None)

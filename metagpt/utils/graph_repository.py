@@ -49,6 +49,10 @@ class GraphKeyword:
     IS_COMPOSITE_OF = "is_composite_of"
     IS_AGGREGATE_OF = "is_aggregate_of"
     HAS_PARTICIPANT = "has_participant"
+    HAS_SUMMARY = "has_summary"
+    HAS_INSTALL = "has_install"
+    HAS_CONFIG = "has_config"
+    HAS_USAGE = "has_usage"
 
 
 class SPO(BaseModel):

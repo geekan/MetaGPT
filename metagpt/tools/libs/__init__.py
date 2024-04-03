@@ -13,6 +13,15 @@ from metagpt.tools.libs import (
     email_login,
     terminal,
 )
+from metagpt.tools.libs.software_development import (
+    write_prd,
+    write_design,
+    write_project_plan,
+    write_codes,
+    run_qa_test,
+    fix_bug,
+    git_archive,
+)
 
 _ = (
     data_preprocess,
@@ -21,5 +30,12 @@ _ = (
     gpt_v_generator,
     web_scraping,
     email_login,
+    write_prd,
+    write_design,
+    write_project_plan,
+    write_codes,
+    run_qa_test,
+    fix_bug,
+    git_archive,
     terminal,
 )  # Avoid pre-commit error

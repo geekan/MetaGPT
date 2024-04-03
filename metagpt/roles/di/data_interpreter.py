@@ -14,7 +14,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.task_type import TaskType
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, role_raise_decorator
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -153,7 +153,7 @@ class DataInterpreter(Role):
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        user_requirement = self.get_memories()[0].content
+        user_requirement = self.get_memories()[0].content  # issue: 1）多次用户交互时，永远只读用户的第1次request；2）prerequisite没处理
 
         code = await todo.run(
             user_requirement=user_requirement,
@@ -186,3 +186,11 @@ class DataInterpreter(Role):
             print(result)
             data_info = DATA_INFO.format(info=result)
             self.working_memory.add(Message(content=data_info, role="user", cause_by=CheckData))
+
+    @role_raise_decorator
+    async def run(self, with_message=None) -> Message | None:
+        if not self.rc.todo:
+            self.set_actions([WriteAnalysisCode])
+            self._set_state(0)
+
+        return await super().run(with_message)
