@@ -47,7 +47,7 @@ def get_metagpt_root():
 
 
 # METAGPT PROJECT ROOT AND VARS
-
+CONFIG_ROOT = Path.home() / ".metagpt"
 METAGPT_ROOT = get_metagpt_root()  # Dependent on METAGPT_PROJECT_ROOT
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
 
