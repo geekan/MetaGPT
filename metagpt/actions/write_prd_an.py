@@ -133,10 +133,10 @@ REQUIREMENT_ANALYSIS = ActionNode(
 REFINED_REQUIREMENT_ANALYSIS = ActionNode(
     key="Refined Requirement Analysis",
     expected_type=List[str],
-    instruction="Review and refine the existing requirement analysis to align with the evolving needs of the project "
+    instruction="Review and refine the existing requirement analysis into a string list to align with the evolving needs of the project "
     "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
     "required for the refined project scope.",
-    example=["Require add/update/modify ..."],
+    example=["Require add ...", "Require modify ..."],
 )
 
 REQUIREMENT_POOL = ActionNode(
