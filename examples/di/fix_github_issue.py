@@ -1,8 +1,7 @@
-# This is a real issue from MetaGPT: https://github.com/geekan/MetaGPT/issues/1067
-# with corresponding bugfix as https://github.com/geekan/MetaGPT/pull/1069
-# We demonstrate that DataInterpreter has the capability to fix such issues.
-# Prerequisite: You need to manually add back the bug in your local file metagpt/utils/repair_llm_raw_output.py
-# to test the DataInterpreter's issue solving ability.
+"""This example is from a real issue from MetaGPT: https://github.com/geekan/MetaGPT/issues/1067 with corresponding bugfix as https://github.com/geekan/MetaGPT/pull/1069
+We demonstrate that DataInterpreter has the capability to fix such issues.
+Prerequisite: You need to manually add the bug back to your local file metagpt/utils/repair_llm_raw_output.py to test DataInterpreter's debugging ability. For detail, please check the issue and PR link above.
+"""
 
 import asyncio
 
