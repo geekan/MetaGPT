@@ -81,6 +81,8 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
             from metagpt.utils.mmdc_ink import mermaid_to_file
 
             return await mermaid_to_file(mermaid_code, output_file_without_suffix)
+        elif engine == "none":
+            return 0
         else:
             logger.warning(f"Unsupported mermaid engine: {engine}")
     return 0
