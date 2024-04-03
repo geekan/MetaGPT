@@ -6,10 +6,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from metagpt.tools.tool_registry import register_tool
 
-
-@register_tool(tags=["shell"])
 async def shell_execute(
     command: Union[List[str], str], cwd: str | Path = None, env: Dict = None, timeout: int = 600
 ) -> Tuple[str, str, int]:
