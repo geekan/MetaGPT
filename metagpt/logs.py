@@ -11,6 +11,7 @@ from __future__ import annotations
 import sys
 from datetime import datetime
 from functools import partial
+from typing import Any
 
 from loguru import logger as _logger
 from pydantic import BaseModel, Field
@@ -21,7 +22,7 @@ from metagpt.const import METAGPT_ROOT
 class ToolLogItem(BaseModel):
     type_: str = Field(alias="type", default="str", description="Data type of `value` field.")
     name: str
-    value: str
+    value: Any
 
 
 TOOL_LOG_END_MARKER = ToolLogItem(
@@ -66,4 +67,6 @@ def set_tool_output_logfunc(func):
 _llm_stream_log = partial(print, end="")
 
 
-_tool_output_log = lambda output, tool_name: print(output)
+_tool_output_log = (
+    lambda *args, **kwargs: None
+)  # a dummy function to avoid errors if set_tool_output_logfunc is not called

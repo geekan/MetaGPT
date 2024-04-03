@@ -4,6 +4,7 @@ import subprocess
 
 from pydantic import BaseModel, Field
 
+from metagpt.logs import ToolLogItem, log_tool_output
 from metagpt.tools.tool_registry import register_tool
 
 
@@ -26,11 +27,13 @@ class FileManager:
         """Write the whole content to a file."""
         with open(path, "w") as f:
             f.write(content)
+        log_tool_output(ToolLogItem(name="write_file_path", value=path), tool_name="FileManager")
 
     def read(self, path: str) -> str:
         """Read the whole content of a file."""
         with open(path, "r") as f:
             return f.read()
+        log_tool_output(ToolLogItem(name="read_file_path", value=path), tool_name="FileManager")
 
     def search_content(self, symbol: str, root_path: str = "", window: int = 20) -> FileBlock:
         """
@@ -67,7 +70,7 @@ class FileManager:
                         start = max(i - window, 0)
                         end = min(i + window, len(lines) - 1)
                         block_content = "".join(lines[start : end + 1])
-                        return FileBlock(
+                        result = FileBlock(
                             file_path=file_path,
                             block_content=block_content,
                             block_start_line=start + 1,
@@ -75,6 +78,11 @@ class FileManager:
                             symbol=symbol,
                             symbol_line=i + 1,
                         )
+                        log_tool_output(
+                            ToolLogItem(type="object", name="file_block_searched", value=result),
+                            tool_name="FileManager",
+                        )
+                        return result
         return None
 
     def write_content(self, file_path: str, start_line: int, end_line: int, new_block_content: str = "") -> str:
@@ -109,6 +117,17 @@ class FileManager:
 
             # If linting passes, overwrite the original file with the temporary file
             shutil.move(temp_file_path, file_path)
+
+            new_file_block = FileBlock(
+                file_path=file_path,
+                block_content=new_block_content,
+                block_start_line=start_line,
+                block_end_line=-1 if end_line < start_line else start_line + new_block_content.count("\n"),
+            )
+            log_tool_output(
+                ToolLogItem(type="object", name="file_block_written", value=new_file_block), tool_name="FileManager"
+            )
+
             return f"Content written successfully to {file_path}"
 
         finally:

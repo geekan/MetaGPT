@@ -433,13 +433,6 @@ class Plan(BaseModel):
             final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
             self.tasks = final_tasks
 
-        log_tool_output(
-            ToolLogItem(
-                name="output", value="\n\n".join([f"Task {task.task_id}: {task.instruction}" for task in self.tasks])
-            ),
-            tool_name="Plan",
-        )
-
         # Update current_task_id to the first unfinished task in the merged list
         self._update_current_task()
 
@@ -483,6 +476,8 @@ class Plan(BaseModel):
             if new_task.task_id in task.dependent_task_ids:
                 self.reset_task(task.task_id)
 
+        self._update_current_task()
+
     def append_task(self, new_task: Task):
         """
         Append a new task to the end of existing task sequences
@@ -513,7 +508,15 @@ class Plan(BaseModel):
             if not task.is_finished:
                 current_task_id = task.task_id
                 break
-        self.current_task_id = current_task_id  # all tasks finished
+        self.current_task_id = current_task_id
+
+        log_tool_output(
+            [
+                ToolLogItem(type="object", name="tasks", value=self.tasks),
+                ToolLogItem(type="object", name="current_task_id", value=self.current_task_id),
+            ],
+            tool_name="Plan",
+        )
 
     @property
     def current_task(self) -> Task:
