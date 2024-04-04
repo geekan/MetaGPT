@@ -450,7 +450,6 @@ class ActionNode:
         self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=USE_CONFIG_TIMEOUT, exclude=None
     ):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
-
         if schema != "raw":
             mapping = self.get_mapping(mode, exclude=exclude)
             class_name = f"{self.key}_AN"

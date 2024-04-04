@@ -39,6 +39,7 @@ extras_require = {
         "llama-index-vector-stores-elasticsearch==0.1.6",
         "llama-index-vector-stores-chroma==0.1.6",
     ],
+    "android_assistant": ["pyshine==0.0.9", "opencv-python==4.6.0.66"],
 }
 
 extras_require["test"] = [

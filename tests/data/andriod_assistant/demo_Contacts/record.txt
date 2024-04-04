@@ -1,0 +1,2 @@
+tap(9):::android.view.ViewGroup_1067_236_android.widget.TextView_183_204_Apps_2
+stop
