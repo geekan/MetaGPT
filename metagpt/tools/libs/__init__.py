@@ -12,6 +12,7 @@ from metagpt.tools.libs import (
     web_scraping,
     email_login,
     terminal,
+    file_manager,
 )
 from metagpt.tools.libs.software_development import (
     write_prd,
@@ -38,4 +39,5 @@ _ = (
     fix_bug,
     git_archive,
     terminal,
+    file_manager,
 )  # Avoid pre-commit error
