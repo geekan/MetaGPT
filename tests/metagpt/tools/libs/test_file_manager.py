@@ -43,8 +43,8 @@ def test_search_content(test_file):
 EXPECTED_CONTENT_AFTER_REPLACE = """
 # this is line one
 def test_function_for_fm():
-    This is the new line A replacing lines 3 to 5.
-    This is the new line B.
+    # This is the new line A replacing lines 3 to 5.
+    # This is the new line B.
     c = 3
     # this is the 7th line
 """.strip()
@@ -55,11 +55,10 @@ def test_replace_content(test_file):
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=5,
-        new_block_content="    This is the new line A replacing lines 3 to 5.\n    This is the new line B.",
+        new_block_content="    # This is the new line A replacing lines 3 to 5.\n    # This is the new line B.",
     )
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
-    print(new_content)
     assert new_content == EXPECTED_CONTENT_AFTER_REPLACE
 
 
@@ -81,7 +80,7 @@ def test_delete_content(test_file):
 EXPECTED_CONTENT_AFTER_INSERT = """
 # this is line one
 def test_function_for_fm():
-    This is the new line to be inserted, at line 3
+    # This is the new line to be inserted, at line 3
     "some docstring"
     a = 1
     b = 2
@@ -95,8 +94,28 @@ def test_insert_content(test_file):
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=-1,
-        new_block_content="    This is the new line to be inserted, at line 3",
+        new_block_content="    # This is the new line to be inserted, at line 3",
     )
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
     assert new_content == EXPECTED_CONTENT_AFTER_INSERT
+
+
+def test_new_content_wrong_indentation(test_file):
+    msg = FileManager().write_content(
+        file_path=str(TEST_FILE_PATH),
+        start_line=3,
+        end_line=-1,
+        new_block_content="    This is the new line to be inserted, at line 3",  # omit # should throw a syntax error
+    )
+    assert "failed" in msg
+
+
+def test_new_content_format_issue(test_file):
+    msg = FileManager().write_content(
+        file_path=str(TEST_FILE_PATH),
+        start_line=3,
+        end_line=-1,
+        new_block_content="    # This is the new line to be inserted, at line 3  ",  # trailing spaces are format issue only, and should not throw an error
+    )
+    assert "failed" not in msg
