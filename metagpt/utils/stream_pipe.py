@@ -12,8 +12,6 @@ from multiprocessing import Pipe
 
 class StreamPipe:
     parent_conn, child_conn = Pipe()
-
-    variable: list = {}
     finish: bool = False
 
     format_data = {
@@ -44,12 +42,6 @@ class StreamPipe:
             return self.child_conn.recv()
         else:
             return None
-
-    def set_k_message(self, k, msg):
-        self.variable[k] = msg
-
-    def get_k_message(self, k):
-        return self.variable[k]
 
     def msg2stream(self, msg):
         self.format_data['created'] = int(time.time())
