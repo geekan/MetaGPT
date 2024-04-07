@@ -7,6 +7,7 @@ from typing import Tuple
 from pydantic import BaseModel
 
 from metagpt.actions import Action
+from metagpt.schema import Message
 
 
 class SOPItemDef(BaseModel):
@@ -89,7 +90,8 @@ You should follow the following Standard Operating Procedure:
 
 
 class DetectIntent(Action):
-    async def run(self, user_requirement: str) -> Tuple[str, str]:
+    async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
+        user_requirement = with_message.content
         intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
@@ -111,7 +113,7 @@ async def main():
     detect_intent = DetectIntent()
 
     for user_requirement in user_requirements:
-        req_with_sop, sop_type = await detect_intent.run(user_requirement)
+        req_with_sop, sop_type = await detect_intent.run(Message(role="user", content=user_requirement))
         print(req_with_sop)
         print(f"Detected SOP Type: {sop_type}")
 
