@@ -90,6 +90,8 @@ You should follow the following Standard Operating Procedure:
 
 class DetectIntent(Action):
     async def run(self, user_requirement: str) -> Tuple[str, str]:
+        if not isinstance(user_requirement, str):
+            raise ValueError(f"str type error: {user_requirement}")
         intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
