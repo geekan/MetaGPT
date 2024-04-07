@@ -43,7 +43,7 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     from metagpt.roles import ProductManager
 
     ctx = Context()
-    if project_path:
+    if project_path and Path(project_path).exists():
         ctx.config.project_path = Path(project_path)
         ctx.config.inc = True
     role = ProductManager(context=ctx)

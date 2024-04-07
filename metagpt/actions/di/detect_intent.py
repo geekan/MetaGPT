@@ -98,7 +98,8 @@ class DetectIntent(Action):
         sop_type = await self._aask(prompt)
         sop_type = sop_type.strip()
 
-        sop = SOPItem.get_type(sop_type).sop
+        item = SOPItem.get_type(sop_type)
+        sop = item.sop if item else None
 
         req_with_sop = (
             REQ_WITH_SOP.format(user_requirement=user_requirement, sop="\n".join(sop)) if sop else user_requirement
