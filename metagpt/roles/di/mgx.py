@@ -16,8 +16,7 @@ class MGX(DataInterpreter):
 
     async def _detect_intent(self, user_msgs: List[Message] = None, **kwargs):
         todo = DetectIntent(context=self.context)
-        user_requirement = "\n".join([f"> {i.role}: {i.content}" for i in user_msgs])
-        request_with_sop, sop_type = await todo.run(user_requirement)
+        request_with_sop, sop_type = await todo.run(user_msgs)
         logger.info(f"{sop_type} {request_with_sop}")
         return request_with_sop
 

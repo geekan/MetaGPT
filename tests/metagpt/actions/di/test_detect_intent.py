@@ -1,6 +1,7 @@
 import pytest
 
 from metagpt.actions.di.detect_intent import DetectIntent
+from metagpt.schema import Message
 
 SOFTWARE_DEV_REQ1 = """
 I'd like to create a personalized website that features the 'Game of Life' simulation.
@@ -51,5 +52,5 @@ git clone 'https://github.com/spec-first/connexion' and format to MetaGPT projec
 )
 async def test_detect_intent(requirement, expected_intent_type):
     di = DetectIntent()
-    _, intent_type = await di.run(requirement)
+    _, intent_type = await di.run([Message(role="user", content=requirement)])
     assert intent_type == expected_intent_type

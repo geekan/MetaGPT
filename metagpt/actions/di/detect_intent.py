@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 from enum import Enum
-from typing import Tuple
+from typing import List, Tuple
 
 from pydantic import BaseModel
 
 from metagpt.actions import Action
+from metagpt.schema import Message
 
 
 class SOPItemDef(BaseModel):
@@ -89,9 +89,8 @@ You should follow the following Standard Operating Procedure:
 
 
 class DetectIntent(Action):
-    async def run(self, user_requirement: str) -> Tuple[str, str]:
-        if not isinstance(user_requirement, str):
-            raise ValueError(f"str type error: {user_requirement}")
+    async def run(self, user_msgs: List[Message]) -> Tuple[str, str]:
+        user_requirement = "\n".join([f"> {i.role}: {i.content}" for i in user_msgs])
         intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
@@ -105,18 +104,3 @@ class DetectIntent(Action):
         )
 
         return req_with_sop, sop_type
-
-
-async def main():
-    # Example usage of the DetectIntent action
-    user_requirements = ["Develop a 2048 game.", "Run data analysis on sklearn wine dataset"]
-    detect_intent = DetectIntent()
-
-    for user_requirement in user_requirements:
-        req_with_sop, sop_type = await detect_intent.run(user_requirement)
-        print(req_with_sop)
-        print(f"Detected SOP Type: {sop_type}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
