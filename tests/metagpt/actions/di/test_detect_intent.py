@@ -52,5 +52,5 @@ git clone 'https://github.com/spec-first/connexion' and format to MetaGPT projec
 )
 async def test_detect_intent(requirement, expected_intent_type):
     di = DetectIntent()
-    _, intent_type = await di.run([Message(role="user", content=requirement)])
+    _, intent_type = await di.run(Message(role="user", content=requirement))
     assert intent_type == expected_intent_type

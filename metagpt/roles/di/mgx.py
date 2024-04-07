@@ -2,7 +2,7 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 import asyncio
-from typing import Dict, List
+from typing import Dict
 
 from metagpt.actions.di.detect_intent import DetectIntent
 from metagpt.logs import logger
@@ -14,9 +14,9 @@ class MGX(DataInterpreter):
     use_intent: bool = True
     intents: Dict = {}
 
-    async def _detect_intent(self, user_msgs: List[Message] = None, **kwargs):
+    async def _detect_intent(self, user_msg: Message = None, **kwargs):
         todo = DetectIntent(context=self.context)
-        request_with_sop, sop_type = await todo.run(user_msgs)
+        request_with_sop, sop_type = await todo.run(user_msg)
         logger.info(f"{sop_type} {request_with_sop}")
         return request_with_sop
 
@@ -27,7 +27,7 @@ class MGX(DataInterpreter):
         goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
         if self.use_intent:  # add mode
             user_message = Message(content=goal, role="user")
-            goal = await self._detect_intent(user_msgs=[user_message])
+            goal = await self._detect_intent(user_message)
         logger.info(f"Goal is {goal}")
 
         await self.planner.update_plan(goal=goal)
