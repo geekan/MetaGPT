@@ -14,7 +14,7 @@ class MGX(DataInterpreter):
     use_intent: bool = True
     intents: Dict = {}
 
-    async def _detect_intent(self, user_msg: Message, **kwargs):
+    async def _detect_intent(self, user_msg: Message):
         todo = DetectIntent(context=self.context)
         request_with_sop, sop_type = await todo.run(user_msg)
         logger.info(f"{sop_type} {request_with_sop}")
