@@ -91,8 +91,7 @@ You should follow the following Standard Operating Procedure:
 
 class DetectIntent(Action):
     async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
-        ref_content = with_message.content.replace("\n", "\n> ")
-        user_requirement = f"> {with_message.role}: {ref_content}"
+        user_requirement = with_message.content
         intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
