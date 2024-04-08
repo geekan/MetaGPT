@@ -67,6 +67,7 @@ class TaskType(Enum):
         name="email login",
         desc="For logging to an email.",
     )
+    DEVELOP_SOFTWARE = TaskTypeDef(name="develop software", desc="Develop software.")
 
     @property
     def type_name(self):
