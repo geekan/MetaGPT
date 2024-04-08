@@ -135,3 +135,6 @@ AGGREGATION = "Aggregate"
 # Timeout
 USE_CONFIG_TIMEOUT = 0  # Using llm.timeout configuration.
 LLM_API_TIMEOUT = 300
+
+# Assistant alias
+ASSISTANT_ALIAS = "response"
