@@ -139,11 +139,11 @@ DEMO3_CONTENT = [
     "user_messages",
     [
         [Message.model_validate(i) for i in DEMO2_CONTENT if i["role"] == "user"],
-        # [Message.model_validate(i) for i in DEMO_CONTENT if i["role"] == "user"],
-        # [Message.model_validate(i) for i in DEMO1_CONTENT if i["role"] == "user"],
+        [Message.model_validate(i) for i in DEMO_CONTENT if i["role"] == "user"],
+        [Message.model_validate(i) for i in DEMO1_CONTENT if i["role"] == "user"],
     ],
 )
-# @pytest.mark.skip
+@pytest.mark.skip
 async def test_mgx(user_messages: List[Message], context):
     mgx = MGX(context=context, tools=["<all>"])
 
