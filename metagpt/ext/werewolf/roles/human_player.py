@@ -5,7 +5,7 @@ from metagpt.schema import Message
 
 
 async def _act(self):
-    todo = self._rc.todo
+    todo = self.rc.todo
 
     memories = self.get_all_memories()
 
@@ -29,8 +29,7 @@ async def _act(self):
         role=self.profile,
         sent_from=self.name,
         cause_by=msg_cause_by,
-        send_to="",
-        restricted_to=msg_restricted_to,  # 给Moderator及自身阵营发送加密消息
+        send_to=msg_restricted_to,  # 给Moderator及自身阵营发送加密消息
     )
 
     logger.info(f"{self._setting}: {rsp}")

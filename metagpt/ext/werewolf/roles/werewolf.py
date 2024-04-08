@@ -10,5 +10,5 @@ class Werewolf(BasePlayer):
     async def _think(self):
         """狼人白天发言时需要伪装，与其他角色不同，因此需要重写_think"""
         await super()._think()
-        if isinstance(self._rc.todo, Speak):
-            self._rc.todo = Impersonate()
+        if isinstance(self.rc.todo, Speak):
+            self.rc.todo = Impersonate()
