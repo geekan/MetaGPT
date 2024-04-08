@@ -53,13 +53,21 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     await role.run(with_message=msg)
 
     outputs = [
-        ToolLogItem(name="PRD File", value=str(ctx.repo.docs.prd.workdir / i))
+        ToolLogItem(name="Intermedia PRD File", value=str(ctx.repo.docs.prd.workdir / i))
         for i in ctx.repo.docs.prd.changed_files.keys()
     ]
-    for i in ctx.repo.resources.competitive_analysis.changed_files.keys():
-        outputs.append(
+    outputs.extend(
+        [
+            ToolLogItem(name="PRD File", value=str(ctx.repo.resources.prd.workdir / i))
+            for i in ctx.repo.resources.prd.changed_files.keys()
+        ]
+    )
+    outputs.extend(
+        [
             ToolLogItem(name="Competitive Analysis", value=str(ctx.repo.resources.competitive_analysis.workdir / i))
-        )
+            for i in ctx.repo.resources.competitive_analysis.changed_files.keys()
+        ]
+    )
     log_tool_output(output=outputs, tool_name=write_prd.__name__)
 
     return ctx.repo.docs.prd.workdir
@@ -358,9 +366,12 @@ async def git_archive(project_path: str | Path) -> str:
 
     ctx = Context()
     ctx.set_repo_dir(project_path)
+    files = " ".join(ctx.git_repo.changed_files.keys())
+    outputs = [ToolLogItem(name="cmd", value=f"git add {files}")]
+    log_tool_output(output=outputs, tool_name=git_archive.__name__)
     ctx.git_repo.archive()
 
-    outputs = [ToolLogItem(name="Git Commit", value=str(ctx.repo.workdir))]
+    outputs = [ToolLogItem(name="cmd", value="git commit -m 'Archive'")]
     log_tool_output(output=outputs, tool_name=git_archive.__name__)
 
     return ctx.git_repo.log()
