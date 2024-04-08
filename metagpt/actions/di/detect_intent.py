@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from enum import Enum
 from typing import Tuple
 
@@ -78,13 +79,16 @@ DETECT_PROMPT = """
 # Intentions
 {intentions}
 # Task
-Classify user requirement into one type of the above intentions, output the name of the intention directly.
-Intention name:
+Classify user requirement into one type of the above intentions, output the index of the intention directly.
+Intention index:
 """
 
 REQ_WITH_SOP = """
 {user_requirement}
-You should follow the following Standard Operating Procedure:
+## Knowledge
+To meet user requirements, the following standard operating procedure(SOP) must be used. 
+SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.
+
 {sop}
 """
 
@@ -92,17 +96,24 @@ You should follow the following Standard Operating Procedure:
 class DetectIntent(Action):
     async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
         user_requirement = with_message.content
-        intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
+        mappings = {i + 1: si for i, si in enumerate(SOPItem)}
+        intentions = "\n".join([f"{i+1}. {si.type_name}: {si.value.description}" for i, si in enumerate(SOPItem)])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
-        sop_type = await self._aask(prompt)
-        sop_type = sop_type.strip()
-
-        item = SOPItem.get_type(sop_type)
-        sop = item.sop if item else None
+        rsp = await self._aask(prompt)
+        match = re.search(r"\d+", rsp)
+        index = len(SOPItem) + 1  # 1-based
+        if match:
+            index = int(match.group())  # 1-based
+        sop = mappings[index].value.sop if index in mappings else None
+        sop_type = mappings[index].type_name if index in mappings else SOPItem.OTHER.type_name
 
         req_with_sop = (
-            REQ_WITH_SOP.format(user_requirement=user_requirement, sop="\n".join(sop)) if sop else user_requirement
+            REQ_WITH_SOP.format(
+                user_requirement=user_requirement, sop="\n".join([f"{i+1}. {v}" for i, v in enumerate(sop)])
+            )
+            if sop
+            else user_requirement
         )
 
         return req_with_sop, sop_type
