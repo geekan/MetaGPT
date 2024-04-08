@@ -24,6 +24,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 
 from metagpt.actions import Action
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 
 
@@ -43,7 +44,7 @@ class ExecuteNbCode(Action):
     ):
         super().__init__(
             nb=nb,
-            nb_client=NotebookClient(nb, timeout=timeout),
+            nb_client=NotebookClient(nb, timeout=timeout, resources={"metadata": {"path": DEFAULT_WORKSPACE_ROOT}}),
             timeout=timeout,
             console=Console(),
             interaction=("ipython" if self.is_ipython() else "terminal"),
