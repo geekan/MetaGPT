@@ -70,6 +70,7 @@ class WriteTasks(Action):
                 dependencies={system_design_doc.root_relative_path},
             )
         await self._update_requirements(task_doc)
+        await self.repo.resources.api_spec_and_task.save_pdf(doc=task_doc)
         return task_doc
 
     async def _run_new_tasks(self, context):
