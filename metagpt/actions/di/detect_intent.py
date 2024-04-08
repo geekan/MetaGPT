@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from enum import Enum
 from typing import Tuple
 
 from pydantic import BaseModel
 
 from metagpt.actions import Action
+from metagpt.schema import Message
 
 
 class SOPItemDef(BaseModel):
@@ -77,29 +79,41 @@ DETECT_PROMPT = """
 # Intentions
 {intentions}
 # Task
-Classify user requirement into one type of the above intentions, output the name of the intention directly.
-Intention name:
+Classify user requirement into one type of the above intentions, output the index of the intention directly.
+Intention index:
 """
 
 REQ_WITH_SOP = """
 {user_requirement}
-You should follow the following Standard Operating Procedure:
+## Knowledge
+To meet user requirements, the following standard operating procedure(SOP) must be used. 
+SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.
+
 {sop}
 """
 
 
 class DetectIntent(Action):
-    async def run(self, user_requirement: str) -> Tuple[str, str]:
-        intentions = "\n".join([f"{si.type_name}: {si.value.description}" for si in SOPItem])
+    async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
+        user_requirement = with_message.content
+        mappings = {i + 1: si for i, si in enumerate(SOPItem)}
+        intentions = "\n".join([f"{i+1}. {si.type_name}: {si.value.description}" for i, si in enumerate(SOPItem)])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
-        sop_type = await self._aask(prompt)
-        sop_type = sop_type.strip()
-
-        sop = SOPItem.get_type(sop_type).sop
+        rsp = await self._aask(prompt)
+        match = re.search(r"\d+", rsp)
+        index = len(SOPItem) + 1  # 1-based
+        if match:
+            index = int(match.group())  # 1-based
+        sop = mappings[index].value.sop if index in mappings else None
+        sop_type = mappings[index].type_name if index in mappings else SOPItem.OTHER.type_name
 
         req_with_sop = (
-            REQ_WITH_SOP.format(user_requirement=user_requirement, sop="\n".join(sop)) if sop else user_requirement
+            REQ_WITH_SOP.format(
+                user_requirement=user_requirement, sop="\n".join([f"{i+1}. {v}" for i, v in enumerate(sop)])
+            )
+            if sop
+            else user_requirement
         )
 
         return req_with_sop, sop_type
@@ -111,7 +125,7 @@ async def main():
     detect_intent = DetectIntent()
 
     for user_requirement in user_requirements:
-        req_with_sop, sop_type = await detect_intent.run(user_requirement)
+        req_with_sop, sop_type = await detect_intent.run(Message(role="user", content=user_requirement))
         print(req_with_sop)
         print(f"Detected SOP Type: {sop_type}")
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
+from metagpt.const import ASSISTANT_ALIAS, BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import ToolLogItem, log_tool_output
 from metagpt.schema import BugFixContext, Message
 from metagpt.tools.tool_registry import register_tool
@@ -42,8 +42,10 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     from metagpt.context import Context
     from metagpt.roles import ProductManager
 
+    log_tool_output(output=[ToolLogItem(name=ASSISTANT_ALIAS, value=write_prd.__name__)], tool_name=write_prd.__name__)
+
     ctx = Context()
-    if project_path:
+    if project_path and Path(project_path).exists():
         ctx.config.project_path = Path(project_path)
         ctx.config.inc = True
     role = ProductManager(context=ctx)
@@ -51,13 +53,21 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     await role.run(with_message=msg)
 
     outputs = [
-        ToolLogItem(name="PRD File", value=str(ctx.repo.docs.prd.workdir / i))
+        ToolLogItem(name="Intermedia PRD File", value=str(ctx.repo.docs.prd.workdir / i))
         for i in ctx.repo.docs.prd.changed_files.keys()
     ]
-    for i in ctx.repo.resources.competitive_analysis.changed_files.keys():
-        outputs.append(
+    outputs.extend(
+        [
+            ToolLogItem(name="PRD File", value=str(ctx.repo.resources.prd.workdir / i))
+            for i in ctx.repo.resources.prd.changed_files.keys()
+        ]
+    )
+    outputs.extend(
+        [
             ToolLogItem(name="Competitive Analysis", value=str(ctx.repo.resources.competitive_analysis.workdir / i))
-        )
+            for i in ctx.repo.resources.competitive_analysis.changed_files.keys()
+        ]
+    )
     log_tool_output(output=outputs, tool_name=write_prd.__name__)
 
     return ctx.repo.docs.prd.workdir
@@ -84,6 +94,10 @@ async def write_design(prd_path: str | Path) -> Path:
     from metagpt.actions import WritePRD
     from metagpt.context import Context
     from metagpt.roles import Architect
+
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=write_design.__name__)], tool_name=write_design.__name__
+    )
 
     ctx = Context()
     prd_path = Path(prd_path)
@@ -132,6 +146,11 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
     from metagpt.context import Context
     from metagpt.roles import ProjectManager
 
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=write_project_plan.__name__)],
+        tool_name=write_project_plan.__name__,
+    )
+
     ctx = Context()
     system_design_path = Path(system_design_path)
     project_path = (system_design_path if not system_design_path.is_file() else system_design_path.parent) / "../.."
@@ -141,9 +160,15 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
     await role.run(with_message=Message(content="", cause_by=WriteDesign))
 
     outputs = [
-        ToolLogItem(name="Project Plan", value=str(ctx.repo.docs.task.workdir / i))
+        ToolLogItem(name="Intermedia Project Plan", value=str(ctx.repo.docs.task.workdir / i))
         for i in ctx.repo.docs.task.changed_files.keys()
     ]
+    outputs.extend(
+        [
+            ToolLogItem(name="Project Plan", value=str(ctx.repo.resources.api_spec_and_task.workdir / i))
+            for i in ctx.repo.resources.api_spec_and_task.changed_files.keys()
+        ]
+    )
     log_tool_output(output=outputs, tool_name=write_project_plan.__name__)
 
     return ctx.repo.docs.task.workdir
@@ -178,6 +203,10 @@ async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
     from metagpt.actions import WriteTasks
     from metagpt.context import Context
     from metagpt.roles import Engineer
+
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=write_codes.__name__)], tool_name=write_codes.__name__
+    )
 
     ctx = Context()
     ctx.config.inc = inc
@@ -221,6 +250,10 @@ async def run_qa_test(src_path: str | Path) -> Path:
     from metagpt.context import Context
     from metagpt.environment import Environment
     from metagpt.roles import QaEngineer
+
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=run_qa_test.__name__)], tool_name=run_qa_test.__name__
+    )
 
     ctx = Context()
     src_path = Path(src_path)
@@ -269,6 +302,8 @@ async def fix_bug(project_path: str | Path, issue: str) -> Path:
     from metagpt.actions.fix_bug import FixBug
     from metagpt.context import Context
     from metagpt.roles import Engineer
+
+    log_tool_output(output=[ToolLogItem(name=ASSISTANT_ALIAS, value=fix_bug.__name__)], tool_name=fix_bug.__name__)
 
     ctx = Context()
     ctx.set_repo_dir(project_path)
@@ -325,11 +360,18 @@ async def git_archive(project_path: str | Path) -> str:
     """
     from metagpt.context import Context
 
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=git_archive.__name__)], tool_name=git_archive.__name__
+    )
+
     ctx = Context()
     ctx.set_repo_dir(project_path)
+    files = " ".join(ctx.git_repo.changed_files.keys())
+    outputs = [ToolLogItem(name="cmd", value=f"git add {files}")]
+    log_tool_output(output=outputs, tool_name=git_archive.__name__)
     ctx.git_repo.archive()
 
-    outputs = [ToolLogItem(name="Git Commit", value=str(ctx.repo.workdir))]
+    outputs = [ToolLogItem(name="cmd", value="git commit -m 'Archive'")]
     log_tool_output(output=outputs, tool_name=git_archive.__name__)
 
     return ctx.git_repo.log()
@@ -357,6 +399,10 @@ async def import_git_repo(url: str) -> Path:
     """
     from metagpt.actions.import_repo import ImportRepo
     from metagpt.context import Context
+
+    log_tool_output(
+        output=[ToolLogItem(name=ASSISTANT_ALIAS, value=import_git_repo.__name__)], tool_name=import_git_repo.__name__
+    )
 
     ctx = Context()
     action = ImportRepo(repo_path=url, context=ctx)
