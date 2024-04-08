@@ -29,7 +29,7 @@ def test_add_role(env: Environment):
         name="Alice", profile="product manager", goal="create a new product", constraints="limited resources"
     )
     env.add_role(role)
-    assert env.get_role(role.profile) == role
+    assert env.get_role(str(role._setting)) == role
 
 
 def test_get_roles(env: Environment):
