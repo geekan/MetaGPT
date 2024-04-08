@@ -26,7 +26,7 @@ class Save(NighttimeWhispers):
 
 
 class Poison(NighttimeWhispers):
-    STRATEGY = """
+    STRATEGY: str = """
     Only poison a player if you are confident he/she is a werewolf. Don't poison a player randomly or at first night.
     If someone claims to be the witch, poison him/her, because you are the only witch, he/she can only be a werewolf.
     """

@@ -39,7 +39,7 @@ class AddNewExperiences(Action):
             try:
                 chroma_client.get_collection(name=self.collection_name)
                 chroma_client.delete_collection(name=self.collection_name)
-                logger.info(f"existing collection {self.collection_name} deleted")
+                logger.info(f"existing collection `{self.collection_name}` deleted")
             except:
                 pass
 
@@ -106,7 +106,6 @@ class RetrieveExperiences(Action):
                 name=self.collection_name,
                 embedding_function=EMB_FN,
             )
-            self.has_experiences = True
         except:
             logger.warning(f"No experience pool {self.collection_name}")
             self.has_experiences = False
