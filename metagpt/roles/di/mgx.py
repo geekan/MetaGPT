@@ -14,7 +14,7 @@ class MGX(DataInterpreter):
     use_intent: bool = True
     intents: Dict = {}
 
-    async def _detect_intent(self, user_msg: Message):
+    async def _detect_intent(self, user_msg: Message) -> str:
         todo = DetectIntent(context=self.context)
         request_with_sop, sop_type = await todo.run(user_msg)
         logger.info(f"{sop_type} {request_with_sop}")
@@ -24,7 +24,7 @@ class MGX(DataInterpreter):
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
 
         # create initial plan and update it until confirmation
-        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+        goal = self.rc.memory.get()[-1].content  # retrieve latest user requirement
         if self.use_intent:  # add mode
             user_message = Message(content=goal, role="user")
             goal = await self._detect_intent(user_message)
