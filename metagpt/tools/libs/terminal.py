@@ -39,7 +39,7 @@ class Terminal:
         # Send the command
         self.process.stdin.write(cmd + self.command_terminator)
         self.process.stdin.write(
-            f'echo "{TOOL_LOG_END_MARKER.value}"' + self.command_terminator
+            f'echo "{TOOL_LOG_END_MARKER.value}"' + self.command_terminator  # write EOF
         )  # Unique marker to signal command end
         self.process.stdin.flush()
         log_tool_output(
@@ -49,7 +49,14 @@ class Terminal:
         # Read the output until the unique marker is found
         while True:
             line = self.process.stdout.readline()
-            if line.strip() == TOOL_LOG_END_MARKER.value:
+            ix = line.rfind(TOOL_LOG_END_MARKER.value)
+            if ix >= 0:
+                line = line[0:ix]
+                if line:
+                    log_tool_output(
+                        output=ToolLogItem(name="output", value=line), tool_name="Terminal"
+                    )  # log stdout in real-time
+                    cmd_output.append(line)
                 log_tool_output(TOOL_LOG_END_MARKER)
                 break
             log_tool_output(

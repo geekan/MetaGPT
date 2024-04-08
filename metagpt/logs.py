@@ -26,7 +26,7 @@ class ToolLogItem(BaseModel):
 
 
 TOOL_LOG_END_MARKER = ToolLogItem(
-    type="str", name="end_marker", value="#END#"
+    type="str", name="end_marker", value="\x18\x19\x1B\x18"
 )  # A special log item to suggest the end of a stream log
 
 
