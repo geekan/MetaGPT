@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 from metagpt.const import (
     CLASS_VIEW_FILE_REPO,
@@ -148,3 +149,14 @@ class ProjectRepo(FileRepository):
     @property
     def src_relative_path(self) -> Path | None:
         return self._srcs_path
+
+    @staticmethod
+    def search_project_path(filename: str | Path) -> Optional[Path]:
+        root = Path(filename).parent if Path(filename).is_file() else Path(filename)
+        root = root.resolve()
+        while str(root) != "/":
+            git_repo = root / ".git"
+            if git_repo.exists():
+                return root
+            root = root.parent
+        return None
