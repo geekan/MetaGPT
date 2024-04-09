@@ -25,7 +25,7 @@ from rich.syntax import Syntax
 
 from metagpt.actions import Action
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.logs import logger
+from metagpt.logs import ToolLogItem, log_tool_output, logger
 
 
 class ExecuteNbCode(Action):
@@ -207,6 +207,10 @@ class ExecuteNbCode(Action):
 
             if "!pip" in code:
                 success = False
+
+            file_path = DEFAULT_WORKSPACE_ROOT / "code.ipynb"
+            nbformat.write(self.nb, file_path)
+            log_tool_output(ToolLogItem(name="file_path", value=file_path), tool_name="ExecuteNbCode")
 
             return outputs, success
 
