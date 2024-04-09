@@ -31,12 +31,11 @@ class SOPItem(Enum):
         name="software development",
         description="Intentions related to or including software development, such as developing or building software, games, app, websites, etc. Excluding bug fixes, report any issues, environment setup, operations and pip install.",
         sop=[
-            "Writes a PRD based on software requirements.",
-            "Writes a design to the project repository, based on the PRD of the project.",
-            "Writes a project plan to the project repository, based on the design of the project.",
-            "Writes code to implement designed features according to the project plan and adds them to the project repository.",
-            # "Run QA test on the project repository.",
-            "Stage and commit changes for the project repository using Git.",
+            "Using `write_prd` to write a PRD based on software requirements.",
+            "Using `write_design` to write a design to the project repository, based on the PRD of the project.",
+            "Using `write_project_plan` to write a project plan to the project repository, based on the design of the project.",
+            "Using `write_codes` to write code to implement designed features according to the project plan and adds them to the project repository.",
+            "Using `git_archive` to stage and commit changes for the project repository using Git.",
         ],
     )
     FIX_BUGS = SOPItemDef(
@@ -94,11 +93,13 @@ Intention index:
 
 REQ_WITH_SOP = """
 {user_requirement}
-## Knowledge
-To meet user requirements, the following standard operating procedure(SOP) must be used. 
-SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.
+### Knowledge
+To meet user requirements, the following standard operating procedure(SOP) must be used:
 
 {sop}
+
+### SOP Type
+{sop_type}
 """
 
 
@@ -119,7 +120,9 @@ class DetectIntent(Action):
 
         req_with_sop = (
             REQ_WITH_SOP.format(
-                user_requirement=user_requirement, sop="\n".join([f"{i + 1}. {v}" for i, v in enumerate(sop)])
+                user_requirement=user_requirement,
+                sop="\n".join([f"{i + 1}. {v}" for i, v in enumerate(sop)]),
+                sop_type=sop_type,
             )
             if sop
             else user_requirement
