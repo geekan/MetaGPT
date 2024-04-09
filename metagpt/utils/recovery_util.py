@@ -32,7 +32,6 @@ def load_history(save_dir: str = ""):
     plan = read_json_file(plan_path)
     nb = nbformat.read(open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT)
     nb_client = NotebookClient(process_cells(nb), timeout=600)
-    nb_client.execute()
     return plan, nb, nb_client
 
 
