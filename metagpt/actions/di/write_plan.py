@@ -29,15 +29,15 @@ If you are modifying an existing plan, carefully follow the instruction, don't m
 If you encounter errors on the current task, revise and output the current single task only.
 Output a list of jsons following the format:
 ```json
-[
-    {{
-        "task_id": str = "unique identifier for a task in plan, can be an ordinal",
-        "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
-        "instruction": "what you should do in this task, one short phrase or sentence. If the SOP description is provided in the `Knowledge` section, the reference to the SOP description should be included intact in the instruction.",
-        "task_type": "type of this task, should be one of Available Task Types. You can refer to the hints in the `SOP Type` section to make a selection if `SOP Type` section is provided.",
-    }},
-    ...
-]
+    [
+        {{
+            "task_id": str = "unique identifier for a task in plan, can be an ordinal",
+            "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
+            "instruction": "what you should do in this task, one short phrase or sentence",
+            "task_type": "type of this task, should be one of Available Task Types",
+        }},
+        ...
+    ]
 ```
     """
 

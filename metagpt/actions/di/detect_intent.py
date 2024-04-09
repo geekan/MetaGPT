@@ -98,9 +98,11 @@ To meet user requirements, the following standard operating procedure(SOP) must 
 
 {sop}
 
-### SOP Type
-{sop_type}
+
 """
+
+### SOP Type
+# {sop_type}
 
 
 class DetectIntent(Action):

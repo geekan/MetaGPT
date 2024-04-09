@@ -4,10 +4,11 @@
 import asyncio
 from typing import Dict
 
-from metagpt.actions.di.detect_intent import DetectIntent
+from metagpt.actions.di.detect_intent import DetectIntent, SOPItem
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
+from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 
 class MGX(DataInterpreter):
@@ -18,6 +19,10 @@ class MGX(DataInterpreter):
         todo = DetectIntent(context=self.context)
         request_with_sop, sop_type = await todo.run(user_msg)
         logger.info(f"{sop_type} {request_with_sop}")
+        if sop_type == SOPItem.SOFTWARE_DEVELOPMENT.type_name:
+            self.tool_recommender = BM25ToolRecommender(tools=["software development"])
+        else:
+            self.tool_recommender = BM25ToolRecommender(tools=["<all>"])
         return request_with_sop
 
     async def _plan_and_act(self) -> Message:
