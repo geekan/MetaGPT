@@ -79,3 +79,13 @@ def process_cells(nb: NotebookNode) -> NotebookNode:
             i = i + 1
     nb["cells"] = new_cells
     return nb
+
+
+if __name__ == "__main__":
+    from nbformat.v4 import new_code_cell
+
+    save_dir = "./tests/private"
+    plan, nb, nb_client = load_history(save_dir)
+    nb["cells"].append(new_code_cell("new_data = data[0]\nprint(new_data)"))
+    output_cell = nb_client.execute()
+    print(nb.cells[-1])
