@@ -29,7 +29,7 @@ class SOPItemDef(BaseModel):
 class SOPItem(Enum):
     SOFTWARE_DEVELOPMENT = SOPItemDef(
         name="software development",
-        description="Intentions related to or including software development, such as developing or building software, games, app, websites, etc. Excluding bug fixes, report any issues.",
+        description="Intentions related to or including software development, such as developing or building software, games, app, websites, etc. Excluding bug fixes, report any issues, environment setup, operations and pip install.",
         sop=[
             "Writes a PRD based on software requirements.",
             "Writes a design to the project repository, based on the PRD of the project.",
@@ -55,9 +55,18 @@ class SOPItem(Enum):
             "Stage and commit changes for the project repository using Git.",
         ],
     )
+    WEBPAGE_IMITATION = SOPItemDef(
+        name="webpage_imitation",
+        description="webpage browsing, imitation and other applications etc.",
+        sop=[
+            "Utilize Selenium and WebDriver for rendering.",
+            "Capture a screenshot of the rendered webpage.",
+            "Convert image to a webpage including HTML, CSS and JS in one go.",
+        ],
+    )
     OTHER = SOPItemDef(
         name="other",
-        description="Other intentions that do not fall into the above categories, including data science, machine learning, deep learning, etc.",
+        description="Other intentions that do not fall into the above categories, including data science, machine learning, deep learning and text-to-image etc.",
         sop=[],
     )
 
@@ -97,7 +106,7 @@ class DetectIntent(Action):
     async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
         user_requirement = with_message.content
         mappings = {i + 1: si for i, si in enumerate(SOPItem)}
-        intentions = "\n".join([f"{i+1}. {si.type_name}: {si.value.description}" for i, si in enumerate(SOPItem)])
+        intentions = "\n".join([f"{i + 1}. {si.type_name}: {si.value.description}" for i, si in enumerate(SOPItem)])
         prompt = DETECT_PROMPT.format(user_requirement=user_requirement, intentions=intentions)
 
         rsp = await self._aask(prompt)
@@ -110,7 +119,7 @@ class DetectIntent(Action):
 
         req_with_sop = (
             REQ_WITH_SOP.format(
-                user_requirement=user_requirement, sop="\n".join([f"{i+1}. {v}" for i, v in enumerate(sop)])
+                user_requirement=user_requirement, sop="\n".join([f"{i + 1}. {v}" for i, v in enumerate(sop)])
             )
             if sop
             else user_requirement
