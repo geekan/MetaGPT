@@ -99,9 +99,6 @@ To meet user requirements, the following standard operating procedure(SOP) must 
 {sop}
 """
 
-### SOP Type
-# {sop_type}
-
 
 class DetectIntent(Action):
     async def run(self, with_message: Message, **kwargs) -> Tuple[str, str]:
