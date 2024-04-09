@@ -93,12 +93,10 @@ Intention index:
 
 REQ_WITH_SOP = """
 {user_requirement}
-### Knowledge
+## Knowledge
 To meet user requirements, the following standard operating procedure(SOP) must be used:
 
 {sop}
-
-
 """
 
 ### SOP Type
@@ -122,9 +120,7 @@ class DetectIntent(Action):
 
         req_with_sop = (
             REQ_WITH_SOP.format(
-                user_requirement=user_requirement,
-                sop="\n".join([f"{i + 1}. {v}" for i, v in enumerate(sop)]),
-                sop_type=sop_type,
+                user_requirement=user_requirement, sop="\n".join([f"{i + 1}. {v}" for i, v in enumerate(sop)])
             )
             if sop
             else user_requirement
