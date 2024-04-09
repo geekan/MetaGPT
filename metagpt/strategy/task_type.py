@@ -67,7 +67,10 @@ class TaskType(Enum):
         name="email login",
         desc="For logging to an email.",
     )
-    DEVELOP_SOFTWARE = TaskTypeDef(name="develop software", desc="Develop software.")
+    DEVELOP_SOFTWARE = TaskTypeDef(
+        name="develop software",
+        desc="SOP related to develop software such as Writes a PRD, Writes a design, Writes a project plan and Writes code to implement designed features according to the project plan",
+    )
 
     @property
     def type_name(self):
