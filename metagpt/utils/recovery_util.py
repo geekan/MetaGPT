@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 
 import nbformat
+from nbclient import NotebookClient
+from nbformat.notebooknode import NotebookNode
 
 from metagpt.const import DATA_PATH
 from metagpt.roles.role import Role
@@ -29,7 +31,9 @@ def load_history(save_dir: str = ""):
     nb_path = Path(save_dir) / "history_nb" / "code.ipynb"
     plan = read_json_file(plan_path)
     nb = nbformat.read(open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT)
-    return plan, nb
+    nb_client = NotebookClient(process_cells(nb), timeout=600)
+    nb_client.execute()
+    return plan, nb, nb_client
 
 
 def save_history(role: Role, save_dir: str = ""):
@@ -56,3 +60,23 @@ def save_history(role: Role, save_dir: str = ""):
 
     save_code_file(name=Path(record_time) / "history_nb", code_context=role.execute_code.nb, file_format="ipynb")
     return save_path
+
+
+def is_cell_to_delete(cell: NotebookNode) -> bool:
+    if "outputs" in cell:
+        for output in cell["outputs"]:
+            if output and "traceback" in output:
+                return True
+    return False
+
+
+def process_cells(nb: NotebookNode) -> NotebookNode:
+    new_cells = []
+    i = 1
+    for cell in nb["cells"]:
+        if cell["cell_type"] == "code" and not is_cell_to_delete(cell):
+            cell["execution_count"] = i
+            new_cells.append(cell)
+            i = i + 1
+    nb["cells"] = new_cells
+    return nb
