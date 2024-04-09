@@ -48,6 +48,7 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     if project_path and Path(project_path).exists():
         ctx.config.project_path = Path(project_path)
         ctx.config.inc = True
+
     role = ProductManager(context=ctx)
     msg = await role.run(with_message=Message(content=idea, cause_by=UserRequirement))
     await role.run(with_message=msg)
@@ -84,8 +85,9 @@ async def write_design(prd_path: str | Path) -> Path:
         Path: The path to the system design files under the project directory.
 
     Example:
+        >>> from metagpt.tools.libs.software_development import write_prd
         >>> from metagpt.tools.libs.software_development import write_design
-        >>> prd_path = '/path/to/project_path/docs/prd' # Returned by `write_prd`
+        >>> prd_path = await write_prd("Create a new feature for the application")
         >>> system_design_path = await write_desgin(prd_path)
         >>> print(system_design_path)
         '/path/to/project_path/docs/system_design/'

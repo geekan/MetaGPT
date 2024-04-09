@@ -12,7 +12,7 @@ requirement = (
 
 
 async def main(requirement: str = ""):
-    mgx = MGX(use_intent=True)
+    mgx = MGX(use_intent=True, tools=["<all>"])
     await mgx.run(requirement)
 
 
