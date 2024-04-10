@@ -6,7 +6,7 @@ from gymnasium import spaces
 from pydantic import ConfigDict, Field
 
 from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvActionType
-from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS, RoleState
+from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS
 
 
 class EnvActionType(BaseEnvActionType):
@@ -27,13 +27,21 @@ class EnvAction(BaseEnvAction):
     target_player_name: str = Field(default="", description="the name of the player who take the action")
 
 
-def get_observation_space(player_num: int) -> spaces.Dict:
+def get_observation_space() -> spaces.Dict:
     space = spaces.Dict(
         {
+            "game_setup": spaces.Text(256),
             "step_idx": spaces.Discrete(len(STEP_INSTRUCTIONS)),
-            "player_states": spaces.MultiDiscrete([len(RoleState)] * player_num),
-            "vote_counts": spaces.MultiDiscrete([player_num - 1] * player_num),
-            "player_current_dead": None,  # TODO
+            "living_players": spaces.Tuple(
+                (spaces.Text(16), spaces.Text(16))
+            ),  # TODO should be tuple of variable length
+            "werewolf_players": spaces.Tuple(
+                (spaces.Text(16), spaces.Text(16))
+            ),  # TODO should be tuple of variable length
+            "player_hunted": spaces.Text(16),
+            "player_current_dead": spaces.Tuple((spaces.Text(16))),  # TODO should be tuple of variable length
+            "witch_poison_left": spaces.Discrete(2),
+            "witch_antidote_left": spaces.Discrete(2),
             "winner": spaces.Text(16),
             "win_reason": spaces.Text(64),
         }
