@@ -166,9 +166,9 @@ class WerewolfExtEnv(ExtEnv):
         """init players using different roles' num"""
         role_objs = []
         for role_obj in role_uniq_objs:
-            if "Villager" in str(role_obj):
+            if RoleType.VILLAGER.value in str(role_obj):
                 role_objs.extend([role_obj] * num_villager)
-            elif "Werewolf" in str(role_obj):
+            elif RoleType.WEREWOLF.value in str(role_obj):
                 role_objs.extend([role_obj] * num_werewolf)
             else:
                 role_objs.append(role_obj)

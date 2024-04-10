@@ -2,34 +2,34 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of WerewolfExtEnv
 
-from metagpt.environment.werewolf.const import RoleState
+from metagpt.environment.werewolf.const import RoleState, RoleType
 from metagpt.environment.werewolf.werewolf_ext_env import WerewolfExtEnv
 from metagpt.roles.role import Role
 
 
 class Werewolf(Role):
-    profile: str = "Werewolf"
+    profile: str = RoleType.WEREWOLF.value
 
 
 class Villager(Role):
-    profile: str = "Villager"
+    profile: str = RoleType.VILLAGER.value
 
 
 class Witch(Role):
-    profile: str = "Witch"
+    profile: str = RoleType.WITCH.value
 
 
 class Guard(Role):
-    profile: str = "Guard"
+    profile: str = RoleType.GUARD.value
 
 
 def test_werewolf_ext_env():
     players_state = {
-        "Player0": ("Werewolf", RoleState.ALIVE),
-        "Player1": ("Werewolf", RoleState.ALIVE),
-        "Player2": ("Villager", RoleState.ALIVE),
-        "Player3": ("Witch", RoleState.ALIVE),
-        "Player4": ("Guard", RoleState.ALIVE),
+        "Player0": (RoleType.WEREWOLF.value, RoleState.ALIVE),
+        "Player1": (RoleType.WEREWOLF.value, RoleState.ALIVE),
+        "Player2": (RoleType.VILLAGER.value, RoleState.ALIVE),
+        "Player3": (RoleType.WITCH.value, RoleState.ALIVE),
+        "Player4": (RoleType.GUARD.value, RoleState.ALIVE),
     }
     ext_env = WerewolfExtEnv(players_state=players_state, step_idx=4, special_role_players=["Player3", "Player4"])
 

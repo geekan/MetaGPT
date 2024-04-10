@@ -17,6 +17,7 @@ from tqdm import tqdm
 from utils import Utils
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
+from metagpt.environment.werewolf.const import RoleType
 
 
 class Vote:
@@ -92,20 +93,20 @@ class Vote:
         # find all werewolves
         werewolves = []
         for match in pattern.finditer(text):
-            if match.group(2) == "Werewolf":
+            if match.group(2) == RoleType.WEREWOLF.value:
                 werewolves.append(match.group(1))
 
         # find all non_werewolves
         non_werewolves = []
         for match in pattern.finditer(text):
-            if match.group(2) != "Werewolf":
+            if match.group(2) != RoleType.WEREWOLF.value:
                 non_werewolves.append(match.group(1))
         num_non_werewolves = len(non_werewolves)
 
         # count players other than werewolves made the correct votes
         correct_votes = 0
         for match in pattern.finditer(text):
-            if match.group(2) != "Werewolf" and match.group(3) in werewolves:
+            if match.group(2) != RoleType.WEREWOLF.value and match.group(3) in werewolves:
                 correct_votes += 1
 
         # cal the rateability of non_werewolves
