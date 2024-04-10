@@ -59,7 +59,7 @@ Or you can pass. For example: Protect ...""",
     },
     5: {
         "content": """Werewolves, I secretly tell you that {werewolf_players} are
-all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
+all of the {werewolf_num} werewolves! Keep in mind you are teammates. The rest players are not werewolves.
 choose one from the following living options please:
 {living_players}. For example: Kill ...""",
         "send_to": {RoleType.WEREWOLF.value},

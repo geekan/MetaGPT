@@ -11,7 +11,8 @@ class InstructSpeak(Action):
         )
         content = instruction_info["content"]
         if "{living_players}" in content and "{werewolf_players}" in content:
-            content = content.format(living_players=living_players, werewolf_players=werewolf_players)
+            content = content.format(living_players=living_players, werewolf_players=werewolf_players,
+                                     werewolf_num=len(werewolf_players))
         if "{living_players}" in content:
             content = content.format(living_players=living_players)
         if "{werewolf_players}" in content:

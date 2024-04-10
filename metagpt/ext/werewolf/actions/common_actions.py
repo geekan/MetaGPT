@@ -11,6 +11,14 @@ from metagpt.logs import logger
 from metagpt.utils.common import parse_json_code_block
 
 
+def log_and_parse_json(name: str, rsp: str) -> dict:
+    rsp = rsp.replace("\n", " ")
+    logger.debug(f"{name} result: {rsp}")
+    json_blocks = parse_json_code_block(rsp)
+    rsp_json = json.loads(json_blocks[0])
+    return rsp_json
+
+
 class Speak(Action):
     """Action: Any speak action in a game"""
 
@@ -66,8 +74,7 @@ class Speak(Action):
         )
 
         rsp = await self._aask(prompt)
-        rsp = rsp.replace("\n", " ")
-        rsp_json = json.loads(rsp)
+        rsp_json = log_and_parse_json(self.name, rsp)
 
         return rsp_json["RESPONSE"]
 
@@ -183,8 +190,7 @@ class NighttimeWhispers(Action):
         )
 
         rsp = await self._aask(prompt)
-        rsp = rsp.replace("\n", " ")
-        rsp_json = json.loads(rsp)
+        rsp_json = log_and_parse_json(self.name, rsp)
 
         return f"{self.name} " + rsp_json["RESPONSE"]
 
@@ -229,9 +235,6 @@ class Reflect(Action):
         )
 
         rsp = await self._aask(prompt)
-        rsp = rsp.replace("\n", " ")
-        logger.debug(f"{self.name} result: {rsp}")
-        json_blocks = parse_json_code_block(rsp)
-        rsp_json = json.loads(json_blocks[0])
+        rsp_json = log_and_parse_json(self.name, rsp)
 
         return json.dumps(rsp_json["REFLECTION"])

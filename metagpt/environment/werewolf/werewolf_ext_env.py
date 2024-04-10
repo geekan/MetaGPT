@@ -52,9 +52,11 @@ class WerewolfExtEnv(ExtEnv):
         seed: Optional[int] = None,
         options: Optional[dict[str, Any]] = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """currently unused"""
         pass
 
     def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        """currently unused"""
         pass
 
     def _get_obs(self):
@@ -62,7 +64,7 @@ class WerewolfExtEnv(ExtEnv):
             "game_setup": self.game_setup,
             "step_idx": self.step_idx,
             "living_players": self.living_players,
-            "werewolf_players": self.werewolf_players,
+            "werewolf_players": self.werewolf_players,  # currently, lack observation isolation
             "player_hunted": self.player_hunted,
             "player_current_dead": self.player_current_dead,
             "witch_poison_left": self.witch_poison_left,
