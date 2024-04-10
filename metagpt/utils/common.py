@@ -722,7 +722,9 @@ def list_files(root: str | Path) -> List[Path]:
 
 
 def parse_json_code_block(markdown_text: str) -> List[str]:
-    json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL) if "```json" in markdown_text else [markdown_text]
+    json_blocks = (
+        re.findall(r"```json(.*?)```", markdown_text, re.DOTALL) if "```json" in markdown_text else [markdown_text]
+    )
 
     return [v.strip() for v in json_blocks]
 

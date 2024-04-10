@@ -18,6 +18,10 @@ class RoleExperience(BaseModel):
     game_setup: str = ""
     version: str = ""
 
+    def rag_key(self) -> str:
+        """For search"""
+        return self.reflection
+
 
 class WwMessage(Message):
     # Werewolf Message
