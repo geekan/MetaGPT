@@ -1,8 +1,9 @@
 """RAG schemas."""
 
 from pathlib import Path
-from typing import Any, Literal, Union
+from typing import Any, Literal, Optional, Union
 
+from chromadb.api.types import CollectionMetadata
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
@@ -45,6 +46,9 @@ class ChromaRetrieverConfig(IndexRetrieverConfig):
 
     persist_path: Union[str, Path] = Field(default="./chroma_db", description="The directory to save data.")
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
 
 
 class ElasticsearchStoreConfig(BaseModel):
@@ -130,6 +134,9 @@ class ChromaIndexConfig(VectorIndexConfig):
     """Config for chroma-based index."""
 
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
 
 
 class BM25IndexConfig(BaseIndexConfig):
