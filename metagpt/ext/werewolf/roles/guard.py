@@ -1,5 +1,5 @@
-from metagpt.ext.werewolf.roles.base_player import BasePlayer
 from metagpt.environment.werewolf.const import RoleType
+from metagpt.ext.werewolf.roles.base_player import BasePlayer
 
 
 class Guard(BasePlayer):

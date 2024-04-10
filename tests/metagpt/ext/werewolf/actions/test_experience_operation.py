@@ -17,7 +17,7 @@ class TestExperiencesOperation:
         RoleExperience(
             profile="Witch",
             reflection="The game is intense with two players claiming to be the Witch and one claiming to be the Seer. "
-                       "Player4's behavior is suspicious.",
+            "Player4's behavior is suspicious.",
             response="",
             outcome="",
             round_id=test_round_id,
@@ -26,7 +26,7 @@ class TestExperiencesOperation:
         RoleExperience(
             profile="Witch",
             reflection="The game is in a critical state with only three players left, "
-                       "and I need to make a wise decision to save Player7 or not.",
+            "and I need to make a wise decision to save Player7 or not.",
             response="",
             outcome="",
             round_id=test_round_id,
@@ -35,7 +35,7 @@ class TestExperiencesOperation:
         RoleExperience(
             profile="Seer",
             reflection="Player1, who is a werewolf, falsely claimed to be a Seer, and Player6, who might be a Witch, "
-                       "sided with him. I, as the real Seer, am under suspicion.",
+            "sided with him. I, as the real Seer, am under suspicion.",
             response="",
             outcome="",
             round_id=test_round_id,

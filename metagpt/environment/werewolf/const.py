@@ -3,6 +3,7 @@
 # @Desc   :
 
 from enum import Enum
+
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 
 
@@ -16,11 +17,11 @@ class RoleType(Enum):
 
 
 class RoleState(Enum):
-    ALIVE = "alive"          # the role is alive
-    DEAD = "dead"            # killed or poisoned
-    KILLED = "killed"        # killed by werewolf or voting
-    POISONED = "poisoned"    # killed by poison
-    SAVED = "saved"          # saved by antidote
+    ALIVE = "alive"  # the role is alive
+    DEAD = "dead"  # killed or poisoned
+    KILLED = "killed"  # killed by werewolf or voting
+    POISONED = "poisoned"  # killed by poison
+    SAVED = "saved"  # saved by antidote
     PROTECTED = "projected"  # projected by guard
 
 

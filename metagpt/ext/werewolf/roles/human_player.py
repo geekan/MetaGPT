@@ -1,8 +1,8 @@
+from metagpt.environment.werewolf.const import RoleType
 from metagpt.ext.werewolf.actions import Speak
 from metagpt.ext.werewolf.roles import BasePlayer
-from metagpt.logs import logger
 from metagpt.ext.werewolf.schema import WwMessage
-from metagpt.environment.werewolf.const import RoleType
+from metagpt.logs import logger
 
 
 async def _act(self):

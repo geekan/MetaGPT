@@ -10,9 +10,9 @@ from pydantic import ConfigDict, Field
 
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 from metagpt.environment.base_env_space import BaseEnvObsParams
+from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS, RoleState, RoleType
 from metagpt.environment.werewolf.env_space import EnvAction, EnvActionType
 from metagpt.logs import logger
-from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS, RoleState, RoleType
 
 
 class WerewolfExtEnv(ExtEnv):
@@ -61,7 +61,6 @@ class WerewolfExtEnv(ExtEnv):
         return {
             "game_setup": self.game_setup,
             "step_idx": self.step_idx,
-
             "living_players": self.living_players,
             "werewolf_players": self.werewolf_players,
             "player_hunted": self.player_hunted,
@@ -69,7 +68,7 @@ class WerewolfExtEnv(ExtEnv):
             "witch_poison_left": self.witch_poison_left,
             "witch_antidote_left": self.witch_antidote_left,
             "winner": self.winner,
-            "win_reason": self.win_reason
+            "win_reason": self.win_reason,
         }
 
     def step(self, action: EnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
@@ -271,8 +270,9 @@ class WerewolfExtEnv(ExtEnv):
         #     self.player_hunted = Counter(hunted_all).most_common()[0][0]
         self.player_hunted = player_name
 
-    def _witch_poison_or_save_someone(self, witch_name: str, player_name: str = None,
-                                      state: RoleState = RoleState.POISONED):
+    def _witch_poison_or_save_someone(
+        self, witch_name: str, player_name: str = None, state: RoleState = RoleState.POISONED
+    ):
         if not self._check_valid_role(witch_name, RoleType.WITCH.value):
             return
         if not self._check_player_continue(player_name):

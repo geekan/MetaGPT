@@ -6,8 +6,9 @@ class InstructSpeak(Action):
     name: str = "InstructSpeak"
 
     async def run(self, step_idx, living_players, werewolf_players, player_hunted, player_current_dead):
-        instruction_info = STEP_INSTRUCTIONS.get(step_idx, {"content": "Unknown instruction.", "send_to": {},
-                                                            "restricted_to": {}})
+        instruction_info = STEP_INSTRUCTIONS.get(
+            step_idx, {"content": "Unknown instruction.", "send_to": {}, "restricted_to": {}}
+        )
         content = instruction_info["content"]
         if "{living_players}" in content and "{werewolf_players}" in content:
             content = content.format(living_players=living_players, werewolf_players=werewolf_players)

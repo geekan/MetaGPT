@@ -1,10 +1,15 @@
 import re
-from typing import Union
 from datetime import datetime
+from typing import Union
 
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS, RoleType
+from metagpt.environment.werewolf.const import (
+    STEP_INSTRUCTIONS,
+    RoleActionRes,
+    RoleState,
+    RoleType,
+)
 from metagpt.environment.werewolf.env_space import EnvAction, EnvActionType
 from metagpt.ext.werewolf.actions import Hunt, Poison, Protect, Save, Verify
 from metagpt.ext.werewolf.actions.moderator_actions import (
@@ -12,10 +17,9 @@ from metagpt.ext.werewolf.actions.moderator_actions import (
     InstructSpeak,
     ParseSpeak,
 )
-from metagpt.logs import logger
 from metagpt.ext.werewolf.roles.base_player import BasePlayer
 from metagpt.ext.werewolf.schema import WwMessage
-from metagpt.environment.werewolf.const import RoleState, RoleActionRes
+from metagpt.logs import logger
 
 
 class Moderator(BasePlayer):
@@ -73,11 +77,17 @@ class Moderator(BasePlayer):
 
         msg_cause_by = latest_msg.cause_by
         if msg_cause_by == Hunt:
-            self.rc.env.step(EnvAction(action_type=EnvActionType.WOLF_KILL, player_name=latest_msg.send_from,
-                                       target_player_name=target))
+            self.rc.env.step(
+                EnvAction(
+                    action_type=EnvActionType.WOLF_KILL, player_name=latest_msg.send_from, target_player_name=target
+                )
+            )
         elif msg_cause_by == Protect:
-            self.rc.env.step(EnvAction(action_type=EnvActionType.GUARD_PROTECT, player_name=latest_msg.send_from,
-                                       target_player_name=target))
+            self.rc.env.step(
+                EnvAction(
+                    action_type=EnvActionType.GUARD_PROTECT, player_name=latest_msg.send_from, target_player_name=target
+                )
+            )
         elif msg_cause_by == Verify:
             if target in self.werewolf_players:
                 msg_content = f"{target} is a werewolf"
@@ -92,8 +102,13 @@ class Moderator(BasePlayer):
                 msg_content = "You have no antidote left and thus can not save the player"
                 restricted_to = {RoleType.MODERATOR.value, RoleType.WITCH.value}
             else:
-                self.rc.env.step(EnvAction(action_type=EnvActionType.WITCH_SAVE, player_name=latest_msg.send_from,
-                                           target_player_name=target))
+                self.rc.env.step(
+                    EnvAction(
+                        action_type=EnvActionType.WITCH_SAVE,
+                        player_name=latest_msg.send_from,
+                        target_player_name=target,
+                    )
+                )
         elif msg_cause_by == Poison:
             if RoleActionRes.PASS.value in latest_msg_content.lower():
                 pass
@@ -101,8 +116,13 @@ class Moderator(BasePlayer):
                 msg_content = "You have no poison left and thus can not poison the player"
                 restricted_to = {RoleType.MODERATOR.value, RoleType.WITCH.value}
             else:
-                self.rc.env.step(EnvAction(action_type=EnvActionType.WITCH_POISON, player_name=latest_msg.send_from,
-                                           target_player_name=target))
+                self.rc.env.step(
+                    EnvAction(
+                        action_type=EnvActionType.WITCH_POISON,
+                        player_name=latest_msg.send_from,
+                        target_player_name=target,
+                    )
+                )
 
         return msg_content, restricted_to
 
@@ -179,7 +199,7 @@ class Moderator(BasePlayer):
                 sent_from=self.name,
                 cause_by=InstructSpeak,
                 send_to=msg_to_send_to,
-                restricted_to=msg_restricted_to
+                restricted_to=msg_restricted_to,
             )
             self.rc.env.step(EnvAction(action_type=EnvActionType.PROGRESS_STEP))  # to update step_idx
 
@@ -192,7 +212,7 @@ class Moderator(BasePlayer):
                 sent_from=self.name,
                 cause_by=ParseSpeak,
                 send_to={},
-                restricted_to=msg_restricted_to
+                restricted_to=msg_restricted_to,
             )
 
         elif isinstance(todo, AnnounceGameResult):

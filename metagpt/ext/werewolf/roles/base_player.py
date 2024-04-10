@@ -1,7 +1,9 @@
 import re
 
-from pydantic import SerializeAsAny, Field
+from pydantic import Field, SerializeAsAny
 
+from metagpt.actions.action import Action
+from metagpt.environment.werewolf.const import RoleState, RoleType
 from metagpt.ext.werewolf.actions import (
     ACTIONS,
     AddNewExperiences,
@@ -12,10 +14,8 @@ from metagpt.ext.werewolf.actions import (
     Speak,
 )
 from metagpt.ext.werewolf.schema import RoleExperience, WwMessage
-from metagpt.environment.werewolf.const import RoleType, RoleState
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.actions.action import Action
 
 
 class BasePlayer(Role):
@@ -129,7 +129,7 @@ class BasePlayer(Role):
             sent_from=self.name,
             cause_by=type(todo),
             send_to={},
-            restricted_to=restricted_to
+            restricted_to=restricted_to,
         )
 
         self.experiences.append(

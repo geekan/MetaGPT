@@ -1,6 +1,6 @@
+from metagpt.environment.werewolf.const import RoleType
 from metagpt.ext.werewolf.actions import Impersonate, Speak
 from metagpt.ext.werewolf.roles.base_player import BasePlayer
-from metagpt.environment.werewolf.const import RoleType
 
 
 class Werewolf(BasePlayer):

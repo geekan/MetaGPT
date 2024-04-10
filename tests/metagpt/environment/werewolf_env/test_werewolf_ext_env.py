@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of WerewolfExtEnv
 
-from metagpt.environment.werewolf.werewolf_ext_env import WerewolfExtEnv
 from metagpt.environment.werewolf.const import RoleState
+from metagpt.environment.werewolf.werewolf_ext_env import WerewolfExtEnv
 from metagpt.roles.role import Role
 
 

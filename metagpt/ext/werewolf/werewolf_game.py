@@ -23,4 +23,6 @@ class WerewolfGame(Team):
     def run_project(self, idea):
         """Run a project from user instruction."""
         self.idea = idea
-        self.env.publish_message(WwMessage(role="User", content=idea, cause_by=UserRequirement, restricted_to={"Moderator"}))
+        self.env.publish_message(
+            WwMessage(role="User", content=idea, cause_by=UserRequirement, restricted_to={"Moderator"})
+        )

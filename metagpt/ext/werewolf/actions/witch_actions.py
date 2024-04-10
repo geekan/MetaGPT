@@ -1,5 +1,5 @@
-from metagpt.ext.werewolf.actions.common_actions import NighttimeWhispers
 from metagpt.environment.werewolf.const import RoleActionRes
+from metagpt.ext.werewolf.actions.common_actions import NighttimeWhispers
 
 
 class Save(NighttimeWhispers):
