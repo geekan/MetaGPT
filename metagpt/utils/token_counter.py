@@ -28,6 +28,7 @@ TOKEN_COSTS = {
     "gpt-4-32k-0314": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-0613": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
@@ -147,6 +148,7 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
 TOKEN_MAX = {
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
+    "gpt-4-turbo": 128000,
     "gpt-4-1106-preview": 128000,
     "gpt-4-vision-preview": 128000,
     "gpt-4-1106-vision-preview": 128000,
@@ -202,6 +204,7 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-32k-0314",
         "gpt-4-0613",
         "gpt-4-32k-0613",
+        "gpt-4-turbo",
         "gpt-4-turbo-preview",
         "gpt-4-0125-preview",
         "gpt-4-1106-preview",

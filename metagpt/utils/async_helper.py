@@ -20,3 +20,18 @@ def run_coroutine_in_new_loop(coroutine) -> Any:
         new_loop.call_soon_threadsafe(new_loop.stop)
         t.join()
         new_loop.close()
+
+
+class NestAsyncio:
+    """Make asyncio event loop reentrant."""
+
+    is_applied = False
+
+    @classmethod
+    def apply_once(cls):
+        """Ensures `nest_asyncio.apply()` is called only once."""
+        if not cls.is_applied:
+            import nest_asyncio
+
+            nest_asyncio.apply()
+            cls.is_applied = True
