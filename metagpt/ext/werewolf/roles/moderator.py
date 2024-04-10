@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Union
 
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, MESSAGE_ROUTE_TO_ALL
 from metagpt.environment.werewolf.const import (
     STEP_INSTRUCTIONS,
     RoleActionRes,
@@ -20,6 +20,7 @@ from metagpt.ext.werewolf.actions.moderator_actions import (
 from metagpt.ext.werewolf.roles.base_player import BasePlayer
 from metagpt.ext.werewolf.schema import WwMessage
 from metagpt.logs import logger
+from metagpt.utils.common import any_to_str
 
 
 class Moderator(BasePlayer):
@@ -63,8 +64,6 @@ class Moderator(BasePlayer):
             role.record_experiences(round_id=timestamp, outcome=outcome, game_setup=self.game_setup)
 
     async def _parse_speak(self, memories):
-        logger.info(f"step_idx: {self.step_idx}")
-
         latest_msg = memories[-1]
         latest_msg_content = latest_msg.content
 
@@ -76,25 +75,25 @@ class Moderator(BasePlayer):
         restricted_to = set()
 
         msg_cause_by = latest_msg.cause_by
-        if msg_cause_by == Hunt:
+        if msg_cause_by == any_to_str(Hunt):
             self.rc.env.step(
                 EnvAction(
-                    action_type=EnvActionType.WOLF_KILL, player_name=latest_msg.send_from, target_player_name=target
+                    action_type=EnvActionType.WOLF_KILL, player_name=latest_msg.sent_from, target_player_name=target
                 )
             )
-        elif msg_cause_by == Protect:
+        elif msg_cause_by == any_to_str(Protect):
             self.rc.env.step(
                 EnvAction(
-                    action_type=EnvActionType.GUARD_PROTECT, player_name=latest_msg.send_from, target_player_name=target
+                    action_type=EnvActionType.GUARD_PROTECT, player_name=latest_msg.sent_from, target_player_name=target
                 )
             )
-        elif msg_cause_by == Verify:
+        elif msg_cause_by == any_to_str(Verify):
             if target in self.werewolf_players:
                 msg_content = f"{target} is a werewolf"
             else:
                 msg_content = f"{target} is a good guy"
             restricted_to = {RoleType.MODERATOR.value, RoleType.SEER.value}
-        elif msg_cause_by == Save:
+        elif msg_cause_by == any_to_str(Save):
             if RoleActionRes.PASS.value in latest_msg_content.lower():
                 # the role ignore to response, answer `pass`
                 pass
@@ -105,11 +104,11 @@ class Moderator(BasePlayer):
                 self.rc.env.step(
                     EnvAction(
                         action_type=EnvActionType.WITCH_SAVE,
-                        player_name=latest_msg.send_from,
+                        player_name=latest_msg.sent_from,
                         target_player_name=target,
                     )
                 )
-        elif msg_cause_by == Poison:
+        elif msg_cause_by == any_to_str(Poison):
             if RoleActionRes.PASS.value in latest_msg_content.lower():
                 pass
             elif not self.witch_poison_left:
@@ -119,7 +118,7 @@ class Moderator(BasePlayer):
                 self.rc.env.step(
                     EnvAction(
                         action_type=EnvActionType.WITCH_POISON,
-                        player_name=latest_msg.send_from,
+                        player_name=latest_msg.sent_from,
                         target_player_name=target,
                     )
                 )
@@ -132,11 +131,31 @@ class Moderator(BasePlayer):
             self.update_player_status(player_current_dead)
 
     def _record_game_history(self, step_idx: int):
-        if step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner:
+        if step_idx and step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner:
             logger.info("a night and day cycle completed, examine all history")
             logger.debug(f"all_memories: {self.get_all_memories()}")
             with open(DEFAULT_WORKSPACE_ROOT / "werewolf_transcript.txt", "w") as f:
                 f.write(self.get_all_memories())
+
+    async def _observe(self, ignore_memory=False) -> int:
+        news = []
+        if not news:
+            news = self.rc.msg_buffer.pop_all()
+        old_messages = [] if ignore_memory else self.rc.memory.get()
+        for m in news:
+            if len(m.restricted_to) and self.profile not in m.restricted_to and self.name not in m.restricted_to:
+                # if the msg is not send to the whole audience ("") nor this role (self.profile or self.name),
+                # then this role should not be able to receive it and record it into its memory
+                continue
+            self.rc.memory.add(m)
+        # add `MESSAGE_ROUTE_TO_ALL in n.send_to` make it to run `ParseSpeak`
+        self.rc.news = [
+            n
+            for n in news
+            if (n.cause_by in self.rc.watch or self.profile in n.send_to or MESSAGE_ROUTE_TO_ALL in n.send_to)
+            and n not in old_messages
+        ]
+        return len(self.rc.news)
 
     async def _think(self):
         if self.winner:
@@ -155,6 +174,7 @@ class Moderator(BasePlayer):
 
     def _init_fields_from_obj(self, obs: dict[str, Union[int, str, list[str]]]):
         self.game_setup = obs.get("game_setup", "")
+        self.step_idx = obs.get("step_idx", 0)
         self.winner = obs.get("winner")
         self.win_reason = obs.get("win_reason")
         self.werewolf_players = obs.get("werewolf_players", [])
@@ -168,7 +188,6 @@ class Moderator(BasePlayer):
         memories = self.get_all_memories(mode="msg")
 
         obs, _, _, _, _ = self.rc.env.step(action=EnvAction(action_type=EnvActionType.NONE))
-        step_idx = obs["step_idx"]
         living_players = obs["living_players"]
         werewolf_players = obs["werewolf_players"]
         player_hunted = obs["player_hunted"]
@@ -176,17 +195,17 @@ class Moderator(BasePlayer):
         self._init_fields_from_obj(obs)
 
         # 若进行完一夜一日的循环，打印和记录一次完整发言历史
-        self._record_game_history(step_idx)
+        self._record_game_history(self.step_idx)
 
         # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新玩家状态
-        self._update_player_status(step_idx, player_current_dead)
+        self._update_player_status(self.step_idx, player_current_dead)
         if self.winner:
             self._record_all_experiences()
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
             msg_content, msg_to_send_to, msg_restricted_to = await InstructSpeak().run(
-                step_idx,
+                self.step_idx,
                 living_players=living_players,
                 werewolf_players=werewolf_players,
                 player_hunted=player_hunted,
@@ -201,6 +220,7 @@ class Moderator(BasePlayer):
                 send_to=msg_to_send_to,
                 restricted_to=msg_restricted_to,
             )
+            logger.info(f"current step_idx: {self.step_idx}")
             self.rc.env.step(EnvAction(action_type=EnvActionType.PROGRESS_STEP))  # to update step_idx
 
         elif isinstance(todo, ParseSpeak):

@@ -19,7 +19,7 @@ from metagpt.logs import logger
 from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json_file
 
 
-class MinecraftEnv(Environment, MinecraftExtEnv):
+class MinecraftEnv(MinecraftExtEnv, Environment):
     """MinecraftEnv, including shared memory of cache and information between roles"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

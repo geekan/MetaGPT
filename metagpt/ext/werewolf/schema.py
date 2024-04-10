@@ -1,6 +1,9 @@
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str_set
 
 
 class RoleExperience(BaseModel):
@@ -18,4 +21,9 @@ class RoleExperience(BaseModel):
 
 class WwMessage(Message):
     # Werewolf Message
-    restricted_to: set[str] = Field(default={}, validate_default=True)
+    restricted_to: set[str] = Field(default=set(), validate_default=True)
+
+    @field_validator("restricted_to", mode="before")
+    @classmethod
+    def check_restricted_to(cls, restricted_to: Any):
+        return any_to_str_set(restricted_to if restricted_to else set())

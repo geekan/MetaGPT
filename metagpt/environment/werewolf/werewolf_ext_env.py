@@ -24,7 +24,7 @@ class WerewolfExtEnv(ExtEnv):
 
     round_idx: int = Field(default=0)  # the current round
     step_idx: int = Field(default=0)  # the current step of current round
-    eval_step_idx: int = Field(default=0)
+    eval_step_idx: list[int] = Field(default=[])
     per_round_steps: int = Field(default=len(STEP_INSTRUCTIONS))
 
     # game global states
@@ -259,7 +259,7 @@ class WerewolfExtEnv(ExtEnv):
     def wolf_kill_someone(self, wolf_name: str, player_name: str):
         if not self._check_valid_role(wolf_name, RoleType.WEREWOLF.value):
             return
-        if not self._check_player_continue(wolf_name, particular_step=5):  # 5=step no
+        if not self._check_player_continue(wolf_name, particular_step=6):  # 5=step no
             return
 
         self.round_hunts[wolf_name] = player_name

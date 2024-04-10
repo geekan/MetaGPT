@@ -1,6 +1,6 @@
 import re
 
-from pydantic import Field, SerializeAsAny
+from pydantic import Field, SerializeAsAny, model_validator
 
 from metagpt.actions.action import Action
 from metagpt.environment.werewolf.const import RoleState, RoleType
@@ -16,6 +16,7 @@ from metagpt.ext.werewolf.actions import (
 from metagpt.ext.werewolf.schema import RoleExperience, WwMessage
 from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.utils.common import any_to_str
 
 
 class BasePlayer(Role):
@@ -44,6 +45,12 @@ class BasePlayer(Role):
             logger.warning("You must enable use_reflection before using experience")
             self.use_experience = False
 
+    @model_validator(mode="after")
+    def check_addresses(self):
+        if not self.addresses:
+            self.addresses = {any_to_str(self), self.name, self.profile} if self.name else {any_to_str(self)}
+        return self
+
     async def _observe(self, ignore_memory=False) -> int:
         if self.status != RoleState.ALIVE:
             # 死者不再参与游戏
@@ -71,7 +78,7 @@ class BasePlayer(Role):
 
     async def _think(self):
         news = self.rc.news[0]
-        assert news.cause_by == InstructSpeak  # 消息为来自Moderator的指令时，才去做动作
+        assert news.cause_by == any_to_str(InstructSpeak)  # 消息为来自Moderator的指令时，才去做动作
         if not news.restricted_to:
             # 消息接收范围为全体角色的，做公开发言（发表投票观点也算发言）
             self.rc.todo = Speak()
@@ -115,14 +122,13 @@ class BasePlayer(Role):
                 reflection=reflection,
                 experiences=experiences,
             )
-            restricted_to = {}
+            restricted_to = set()
 
         elif isinstance(todo, NighttimeWhispers):
             rsp = await todo.run(
                 profile=self.profile, name=self.name, context=memories, reflection=reflection, experiences=experiences
             )
             restricted_to = {RoleType.MODERATOR.value, self.profile}  # 给Moderator发送使用特殊技能的加密消息
-
         msg = WwMessage(
             content=rsp,
             role=self.profile,

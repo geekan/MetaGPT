@@ -7,6 +7,8 @@ import json
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import Action
+from metagpt.logs import logger
+from metagpt.utils.common import parse_json_code_block
 
 
 class Speak(Action):
@@ -228,6 +230,8 @@ class Reflect(Action):
 
         rsp = await self._aask(prompt)
         rsp = rsp.replace("\n", " ")
-        rsp_json = json.loads(rsp)
+        logger.debug(f"{self.name} result: {rsp}")
+        json_blocks = parse_json_code_block(rsp)
+        rsp_json = json.loads(json_blocks[0])
 
         return json.dumps(rsp_json["REFLECTION"])
