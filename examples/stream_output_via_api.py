@@ -6,20 +6,18 @@
 @File    : stream_output_via_api.py
 @Description    : Stream log information and communicate over the network via web api.
 """
+import asyncio
 import json
 import socket
-import asyncio
 import threading
-
 from contextvars import ContextVar
-from flask import Flask, Response
-from flask import request, jsonify, send_from_directory
 
-from metagpt.logs import logger
+from flask import Flask, Response, jsonify, request, send_from_directory
+
 from metagpt.const import TUTORIAL_PATH
-from metagpt.logs import set_llm_stream_logfunc
-from metagpt.utils.stream_pipe import StreamPipe
+from metagpt.logs import logger, set_llm_stream_logfunc
 from metagpt.roles.tutorial_assistant import TutorialAssistant
+from metagpt.utils.stream_pipe import StreamPipe
 
 app = Flask(__name__)
 
@@ -39,12 +37,18 @@ def write_tutorial(message):
 
     def thread_run(idea: str, stream_pipe: StreamPipe = None):
         """
-            Convert asynchronous function to thread function
+        Convert asynchronous function to thread function
         """
         asyncio.run(main(idea, stream_pipe))
 
     stream_pipe = StreamPipe()
-    thread = threading.Thread(target=thread_run, args=(message["content"], stream_pipe,))
+    thread = threading.Thread(
+        target=thread_run,
+        args=(
+            message["content"],
+            stream_pipe,
+        ),
+    )
     thread.start()
 
     while thread.is_alive():
@@ -52,7 +56,7 @@ def write_tutorial(message):
         yield stream_pipe.msg2stream(msg)
 
 
-@app.route('/v1/chat/completions', methods=['POST'])
+@app.route("/v1/chat/completions", methods=["POST"])
 def completions():
     """
     data: {
@@ -87,7 +91,7 @@ def completions():
         return jsonify({"status": 400, "msg": "No suitable agent found."})
 
 
-@app.route('/download/<path:filename>')
+@app.route("/download/<path:filename>")
 def download_file(filename):
     return send_from_directory(TUTORIAL_PATH, filename, as_attachment=True)
 

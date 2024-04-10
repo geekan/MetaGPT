@@ -5,8 +5,8 @@
 # @Version : None
 # @Description : None
 
-import time
 import json
+import time
 from multiprocessing import Pipe
 
 
@@ -21,17 +21,8 @@ class StreamPipe:
         "model": "gpt-3.5-turbo-0125",
         "system_fingerprint": "fp_3bc1b5746c",
         "choices": [
-            {
-                "index": 0,
-                "delta":
-                    {
-                        "role": "assistant",
-                        "content": "content"
-                    },
-                "logprobs": None,
-                "finish_reason": None
-            }
-        ]
+            {"index": 0, "delta": {"role": "assistant", "content": "content"}, "logprobs": None, "finish_reason": None}
+        ],
     }
 
     def set_message(self, msg):
@@ -44,6 +35,6 @@ class StreamPipe:
             return None
 
     def msg2stream(self, msg):
-        self.format_data['created'] = int(time.time())
-        self.format_data['choices'][0]['delta']['content'] = msg
+        self.format_data["created"] = int(time.time())
+        self.format_data["choices"][0]["delta"]["content"] = msg
         return f"data: {json.dumps(self.format_data, ensure_ascii=False)}\n".encode("utf-8")

@@ -45,7 +45,13 @@ class ZhiPuAILLM(BaseLLM):
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         max_tokens = self.config.max_token if self.config.max_token > 0 else 1024
         temperature = self.config.temperature if self.config.temperature > 0.0 else 0.3
-        kwargs = {"model": self.model, "max_tokens": max_tokens, "messages": messages, "stream": stream, "temperature": temperature}
+        kwargs = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "messages": messages,
+            "stream": stream,
+            "temperature": temperature,
+        }
         return kwargs
 
     def completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
