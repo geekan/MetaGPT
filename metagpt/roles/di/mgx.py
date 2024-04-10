@@ -33,6 +33,7 @@ class MGX(DataInterpreter):
         if self.use_intent:  # add mode
             user_message = Message(content=goal, role="user")
             goal = await self._detect_intent(user_message)
+
         logger.info(f"Goal is {goal}")
 
         await self.planner.update_plan(goal=goal)
