@@ -26,6 +26,9 @@ class GenericFactory:
         if creator:
             return creator(**kwargs)
 
+        self._raise_for_key(key)
+
+    def _raise_for_key(self, key: Any):
         raise ValueError(f"Creator not registered for key: {key}")
 
 
