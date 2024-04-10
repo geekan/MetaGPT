@@ -10,6 +10,7 @@ from metagpt.logs import ToolLogItem, log_tool_output
 from metagpt.schema import BugFixContext, Message
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import any_to_str
+from metagpt.utils.project_repo import ProjectRepo
 
 
 @register_tool(tags=["software development", "ProductManager"])
@@ -367,7 +368,10 @@ async def git_archive(project_path: str | Path) -> str:
     )
 
     ctx = Context()
-    ctx.set_repo_dir(project_path)
+    project_dir = ProjectRepo.search_project_path(project_path)
+    if not project_dir:
+        ValueError(f"{project_path} is not a valid git repository.")
+    ctx.set_repo_dir(project_dir)
     files = " ".join(ctx.git_repo.changed_files.keys())
     outputs = [ToolLogItem(name="cmd", value=f"git add {files}")]
     log_tool_output(output=outputs, tool_name=git_archive.__name__)

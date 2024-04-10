@@ -35,7 +35,6 @@ class SOPItem(Enum):
             "Writes a design to the project repository, based on the PRD of the project.",
             "Writes a project plan to the project repository, based on the design of the project.",
             "Writes code to implement designed features according to the project plan and adds them to the project repository.",
-            # "Run QA test on the project repository.",
             "Stage and commit changes for the project repository using Git.",
         ],
     )
@@ -95,8 +94,7 @@ Intention index:
 REQ_WITH_SOP = """
 {user_requirement}
 ## Knowledge
-To meet user requirements, the following standard operating procedure(SOP) must be used. 
-SOP descriptions cannot be modified; user requirements can only be appended to the end of corresponding steps.
+To meet user requirements, the following standard operating procedure(SOP) must be used:
 
 {sop}
 """

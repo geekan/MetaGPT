@@ -119,7 +119,7 @@ class Planner(BaseModel):
         If human confirms the task result, then we deem the task completed, regardless of whether the code run succeeds;
         if auto mode, then the code run has to succeed for the task to be considered completed.
         """
-        auto_run = auto_run or self.auto_run
+        auto_run = auto_run if auto_run is not None else self.auto_run
         if not auto_run:
             context = self.get_useful_memories()
             review, confirmed = await AskReview().run(

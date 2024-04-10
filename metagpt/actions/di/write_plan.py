@@ -19,26 +19,26 @@ from metagpt.utils.common import CodeParser
 
 class WritePlan(Action):
     PROMPT_TEMPLATE: str = """
-    # Context:
-    {context}
-    # Available Task Types:
-    {task_type_desc}
-    # Task:
-    Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
-    If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
-    If you encounter errors on the current task, revise and output the current single task only.
-    Output a list of jsons following the format:
-    ```json
-    [
-        {{
-            "task_id": str = "unique identifier for a task in plan, can be an ordinal",
-            "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
-            "instruction": "what you should do in this task, one short phrase or sentence",
-            "task_type": "type of this task, should be one of Available Task Types",
-        }},
-        ...
-    ]
-    ```
+# Context:
+{context}
+# Available Task Types:
+{task_type_desc}
+# Task:
+Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
+If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
+If you encounter errors on the current task, revise and output the current single task only.
+Output a list of jsons following the format:
+```json
+[
+    {{
+        "task_id": str = "unique identifier for a task in plan, can be an ordinal",
+        "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
+        "instruction": "what you should do in this task, one short phrase or sentence.",
+        "task_type": "type of this task, should be one of Available Task Types.",
+    }},
+    ...
+]
+```
     """
 
     async def run(self, context: list[Message], max_tasks: int = 5) -> str:
