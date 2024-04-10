@@ -1,10 +1,11 @@
 import re
-from collections import Counter
+from typing import Union
 from datetime import datetime
 
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.environment.werewolf.werewolf_ext_env import STEP_INSTRUCTIONS
+from metagpt.environment.werewolf.const import STEP_INSTRUCTIONS, RoleType
+from metagpt.environment.werewolf.env_space import EnvAction, EnvActionType
 from metagpt.ext.werewolf.actions import Hunt, Poison, Protect, Save, Verify
 from metagpt.ext.werewolf.actions.moderator_actions import (
     AnnounceGameResult,
@@ -12,54 +13,28 @@ from metagpt.ext.werewolf.actions.moderator_actions import (
     ParseSpeak,
 )
 from metagpt.logs import logger
-from metagpt.roles import Role
-from metagpt.schema import Message
+from metagpt.ext.werewolf.roles.base_player import BasePlayer
+from metagpt.ext.werewolf.schema import WwMessage
+from metagpt.environment.werewolf.const import RoleState, RoleActionRes
 
 
-class Moderator(Role):
-    name: str = "Moderator"
-    profile: str = "Moderator"
+class Moderator(BasePlayer):
+    name: str = RoleType.MODERATOR.value
+    profile: str = RoleType.MODERATOR.value
 
-    def __init__(
-        self,
-        name: str = "Moderator",
-        profile: str = "Moderator",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self.set_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
-        self.step_idx = 0
-        self.eval_step_idx = []
 
         # game states
+        self.step_idx = 0
         self.game_setup = ""
-        self.living_players = []
         self.werewolf_players = []
-        self.villager_players = []
-        self.special_role_players = []
         self.winner = None
         self.win_reason = None
         self.witch_poison_left = 1
         self.witch_antidote_left = 1
-
-        # player states of current night
-        self.player_hunted = None
-        self.player_protected = None
-        self.is_hunted_player_saved = False
-        self.player_poisoned = None
-        self.player_current_dead = []
-
-    def _parse_game_setup(self, game_setup: str):
-        self.game_setup = game_setup
-        self.living_players = re.findall(r"Player[0-9]+", game_setup)
-        self.werewolf_players = re.findall(r"Player[0-9]+: Werewolf", game_setup)
-        self.werewolf_players = [p.replace(": Werewolf", "") for p in self.werewolf_players]
-        self.villager_players = re.findall(r"Player[0-9]+: Villager", game_setup)
-        self.villager_players = [p.replace(": Villager", "") for p in self.villager_players]
-        self.special_role_players = [
-            p for p in self.living_players if p not in self.werewolf_players + self.villager_players
-        ]
 
     def update_player_status(self, player_names: list[str]):
         if not player_names:
@@ -68,33 +43,23 @@ class Moderator(Role):
         for role_setting, role in roles_in_env.items():
             for player_name in player_names:
                 if player_name in role_setting:
-                    role.set_status(new_status=1)  # 更新为死亡
+                    role.set_status(new_status=RoleState.DEAD)  # 更新为死亡
 
     def _record_all_experiences(self):
+        logger.info(f"The winner of the game: {self.winner}, start to record roles' experiences")
         roles_in_env = self.rc.env.get_roles()
         timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         for _, role in roles_in_env.items():
             if role == self:
                 continue
             if self.winner == "werewolf":
-                outcome = "won" if role.name in self.werewolf_players else "lost"
+                outcome = "won" if role.profile in RoleType.WEREWOLF.value else "lost"
             else:
-                outcome = "won" if role.name not in self.werewolf_players else "lost"
+                outcome = "won" if role.profile not in RoleType.WEREWOLF.value else "lost"
             role.record_experiences(round_id=timestamp, outcome=outcome, game_setup=self.game_setup)
 
-    async def _instruct_speak(self):
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        self.step_idx += 1
-        return await InstructSpeak().run(
-            step_idx,
-            living_players=self.living_players,
-            werewolf_players=self.werewolf_players,
-            player_hunted=self.player_hunted,
-            player_current_dead=self.player_current_dead,
-        )
-
     async def _parse_speak(self, memories):
-        logger.info(self.step_idx)
+        logger.info(f"step_idx: {self.step_idx}")
 
         latest_msg = memories[-1]
         latest_msg_content = latest_msg.content
@@ -104,118 +69,77 @@ class Moderator(Role):
 
         # default return
         msg_content = "Understood"
-        send_to = set()
+        restricted_to = set()
 
         msg_cause_by = latest_msg.cause_by
         if msg_cause_by == Hunt:
-            self.player_hunted = target
+            self.rc.env.step(EnvAction(action_type=EnvActionType.WOLF_KILL, player_name=latest_msg.send_from,
+                                       target_player_name=target))
         elif msg_cause_by == Protect:
-            self.player_protected = target
+            self.rc.env.step(EnvAction(action_type=EnvActionType.GUARD_PROTECT, player_name=latest_msg.send_from,
+                                       target_player_name=target))
         elif msg_cause_by == Verify:
             if target in self.werewolf_players:
                 msg_content = f"{target} is a werewolf"
             else:
                 msg_content = f"{target} is a good guy"
-            send_to = {"Moderator", "Seer"}
+            restricted_to = {RoleType.MODERATOR.value, RoleType.SEER.value}
         elif msg_cause_by == Save:
-            if "pass" in latest_msg_content.lower():
+            if RoleActionRes.PASS.value in latest_msg_content.lower():
+                # the role ignore to response, answer `pass`
                 pass
             elif not self.witch_antidote_left:
                 msg_content = "You have no antidote left and thus can not save the player"
-                send_to = {"Moderator", "Witch"}
+                restricted_to = {RoleType.MODERATOR.value, RoleType.WITCH.value}
             else:
-                self.witch_antidote_left -= 1
-                self.is_hunted_player_saved = True
+                self.rc.env.step(EnvAction(action_type=EnvActionType.WITCH_SAVE, player_name=latest_msg.send_from,
+                                           target_player_name=target))
         elif msg_cause_by == Poison:
-            if "pass" in latest_msg_content.lower():
+            if RoleActionRes.PASS.value in latest_msg_content.lower():
                 pass
             elif not self.witch_poison_left:
                 msg_content = "You have no poison left and thus can not poison the player"
-                send_to = {"Moderator", "Witch"}
+                restricted_to = {RoleType.MODERATOR.value, RoleType.WITCH.value}
             else:
-                self.witch_poison_left -= 1
-                self.player_poisoned = target  # "" if not poisoned and "PlayerX" if poisoned
+                self.rc.env.step(EnvAction(action_type=EnvActionType.WITCH_POISON, player_name=latest_msg.send_from,
+                                           target_player_name=target))
 
-        return msg_content, send_to
+        return msg_content, restricted_to
 
-    def _update_game_states(self, memories):
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx not in [15, 18] or self.step_idx in self.eval_step_idx:  # FIXME: hard code
-            return
-        else:
-            self.eval_step_idx.append(self.step_idx)  # record evaluation, avoid repetitive evaluation at the same step
+    def _update_player_status(self, step_idx: int, player_current_dead: list[str]):
+        """update dead player's status"""
+        if step_idx in [15, 18]:
+            self.update_player_status(player_current_dead)
 
-        if step_idx == 15:  # FIXME: hard code
-            # night ends: after all special roles acted, process the whole night
-            self.player_current_dead = []  # reset
-
-            if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
-                self.player_current_dead.append(self.player_hunted)
-            if self.player_poisoned:
-                self.player_current_dead.append(self.player_poisoned)
-
-            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
-            self.update_player_status(self.player_current_dead)
-            # reset
-            self.player_hunted = None
-            self.player_protected = None
-            self.is_hunted_player_saved = False
-            self.player_poisoned = None
-
-        elif step_idx == 18:  # FIXME: hard code
-            # day ends: after all roles voted, process all votings
-            voting_msgs = memories[-len(self.living_players) :]
-            voted_all = []
-            for msg in voting_msgs:
-                voted = re.search(r"Player[0-9]+", msg.content[-10:])
-                if not voted:
-                    continue
-                voted_all.append(voted.group(0))
-            self.player_current_dead = [Counter(voted_all).most_common()[0][0]]  # 平票时，杀最先被投的
-            # print("*" * 10, "dead", self.player_current_dead)
-            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
-            self.update_player_status(self.player_current_dead)
-
-        # game's termination condition
-        living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
-        living_villagers = [p for p in self.villager_players if p in self.living_players]
-        living_special_roles = [p for p in self.special_role_players if p in self.living_players]
-        if not living_werewolf:
-            self.winner = "good guys"
-            self.win_reason = "werewolves all dead"
-        elif not living_villagers or not living_special_roles:
-            self.winner = "werewolf"
-            self.win_reason = "villagers all dead" if not living_villagers else "special roles all dead"
-        if self.winner is not None:
-            self._record_all_experiences()
-
-    def _record_game_history(self):
-        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
+    def _record_game_history(self, step_idx: int):
+        if step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner:
             logger.info("a night and day cycle completed, examine all history")
-            print(self.get_all_memories())
+            logger.debug(f"all_memories: {self.get_all_memories()}")
             with open(DEFAULT_WORKSPACE_ROOT / "werewolf_transcript.txt", "w") as f:
                 f.write(self.get_all_memories())
 
     async def _think(self):
-        if self.winner is not None:
+        if self.winner:
             self.rc.todo = AnnounceGameResult()
             return
 
         latest_msg = self.rc.memory.get()[-1]
-        if latest_msg.role in ["User"]:
-            # 上一轮消息是用户指令，解析用户指令，开始游戏
-            game_setup = latest_msg.content
-            self._parse_game_setup(game_setup)
+        if latest_msg.role in ["User", "Human", self.profile]:
+            # 1. 上一轮消息是用户指令，解析用户指令，开始游戏
+            # 2.1. 上一轮消息是Moderator自己的指令，继续发出指令，一个事情可以分几条消息来说
+            # 2.2. 上一轮消息是Moderator自己的解析消息，一个阶段结束，发出新一个阶段的指令
             self.rc.todo = InstructSpeak()
-
-        elif latest_msg.role in [self.profile]:
-            # 1. 上一轮消息是Moderator自己的指令，继续发出指令，一个事情可以分几条消息来说
-            # 2. 上一轮消息是Moderator自己的解析消息，一个阶段结束，发出新一个阶段的指令
-            self.rc.todo = InstructSpeak()
-
         else:
             # 上一轮消息是游戏角色的发言，解析角色的发言
             self.rc.todo = ParseSpeak()
+
+    def _init_fields_from_obj(self, obs: dict[str, Union[int, str, list[str]]]):
+        self.game_setup = obs.get("game_setup", "")
+        self.winner = obs.get("winner")
+        self.win_reason = obs.get("win_reason")
+        self.werewolf_players = obs.get("werewolf_players", [])
+        self.witch_poison_left = obs.get("witch_poison_left", 0)
+        self.witch_antidote_left = obs.get("witch_antidote_left", 0)
 
     async def _act(self):
         todo = self.rc.todo
@@ -223,38 +147,57 @@ class Moderator(Role):
 
         memories = self.get_all_memories(mode="msg")
 
-        # 若进行完一夜一日的循环，打印和记录一次完整发言历史
-        self._record_game_history()
+        obs, _, _, _, _ = self.rc.env.step(action=EnvAction(action_type=EnvActionType.NONE))
+        step_idx = obs["step_idx"]
+        living_players = obs["living_players"]
+        werewolf_players = obs["werewolf_players"]
+        player_hunted = obs["player_hunted"]
+        player_current_dead = obs["player_current_dead"]
+        self._init_fields_from_obj(obs)
 
-        # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新游戏状态
-        self._update_game_states(memories)
+        # 若进行完一夜一日的循环，打印和记录一次完整发言历史
+        self._record_game_history(step_idx)
+
+        # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新玩家状态
+        self._update_player_status(step_idx, player_current_dead)
+        if self.winner:
+            self._record_all_experiences()
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to = await self._instruct_speak()
+            msg_content, msg_to_send_to, msg_restricted_to = await InstructSpeak().run(
+                step_idx,
+                living_players=living_players,
+                werewolf_players=werewolf_players,
+                player_hunted=player_hunted,
+                player_current_dead=player_current_dead,
+            )
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
-            msg = Message(
+            msg = WwMessage(
                 content=msg_content,
                 role=self.profile,
                 sent_from=self.name,
                 cause_by=InstructSpeak,
                 send_to=msg_to_send_to,
+                restricted_to=msg_restricted_to
             )
+            self.rc.env.step(EnvAction(action_type=EnvActionType.PROGRESS_STEP))  # to update step_idx
 
         elif isinstance(todo, ParseSpeak):
-            msg_content, msg_to_send_to = await self._parse_speak(memories)
+            msg_content, msg_restricted_to = await self._parse_speak(memories)
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
-            msg = Message(
+            msg = WwMessage(
                 content=msg_content,
                 role=self.profile,
                 sent_from=self.name,
                 cause_by=ParseSpeak,
-                send_to=msg_to_send_to,
+                send_to={},
+                restricted_to=msg_restricted_to
             )
 
         elif isinstance(todo, AnnounceGameResult):
             msg_content = await AnnounceGameResult().run(winner=self.winner, win_reason=self.win_reason)
-            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=AnnounceGameResult)
+            msg = WwMessage(content=msg_content, role=self.profile, sent_from=self.name, cause_by=AnnounceGameResult)
 
         logger.info(f"{self._setting}: {msg_content}")
 

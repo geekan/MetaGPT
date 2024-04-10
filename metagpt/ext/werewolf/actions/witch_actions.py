@@ -1,4 +1,5 @@
 from metagpt.ext.werewolf.actions.common_actions import NighttimeWhispers
+from metagpt.environment.werewolf.const import RoleActionRes
 
 
 class Save(NighttimeWhispers):
@@ -41,6 +42,6 @@ class Poison(NighttimeWhispers):
 
     async def run(self, *args, **kwargs):
         rsp = await super().run(*args, **kwargs)
-        if "pass" in rsp.lower():
+        if RoleActionRes.PASS.value in rsp.lower():
             action_name, rsp = rsp.split()  # 带PASS，只需回复PASS，不需要带上action名，否则是Poison PlayerX，无需改动
         return rsp

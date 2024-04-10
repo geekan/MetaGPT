@@ -1,10 +1,11 @@
 from metagpt.ext.werewolf.actions import Impersonate, Speak
 from metagpt.ext.werewolf.roles.base_player import BasePlayer
+from metagpt.environment.werewolf.const import RoleType
 
 
 class Werewolf(BasePlayer):
-    name: str = "Werewolf"
-    profile: str = "Werewolf"
+    name: str = RoleType.WEREWOLF.value
+    profile: str = RoleType.WEREWOLF.value
     special_action_names: list[str] = ["Hunt"]
 
     async def _think(self):

@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of WerewolfExtEnv
 
-from metagpt.environment.werewolf.werewolf_ext_env import RoleState, WerewolfExtEnv
+from metagpt.environment.werewolf.werewolf_ext_env import WerewolfExtEnv
+from metagpt.environment.werewolf.const import RoleState
 from metagpt.roles.role import Role
 
 
@@ -41,9 +42,9 @@ def test_werewolf_ext_env():
     assert "Werewolves, please open your eyes" in curr_instr["content"]
 
     # current step_idx = 5
-    ext_env.wolf_kill_someone(wolf=Role(name="Player10"), player_name="Player4")
-    ext_env.wolf_kill_someone(wolf=Werewolf(name="Player0"), player_name="Player4")
-    ext_env.wolf_kill_someone(wolf=Werewolf(name="Player1"), player_name="Player4")
+    ext_env.wolf_kill_someone(wolf_name="Player10", player_name="Player4")
+    ext_env.wolf_kill_someone(wolf_name="Player0", player_name="Player4")
+    ext_env.wolf_kill_someone(wolf_name="Player1", player_name="Player4")
     assert ext_env.player_hunted == "Player4"
     assert len(ext_env.living_players) == 5  # hunted but can be saved by witch
 
@@ -52,11 +53,11 @@ def test_werewolf_ext_env():
 
     # current step_idx = 18
     assert ext_env.step_idx == 18
-    ext_env.vote_kill_someone(voteer=Werewolf(name="Player0"), player_name="Player2")
-    ext_env.vote_kill_someone(voteer=Werewolf(name="Player1"), player_name="Player3")
-    ext_env.vote_kill_someone(voteer=Villager(name="Player2"), player_name="Player3")
-    ext_env.vote_kill_someone(voteer=Witch(name="Player3"), player_name="Player4")
-    ext_env.vote_kill_someone(voteer=Guard(name="Player4"), player_name="Player2")
+    ext_env.vote_kill_someone(voter_name="Player0", player_name="Player2")
+    ext_env.vote_kill_someone(voter_name="Player1", player_name="Player3")
+    ext_env.vote_kill_someone(voter_name="Player2", player_name="Player3")
+    ext_env.vote_kill_someone(voter_name="Player3", player_name="Player4")
+    ext_env.vote_kill_someone(voter_name="Player4", player_name="Player2")
     assert ext_env.player_current_dead == "Player2"
     assert len(ext_env.living_players) == 4
 

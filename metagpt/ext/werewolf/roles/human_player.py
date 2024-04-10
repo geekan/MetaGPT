@@ -1,7 +1,8 @@
 from metagpt.ext.werewolf.actions import Speak
 from metagpt.ext.werewolf.roles import BasePlayer
 from metagpt.logs import logger
-from metagpt.schema import Message
+from metagpt.ext.werewolf.schema import WwMessage
+from metagpt.environment.werewolf.const import RoleType
 
 
 async def _act(self):
@@ -22,14 +23,15 @@ async def _act(self):
     rsp = input(input_instruction)  # wait for human input
 
     msg_cause_by = type(todo)
-    msg_restricted_to = "" if isinstance(todo, Speak) else f"Moderator,{self.profile}"
+    msg_restricted_to = {} if isinstance(todo, Speak) else {RoleType.MODERATOR.value, self.profile}
 
-    msg = Message(
+    msg = WwMessage(
         content=rsp,
         role=self.profile,
         sent_from=self.name,
         cause_by=msg_cause_by,
-        send_to=msg_restricted_to,  # 给Moderator及自身阵营发送加密消息
+        send_to={},
+        restricted_to=msg_restricted_to,  # 给Moderator及自身阵营发送加密消息
     )
 
     logger.info(f"{self._setting}: {rsp}")

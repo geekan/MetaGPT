@@ -1,7 +1,8 @@
 from metagpt.ext.werewolf.roles.base_player import BasePlayer
+from metagpt.environment.werewolf.const import RoleType
 
 
 class Seer(BasePlayer):
-    name: str = "Seer"
-    profile: str = "Seer"
+    name: str = RoleType.SEER.value
+    profile: str = RoleType.SEER.value
     special_action_names: list[str] = ["Verify"]

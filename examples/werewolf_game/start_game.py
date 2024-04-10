@@ -29,7 +29,7 @@ async def start_game(
         use_memory_selection=use_memory_selection,
         new_experience_version=new_experience_version,
     )
-    logger.info(f"game_setup\n{game_setup}")
+    logger.info(f"{game_setup}")
 
     players = [Moderator()] + players
     game.hire(players)

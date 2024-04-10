@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from metagpt.schema import Message
 
 
 class RoleExperience(BaseModel):
@@ -12,3 +14,8 @@ class RoleExperience(BaseModel):
     round_id: str = ""
     game_setup: str = ""
     version: str = ""
+
+
+class WwMessage(Message):
+    # Werewolf Message
+    restricted_to: set[str] = Field(default={}, validate_default=True)

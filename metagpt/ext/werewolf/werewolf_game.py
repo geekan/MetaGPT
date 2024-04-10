@@ -3,7 +3,7 @@ from typing import Any, Optional
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.context import Context
 from metagpt.environment.werewolf.werewolf_env import WerewolfEnv
-from metagpt.schema import Message
+from metagpt.ext.werewolf.schema import WwMessage
 from metagpt.team import Team
 
 
@@ -23,4 +23,4 @@ class WerewolfGame(Team):
     def run_project(self, idea):
         """Run a project from user instruction."""
         self.idea = idea
-        self.env.publish_message(Message(role="User", content=idea, cause_by=UserRequirement, send_to={"Moderator"}))
+        self.env.publish_message(WwMessage(role="User", content=idea, cause_by=UserRequirement, restricted_to={"Moderator"}))
