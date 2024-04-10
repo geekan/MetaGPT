@@ -16,9 +16,7 @@ from metagpt.schema import Message, Plan, Task
 from metagpt.strategy.task_type import TaskType
 from metagpt.utils.common import CodeParser
 
-
-class WritePlan(Action):
-    PROMPT_TEMPLATE: str = """
+PROMPT_TEMPLATE: str = """
 # Context:
 {context}
 # Available Task Types:
@@ -39,11 +37,13 @@ Output a list of jsons following the format:
     ...
 ]
 ```
-    """
+"""
 
+
+class WritePlan(Action):
     async def run(self, context: list[Message], max_tasks: int = 5) -> str:
         task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
-        prompt = self.PROMPT_TEMPLATE.format(
+        prompt = PROMPT_TEMPLATE.format(
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
         )
         rsp = await self._aask(prompt)
