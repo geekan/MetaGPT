@@ -49,6 +49,7 @@ def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
 
 def get_embedding(text, model: str = "text-embedding-ada-002"):
     text = text.replace("\n", " ")
+    embedding = None
     if not text:
         text = "this is blank"
     for idx in range(3):
@@ -56,7 +57,8 @@ def get_embedding(text, model: str = "text-embedding-ada-002"):
             embedding = (
                 OpenAI(api_key=config.llm.api_key).embeddings.create(input=[text], model=model).data[0].embedding
             )
-        except Exception:
+        except Exception as exp:
+            logger.info(f"get_embedding failed, exp: {exp}, will retry.")
             time.sleep(5)
     if not embedding:
         raise ValueError("get_embedding failed")

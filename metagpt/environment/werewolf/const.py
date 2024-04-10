@@ -46,8 +46,8 @@ STEP_INSTRUCTIONS = {
     },
     2: {
         "content": """Guard, now tell me who you protect tonight?
-                   You only choose one from the following living options please: {living_players}.
-                   Or you can pass. For example: Protect ...""",
+You only choose one from the following living options please: {living_players}.
+Or you can pass. For example: Protect ...""",
         "send_to": {RoleType.GUARD.value},
         "restricted_to": {RoleType.MODERATOR.value, RoleType.GUARD.value},
     },
@@ -59,9 +59,9 @@ STEP_INSTRUCTIONS = {
     },
     5: {
         "content": """Werewolves, I secretly tell you that {werewolf_players} are
-                   all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
-                   choose one from the following living options please:
-                   {living_players}. For example: Kill ...""",
+all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
+choose one from the following living options please:
+{living_players}. For example: Kill ...""",
         "send_to": {RoleType.WEREWOLF.value},
         "restricted_to": {RoleType.MODERATOR.value, RoleType.WEREWOLF.value},
     },
@@ -69,14 +69,14 @@ STEP_INSTRUCTIONS = {
     7: {"content": "Witch, please open your eyes!", "send_to": {RoleType.MODERATOR.value}, "restricted_to": empty_set},
     8: {
         "content": """Witch, tonight {player_hunted} has been killed by the werewolves.
-                   You have a bottle of antidote, would you like to save him/her? If so, say "Save", else, say "Pass".""",
+You have a bottle of antidote, would you like to save him/her? If so, say "Save", else, say "Pass".""",
         "send_to": {RoleType.WITCH.value},
         "restricted_to": {RoleType.MODERATOR.value, RoleType.WITCH.value},
     },  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
     9: {
         "content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players?
-                   Choose one from the following living options: {living_players}.
-                   If so, say ONLY "Poison PlayerX", replace PlayerX with the actual player name, else, say "Pass".""",
+Choose one from the following living options: {living_players}.
+If so, say ONLY "Poison PlayerX", replace PlayerX with the actual player name, else, say "Pass".""",
         "send_to": {RoleType.WITCH.value},
         "restricted_to": {RoleType.MODERATOR.value, RoleType.WITCH.value},
     },  #
@@ -84,7 +84,7 @@ STEP_INSTRUCTIONS = {
     11: {"content": "Seer, please open your eyes!", "send_to": {RoleType.MODERATOR.value}, "restricted_to": empty_set},
     12: {
         "content": """Seer, you can check one player's identity. Who are you going to verify its identity tonight?
-                    Choose only one from the following living options:{living_players}.""",
+Choose only one from the following living options:{living_players}.""",
         "send_to": {RoleType.SEER.value},
         "restricted_to": {RoleType.MODERATOR.value, RoleType.SEER.value},
     },
@@ -102,14 +102,14 @@ STEP_INSTRUCTIONS = {
     },
     16: {
         "content": """Living players: {living_players}, now freely talk about the current situation based on your observation and
-                    reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
+reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
         "send_to": {MESSAGE_ROUTE_TO_ALL},  # send to all to speak in daytime
         "restricted_to": empty_set,
     },
     17: {
         "content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
-                    You only choose one from the following living options please:
-                    {living_players}. Say ONLY: I vote to eliminate ...""",
+You only choose one from the following living options please:
+{living_players}. Say ONLY: I vote to eliminate ...""",
         "send_to": {MESSAGE_ROUTE_TO_ALL},
         "restricted_to": empty_set,
     },

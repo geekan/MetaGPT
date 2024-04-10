@@ -19,7 +19,7 @@ class WerewolfExtEnv(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     players_state: dict[str, tuple[str, RoleState]] = Field(
-        default=dict(), description="the player's role type and state by player_name"
+        default_factory=dict, description="the player's role type and state by player_name"
     )
 
     round_idx: int = Field(default=0)  # the current round
@@ -36,9 +36,9 @@ class WerewolfExtEnv(ExtEnv):
     witch_antidote_left: int = Field(default=1, description="should be 1 or 0")
 
     # game current round states, a round is from closing your eyes to the next time you close your eyes
-    round_hunts: dict[str, str] = Field(default=dict(), description="nighttime wolf hunt result")
+    round_hunts: dict[str, str] = Field(default_factory=dict, description="nighttime wolf hunt result")
     round_votes: dict[str, str] = Field(
-        default=dict(), description="daytime all players vote result, key=voter, value=voted one"
+        default_factory=dict, description="daytime all players vote result, key=voter, value=voted one"
     )
     player_hunted: Optional[str] = Field(default=None)
     player_protected: Optional[str] = Field(default=None)
@@ -252,8 +252,8 @@ class WerewolfExtEnv(ExtEnv):
         if list(self.round_votes.keys()) == self.living_players:
             voted_all = list(self.round_votes.values())  # TODO in case of tie vote, check who was voted first
             voted_all = [item for item in voted_all if item]
-            self.player_current_dead = Counter(voted_all).most_common()[0][0]
-            self._update_players_state([self.player_current_dead])
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]]
+            self._update_players_state(self.player_current_dead)
 
     @mark_as_writeable
     def wolf_kill_someone(self, wolf_name: str, player_name: str):
@@ -321,7 +321,7 @@ class WerewolfExtEnv(ExtEnv):
             if self.player_poisoned:
                 self.player_current_dead.append(self.player_poisoned)
 
-            self._update_players_state([self.player_current_dead])
+            self._update_players_state(self.player_current_dead)
             # reset
             self.player_hunted = None
             self.player_protected = None
