@@ -8,7 +8,6 @@ from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import (
-    BM25RetrieverConfig,
     ChromaIndexConfig,
     ChromaRetrieverConfig,
     ElasticsearchIndexConfig,
@@ -51,7 +50,7 @@ class RAGExample:
         if not self._engine:
             self._engine = SimpleEngine.from_docs(
                 input_files=[DOC_PATH],
-                retriever_configs=[FAISSRetrieverConfig(), BM25RetrieverConfig()],
+                retriever_configs=[FAISSRetrieverConfig()],
                 ranker_configs=[LLMRankerConfig()],
             )
         return self._engine
@@ -61,7 +60,7 @@ class RAGExample:
         self._engine = value
 
     async def run_pipeline(self, question=QUESTION, print_title=True):
-        """This example run rag pipeline, use faiss&bm25 retriever and llm ranker, will print something like:
+        """This example run rag pipeline, use faiss retriever and llm ranker, will print something like:
 
         Retrieve Result:
         0. Productivi..., 10.0
