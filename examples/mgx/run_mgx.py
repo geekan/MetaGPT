@@ -8,6 +8,7 @@ from metagpt.roles.di.mgx import MGX
 requirement = (
     # "design a game using Gym (an open source Python library), including a graphical interface and interactive gameplay"
     'Create a "2048 game"'
+    # "Create a 2048 Game"
 )
 
 
