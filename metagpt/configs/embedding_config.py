@@ -14,7 +14,25 @@ class EmbeddingType(Enum):
 
 
 class EmbeddingConfig(YamlModel):
-    """Config for Embedding."""
+    """Config for Embedding.
+
+    Examples:
+    ---------
+    api_type: "openai"
+    api_key: "YOU_API_KEY"
+
+    api_type: "azure"
+    api_key: "YOU_API_KEY"
+    base_url: "YOU_BASE_URL"
+    api_version: "YOU_API_VERSION"
+
+    api_type: "gemini"
+    api_key: "YOU_API_KEY"
+
+    api_type: "ollama"
+    base_url: "YOU_BASE_URL"
+    model: "YOU_MODEL"
+    """
 
     api_type: Optional[EmbeddingType] = None
     api_key: Optional[str] = None

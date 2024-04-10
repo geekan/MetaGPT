@@ -17,10 +17,10 @@ llm:
 # For backward compatibility, if the embedding is not set and the llm's api_type is either openai or azure, the llm's config will be used. 
 embedding:
     api_type: "" # openai / azure / gemini / ollama etc. Check EmbeddingType for more options. 
-    base_url: "YOU_BASE_URL"
-    api_key: "YOU_API_KEY"
-    model: "YOU_MODEL"
-    api_version: "YOU_API_VERSION"
+    base_url: ""
+    api_key: ""
+    model: ""
+    api_version: ""
     embed_batch_size: 100
 
 repair_llm_output: true  # when the output is not a valid json, try to repair it
