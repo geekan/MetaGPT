@@ -86,9 +86,8 @@ async def write_design(prd_path: str | Path) -> Path:
         Path: The path to the system design files under the project directory.
 
     Example:
-        >>> from metagpt.tools.libs.software_development import write_prd
         >>> from metagpt.tools.libs.software_development import write_design
-        >>> prd_path = await write_prd("Create a new feature for the application")
+        >>> prd_path = '/path/to/project_path/docs/prd' # Returned by `write_prd`
         >>> system_design_path = await write_desgin(prd_path)
         >>> print(system_design_path)
         '/path/to/project_path/docs/system_design/'
