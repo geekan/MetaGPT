@@ -6,11 +6,11 @@
 @File    : test_tutorial_assistant.py
 """
 
-import aiofiles
 import pytest
 
 from metagpt.const import TUTORIAL_PATH
 from metagpt.roles.tutorial_assistant import TutorialAssistant
+from metagpt.utils.common import aread
 
 
 @pytest.mark.asyncio
@@ -20,9 +20,8 @@ async def test_tutorial_assistant(language: str, topic: str, context):
     msg = await role.run(topic)
     assert TUTORIAL_PATH.exists()
     filename = msg.content
-    async with aiofiles.open(filename, mode="r", encoding="utf-8") as reader:
-        content = await reader.read()
-        assert "pip" in content
+    content = await aread(filename=filename)
+    assert "pip" in content
 
 
 if __name__ == "__main__":

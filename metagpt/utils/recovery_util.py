@@ -54,5 +54,5 @@ def save_history(role: Role, save_dir: str = ""):
     with open(save_path / "plan.json", "w", encoding="utf-8") as plan_file:
         json.dump(plan, plan_file, indent=4, ensure_ascii=False)
 
-    save_code_file(name=Path(record_time) / "history_nb", code_context=role.execute_code.nb, file_format="ipynb")
+    save_code_file(name=Path(record_time), code_context=role.execute_code.nb, file_format="ipynb")
     return save_path

@@ -573,7 +573,7 @@ class APIRequestor:
                 total=request_timeout[1],
             )
         else:
-            timeout = aiohttp.ClientTimeout(total=request_timeout if request_timeout else TIMEOUT_SECS)
+            timeout = aiohttp.ClientTimeout(total=request_timeout or TIMEOUT_SECS)
 
         if files:
             # TODO: Use `aiohttp.MultipartWriter` to create the multipart form data here.

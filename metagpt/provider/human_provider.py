@@ -6,6 +6,7 @@ Author: garylin2099
 from typing import Optional
 
 from metagpt.configs.llm_config import LLMConfig
+from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.base_llm import BaseLLM
 
@@ -16,9 +17,9 @@ class HumanProvider(BaseLLM):
     """
 
     def __init__(self, config: LLMConfig):
-        pass
+        self.config = config
 
-    def ask(self, msg: str, timeout=3) -> str:
+    def ask(self, msg: str, timeout=USE_CONFIG_TIMEOUT) -> str:
         logger.info("It's your turn, please type in your response. You may also refer to the context below")
         rsp = input(msg)
         if rsp in ["exit", "quit"]:
@@ -31,20 +32,23 @@ class HumanProvider(BaseLLM):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
-        timeout=3,
+        timeout=USE_CONFIG_TIMEOUT,
     ) -> str:
-        return self.ask(msg, timeout=timeout)
+        return self.ask(msg, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion(self, messages: list[dict], timeout=3):
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         pass
 
-    async def acompletion(self, messages: list[dict], timeout=3):
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         """dummy implementation of abstract method in base"""
         return []
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         pass
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT) -> str:
         """dummy implementation of abstract method in base"""
         return ""
+
+    def get_timeout(self, timeout: int) -> int:
+        return timeout or LLM_API_TIMEOUT

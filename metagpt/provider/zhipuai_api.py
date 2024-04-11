@@ -8,6 +8,7 @@ from typing import Optional
 from zhipuai.types.chat.chat_completion import Completion
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -42,25 +43,33 @@ class ZhiPuAILLM(BaseLLM):
         self.llm = ZhiPuModelAPI(api_key=self.api_key)
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
-        kwargs = {"model": self.model, "messages": messages, "stream": stream, "temperature": 0.3}
+        max_tokens = self.config.max_token if self.config.max_token > 0 else 1024
+        temperature = self.config.temperature if self.config.temperature > 0.0 else 0.3
+        kwargs = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "messages": messages,
+            "stream": stream,
+            "temperature": temperature,
+        }
         return kwargs
 
-    def completion(self, messages: list[dict], timeout=3) -> dict:
+    def completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
         resp: Completion = self.llm.chat.completions.create(**self._const_kwargs(messages))
         usage = resp.usage.model_dump()
         self._update_costs(usage)
         return resp.model_dump()
 
-    async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
         resp = await self.llm.acreate(**self._const_kwargs(messages))
         usage = resp.get("usage", {})
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         response = await self.llm.acreate_stream(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = {}

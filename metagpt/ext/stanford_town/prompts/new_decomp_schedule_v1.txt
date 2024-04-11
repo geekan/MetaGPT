@@ -1,0 +1,24 @@
+new_decomp_schedule_v1.txt
+
+Variables: 
+!<INPUT 0>! -- persona name 
+!<INPUT 1>! -- start hour
+!<INPUT 2>! -- end hour 
+!<INPUT 3>! -- original plan
+!<INPUT 4>! -- persona name
+!<INPUT 5>! -- new event
+!<INPUT 6>! -- new event duration
+!<INPUT 7>! -- persona name 
+!<INPUT 8>! -- start hour
+!<INPUT 9>! -- end hour 
+!<INPUT 10>! -- end hour 
+!<INPUT 11>! -- new schedule init 
+
+
+<commentblockmarker>###</commentblockmarker>
+Here was !<INPUT 0>!'s originally planned schedule from !<INPUT 1>! to !<INPUT 2>!. 
+!<INPUT 3>!
+
+But !<INPUT 4>! unexpectedly ended up !<INPUT 5>! for !<INPUT 6>! minutes. Revise !<INPUT 7>!'s schedule from !<INPUT 8>! to !<INPUT 9>! accordingly (it has to end by !<INPUT 10>!). 
+The revised schedule:
+!<INPUT 11>!

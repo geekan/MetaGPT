@@ -3,9 +3,12 @@
 # @Desc   : base env of executing environment
 
 import asyncio
+from abc import abstractmethod
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
 
+from gymnasium import spaces
+from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.context import Context
@@ -14,6 +17,7 @@ from metagpt.environment.api.env_api import (
     ReadAPIRegistry,
     WriteAPIRegistry,
 )
+from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
@@ -26,7 +30,7 @@ class EnvType(Enum):
     ANDROID = "Android"
     GYM = "Gym"
     WEREWOLF = "Werewolf"
-    MINCRAFT = "Mincraft"
+    MINECRAFT = "Minecraft"
     STANFORDTOWN = "StanfordTown"
 
 
@@ -47,7 +51,12 @@ def mark_as_writeable(func):
 
 
 class ExtEnv(BaseModel):
-    """External Env to intergate actual game environment"""
+    """External Env to integrate actual game environment"""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    action_space: spaces.Space[ActType] = Field(default_factory=spaces.Space, exclude=True)
+    observation_space: spaces.Space[ObsType] = Field(default_factory=spaces.Space, exclude=True)
 
     def _check_api_exist(self, rw_api: Optional[str] = None):
         if not rw_api:
@@ -61,38 +70,55 @@ class ExtEnv(BaseModel):
         else:
             return env_write_api_registry.get_apis()
 
-    async def observe(self, env_action: Union[str, EnvAPIAbstract]):
+    async def read_from_api(self, env_action: Union[str, EnvAPIAbstract]):
         """get observation from particular api of ExtEnv"""
         if isinstance(env_action, str):
-            read_api = env_read_api_registry.get(api_name=env_action)["func"]
-            self._check_api_exist(read_api)
-            if is_coroutine_func(read_api):
-                res = await read_api(self)
+            env_read_api = env_read_api_registry.get(api_name=env_action)["func"]
+            self._check_api_exist(env_read_api)
+            if is_coroutine_func(env_read_api):
+                res = await env_read_api(self)
             else:
-                res = read_api(self)
+                res = env_read_api(self)
         elif isinstance(env_action, EnvAPIAbstract):
-            read_api = env_read_api_registry.get(api_name=env_action.api_name)["func"]
-            self._check_api_exist(read_api)
-            if is_coroutine_func(read_api):
-                res = await read_api(self, *env_action.args, **env_action.kwargs)
+            env_read_api = env_read_api_registry.get(api_name=env_action.api_name)["func"]
+            self._check_api_exist(env_read_api)
+            if is_coroutine_func(env_read_api):
+                res = await env_read_api(self, *env_action.args, **env_action.kwargs)
             else:
-                res = read_api(self, *env_action.args, **env_action.kwargs)
+                res = env_read_api(self, *env_action.args, **env_action.kwargs)
         return res
 
-    async def step(self, env_action: Union[str, Message, EnvAPIAbstract, list[EnvAPIAbstract]]):
+    async def write_thru_api(self, env_action: Union[str, Message, EnvAPIAbstract, list[EnvAPIAbstract]]):
         """execute through particular api of ExtEnv"""
         res = None
         if isinstance(env_action, Message):
             self.publish_message(env_action)
         elif isinstance(env_action, EnvAPIAbstract):
-            write_api = env_write_api_registry.get(env_action.api_name)["func"]
-            self._check_api_exist(write_api)
-            if is_coroutine_func(write_api):
-                res = await write_api(self, *env_action.args, **env_action.kwargs)
+            env_write_api = env_write_api_registry.get(env_action.api_name)["func"]
+            self._check_api_exist(env_write_api)
+            if is_coroutine_func(env_write_api):
+                res = await env_write_api(self, *env_action.args, **env_action.kwargs)
             else:
-                res = write_api(self, *env_action.args, **env_action.kwargs)
+                res = env_write_api(self, *env_action.args, **env_action.kwargs)
 
         return res
+
+    @abstractmethod
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Implement this to get init observation"""
+
+    @abstractmethod
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        """Implement this if you want to get partial observation from the env"""
+
+    @abstractmethod
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        """Implement this to feed a action and then get new observation from the env"""
 
 
 class Environment(ExtEnv):
@@ -107,6 +133,20 @@ class Environment(ExtEnv):
     member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        pass
+
+    def observe(self, obs_params: Optional[BaseEnvObsParams] = None) -> Any:
+        pass
+
+    def step(self, action: BaseEnvAction) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
+        pass
 
     @model_validator(mode="after")
     def init_roles(self):
@@ -129,8 +169,8 @@ class Environment(ExtEnv):
             self.roles[role.profile] = role
 
         for role in roles:  # setup system message with roles
-            role.set_env(self)
             role.context = self.context
+            role.set_env(self)
 
     def publish_message(self, message: Message, peekable: bool = True) -> bool:
         """
