@@ -48,6 +48,14 @@ class DummyClass:
         pass
 
 
+class DummySubClass(DummyClass):
+    """sub class docstring"""
+
+    def sub_method(self, df: pd.DataFrame):
+        """sub method"""
+        pass
+
+
 def dummy_fn(
     df: pd.DataFrame,
     s: str,
@@ -115,6 +123,18 @@ def test_convert_code_to_tool_schema_class():
     }
     schema = convert_code_to_tool_schema(DummyClass)
     assert schema == expected
+
+
+def test_convert_code_to_tool_schema_subclass():
+    schema = convert_code_to_tool_schema(DummySubClass)
+    assert "sub_method" in schema["methods"]  # sub class method should be included
+    assert "fit" in schema["methods"]  # parent class method should be included
+
+
+def test_convert_code_to_tool_schema_include():
+    schema = convert_code_to_tool_schema(DummyClass, include=["fit"])
+    assert "fit" in schema["methods"]
+    assert "transform" not in schema["methods"]
 
 
 def test_convert_code_to_tool_schema_function():
