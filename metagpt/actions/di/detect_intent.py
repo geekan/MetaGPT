@@ -29,7 +29,7 @@ class SOPItemDef(BaseModel):
 class SOPItem(Enum):
     SOFTWARE_DEVELOPMENT = SOPItemDef(
         name="software development",
-        description="Intentions related to or including software development, such as developing or building software, games, app, websites, etc. Excluding bug fixes, report any issues, environment setup, operations and pip install.",
+        description="Software development intention including developing or building software, games, app, websites, etc. EXCLUDING bug fixes, report any issues, environment setup, terminal operations, and pip install.",
         sop=[
             "Writes a PRD based on software requirements.",
             "Writes a design to the project repository, based on the PRD of the project.",
@@ -61,7 +61,7 @@ class SOPItem(Enum):
     )
     OTHER = SOPItemDef(
         name="other",
-        description="Other intentions that do not fall into the above categories, including data science, machine learning, deep learning and text-to-image etc.",
+        description="Other intentions that do not fall into the above categories, including data science, data analysis, machine learning, deep learning and text-to-image etc.",
     )
 
     @property
