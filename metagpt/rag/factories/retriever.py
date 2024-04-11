@@ -69,7 +69,7 @@ class RetrieverFactory(ConfigBasedFactory):
 
     def _create_chroma_retriever(self, config: ChromaRetrieverConfig, **kwargs) -> ChromaRetriever:
         db = chromadb.PersistentClient(path=str(config.persist_path))
-        chroma_collection = db.get_or_create_collection(config.collection_name)
+        chroma_collection = db.get_or_create_collection(config.collection_name, metadata=config.metadata)
 
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         config.index = self._build_index_from_vector_store(config, vector_store, **kwargs)

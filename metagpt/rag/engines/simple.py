@@ -161,6 +161,13 @@ class SimpleEngine(RetrieverQueryEngine):
         """Inplement tools.SearchInterface"""
         return await self.aquery(content)
 
+    def retrieve(self, query: QueryType) -> list[NodeWithScore]:
+        query_bundle = QueryBundle(query) if isinstance(query, str) else query
+
+        nodes = super().retrieve(query_bundle)
+        self._try_reconstruct_obj(nodes)
+        return nodes
+
     async def aretrieve(self, query: QueryType) -> list[NodeWithScore]:
         """Allow query to be str."""
         query_bundle = QueryBundle(query) if isinstance(query, str) else query
