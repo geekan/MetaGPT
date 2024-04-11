@@ -39,7 +39,9 @@ def get_observation_space() -> spaces.Dict:
                 (spaces.Text(16), spaces.Text(16))
             ),  # TODO should be tuple of variable length
             "player_hunted": spaces.Text(16),
-            "player_current_dead": spaces.Tuple((spaces.Text(16))),  # TODO should be tuple of variable length
+            "player_current_dead": spaces.Tuple(
+                (spaces.Text(16), spaces.Text(16))
+            ),  # TODO should be tuple of variable length
             "witch_poison_left": spaces.Discrete(2),
             "witch_antidote_left": spaces.Discrete(2),
             "winner": spaces.Text(16),
