@@ -6,6 +6,7 @@ import asyncio
 import time
 from pathlib import Path
 
+import metagpt
 from metagpt.const import TEST_DATA_PATH
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.ext.android_assistant.actions.manual_record import ManualRecord
@@ -13,6 +14,10 @@ from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
 from metagpt.ext.android_assistant.actions.screenshot_parse import ScreenshotParse
 from metagpt.ext.android_assistant.actions.self_learn_and_reflect import (
     SelfLearnAndReflect,
+)
+from tests.metagpt.environment.android_env.test_android_ext_env import (
+    mock_device_shape,
+    mock_list_devices,
 )
 
 TASK_PATH = TEST_DATA_PATH.joinpath("andriod_assistant/unitest_Contacts")
@@ -24,6 +29,11 @@ PARSE_RECORD_DOC_PATH = TASK_PATH.joinpath("demo_docs")
 device_id = "emulator-5554"
 xml_dir = Path("/sdcard")
 screenshot_dir = Path("/sdcard/Pictures/Screenshots")
+
+
+metagpt.environment.android.android_ext_env.AndroidExtEnv.execute_adb_with_cmd = mock_device_shape
+metagpt.environment.android.android_ext_env.AndroidExtEnv.list_devices = mock_list_devices
+
 
 test_env_self_learn_android = AndroidEnv(
     device_id=device_id,
