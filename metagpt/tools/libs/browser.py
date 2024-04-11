@@ -1,6 +1,7 @@
 from playwright.async_api import async_playwright
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.logs import ToolLogItem, log_tool_output_async
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import encode_image
 
@@ -32,21 +33,28 @@ class Browser:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch()
 
+    def _set_current_page(self, page, url):
+        self.current_page = page
+        self.current_page_url = url
+        print("Now on page ", url)
+
     async def open_new_page(self, url: str):
         """open a new page in the browser, set it as the current page"""
         page = await self.browser.new_page()
         await page.goto(url)
         self.pages[url] = page
-        self.current_page = page
-        self.current_page_url = url
-        print(f"Opened new page: {url}")
+        self._set_current_page(page, url)
+        await log_tool_output_async(
+            ToolLogItem(type="object", name="open_new_page", value=self.current_page), tool_name="Browser"
+        )
 
     async def switch_page(self, url: str):
         """switch to an opened page in the browser, set it as the current page"""
         if url in self.pages:
-            self.current_page = self.pages[url]
-            self.current_page_url = url
-            print(f"Switched to page: {url}")
+            self._set_current_page(self.pages[url], url)
+            await log_tool_output_async(
+                ToolLogItem(type="object", name="switch_page", value=self.current_page), tool_name="Browser"
+            )
         else:
             print(f"Page not found: {url}")
 
@@ -124,6 +132,9 @@ class Browser:
         element = search_results[index]["element_obj"]
         await element.scroll_into_view_if_needed()
         print(f"Successfully scrolled to the {index}-th search result, consider extract more info around it.")
+        await log_tool_output_async(
+            ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
+        )
 
     async def find_links(self) -> list:
         """Finds all links in the current page and returns a list of dictionaries with link text and the URL.
@@ -167,6 +178,9 @@ class Browser:
         """scroll the current page by offset pixels, negative value means scrolling up, returning the content observed after scrolling"""
         await self.current_page.evaluate(f"window.scrollBy(0, {offset})")
         print(f"Scrolled current page by {offset} pixels. Perceive the scrolled view if needed")
+        await log_tool_output_async(
+            ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
+        )
 
     def check_all_pages(self) -> dict:
         """return all pages opened in the browser, a dictionary with {page_url: page_title}, useful for understanding the current browser state"""
