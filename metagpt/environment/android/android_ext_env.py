@@ -6,7 +6,11 @@ import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
+from modelscope.pipelines import pipeline
+from modelscope.utils.constant import Tasks
+from PIL import Image
 from pydantic import Field
+from text_icon_localization import ocr
 
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
@@ -17,6 +21,7 @@ from metagpt.environment.android.env_space import (
     EnvObsValType,
 )
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.logs import logger
 
 
 class AndroidExtEnv(ExtEnv):
@@ -228,3 +233,39 @@ class AndroidExtEnv(ExtEnv):
         adb_cmd = f"{self.adb_prefix_si} swipe {start[0]} {start[1]} {end[0]} {end[1]} {duration}"
         swipe_res = self.execute_adb_with_cmd(adb_cmd)
         return swipe_res
+
+    @mark_as_writeable
+    def user_exit(self):
+        adb_cmd = "adb shell am start -a android.intent.action.MAIN -c android.intent.category.HOME"
+        exit_res = self.execute_adb_with_cmd(adb_cmd)
+        return exit_res
+
+    @mark_as_writeable
+    def user_openApp(self, app_name: str):
+        # openApp without xml
+        screenshot_path = self.get_screenshot("screenshot", "./screenshot")
+        image = screenshot_path
+        ocr_detection = pipeline(Tasks.ocr_detection, model="damo/cv_resnet18_ocr-detection-line-level_damo")
+        ocr_recognition = pipeline(Tasks.ocr_recognition, model="damo/cv_convnextTiny_ocr-recognition-document_damo")
+        iw, ih = Image.open(image).size
+        x, y = self.device_shape
+        if iw > ih:
+            x, y = y, x
+            iw, ih = ih, iw
+        in_coordinate, out_coordinate = ocr(image, app_name, ocr_detection, ocr_recognition, iw, ih)
+        if len(in_coordinate) == 0:
+            logger.info(f"No App named {app_name}.")
+            return "no"
+        else:
+            tap_coordinate = [
+                (in_coordinate[0][0] + in_coordinate[0][2]) / 2,
+                (in_coordinate[0][1] + in_coordinate[0][3]) / 2,
+            ]
+            tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
+            return self.system_tap(tap_coordinate[0] * x, (tap_coordinate[1] - round(50 / y, 2)) * y)
+
+    @mark_as_writeable
+    def user_stop(self):
+        logger.info("Successful execution of tasks")
+
+    # todo ： user_clickIcon
