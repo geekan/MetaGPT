@@ -86,9 +86,13 @@ class DataInterpreter(Role):
         return Message(content=code, role="assistant", cause_by=WriteAnalysisCode)
 
     async def _plan_and_act(self) -> Message:
-        rsp = await super()._plan_and_act()
-        await self.execute_code.terminate()
-        return rsp
+        try:
+            rsp = await super()._plan_and_act()
+            await self.execute_code.terminate()
+            return rsp
+        except Exception as e:
+            await self.execute_code.terminate()
+            raise e
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""

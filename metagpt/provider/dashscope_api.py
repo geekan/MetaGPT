@@ -25,6 +25,7 @@ from dashscope.common.error import (
     UnsupportedApiProtocol,
 )
 
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM, LLMConfig
 from metagpt.provider.llm_provider_registry import LLMType, register_provider
@@ -202,16 +203,16 @@ class DashScopeLLM(BaseLLM):
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> GenerationOutput:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> GenerationOutput:
         resp: GenerationResponse = await self.aclient.acall(**self._const_kwargs(messages, stream=False))
         self._check_response(resp)
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> GenerationOutput:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> GenerationOutput:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp = await self.aclient.acall(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = {}

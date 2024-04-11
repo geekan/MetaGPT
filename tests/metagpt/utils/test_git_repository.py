@@ -10,15 +10,14 @@
 import shutil
 from pathlib import Path
 
-import aiofiles
 import pytest
 
+from metagpt.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
 
 
 async def mock_file(filename, content=""):
-    async with aiofiles.open(str(filename), mode="w") as file:
-        await file.write(content)
+    await awrite(filename=filename, data=content)
 
 
 async def mock_repo(local_path) -> (GitRepository, Path):

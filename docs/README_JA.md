@@ -295,7 +295,7 @@ Hugging Face Space で試す
 
 ## 引用
 
-現時点では、[arXiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+研究論文でMetaGPTやData Interpreterを使用する場合は、以下のように当社の作業を引用してください：
 
 ```bibtex
 @misc{hong2023metagpt,
@@ -303,6 +303,14 @@ Hugging Face Space で試す
       author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Ceyao Zhang and Jinlin Wang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and Jürgen Schmidhuber},
       year={2023},
       eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+@misc{hong2024data,
+      title={Data Interpreter: An LLM Agent For Data Science}, 
+      author={Sirui Hong and Yizhang Lin and Bang Liu and Bangbang Liu and Binhao Wu and Danyang Li and Jiaqi Chen and Jiayi Zhang and Jinlin Wang and Li Zhang and Lingyao Zhang and Min Yang and Mingchen Zhuge and Taicheng Guo and Tuo Zhou and Wei Tao and Wenyi Wang and Xiangru Tang and Xiangtao Lu and Xiawu Zheng and Xinbing Liang and Yaying Fei and Yuheng Cheng and Zongze Xu and Chenglin Wu},
+      year={2024},
+      eprint={2402.18679},
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }

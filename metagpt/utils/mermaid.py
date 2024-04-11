@@ -9,11 +9,9 @@ import asyncio
 import os
 from pathlib import Path
 
-import aiofiles
-
 from metagpt.config2 import config
 from metagpt.logs import logger
-from metagpt.utils.common import check_cmd_exists
+from metagpt.utils.common import awrite, check_cmd_exists
 
 
 async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
@@ -30,9 +28,7 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
     if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name)
     tmp = Path(f"{output_file_without_suffix}.mmd")
-    async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
-        await f.write(mermaid_code)
-    # tmp.write_text(mermaid_code, encoding="utf-8")
+    await awrite(filename=tmp, data=mermaid_code)
 
     if engine == "nodejs":
         if check_cmd_exists(config.mermaid.path) != 0:
@@ -85,6 +81,8 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
             from metagpt.utils.mmdc_ink import mermaid_to_file
 
             return await mermaid_to_file(mermaid_code, output_file_without_suffix)
+        elif engine == "none":
+            return 0
         else:
             logger.warning(f"Unsupported mermaid engine: {engine}")
     return 0

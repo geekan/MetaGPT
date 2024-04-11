@@ -9,6 +9,7 @@ from qianfan import ChatCompletion
 from qianfan.resources.typing import JsonBody
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -107,15 +108,15 @@ class QianFanLLM(BaseLLM):
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = 3) -> JsonBody:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
         resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False))
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
-    async def acompletion(self, messages: list[dict], timeout: int = 3) -> JsonBody:
-        return await self._achat_completion(messages, timeout=timeout)
+    async def acompletion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True))
         collected_content = []
         usage = {}

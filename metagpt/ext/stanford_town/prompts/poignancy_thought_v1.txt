@@ -1,0 +1,15 @@
+poignancy_thought_v1.txt
+
+!<INPUT 1>!: agent name
+!<INPUT 1>!: iss
+!<INPUT 2>!: name 
+!<INPUT 3>!: event description
+
+<commentblockmarker>###</commentblockmarker>
+Here is a brief description of !<INPUT 0>!. 
+!<INPUT 1>!
+
+On the scale of 1 to 10, where 1 is purely mundane (e.g., I need to do the dishes, I need to walk the dog) and 10 is extremely significant (e.g., I wish to become a professor, I love Elie), rate the likely significance of the following thought for !<INPUT 2>!.
+
+Thought: !<INPUT 3>!
+Rate (return a number between 1 to 10):

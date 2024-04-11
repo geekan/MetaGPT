@@ -19,6 +19,7 @@ class SearchEngineType(Enum):
     DIRECT_GOOGLE = "google"
     DUCK_DUCK_GO = "ddg"
     CUSTOM_ENGINE = "custom"
+    BING = "bing"
 
 
 class WebBrowserEngineType(Enum):
@@ -30,3 +31,8 @@ class WebBrowserEngineType(Enum):
     def __missing__(cls, key):
         """Default type conversion"""
         return cls.CUSTOM
+
+
+class SearchInterface:
+    async def asearch(self, *args, **kwargs):
+        ...

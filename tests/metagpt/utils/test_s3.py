@@ -9,7 +9,6 @@ import uuid
 from pathlib import Path
 
 import aioboto3
-import aiofiles
 import pytest
 
 from metagpt.config2 import Config
@@ -46,7 +45,7 @@ async def test_s3(mocker):
     conn = S3(s3)
     object_name = "unittest.bak"
     await conn.upload_file(bucket=s3.bucket, local_path=__file__, object_name=object_name)
-    pathname = (Path(__file__).parent / uuid.uuid4().hex).with_suffix(".bak")
+    pathname = (Path(__file__).parent / "../../../workspace/unittest" / uuid.uuid4().hex).with_suffix(".bak")
     pathname.unlink(missing_ok=True)
     await conn.download_file(bucket=s3.bucket, object_name=object_name, local_path=str(pathname))
     assert pathname.exists()
@@ -54,8 +53,7 @@ async def test_s3(mocker):
     assert url
     bin_data = await conn.get_object(bucket=s3.bucket, object_name=object_name)
     assert bin_data
-    async with aiofiles.open(__file__, mode="r", encoding="utf-8") as reader:
-        data = await reader.read()
+    data = await aread(filename=__file__)
     res = await conn.cache(data, ".bak", "script")
     assert "http" in res
 
@@ -68,8 +66,6 @@ async def test_s3(mocker):
         assert not res
     except Exception:
         pass
-
-    await reader.close()
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ def _paragraphs(n):
 @pytest.mark.parametrize(
     "msgs, model_name, system_text, reserved, expected",
     [
-        (_msgs(), "gpt-3.5-turbo", "System", 1500, 1),
+        (_msgs(), "gpt-3.5-turbo-0613", "System", 1500, 1),
         (_msgs(), "gpt-3.5-turbo-16k", "System", 3000, 6),
         (_msgs(), "gpt-3.5-turbo-16k", "Hello," * 1000, 3000, 5),
         (_msgs(), "gpt-4", "System", 2000, 3),
@@ -32,22 +32,23 @@ def _paragraphs(n):
     ],
 )
 def test_reduce_message_length(msgs, model_name, system_text, reserved, expected):
-    assert len(reduce_message_length(msgs, model_name, system_text, reserved)) / (len("Hello,")) / 1000 == expected
+    length = len(reduce_message_length(msgs, model_name, system_text, reserved)) / (len("Hello,")) / 1000
+    assert length == expected
 
 
 @pytest.mark.parametrize(
     "text, prompt_template, model_name, system_text, reserved, expected",
     [
-        (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo", "System", 1500, 2),
+        (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-0613", "System", 1500, 2),
         (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-16k", "System", 3000, 1),
         (" ".join("Hello World." for _ in range(4000)), "Prompt: {}", "gpt-4", "System", 2000, 2),
         (" ".join("Hello World." for _ in range(8000)), "Prompt: {}", "gpt-4-32k", "System", 4000, 1),
-        (" ".join("Hello World" for _ in range(8000)), "Prompt: {}", "gpt-3.5-turbo", "System", 1000, 8),
+        (" ".join("Hello World" for _ in range(8000)), "Prompt: {}", "gpt-3.5-turbo-0613", "System", 1000, 8),
     ],
 )
 def test_generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved, expected):
-    ret = list(generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved))
-    assert len(ret) == expected
+    chunk = len(list(generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved)))
+    assert chunk == expected
 
 
 @pytest.mark.parametrize(
