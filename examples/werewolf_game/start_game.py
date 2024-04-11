@@ -3,6 +3,7 @@ import asyncio
 import fire
 
 from metagpt.ext.werewolf.roles import Guard, Moderator, Seer, Villager, Werewolf, Witch
+from metagpt.ext.werewolf.roles.human_player import prepare_human_player
 from metagpt.ext.werewolf.werewolf_game import WerewolfGame
 from metagpt.logs import logger
 
@@ -28,6 +29,7 @@ async def start_game(
         use_experience=use_experience,
         use_memory_selection=use_memory_selection,
         new_experience_version=new_experience_version,
+        prepare_human_player=prepare_human_player,
     )
     logger.info(f"{game_setup}")
 

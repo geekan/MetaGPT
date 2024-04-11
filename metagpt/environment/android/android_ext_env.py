@@ -10,8 +10,8 @@ from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from PIL import Image
 from pydantic import Field
-from text_icon_localization import ocr
 
+from metagpt.environment.android.text_icon_localization import ocr
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
     EnvAction,
@@ -262,6 +262,7 @@ class AndroidExtEnv(ExtEnv):
                 (in_coordinate[0][1] + in_coordinate[0][3]) / 2,
             ]
             tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
+            #print(f"{parameter}在屏幕的坐标为为{tap_coordinate[0] * x} ,{(tap_coordinate[1] - round(50 / y, 2)) * y}")
             return self.system_tap(tap_coordinate[0] * x, (tap_coordinate[1] - round(50 / y, 2)) * y)
 
     @mark_as_writeable

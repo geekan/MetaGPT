@@ -1,9 +1,10 @@
 import math
 import clip
 import cv2
-import groundingdino.datasets.transforms as T
 import numpy as np
 import torch
+
+import groundingdino.datasets.transforms as T
 from groundingdino.models import build_model
 from groundingdino.util.slconfig import SLConfig
 from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
@@ -399,3 +400,4 @@ if __name__ == "__main__":
     if iw > ih:
         iw, ih = ih, iw
     in_coordinate, out_coordinate = ocr(image_ori, parameter, ocr_detection, ocr_recognition, iw, ih)
+    print(f"ocr 计算结果为 {in_coordinate} ,{out_coordinate} ")
