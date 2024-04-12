@@ -54,6 +54,11 @@ def log_tool_output(output: ToolLogItem | list[ToolLogItem], tool_name: str = ""
     _tool_output_log(output=output, tool_name=tool_name)
 
 
+async def log_tool_output_async(output: ToolLogItem | list[ToolLogItem], tool_name: str = ""):
+    """async interface for logging tool output, used when output contains async object"""
+    await _tool_output_log_async(output=output, tool_name=tool_name)
+
+
 def set_llm_stream_logfunc(func):
     global _llm_stream_log
     _llm_stream_log = func
@@ -64,9 +69,20 @@ def set_tool_output_logfunc(func):
     _tool_output_log = func
 
 
+async def set_tool_output_logfunc_async(func):
+    # async version
+    global _tool_output_log_async
+    _tool_output_log_async = func
+
+
 _llm_stream_log = partial(print, end="")
 
 
 _tool_output_log = (
     lambda *args, **kwargs: None
 )  # a dummy function to avoid errors if set_tool_output_logfunc is not called
+
+
+async def _tool_output_log_async(*args, **kwargs):
+    # async version
+    pass

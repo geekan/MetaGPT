@@ -783,13 +783,15 @@ def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) 
     return skills
 
 
-def encode_image(image_path_or_pil: Union[Path, Image], encoding: str = "utf-8") -> str:
+def encode_image(image_path_or_pil: Union[Path, Image, str], encoding: str = "utf-8") -> str:
     """encode image from file or PIL.Image into base64"""
     if isinstance(image_path_or_pil, Image.Image):
         buffer = BytesIO()
         image_path_or_pil.save(buffer, format="JPEG")
         bytes_data = buffer.getvalue()
     else:
+        if isinstance(image_path_or_pil, str):
+            image_path_or_pil = Path(image_path_or_pil)
         if not image_path_or_pil.exists():
             raise FileNotFoundError(f"{image_path_or_pil} not exists")
         with open(str(image_path_or_pil), "rb") as image_file:
