@@ -103,12 +103,13 @@ TEST_OUTPUTS_FILE_REPO = "test_outputs"
 CODE_SUMMARIES_FILE_REPO = "docs/code_summary"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summary"
 RESOURCES_FILE_REPO = "resources"
-SD_OUTPUT_FILE_REPO = "resources/sd_output"
+SD_OUTPUT_FILE_REPO = DEFAULT_WORKSPACE_ROOT
 GRAPH_REPO_FILE_REPO = "docs/graph_repo"
 VISUAL_GRAPH_REPO_FILE_REPO = "resources/graph_db"
 CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+SD_URL = "http://172.31.0.51:49094"
 
 DEFAULT_LANGUAGE = "English"
 DEFAULT_MAX_TOKENS = 1500
