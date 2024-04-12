@@ -14,6 +14,7 @@ from metagpt.tools.libs import (
     terminal,
     file_manager,
     browser,
+    deployer,
 )
 from metagpt.tools.libs.software_development import (
     write_prd,
@@ -42,4 +43,5 @@ _ = (
     terminal,
     file_manager,
     browser,
+    deployer,
 )  # Avoid pre-commit error
