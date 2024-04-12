@@ -1,3 +1,5 @@
+import pytest
+
 from metagpt.const import DATA_PATH, METAGPT_ROOT
 from metagpt.tools.libs.terminal import Terminal
 
@@ -13,3 +15,7 @@ def test_terminal():
     terminal.run_command("cd data")
     output = terminal.run_command("pwd")
     assert output.strip() == str(DATA_PATH)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

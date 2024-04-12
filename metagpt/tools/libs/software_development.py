@@ -75,9 +75,9 @@ async def write_prd(idea: str, project_path: Optional[str | Path] = None) -> Pat
     return ctx.repo.docs.prd.workdir
 
 
-@register_tool(tags=["software development", "Architect"])
+@register_tool(tags=["Design", "software development", "Architect"])
 async def write_design(prd_path: str | Path) -> Path:
-    """Writes a design to the project repository, based on the PRD of the project.
+    """Writes a system design to the project repository, based on the PRD of the project.
 
     Args:
         prd_path (str|Path): The path to the PRD files under the project directory.
@@ -86,9 +86,8 @@ async def write_design(prd_path: str | Path) -> Path:
         Path: The path to the system design files under the project directory.
 
     Example:
-        >>> from metagpt.tools.libs.software_development import write_prd
         >>> from metagpt.tools.libs.software_development import write_design
-        >>> prd_path = await write_prd("Create a new feature for the application")
+        >>> prd_path = '/path/to/project_path/docs/prd' # Returned by `write_prd`
         >>> system_design_path = await write_desgin(prd_path)
         >>> print(system_design_path)
         '/path/to/project_path/docs/system_design/'
@@ -180,6 +179,7 @@ async def write_project_plan(system_design_path: str | Path) -> Path:
 @register_tool(tags=["software development", "Engineer"])
 async def write_codes(task_path: str | Path, inc: bool = False) -> Path:
     """Writes code to implement designed features according to the project plan and adds them to the project repository.
+    In code writing tasks, prioritize calling this tool against writing code from scratch directly.
 
     Args:
         task_path (str|Path): The path to task files under the project directory.

@@ -27,6 +27,8 @@ from metagpt.actions import Action
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import ToolLogItem, log_tool_output, logger
 
+INSTALL_KEEPLEN = 500
+
 
 class ExecuteNbCode(Action):
     """execute notebook code block, return result to llm, and display it."""
@@ -207,6 +209,7 @@ class ExecuteNbCode(Action):
 
             if "!pip" in code:
                 success = False
+                outputs = outputs[-INSTALL_KEEPLEN:]
 
             file_path = DEFAULT_WORKSPACE_ROOT / "code.ipynb"
             nbformat.write(self.nb, file_path)
