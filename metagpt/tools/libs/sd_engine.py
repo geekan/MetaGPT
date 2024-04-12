@@ -8,14 +8,13 @@ import base64
 import hashlib
 import io
 import json
-import os
 from os.path import join
 
 import requests
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-from metagpt.const import SD_OUTPUT_FILE_REPO, SOURCE_ROOT
+from metagpt.const import SD_OUTPUT_FILE_REPO, SD_URL, SOURCE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 
@@ -69,7 +68,7 @@ class SDEngine:
         Args:
             sd_url (str, optional): URL of the stable diffusion service. Defaults to "".
         """
-        self.sd_url = os.getenv("sd_url") if sd_url else sd_url
+        self.sd_url = SD_URL if not sd_url else sd_url
         self.sd_t2i_url = f"{self.sd_url}/sdapi/v1/txt2img"
         # Define default payload settings for SD API
         self.payload = payload
@@ -180,9 +179,3 @@ def batch_decode_base64_to_image(imgs, save_dir="", save_name=""):
     for idx, _img in enumerate(imgs):
         save_name = join(save_dir, save_name)
         decode_base64_to_image(_img, save_name=save_name)
-
-
-if __name__ == "__main__":
-    sd = SDEngine(sd_url="http://172.31.0.51:49094")
-    payload = sd.construct_payload(prompt="a girl")
-    sd.simple_run_t2i(payload=payload)
