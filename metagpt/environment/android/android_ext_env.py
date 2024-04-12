@@ -243,7 +243,7 @@ class AndroidExtEnv(ExtEnv):
     @mark_as_writeable
     def user_openApp(self, app_name: str):
         # openApp without xml
-        screenshot_path = self.get_screenshot("screenshot", "./screenshot")
+        screenshot_path = self.get_screenshot("screenshot", "../../../examples/data/screenshot")
         image = screenshot_path
         ocr_detection = pipeline(Tasks.ocr_detection, model="damo/cv_resnet18_ocr-detection-line-level_damo")
         ocr_recognition = pipeline(Tasks.ocr_recognition, model="damo/cv_convnextTiny_ocr-recognition-document_damo")
