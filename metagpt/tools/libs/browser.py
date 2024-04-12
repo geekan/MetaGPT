@@ -3,25 +3,18 @@ from playwright.async_api import async_playwright
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import ToolLogItem, log_tool_output_async
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import encode_image
 
 
 @register_tool()
 class Browser:
     """
     A tool for browsing the web. Don't initialize a new instance of this class if one already exists.
-    Note: Combine searching, scrolling, extraction, and link finding together to achieve most effective browsing. DON'T stick to one method.
+    Note: Combine searching and scrolling together to achieve most effective browsing. DON'T stick to one method.
     """
 
     def __init__(self):
         """initiate the browser, create pages placeholder later to be managed as {page_url: page object}"""
         self.browser = None
-
-        from metagpt.config2 import config
-        from metagpt.llm import LLM
-
-        self.llm = LLM(llm_config=config.get_openai_llm())
-        self.llm.model = "gpt-4-vision-preview"
 
         # browser status management
         self.pages = {}
@@ -33,25 +26,26 @@ class Browser:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch()
 
-    def _set_current_page(self, page, url):
+    async def _set_current_page(self, page, url):
         self.current_page = page
         self.current_page_url = url
         print("Now on page ", url)
+        print(await self._view())
 
     async def open_new_page(self, url: str):
-        """open a new page in the browser, set it as the current page"""
+        """open a new page in the browser and view the page"""
         page = await self.browser.new_page()
         await page.goto(url)
         self.pages[url] = page
-        self._set_current_page(page, url)
+        await self._set_current_page(page, url)
         await log_tool_output_async(
             ToolLogItem(type="object", name="open_new_page", value=self.current_page), tool_name="Browser"
         )
 
     async def switch_page(self, url: str):
-        """switch to an opened page in the browser, set it as the current page"""
+        """switch to an opened page in the browser and view the page"""
         if url in self.pages:
-            self._set_current_page(self.pages[url], url)
+            await self._set_current_page(self.pages[url], url)
             await log_tool_output_async(
                 ToolLogItem(type="object", name="switch_page", value=self.current_page), tool_name="Browser"
             )
@@ -91,22 +85,7 @@ class Browser:
                 position = await element.evaluate("e => ({ from_top: e.offsetTop, from_left: e.offsetLeft })")
 
                 # Retrieve the surrounding block of text and links with their text
-                content = await element.evaluate(
-                    """
-                    (element) => {
-                        // const block = element.closest('p, div, section, article');
-                        const block = element.parentElement;
-                        return {
-                            text_block: block.innerText,
-                            // Create an array of objects, each containing the text and href of a link
-                            links: Array.from(block.querySelectorAll('a')).map(a => ({
-                                text: a.innerText, 
-                                href: a.href
-                            }))
-                        };
-                    }
-                """
-                )
+                content = await element.evaluate(SEARCH_CONTENT_JS)
 
                 search_results.append(
                     {"index": len(search_results), "content": content, "position": position, "element_obj": element}
@@ -131,56 +110,53 @@ class Browser:
             index = len(search_results) - 1
         element = search_results[index]["element_obj"]
         await element.scroll_into_view_if_needed()
-        print(f"Successfully scrolled to the {index}-th search result, consider extract more info around it.")
         await log_tool_output_async(
             ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
         )
+        print(f"Successfully scrolled to the {index}-th search result")
+        print(await self._view())
 
-    async def find_links(self) -> list:
-        """Finds all links in the current page and returns a list of dictionaries with link text and the URL.
-        Useful for navigating to more pages and exploring more resources.
+    # async def find_links(self) -> list:
+    #     """Finds all links in the current page and returns a list of dictionaries with link text and the URL.
+    #     Useful for navigating to more pages and exploring more resources.
 
-        Returns:
-            list: A list of dictionaries, each containing 'text' and 'href' keys.
-        """
-        # Use a CSS selector to find all <a> elements in the page.
-        links = await self.current_page.query_selector_all("a")
+    #     Returns:
+    #         list: A list of dictionaries, each containing 'text' and 'href' keys.
+    #     """
+    #     # Use a CSS selector to find all <a> elements in the page.
+    #     links = await self.current_page.query_selector_all("a")
 
-        # Prepare an empty list to hold link information.
-        link_info = []
+    #     # Prepare an empty list to hold link information.
+    #     link_info = []
 
-        # Iterate over each link element to extract its text and href attributes.
-        for link in links:
-            text = await link.text_content()
-            href = await link.get_attribute("href")
-            link_info.append({"text": text, "href": href})
+    #     # Iterate over each link element to extract its text and href attributes.
+    #     for link in links:
+    #         text = await link.text_content()
+    #         href = await link.get_attribute("href")
+    #         link_info.append({"text": text, "href": href})
 
-        print(f"Found {len(link_info)} links:\n\n{link_info}")
+    #     print(f"Found {len(link_info)} links:\n\n{link_info}")
 
-        return link_info
+    #     return link_info
 
-    async def extract_info_from_view(self, instruction: str) -> str:
-        """
-        Extract useful info from the current page view.
+    async def screenshot(self, path: str = DEFAULT_WORKSPACE_ROOT / "screenshot_temp.png"):
+        """Take a screenshot of the current page and save it to the specified path."""
+        await self.current_page.screenshot(path=path)
+        print(f"Screenshot saved to: {path}")
 
-        Args:
-            instruction (str): explain what info needs to be extracted
-
-        Returns:
-            str: extracted info from current view
-        """
-        img_path = DEFAULT_WORKSPACE_ROOT / "screenshot_temp.png"
-        await self.current_page.screenshot(path=img_path)
-        rsp = await self.llm.aask(msg=instruction, images=[encode_image(img_path)])
-        return rsp
+    async def _view(self) -> str:
+        """simulate human viewing the current page, return the visible text with links"""
+        visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
+        return visible_text_with_links
 
     async def scroll_current_page(self, offset: int = 500):
-        """scroll the current page by offset pixels, negative value means scrolling up, returning the content observed after scrolling"""
+        """scroll the current page by offset pixels, negative value means scrolling up, will print out observed content after scrolling"""
         await self.current_page.evaluate(f"window.scrollBy(0, {offset})")
-        print(f"Scrolled current page by {offset} pixels. Perceive the scrolled view if needed")
         await log_tool_output_async(
             ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
         )
+        print(f"Scrolled current page by {offset} pixels.")
+        print(await self._view())
 
     def check_all_pages(self) -> dict:
         """return all pages opened in the browser, a dictionary with {page_url: page_title}, useful for understanding the current browser state"""
@@ -195,3 +171,47 @@ class Browser:
 
 async def get_scroll_position(page):
     return await page.evaluate("() => ({ x: window.scrollX, y: window.scrollY })")
+
+
+SEARCH_CONTENT_JS = """
+(element) => {
+    // const block = element.closest('p, div, section, article');
+    const block = element.parentElement;
+    return {
+        text_block: block.innerText,
+        // Create an array of objects, each containing the text and href of a link
+        links: Array.from(block.querySelectorAll('a')).map(a => ({
+            text: a.innerText, 
+            href: a.href
+        }))
+    };
+}
+"""
+
+
+VIEW_CONTENT_JS = """
+() => {
+    return Array.from(document.querySelectorAll('body *')).filter(el => {
+        if (!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)) return false;
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility !== 'visible' || style.opacity === '0') return false;
+        const rect = el.getBoundingClientRect();
+        const elemCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
+        if (elemCenter.x < 0 || elemCenter.y < 0 || elemCenter.x > window.innerWidth || elemCenter.y > window.innerHeight) return false;
+        if (document.elementFromPoint(elemCenter.x, elemCenter.y) !== el) return false;
+        return true;
+    }).map(el => {
+        let text = el.innerText || '';
+        text = text.trim();
+        if (!text.length) return '';
+        const parentAnchor = el.closest('a');
+        if (parentAnchor && parentAnchor.href) {
+            return `${text} (${parentAnchor.href})`;
+        }
+        return text;
+    }).filter(text => text.length > 0).join("\\n");
+}
+"""

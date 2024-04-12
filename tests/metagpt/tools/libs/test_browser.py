@@ -54,22 +54,18 @@ async def test_search(browser):
     # scroll to search result
     await browser.scroll_to_search_result(search_results, index=0)
 
-    # perceive current view
-    rsp = await browser.extract_info_from_view("what is the command to run exactly?")
-    assert "metagpt" in rsp
-
     await browser.close()
 
 
-@pytest.mark.asyncio
-async def test_find_links(browser):
-    await browser.start()
+# @pytest.mark.asyncio
+# async def test_find_links(browser):
+#     await browser.start()
 
-    await browser.open_new_page(TEST_URL)
-    link_info = await browser.find_links()
-    assert link_info
+#     await browser.open_new_page(TEST_URL)
+#     link_info = await browser.find_links()
+#     assert link_info
 
-    await browser.close()
+#     await browser.close()
 
 
 @pytest.mark.asyncio
@@ -80,9 +76,13 @@ async def test_scroll(browser):
 
     await browser.scroll_current_page(offset=-500)
     assert await get_scroll_position(browser.current_page) == {"x": 0, "y": 0}  # no change if you scrol up from top
+    initial_view = await browser._view()
 
     await browser.scroll_current_page(offset=500)  # scroll down
     assert await get_scroll_position(browser.current_page) == {"x": 0, "y": 500}
+    scrolled_view = await browser._view()
+
+    assert initial_view != scrolled_view
 
     await browser.scroll_current_page(offset=-200)  # scroll up
     assert await get_scroll_position(browser.current_page) == {"x": 0, "y": 300}
