@@ -32,7 +32,7 @@ class SOPItem(Enum):
         description="Software development intention including developing or building software, games, app, websites, etc. EXCLUDING bug fixes, report any issues, environment setup, terminal operations, and pip install.",
         sop=[
             "Writes a PRD based on software requirements.",
-            "Writes a design to the project repository, based on the PRD of the project.",
+            "Writes a system design to the project repository, based on the PRD of the project. Write high-level system design instead of the actual code.",
             "Writes a project plan to the project repository, based on the design of the project.",
             "Writes code to implement designed features according to the project plan and adds them to the project repository.",
             # "Run QA test on the project repository.",
