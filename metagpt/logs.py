@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import inspect
 import sys
 from datetime import datetime
 from functools import partial
@@ -59,6 +60,14 @@ async def log_tool_output_async(output: ToolLogItem | list[ToolLogItem], tool_na
     await _tool_output_log_async(output=output, tool_name=tool_name)
 
 
+async def get_human_input(prompt: str = ""):
+    """interface for getting human input, can be set to get input from different sources with set_human_input_func"""
+    if inspect.iscoroutinefunction(_get_human_input):
+        return await _get_human_input(prompt)
+    else:
+        return _get_human_input(prompt)
+
+
 def set_llm_stream_logfunc(func):
     global _llm_stream_log
     _llm_stream_log = func
@@ -75,6 +84,11 @@ async def set_tool_output_logfunc_async(func):
     _tool_output_log_async = func
 
 
+def set_human_input_func(func):
+    global _get_human_input
+    _get_human_input = func
+
+
 _llm_stream_log = partial(print, end="")
 
 
@@ -86,3 +100,6 @@ _tool_output_log = (
 async def _tool_output_log_async(*args, **kwargs):
     # async version
     pass
+
+
+_get_human_input = input  # get human input from console by default
