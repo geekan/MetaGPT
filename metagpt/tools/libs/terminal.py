@@ -22,11 +22,13 @@ class Terminal:
         # Start a persistent shell process
         self.process = subprocess.Popen(
             self.shell_command,
+            shell=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,  # Line buffered
+            executable="/bin/bash"
         )
         self.stdout_queue = Queue()
 
