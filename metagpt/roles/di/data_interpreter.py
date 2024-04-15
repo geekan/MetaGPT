@@ -123,7 +123,9 @@ class DataInterpreter(Role):
 
         while not success and counter < max_retry:
             ### write code ###
-            code, cause_by = await self._write_code(counter, plan_status, tool_info, experiences = experiences if counter == 0 else "")
+            code, cause_by = await self._write_code(
+                counter, plan_status, tool_info, experiences=experiences if counter == 0 else ""
+            )
 
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
@@ -144,13 +146,7 @@ class DataInterpreter(Role):
 
         return code, result, success
 
-    async def _write_code(
-        self,
-        counter: int,
-        plan_status: str = "",
-        tool_info: str = "",
-        experiences: str = ""
-    ):
+    async def _write_code(self, counter: int, plan_status: str = "", tool_info: str = "", experiences: str = ""):
         todo = self.rc.todo  # todo is WriteAnalysisCode
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
@@ -163,7 +159,7 @@ class DataInterpreter(Role):
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
             use_reflection=use_reflection,
-            experiences = experiences
+            experiences=experiences,
         )
 
         return code, todo
