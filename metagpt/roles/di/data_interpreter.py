@@ -38,6 +38,7 @@ class DataInterpreter(Role):
     auto_run: bool = True
     use_plan: bool = True
     use_reflection: bool = False
+    use_experience: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
@@ -94,13 +95,13 @@ class DataInterpreter(Role):
             await self.execute_code.terminate()
             raise e
 
-    async def _act_on_task(self, current_task: Task) -> TaskResult:
+    async def _act_on_task(self, current_task: Task, experiences: str) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
-        code, result, is_success = await self._write_and_exec_code()
+        code, result, is_success = await self._write_and_exec_code(experiences=experiences)
         task_result = TaskResult(code=code, result=result, is_success=is_success)
         return task_result
 
-    async def _write_and_exec_code(self, max_retry: int = 3):
+    async def _write_and_exec_code(self, max_retry: int = 3, experiences: str = ""):
         counter = 0
         success = False
 
@@ -122,7 +123,7 @@ class DataInterpreter(Role):
 
         while not success and counter < max_retry:
             ### write code ###
-            code, cause_by = await self._write_code(counter, plan_status, tool_info)
+            code, cause_by = await self._write_code(counter, plan_status, tool_info, experiences = experiences if counter == 0 else "")
 
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
@@ -148,6 +149,7 @@ class DataInterpreter(Role):
         counter: int,
         plan_status: str = "",
         tool_info: str = "",
+        experiences: str = ""
     ):
         todo = self.rc.todo  # todo is WriteAnalysisCode
         logger.info(f"ready to {todo.name}")
@@ -161,6 +163,7 @@ class DataInterpreter(Role):
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
             use_reflection=use_reflection,
+            experiences = experiences
         )
 
         return code, todo

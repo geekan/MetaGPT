@@ -30,11 +30,12 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
+from metagpt.actions.di.use_experience import RetrieveExperiences, AddNewTrajectories
 from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
-from metagpt.schema import Message, MessageQueue, SerializationMixin
+from metagpt.schema import Message, MessageQueue, SerializationMixin, TaskResult, Task
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
@@ -490,11 +491,16 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             task = self.planner.current_task
             logger.info(f"ready to take on task {task}")
 
+            # retrieve past tasks for this task
+            experiences = await RetrieveExperiences().run(query=task.instruction) if self.use_experience else ""
+            
             # take on current task
-            task_result = await self._act_on_task(task)
+            task_result = await self._act_on_task(task, experiences)
 
             # process the result, such as reviewing, confirming, plan updating
             await self.planner.process_task_result(task_result)
+        
+        await AddNewTrajectories().run(self.planner)
 
         rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
 
