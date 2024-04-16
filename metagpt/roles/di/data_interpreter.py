@@ -7,6 +7,7 @@ from pydantic import Field, model_validator
 
 from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
+from metagpt.actions.di.use_experience import AddNewTrajectories, RetrieveExperiences
 from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.prompts.di.write_analysis_code import DATA_INFO
@@ -89,14 +90,19 @@ class DataInterpreter(Role):
     async def _plan_and_act(self) -> Message:
         try:
             rsp = await super()._plan_and_act()
+            await AddNewTrajectories().run(
+                self.planner
+            )  # extract trajectories based on the execution status of each task in the planner
             await self.execute_code.terminate()
             return rsp
         except Exception as e:
             await self.execute_code.terminate()
             raise e
 
-    async def _act_on_task(self, current_task: Task, experiences: str) -> TaskResult:
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
+        # retrieve past tasks for this task
+        experiences = await RetrieveExperiences().run(query=current_task.instruction) if self.use_experience else ""
         code, result, is_success = await self._write_and_exec_code(experiences=experiences)
         task_result = TaskResult(code=code, result=result, is_success=is_success)
         return task_result
