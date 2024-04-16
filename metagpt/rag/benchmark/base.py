@@ -82,7 +82,7 @@ class RAGBenchMark:
                     mrr_sum += 1.0 / i
                     break
 
-        return mrr_sum / len(reference_docs) if reference_docs else 0.0
+        return mrr_sum / len(nodes) if reference_docs else 0.0
 
     async def SemanticSimilarity(self, response: str, reference: str) -> float:
         result = await self.evaluator.aevaluate(
