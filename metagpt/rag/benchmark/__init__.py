@@ -1,3 +1,3 @@
-from metagpt.rag.benchmark.base import RAGBenchMark
+from metagpt.rag.benchmark.base import RAGBenchmark
 
-__all__ = ["RAGBenchMark"]
+__all__ = ["RAGBenchmark"]
