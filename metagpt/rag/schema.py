@@ -121,13 +121,11 @@ class ColbertRerankConfig(BaseRankerConfig):
 
 class CohereRerankConfig(BaseRankerConfig):
     model: str = Field(default="rerank-english-v3.0")
-    top_n: int = Field(default=2)
     api_key: str = Field(default="YOUR_COHERE_API")
 
 
 class FlagEmbeddingConfig(BaseRankerConfig):
     model: str = Field(default="BAAI/bge-reranker-large", description="BAAI Reranker model name.")
-    top_n: int = Field(default=2, description="Number of nodes to return sorted by score.")
     use_fp16: bool = Field(default=True, description="Whether to use fp16 for inference.")
 
 
