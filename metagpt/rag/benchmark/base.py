@@ -25,7 +25,7 @@ class DatasetConfig(BaseModel):
     datasets: List[DatasetInfo]
 
 
-class RAGBenchMark:
+class RAGBenchmark:
     def __init__(
         self,
         embed_model: BaseEmbedding = None,
@@ -117,18 +117,20 @@ class RAGBenchMark:
 
 
 if __name__ == "__main__":
-    benchmark = RAGBenchMark()
+    benchmark = RAGBenchmark()
     answer = "是的，根据提供的信息，2023年7月20日，应急管理部和财政部确实联合发布了《因灾倒塌、损坏住房恢复重建救助工作规范》的通知。这份《规范》旨在进一步规范因灾倒塌、损坏住房的恢复重建救助相关工作。它明确了地方各级政府负责实施救助工作，应急管理部和财政部则负责统筹指导。地方财政应安排足够的资金，中央财政也会提供适当的补助。救助资金将通过专账管理，并采取特定的管理方式。救助对象是那些因自然灾害导致住房倒塌或损坏，并向政府提出申请且符合条件的受灾家庭。相关部门将组织调查统计救助对象信息，并建立档案。此外，《规范》还强调了资金发放的具体方式和公开透明的要求。"
     ground_truth = "“启明行动”是为了防控儿童青少年的近视问题，并发布了《防控儿童青少年近视核心知识十条》。"
     bleu_avg, bleu1, bleu2, bleu3, bleu4 = benchmark.bleu_score(answer, ground_truth)
-    logger.info(f"bleu_avg = {bleu_avg}")
-    logger.info(f"bleu1 = {bleu1}")
-    logger.info(f"bleu2 = {bleu2}")
-    logger.info(f"bleu3 = {bleu3}")
-    logger.info(f"bleu4 = {bleu4}")
-
     rougeL_score = benchmark.rougel_score(answer, ground_truth)
-    logger.info(f"rougeL_score = {rougeL_score}")
-
     similarity = asyncio.run(benchmark.SemanticSimilarity(answer, ground_truth))
-    logger.info(f"similarity = {similarity}")
+    logger.info(
+        f"BLEU Scores:\n"
+        f"bleu_avg = {bleu_avg}\n"
+        f"bleu1 = {bleu1}\n"
+        f"bleu2 = {bleu2}\n"
+        f"bleu3 = {bleu3}\n"
+        f"bleu4 = {bleu4}\n"
+        f"rougeL_score = {rougeL_score}\n"
+        f"similarity = {similarity}\n"
+    )
+
