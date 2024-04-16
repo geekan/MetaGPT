@@ -8,7 +8,7 @@ from llama_index.core.schema import NodeWithScore
 
 from metagpt.const import DATA_PATH, EXAMPLE_BENCHMARK_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
-from metagpt.rag.benchmark import RAGBenchMark
+from metagpt.rag.benchmark import RAGBenchmark
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories import get_rag_embedding, get_rag_llm
 from metagpt.rag.schema import (
@@ -40,7 +40,7 @@ class RAGExample:
     """Show how to use RAG for evaluation."""
 
     def __init__(self):
-        self.benchmark = RAGBenchMark()
+        self.benchmark = RAGBenchmark()
         self.embedding = get_rag_embedding()
         self.llm = get_rag_llm()
 
