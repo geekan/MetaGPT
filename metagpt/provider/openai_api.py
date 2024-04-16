@@ -37,10 +37,21 @@ from metagpt.utils.token_counter import (
     count_message_tokens,
     count_string_tokens,
     get_max_completion_tokens,
+    get_openrouter_tokens,
 )
 
 
-@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT, LLMType.MISTRAL, LLMType.YI])
+@register_provider(
+    [
+        LLMType.OPENAI,
+        LLMType.FIREWORKS,
+        LLMType.OPEN_LLM,
+        LLMType.MOONSHOT,
+        LLMType.MISTRAL,
+        LLMType.YI,
+        LLMType.OPENROUTER,
+    ]
+)
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
@@ -95,6 +106,9 @@ class OpenAILLM(BaseLLM):
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
+                elif "openrouter.ai" in self.config.base_url:
+                    # due to it get token cost from api
+                    usage = await get_openrouter_tokens(chunk)
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)

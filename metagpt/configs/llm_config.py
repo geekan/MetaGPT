@@ -31,6 +31,7 @@ class LLMType(Enum):
     MOONSHOT = "moonshot"
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
+    OPENROUTER = "openrouter"
 
     def __missing__(self, key):
         return self.OPENAI
