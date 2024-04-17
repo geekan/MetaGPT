@@ -81,7 +81,7 @@ class RAGExample:
                 logger.info(f"=====The {dataset.name} Benchmark dataset assessment is complete!=====")
                 self._print_bm_result(results)
 
-                write_json_file(os.path.join(EXAMPLE_BENCHMARK_PATH, dataset.name, "bm_result.json"), results, "utf-8")
+                write_json_file((EXAMPLE_BENCHMARK_PATH \ dataset.name \ "bm_result.json").as_posix()), results, "utf-8")
 
     async def rag_evaluate_single(self, question, reference, ground_truth, print_title=True):
         """This example run rag pipeline, use faiss&bm25 retriever and llm ranker, will print something like:
