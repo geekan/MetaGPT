@@ -49,9 +49,6 @@ class RankerFactory(ConfigBasedFactory):
             )
         return ColbertRerank(**config.model_dump())
 
-    def _create_object_ranker(self, config: ObjectRankerConfig, **kwargs) -> LLMRerank:
-        return ObjectSortPostprocessor(**config.model_dump())
-
     def _create_cohere_rerank(self, config: CohereRerankConfig, **kwargs) -> LLMRerank:
         try:
             from llama_index.postprocessor.cohere_rerank import CohereRerank
@@ -69,6 +66,9 @@ class RankerFactory(ConfigBasedFactory):
                 "`llama-index-postprocessor-flag-embedding-reranker` package not found, please run `pip install llama-index-postprocessor-flag-embedding-reranker`"
             )
         return FlagEmbeddingReranker(**config.model_dump())
+        
+    def _create_object_ranker(self, config: ObjectRankerConfig, **kwargs) -> LLMRerank:
+        return ObjectSortPostprocessor(**config.model_dump())
 
     def _extract_llm(self, config: BaseRankerConfig = None, **kwargs) -> LLM:
         return self._val_from_config_or_kwargs("llm", config, **kwargs)
