@@ -21,8 +21,8 @@ from metagpt.rag.schema import (
     ColbertRerankConfig,
 )
 from metagpt.utils.common import write_json_file
-import time
-import pdb
+
+
 DOC_PATH = EXAMPLE_DATA_PATH / "rag_bm/summary_writer.txt"
 QUESTION = "2023年7月20日，应急管理部、财政部联合下发《因灾倒塌、损坏住房恢复重建救助工作规范》的通知，规范倒损住房恢复重建救助相关工作。"
 
