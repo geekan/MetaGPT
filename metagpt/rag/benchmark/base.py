@@ -148,6 +148,7 @@ class RAGBenchmark:
         mrr = self.MRR(nodes, reference_doc)
         
         similarity = await self.SemanticSimilarity(response, reference)
+        
         result = self._set_metrics(
             bleu_avg, bleu1, bleu2, bleu3, bleu4, rouge_l,
             similarity,
