@@ -8,14 +8,22 @@
 """
 from __future__ import annotations
 
+import re
 import shutil
 import uuid
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
+from github import Auth, Github
+from github.GithubObject import NotSet
+from github.Issue import Issue
+from github.Label import Label
+from github.Milestone import Milestone
+from github.NamedUser import NamedUser
+from github.PullRequest import PullRequest
 from gitignore_parser import parse_gitignore
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
@@ -33,6 +41,12 @@ class ChangeType(Enum):
     MODIFIED = "M"  # File was modified
     TYPE_CHANGED = "T"  # Type of the file was changed
     UNTRACTED = "U"  # File is untracked (not added to version control)
+
+
+class RateLimitError(Exception):
+    def __init__(self, message="Rate limit exceeded"):
+        self.message = message
+        super().__init__(self.message)
 
 
 class GitRepository:
@@ -322,3 +336,120 @@ class GitRepository:
     def log(self) -> str:
         """Return git log"""
         return self._repository.git.log()
+
+    @staticmethod
+    async def create_pull(
+        repo_name: str,
+        base: str,
+        head: str,
+        *,
+        title: Optional[str] = None,
+        body: Optional[str] = None,
+        maintainer_can_modify: Optional[bool] = None,
+        draft: Optional[bool] = None,
+        issue: Optional[Issue] = None,
+        access_token: Optional[str] = None,
+        auth: Optional[Auth] = None,
+    ) -> PullRequest:
+        """
+        Creates a pull request in the specified repository.
+
+        Args:
+            repo_name (str): The full repository name (user/repo) where the pull request will be created.
+            base (str): The name of the base branch.
+            head (str): The name of the head branch.
+            title (Optional[str], optional): The title of the pull request. Defaults to None.
+            body (Optional[str], optional): The body of the pull request. Defaults to None.
+            maintainer_can_modify (Optional[bool], optional): Whether maintainers can modify the pull request. Defaults to None.
+            draft (Optional[bool], optional): Whether the pull request is a draft. Defaults to None.
+            issue (Optional[Issue], optional): The issue linked to the pull request. Defaults to None.
+            access_token (Optional[str], optional): The access token for authentication. Defaults to None. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`, `https://github.com/PyGithub/PyGithub/blob/main/doc/examples/Authentication.rst`.
+            auth (Optional[Auth], optional): The authentication method. Defaults to None. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`
+
+        Returns:
+            PullRequest: The created pull request object.
+        """
+        title = title or NotSet
+        body = body or NotSet
+        maintainer_can_modify = maintainer_can_modify or NotSet
+        draft = draft or NotSet
+        issue = issue or NotSet
+        if not auth and not access_token:
+            raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
+        auth = auth or Auth.Token(access_token)
+        g = Github(auth=auth)
+        repo = g.get_repo(repo_name)
+        x_ratelimit_remaining = repo.raw_headers.get("x-ratelimit-remaining")
+        if (
+            x_ratelimit_remaining
+            and bool(re.match(r"^-?\d+$", x_ratelimit_remaining))
+            and int(x_ratelimit_remaining) <= 0
+        ):
+            raise RateLimitError()
+        pr = repo.create_pull(
+            base=base,
+            head=head,
+            title=title,
+            body=body,
+            maintainer_can_modify=maintainer_can_modify,
+            draft=draft,
+            issue=issue,
+        )
+        return pr
+
+    @staticmethod
+    async def create_issue(
+        repo_name: str,
+        title: str,
+        body: Optional[str] = None,
+        assignee: NamedUser | Optional[str] = None,
+        milestone: Optional[Milestone] = None,
+        labels: list[Label] | Optional[list[str]] = None,
+        assignees: Optional[list[str]] | list[NamedUser] = None,
+        access_token: Optional[str] = None,
+        auth: Optional[Auth] = None,
+    ) -> Issue:
+        """
+        Creates an issue in the specified repository.
+
+        Args:
+            repo_name (str): The full repository name (user/repo) where the issue will be created.
+            title (str): The title of the issue.
+            body (Optional[str], optional): The body of the issue. Defaults to None.
+            assignee (Union[NamedUser, str], optional): The assignee for the issue, either as a NamedUser object or their username. Defaults to None.
+            milestone (Optional[Milestone], optional): The milestone to associate with the issue. Defaults to None.
+            labels (Union[list[Label], list[str]], optional): The labels to associate with the issue, either as Label objects or their names. Defaults to None.
+            assignees (Union[list[str], list[NamedUser]], optional): The list of usernames or NamedUser objects to assign to the issue. Defaults to None.
+            access_token (Optional[str], optional): The access token for authentication. Defaults to None. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`, `https://github.com/PyGithub/PyGithub/blob/main/doc/examples/Authentication.rst`.
+            auth (Optional[Auth], optional): The authentication method. Defaults to None. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`
+
+        Returns:
+            Issue: The created issue object.
+        """
+        body = body or NotSet
+        assignee = assignee or NotSet
+        milestone = milestone or NotSet
+        labels = labels or NotSet
+        assignees = assignees or NotSet
+        if not auth and not access_token:
+            raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
+        auth = auth or Auth.Token(access_token)
+        g = Github(auth=auth)
+
+        repo = g.get_repo(repo_name)
+        x_ratelimit_remaining = repo.raw_headers.get("x-ratelimit-remaining")
+        if (
+            x_ratelimit_remaining
+            and bool(re.match(r"^-?\d+$", x_ratelimit_remaining))
+            and int(x_ratelimit_remaining) <= 0
+        ):
+            raise RateLimitError()
+        issue = repo.create_issue(
+            title=title,
+            body=body,
+            assignee=assignee,
+            milestone=milestone,
+            labels=labels,
+            assignees=assignees,
+        )
+        return issue
