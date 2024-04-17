@@ -11,6 +11,10 @@ ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/o
 ref5: https://ai.google.dev/models/gemini
 """
 import tiktoken
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletionChunk
+
+from metagpt.utils.ahttp_client import apost
 
 TOKEN_COSTS = {
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},
@@ -52,6 +56,9 @@ TOKEN_COSTS = {
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
+    "microsoft/wizardlm-2-8x22b": {"prompt": 0.00108, "completion": 0.00108},  # for openrouter, start
+    "openai/gpt-3.5-turbo-0125": {"prompt": 0.0005, "completion": 0.0015},
+    "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
 }
 
 
@@ -182,6 +189,9 @@ TOKEN_MAX = {
     "claude-3-opus-20240229": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
+    "microsoft/wizardlm-2-8x22b": 65536,
+    "openai/gpt-3.5-turbo-0125": 16385,
+    "openai/gpt-4-turbo-preview": 128000,
 }
 
 
@@ -284,3 +294,15 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     if model not in TOKEN_MAX:
         return default
     return TOKEN_MAX[model] - count_message_tokens(messages) - 1
+
+
+async def get_openrouter_tokens(chunk: ChatCompletionChunk) -> CompletionUsage:
+    """refs to https://openrouter.ai/docs#querying-cost-and-stats"""
+    url = f"https://openrouter.ai/api/v1/generation?id={chunk.id}"
+    resp = await apost(url=url, as_json=True)
+    tokens_prompt = resp.get("tokens_prompt", 0)
+    completion_tokens = resp.get("tokens_completion", 0)
+    usage = CompletionUsage(
+        prompt_tokens=tokens_prompt, completion_tokens=completion_tokens, total_tokens=tokens_prompt + completion_tokens
+    )
+    return usage
