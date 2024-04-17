@@ -160,16 +160,16 @@ class RAGBenchmark:
 
     @staticmethod
     def load_dataset(ds_names: list[str] = ["all"]):
-        infos =  read_json_file(Path(EXAMPLE_BENCHMARK_PATH) / "dataset_info.json")
+        infos =  read_json_file(EXAMPLE_BENCHMARK_PATH / "dataset_info.json")
         dataset_config = DatasetConfig(
             datasets=[
                 DatasetInfo(
                     name=name,
                     document_files=[
-                        Path(EXAMPLE_BENCHMARK_PATH) / name / file,
+                        EXAMPLE_BENCHMARK_PATH / name / file
                         for file in info["document_file"]
                     ],
-                    gt_info=read_json_file(Path(EXAMPLE_BENCHMARK_PATH) / name / info["gt_file"]),
+                    gt_info=read_json_file(EXAMPLE_BENCHMARK_PATH / name / info["gt_file"]),
                 )
                 for dataset_info in infos
                 for name, info in dataset_info.items()
