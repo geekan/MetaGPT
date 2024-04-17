@@ -47,7 +47,7 @@ class RAGExample:
         self.embedding = get_rag_embedding()
         self.llm = get_rag_llm()
 
-    async def rag_evaluate_pipeline(self, dataset_name: list[str] = ["RGB_en"]):
+    async def rag_evaluate_pipeline(self, dataset_name: list[str] = ["all"]):
         dataset_config = self.benchmark.load_dataset(dataset_name)
     
         for dataset in dataset_config.datasets:
