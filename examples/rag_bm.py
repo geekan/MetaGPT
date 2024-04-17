@@ -58,9 +58,9 @@ class RAGExample:
                     logger.info("Loading Exists index!")
                     logger.info(f"Index Path:{output_dir}")
                     self.engine = SimpleEngine.from_index(
-                        index_config=FAISSIndexConfig(),
+                        index_config=FAISSIndexConfig(persist_path=output_dir),
                         ranker_configs=[ColbertRerankConfig()],
-                        retriever_configs=[FAISSRetrieverConfig(persist_path=output_dir), BM25RetrieverConfig()],
+                        retriever_configs=[FAISSRetrieverConfig(), BM25RetrieverConfig()],
                     )
                 else:
                     logger.info("Loading index from document!")
