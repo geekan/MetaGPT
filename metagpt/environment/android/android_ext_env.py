@@ -313,7 +313,7 @@ class AndroidExtEnv(ExtEnv):
             iw, ih = ih, iw
         # 下载权重文件
         file_url = 'https://huggingface.co/ShilongLiu/GroundingDINO/blob/main/groundingdino_swint_ogc.pth'  # 加载远程model
-        target_folder = '/Users/kit/Desktop/深度赋值/amzingproject/MetaGPT/workspace/weights'
+        target_folder = 'workspace/weights'
         file_path = download_model(file_url, target_folder)
         groundingdino_model = load_model(file_path, device=device).eval()
         in_coordinate, out_coordinate = det(image, "icon", groundingdino_model)  # 检测icon
@@ -324,7 +324,7 @@ class AndroidExtEnv(ExtEnv):
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)
 
         else:
-            temp_file = "/Users/kit/Desktop/深度赋值/amzingproject/MetaGPT/workspace/temp"
+            temp_file = "workspace/temp"
             if not os.path.exists(temp_file):
                 os.mkdir(temp_file)
             hash_table, clip_filter= [],[]
