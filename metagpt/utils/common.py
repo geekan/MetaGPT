@@ -37,7 +37,7 @@ from PIL import Image
 from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, RetryError, _utils
 
-from metagpt.const import MESSAGE_ROUTE_TO_ALL
+from metagpt.const import MARKDOWN_TITLE_PREFIX, MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
@@ -65,7 +65,7 @@ class OutputParser:
     @classmethod
     def parse_blocks(cls, text: str):
         # 首先根据"##"将文本分割成不同的block
-        blocks = text.split("##")
+        blocks = text.split(MARKDOWN_TITLE_PREFIX)
 
         # 创建一个字典，用于存储每个block的标题和内容
         block_dict = {}
