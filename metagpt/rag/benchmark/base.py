@@ -1,8 +1,6 @@
 import asyncio
-import json
-import os
-from typing import List
-from pathlib import Path
+from typing import List, Union, Tuple
+
 
 import evaluate
 import jieba
@@ -36,7 +34,7 @@ class RAGBenchmark:
                 embed_model=embed_model or get_rag_embedding(),
         )
 
-    def _set_metrics(
+    def set_metrics(
         self,
         bleu_avg :float = 0.0,
         bleu_1 :float = 0.0,
@@ -76,7 +74,7 @@ class RAGBenchmark:
         return {"metrics": metrics, "log": log}
 
 
-    def bleu_score(self, response: str, reference: str, with_penalty=False) -> float:
+    def bleu_score(self, response: str, reference: str, with_penalty=False) -> Union[float, Tuple[float]]:
         f = lambda text: list(jieba.cut(text))
         bleu = evaluate.load(path="bleu")
         results = bleu.compute(predictions=[response], references=[[reference]], tokenizer=f)
@@ -109,13 +107,13 @@ class RAGBenchmark:
         else:
             return 0.0
 
-    def HitRate(self, nodes: list[NodeWithScore], reference_docs: list[str]) -> float:
+    def hit_rate(self, nodes: list[NodeWithScore], reference_docs: list[str]) -> float:
         if nodes:
             return 1.0 if any(node.text in doc for doc in reference_docs for node in nodes) else 0.0
         else:
             return 0.0
 
-    def MRR(self, nodes: list[NodeWithScore], reference_docs: list[str]) -> float:
+    def mean_reciprocal_rank(self, nodes: list[NodeWithScore], reference_docs: list[str]) -> float:
         mrr_sum = 0.0
 
         for i, doc in enumerate(reference_docs, start=1):
@@ -126,7 +124,7 @@ class RAGBenchmark:
 
         return mrr_sum / len(reference_docs) if reference_docs else 0.0
 
-    async def SemanticSimilarity(self, response: str, reference: str) -> float:
+    async def semantic_similarity(self, response: str, reference: str) -> float:
         result = await self.evaluator.aevaluate(
             response=response,
             reference=reference,
@@ -145,12 +143,12 @@ class RAGBenchmark:
         recall = self.recall(nodes, reference_doc)
         bleu_avg, bleu1, bleu2, bleu3, bleu4 = self.bleu_score(response, reference)
         rouge_l = self.rougel_score(response, reference)
-        hit_rate = self.HitRate(nodes, reference_doc)
-        mrr = self.MRR(nodes, reference_doc)
+        hit_rate = self.hit_rate(nodes, reference_doc)
+        mrr = self.mean_reciprocal_rank(nodes, reference_doc)
         
-        similarity = await self.SemanticSimilarity(response, reference)
+        similarity = await self.semantic_similarity(response, reference)
         
-        result = self._set_metrics(
+        result = self.set_metrics(
             bleu_avg, bleu1, bleu2, bleu3, bleu4, rouge_l,
             similarity,
             recall, hit_rate, mrr, len(response), response, reference, question
