@@ -12,7 +12,7 @@ from metagpt.rag.schema import (
     LLMRankerConfig,
     ObjectRankerConfig,
     CohereRerankConfig,
-    FlagEmbeddingConfig
+    BGERerankConfig
 )
 
 
@@ -25,7 +25,7 @@ class RankerFactory(ConfigBasedFactory):
             ColbertRerankConfig: self._create_colbert_ranker,
             ObjectRankerConfig: self._create_object_ranker,
             CohereRerankConfig: self._create_cohere_rerank,
-            FlagEmbeddingConfig: self._create_flag_rerank,
+            BGERerankConfig: self._create_bge_rerank,
         }
         super().__init__(creators)
 
@@ -58,7 +58,7 @@ class RankerFactory(ConfigBasedFactory):
             )
         return CohereRerank(**config.model_dump())
 
-    def _create_flag_rerank(self, config: FlagEmbeddingConfig, **kwargs) -> LLMRerank:
+    def _create_bge_rerank(self, config: BGERerankConfig, **kwargs) -> LLMRerank:
         try:
             from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
         except ImportError:
