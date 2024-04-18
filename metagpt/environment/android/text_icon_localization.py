@@ -3,7 +3,9 @@ import clip
 import cv2
 import numpy as np
 import torch
-
+import subprocess
+import time
+from pathlib import Path
 import groundingdino.datasets.transforms as T
 from groundingdino.models import build_model
 from groundingdino.util.slconfig import SLConfig
@@ -12,6 +14,7 @@ from PIL import Image, ImageDraw
 
 
 ################################## text_localization using ocr #######################
+
 def crop_image(img, position):
     def distance(x1, y1, x2, y2):
         return math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
@@ -96,7 +99,7 @@ def ocr(image_path, prompt, ocr_detection, ocr_recognition, x, y):
     image = Image.open(image_path)
     iw, ih = image.size
 
-    image_full = cv2.imread(image_path)
+    image_full = cv2.imread(str(image_path))
     det_result = ocr_detection(image_full)
     det_result = det_result["polygons"]
     for i in range(det_result.shape[0]):
@@ -205,7 +208,6 @@ def calculate_iou(box1, box2):
 
 def crop(image, box, i, text_data=None):
     image = Image.open(image)
-
     if text_data:
         draw = ImageDraw.Draw(image)
         draw.rectangle(((text_data[0], text_data[1]), (text_data[2], text_data[3])), outline="red", width=5)
@@ -224,31 +226,13 @@ def in_box(box, target):
         return False
 
 
-def crop_for_clip(image, box, i, position):
+def crop_for_clip(image, box, i, temp_file):
     image = Image.open(image)
     w, h = image.size
-    if position == "left":
-        bound = [0, 0, w / 2, h]
-    elif position == "right":
-        bound = [w / 2, 0, w, h]
-    elif position == "top":
-        bound = [0, 0, w, h / 2]
-    elif position == "bottom":
-        bound = [0, h / 2, w, h]
-    elif position == "top left":
-        bound = [0, 0, w / 2, h / 2]
-    elif position == "top right":
-        bound = [w / 2, 0, w, h / 2]
-    elif position == "bottom left":
-        bound = [0, h / 2, w / 2, h]
-    elif position == "bottom right":
-        bound = [w / 2, h / 2, w, h]
-    else:
-        bound = [0, 0, w, h]
-
+    bound = [0, 0, w, h]
     if in_box(box, bound):
         cropped_image = image.crop(box)
-        cropped_image.save(f"./temp/{i}.jpg")
+        cropped_image.save(f"{temp_file}/{i}.jpg")
         return True
     else:
         return False
@@ -286,7 +270,8 @@ def transform_image(image_pil):
     return image
 
 
-def load_model(model_config_path, model_checkpoint_path, device):
+def load_model(model_checkpoint_path, device):
+    model_config_path = 'GroundingDINO_SwinT_OGC.py'
     args = SLConfig.fromfile(model_config_path)
     args.device = device
     model = build_model(args)
@@ -387,17 +372,23 @@ def det(input_image, text_prompt, groundingdino_model, box_threshold=0.05, text_
     return image_data, coordinate
 
 
-if __name__ == "__main__":
-    from modelscope.pipelines import pipeline
-    from modelscope.utils.constant import Tasks
+def get_screenshot_only(screenshot_dir: Path) -> str:
+    command = " adb shell rm /sdcard/screenshot.png"
+    subprocess.run(command, capture_output=True, text=True, shell=True)
+    time.sleep(0.1)
+    command = "adb shell screencap -p /sdcard/screenshot.png"
+    subprocess.run(command, capture_output=True, text=True, shell=True)
+    time.sleep(0.1)
+    command = f"adb pull /sdcard/screenshot.png {screenshot_dir}"
+    subprocess.run(command, capture_output=True, text=True, shell=True)
+    image_path = f"{screenshot_dir}/screenshot.png"
+    save_path = f"{screenshot_dir}/screenshot.jpg"
+    image = Image.open(image_path)
+    original_width, original_height = image.size
+    new_width = int(original_width * 0.5)
+    new_height = int(original_height * 0.5)
+    resized_image = image.resize((new_width, new_height))
+    resized_image.convert("RGB").save(save_path, "JPEG")
+    time.sleep(0.1)
+    return save_path
 
-    image_ori = "./screenshot/screenshot.png"
-    image = "./screenshot/screenshot.png"
-    parameter = "抖音"
-    ocr_detection = pipeline(Tasks.ocr_detection, model="damo/cv_resnet18_ocr-detection-line-level_damo")
-    ocr_recognition = pipeline(Tasks.ocr_recognition, model="damo/cv_convnextTiny_ocr-recognition-document_damo")
-    iw, ih = Image.open(image).size
-    if iw > ih:
-        iw, ih = ih, iw
-    in_coordinate, out_coordinate = ocr(image_ori, parameter, ocr_detection, ocr_recognition, iw, ih)
-    print(f"ocr 计算结果为 {in_coordinate} ,{out_coordinate} ")
