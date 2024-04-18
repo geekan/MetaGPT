@@ -124,7 +124,7 @@ class CohereRerankConfig(BaseRankerConfig):
     api_key: str = Field(default="YOUR_COHERE_API")
 
 
-class FlagEmbeddingConfig(BaseRankerConfig):
+class BGERerankConfig(BaseRankerConfig):
     model: str = Field(default="BAAI/bge-reranker-large", description="BAAI Reranker model name.")
     use_fp16: bool = Field(default=True, description="Whether to use fp16 for inference.")
 
