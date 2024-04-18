@@ -46,14 +46,14 @@ class AndroidExtEnv(ExtEnv):
             self.width = data.get("width", width)
             self.height = data.get("height", height)
 
-            # self.create_device_path(self.screenshot_dir)
-            # self.create_device_path(self.xml_dir)
+            self.create_device_path(self.screenshot_dir)
+            self.create_device_path(self.xml_dir)
 
     def reset(
-            self,
-            *,
-            seed: Optional[int] = None,
-            options: Optional[dict[str, Any]] = None,
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         super().reset(seed=seed, options=options)
 
