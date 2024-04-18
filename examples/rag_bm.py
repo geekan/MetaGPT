@@ -15,7 +15,7 @@ from metagpt.rag.schema import (
     BM25RetrieverConfig,
     FAISSIndexConfig,
     FAISSRetrieverConfig,
-    FlagEmbeddingConfig,
+    BGERerankConfig,
     LLMRankerConfig,
     CohereRerankConfig,
     ColbertRerankConfig,
@@ -54,8 +54,8 @@ class RAGExample:
             if "all" in dataset_name or dataset.name in dataset_name:
                 output_dir = DATA_PATH / f"{dataset.name}"
 
-                if os.path.exists(output_dir):
-                    logger.info("Loading Exists index!")
+                if output_dir.exists():
+                    logger.info("Loading Existed index!")
                     logger.info(f"Index Path:{output_dir}")
                     self.engine = SimpleEngine.from_index(
                         index_config=FAISSIndexConfig(persist_path=output_dir),
@@ -63,7 +63,7 @@ class RAGExample:
                         retriever_configs=[FAISSRetrieverConfig(), BM25RetrieverConfig()],
                     )
                 else:
-                    logger.info("Loading index from document!")
+                    logger.info("Loading index from documents!")
                     self.engine = SimpleEngine.from_docs(
                         input_files=dataset.document_files,
                         retriever_configs=[FAISSRetrieverConfig()],
@@ -81,7 +81,7 @@ class RAGExample:
                 logger.info(f"=====The {dataset.name} Benchmark dataset assessment is complete!=====")
                 self._print_bm_result(results)
 
-                write_json_file((EXAMPLE_BENCHMARK_PATH \ dataset.name \ "bm_result.json").as_posix()), results, "utf-8")
+                write_json_file((EXAMPLE_BENCHMARK_PATH / dataset.name / "bm_result.json").as_posix(), results, "utf-8")
 
     async def rag_evaluate_single(self, question, reference, ground_truth, print_title=True):
         """This example run rag pipeline, use faiss&bm25 retriever and llm ranker, will print something like:
@@ -126,7 +126,7 @@ class RAGExample:
 
         except Exception as e:
             logger.error(e)
-            return self.benchmark._set_metrics(
+            return self.benchmark.set_metrics(
                 generated_text=LLM_ERROR, ground_truth_text=ground_truth, question=question
             )
 
