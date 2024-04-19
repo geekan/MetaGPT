@@ -71,23 +71,4 @@ dashscope==1.14.1
 rank-bm25==0.2.2  # for tool recommendation
 jieba==0.42.1  # for tool recommendation
 gymnasium==0.29.1
-
-# for clip and ocr
-git+https://github.com/openai/CLIP.git
-protobuf<3.20,>=3.9.2
-modelscope
-tensorflow==2.9.1; os_name == 'linux'
-tensorflow-macos==2.9; os_name == 'darwin'
-keras==2.9.0
-torch
-torchvision
-transformers
-opencv-python
-matplotlib
-pycocotools
 timm
-SentencePiece
-tf_slim
-tf_keras
-pyclipper
-shapely

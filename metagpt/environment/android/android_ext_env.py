@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : The Android external environment to integrate with Android apps
-import os
 import subprocess
 import clip
 import time
@@ -25,7 +24,8 @@ from metagpt.environment.android.env_space import (
 )
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 from metagpt.logs import logger
-from metagpt.utils.download_modelweight import download_model
+from metagpt.utils.common import download_model
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 
 
 class AndroidExtEnv(ExtEnv):
@@ -46,14 +46,14 @@ class AndroidExtEnv(ExtEnv):
             self.width = data.get("width", width)
             self.height = data.get("height", height)
 
-            self.create_device_path(self.screenshot_dir)
-            self.create_device_path(self.xml_dir)
+            #self.create_device_path(self.screenshot_dir)
+            #self.create_device_path(self.xml_dir)
 
     def reset(
-        self,
-        *,
-        seed: Optional[int] = None,
-        options: Optional[dict[str, Any]] = None,
+            self,
+            *,
+            seed: Optional[int] = None,
+            options: Optional[dict[str, Any]] = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         super().reset(seed=seed, options=options)
 
@@ -247,10 +247,9 @@ class AndroidExtEnv(ExtEnv):
         exit_res = self.execute_adb_with_cmd(adb_cmd)
         return exit_res
 
-    @mark_as_writeable
     def _ocr_text(self, text: str) -> list:
-        if not os.path.exists(self.screenshot_dir):
-            os.makedirs(self.screenshot_dir)
+        if not self.screenshot_dir.exists():
+            self.screenshot_dir.mkdir(parents=True, exist_ok=True)
         image = self.get_screenshot("screenshot", self.screenshot_dir)
         ocr_detection = pipeline(Tasks.ocr_detection, model="damo/cv_resnet18_ocr-detection-line-level_damo")
         ocr_recognition = pipeline(Tasks.ocr_recognition, model="damo/cv_convnextTiny_ocr-recognition-document_damo")
@@ -302,8 +301,8 @@ class AndroidExtEnv(ExtEnv):
 
     @mark_as_writeable
     def user_click_icon(self, icon_shape_color: str) -> str:
-        if not os.path.exists(self.screenshot_dir):
-            os.makedirs(self.screenshot_dir)
+        if not self.screenshot_dir.exists():
+            self.screenshot_dir.mkdir(parents=True, exist_ok=True)
         screenshot_path = self.get_screenshot("screenshot", self.screenshot_dir)
         image, device = screenshot_path, 'cpu'
         iw, ih = Image.open(image).size
@@ -311,9 +310,8 @@ class AndroidExtEnv(ExtEnv):
         if iw > ih:
             x, y = y, x
             iw, ih = ih, iw
-        # 下载权重文件
         file_url = 'https://huggingface.co/ShilongLiu/GroundingDINO/blob/main/groundingdino_swint_ogc.pth'  # 加载远程model
-        target_folder = 'workspace/weights'
+        target_folder = Path(f'{DEFAULT_WORKSPACE_ROOT}/weights')
         file_path = download_model(file_url, target_folder)
         groundingdino_model = load_model(file_path, device=device).eval()
         in_coordinate, out_coordinate = det(image, "icon", groundingdino_model)  # 检测icon
@@ -324,22 +322,18 @@ class AndroidExtEnv(ExtEnv):
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)
 
         else:
-            temp_file = "workspace/temp"
-            if not os.path.exists(temp_file):
-                os.mkdir(temp_file)
-            hash_table, clip_filter= [],[]
+            temp_file = Path(f"{DEFAULT_WORKSPACE_ROOT}/temp")
+            if not temp_file.exists():
+                temp_file.mkdir(parents=True, exist_ok=True)
+            hash_table, clip_filter = [], []
             for i, (td, box) in enumerate(zip(in_coordinate, out_coordinate)):
                 if crop_for_clip(image, td, i, temp_file):
                     hash_table.append(td)
                     crop_image = f"{i}.jpg"
-                    clip_filter.append(os.path.join(temp_file, crop_image))
+                    clip_filter.append(temp_file.joinpath(crop_image))
             clip_model, clip_preprocess = clip.load("ViT-B/32", device=device)
             clip_filter = clip_for_icon(clip_model, clip_preprocess, clip_filter, icon_shape_color)
             final_box = hash_table[clip_filter]
             tap_coordinate = [(final_box[0] + final_box[2]) / 2, (final_box[1] + final_box[3]) / 2]
             tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)
-
-
-
-
