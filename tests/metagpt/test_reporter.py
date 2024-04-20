@@ -10,6 +10,7 @@ from metagpt.report import (
     BlockType,
     BrowserReporter,
     DocsReporter,
+    EditorReporter,
     NotebookReporter,
     ServerReporter,
     TaskReporter,
@@ -49,7 +50,7 @@ async def test_terminal_report(http_server):
             await reporter.async_report("main.py\n", "output")
             await reporter.async_report("setup.py\n", "output")
     assert all(BlockType.TERMINAL is BlockType(i["block"]) for i in callback_data)
-    assert all(i["uid"] == callback_data[0]["uid"] for i in callback_data[1:])
+    assert all(i["uuid"] == callback_data[0]["uuid"] for i in callback_data[1:])
     assert "".join(i["value"] for i in callback_data if i["name"] != END_MARKER_NAME) == "ls -amain.py\nsetup.py\n"
 
 
@@ -68,7 +69,7 @@ async def test_browser_report(http_server):
             await reporter.async_report(AsyncPage(), "page")
 
     assert all(BlockType.BROWSER is BlockType(i["block"]) for i in callback_data)
-    assert all(i["uid"] == callback_data[0]["uid"] for i in callback_data[1:])
+    assert all(i["uuid"] == callback_data[0]["uuid"] for i in callback_data[1:])
     assert len(callback_data) == 3
     assert callback_data[-1]["name"] == END_MARKER_NAME
     assert callback_data[0]["name"] == "url"
@@ -128,39 +129,41 @@ async def test_notebook_reporter(http_server):
     assert callback_data[-1]["name"] == END_MARKER_NAME
     assert callback_data[-2]["name"] == "path"
     assert callback_data[-2]["value"] == code_path
-    assert all(i["uid"] == callback_data[0]["uid"] for i in callback_data[1:])
+    assert all(i["uuid"] == callback_data[0]["uuid"] for i in callback_data[1:])
     assert [i["value"] for i in callback_data if i["name"] == "content"] == [code, output1, output2]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("data", "file_path", "meta", "block"),
+    ("data", "file_path", "meta", "block", "report_cls"),
     (
         (
             "## Language\n\nen_us\n\n## Programming Language\n\nPython\n\n## Original Requirements\n\nCreate a 2048 gam...",
             "/data/prd.md",
             {"type": "write_prd"},
             BlockType.DOCS,
+            DocsReporter,
         ),
         (
             "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\n\nprint('Hello World')\n",
             "/data/main.py",
             {"type": "write_code"},
-            BlockType.DOCS,
+            BlockType.EDITOR,
+            EditorReporter,
         ),
     ),
     ids=["test_docs_reporter", "test_editor_reporter"],
 )
-async def test_llm_stream_reporter(data, file_path, meta, block, http_server):
+async def test_llm_stream_reporter(data, file_path, meta, block, report_cls, http_server):
     async with callback_server(http_server) as (url, callback_data):
-        async with DocsReporter(callback_url=url, llm_stream=True) as reporter:
+        async with report_cls(callback_url=url, enable_llm_stream=True) as reporter:
             await reporter.async_report(meta, "meta")
             await MockFileLLM(data).aask("")
             await reporter.wait_llm_stream_report()
             await reporter.async_report(file_path, "path")
     assert callback_data
-    assert all(BlockType.DOCS is BlockType(i["block"]) for i in callback_data)
-    assert all(i["uid"] == callback_data[0]["uid"] for i in callback_data[1:])
+    assert all(block is BlockType(i["block"]) for i in callback_data)
+    assert all(i["uuid"] == callback_data[0]["uuid"] for i in callback_data[1:])
     chunks, names = [], set()
     for i in callback_data:
         name = i["name"]

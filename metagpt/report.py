@@ -1,5 +1,4 @@
 import asyncio
-import os
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional, Union
@@ -11,6 +10,7 @@ from playwright.async_api import Page as AsyncPage
 from playwright.sync_api import Page as SyncPage
 from pydantic import BaseModel, Field, PrivateAttr
 
+from metagpt.const import METAGPT_REPORTER_DEFAULT_URL
 from metagpt.logs import create_llm_stream_queue, get_llm_stream_queue
 
 try:
@@ -41,11 +41,9 @@ class ResourceReporter(BaseModel):
 
     block: BlockType = Field(description="The type of block that is reporting the resource")
     uuid: UUID = Field(default_factory=uuid4, description="The unique identifier for the resource")
-    callback_url: str = Field(
-        os.environ.get("METAGPT_OBSERVER_CALLBACK_URL", ""), description="The URL to which the report should be sent"
-    )
     is_chunk: bool = Field(False, description="Indicates whether the report is a chunk of a stream")
-    llm_stream: bool = Field(False, description="Indicates whether to connect to an LLM stream for reporting")
+    enable_llm_stream: bool = Field(False, description="Indicates whether to connect to an LLM stream for reporting")
+    callback_url: str = Field(METAGPT_REPORTER_DEFAULT_URL, description="The URL to which the report should be sent")
     _llm_task: Optional[asyncio.Task] = PrivateAttr(None)
 
     def report(self, value: Any, name: str):
@@ -138,7 +136,7 @@ class ResourceReporter(BaseModel):
     async def __aenter__(self):
         """Enter the asynchronous streaming callback context."""
         self.is_chunk = True
-        if self.llm_stream:
+        if self.enable_llm_stream:
             queue = create_llm_stream_queue()
             self._llm_task = asyncio.create_task(self._llm_stream_report(queue))
         return self
@@ -147,7 +145,7 @@ class ResourceReporter(BaseModel):
         """Exit the asynchronous streaming callback context."""
         await self.async_report(None, END_MARKER_NAME)
         self.is_chunk = False
-        if self.llm_stream:
+        if self.enable_llm_stream:
             self._llm_task.cancel()
             self._llm_task = None
 
