@@ -140,4 +140,8 @@ LLM_API_TIMEOUT = 300
 # Assistant alias
 ASSISTANT_ALIAS = "response"
 
+# Markdown
+MARKDOWN_TITLE_PREFIX = "## "
+
+# Reporter
 METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")

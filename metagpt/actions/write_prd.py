@@ -105,7 +105,9 @@ class WritePRD(Action):
         project_name = self.project_name
         context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, exclude=exclude)  # schema=schema
+        node = await WRITE_PRD_NODE.fill(
+            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+        )  # schema=schema
         await self._rename_workspace(node)
         new_prd_doc = await self.repo.docs.prd.save(
             filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
