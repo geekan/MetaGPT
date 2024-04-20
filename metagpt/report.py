@@ -40,7 +40,7 @@ class ResourceReporter(BaseModel):
     """Base class for resource reporting."""
 
     block: BlockType = Field(description="The type of block that is reporting the resource")
-    uid: UUID = Field(default_factory=uuid4, description="The unique identifier for the resource")
+    uuid: UUID = Field(default_factory=uuid4, description="The unique identifier for the resource")
     callback_url: str = Field(
         os.environ.get("METAGPT_OBSERVER_CALLBACK_URL", ""), description="The URL to which the report should be sent"
     )
