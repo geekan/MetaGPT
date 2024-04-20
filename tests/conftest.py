@@ -247,14 +247,16 @@ def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, sear
 
 @pytest.fixture
 def http_server():
-    async def handler(request):
-        return aiohttp.web.Response(
-            text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-            <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
-            content_type="text/html",
-        )
+    async def start(handler=None):
+        if handler is None:
 
-    async def start():
+            async def handler(request):
+                return aiohttp.web.Response(
+                    text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+                    <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
+                    content_type="text/html",
+                )
+
         server = aiohttp.web.Server(handler)
         runner = aiohttp.web.ServerRunner(server)
         await runner.setup()

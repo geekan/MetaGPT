@@ -8,7 +8,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import sys
+from contextvars import ContextVar
 from datetime import datetime
 from functools import partial
 from typing import Any
@@ -17,6 +19,8 @@ from loguru import logger as _logger
 from pydantic import BaseModel, Field
 
 from metagpt.const import METAGPT_ROOT
+
+LLM_STREAM_QUEUE: ContextVar[asyncio.Queue] = ContextVar("llm-stream")
 
 
 class ToolLogItem(BaseModel):
@@ -46,6 +50,20 @@ logger = define_log_level()
 
 
 def log_llm_stream(msg):
+    """
+    Logs a message to the LLM stream.
+
+    Args:
+        msg: The message to be logged.
+
+    Notes:
+        If the LLM_STREAM_QUEUE has not been set (e.g., if `create_llm_stream_queue` has not been called),
+        the message will not be added to the LLM stream queue.
+    """
+
+    queue = get_llm_stream_queue()
+    if queue:
+        queue.put_nowait(msg)
     _llm_stream_log(msg)
 
 
@@ -86,3 +104,23 @@ _tool_output_log = (
 async def _tool_output_log_async(*args, **kwargs):
     # async version
     pass
+
+
+def create_llm_stream_queue():
+    """Creates a new LLM stream queue and sets it in the context variable.
+
+    Returns:
+        The newly created asyncio.Queue instance.
+    """
+    queue = asyncio.Queue()
+    LLM_STREAM_QUEUE.set(queue)
+    return queue
+
+
+def get_llm_stream_queue():
+    """Retrieves the current LLM stream queue from the context variable.
+
+    Returns:
+        The asyncio.Queue instance if set, otherwise None.
+    """
+    return LLM_STREAM_QUEUE.get(None)

@@ -142,3 +142,6 @@ ASSISTANT_ALIAS = "response"
 
 # Markdown
 MARKDOWN_TITLE_PREFIX = "## "
+
+# Reporter
+METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
