@@ -1,0 +1,5 @@
+llm:
+  api_type: 'claude' # or anthropic
+  base_url: 'https://api.anthropic.com'
+  api_key: 'YOUR_API_KEY'
+  model: 'claude-3-opus-20240229'
