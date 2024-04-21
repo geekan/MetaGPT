@@ -57,6 +57,8 @@ TOKEN_COSTS = {
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
     "microsoft/wizardlm-2-8x22b": {"prompt": 0.00108, "completion": 0.00108},  # for openrouter, start
+    "meta-llama/llama-3-70b-instruct": {"prompt": 0.008, "completion": 0.008},
+    "llama3-70b-8192": {"prompt": 0.0059, "completion": 0.0079},
     "openai/gpt-3.5-turbo-0125": {"prompt": 0.0005, "completion": 0.0015},
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
 }
@@ -190,6 +192,8 @@ TOKEN_MAX = {
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
     "microsoft/wizardlm-2-8x22b": 65536,
+    "meta-llama/llama-3-70b-instruct": 8192,
+    "llama3-70b-8192": 8192,
     "openai/gpt-3.5-turbo-0125": 16385,
     "openai/gpt-4-turbo-preview": 128000,
 }
