@@ -125,7 +125,7 @@ DEFAULT_CONFIG = """# Full Example: https://github.com/geekan/MetaGPT/blob/main/
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
 llm:
   api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
-  model: "gpt-4-turbo"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  model: "gpt-4-turbo"  # or gpt-4-turbo / gpt-4-turbo
   base_url: "https://api.openai.com/v1"  # or forward url / other llm url
   api_key: "YOUR_API_KEY"
 """
