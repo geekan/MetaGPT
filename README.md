@@ -107,7 +107,7 @@ repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path
 print(repo)  # it will print the repo structure with files
 ```
 
-You can also use its [Data Interpreter](https://github.com/geekan/MetaGPT/tree/main/examples/di)
+You can also use [Data Interpreter](https://github.com/geekan/MetaGPT/tree/main/examples/di) to write code:
 
 ```python
 import asyncio
