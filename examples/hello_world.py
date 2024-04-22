@@ -15,7 +15,6 @@ async def ask_and_print(question: str, llm: LLM, system_prompt) -> str:
     logger.info(f"Q: {question}")
     rsp = await llm.aask(question, system_msgs=[system_prompt])
     logger.info(f"A: {rsp}")
-    logger.info("\n")
     return rsp
 
 
@@ -38,7 +37,7 @@ async def lowlevel_api_example(llm: LLM):
 async def main():
     llm = LLM()
     await ask_and_print("what's your name?", llm, "I'm a helpful AI assistant.")
-    await ask_and_print("who are you?", llm, "just answer 'I'am robot' if the question is 'who are you'")
+    await ask_and_print("who are you?", llm, "just answer 'I am a robot' if the question is 'who are you'")
     await lowlevel_api_example(llm)
 
 
