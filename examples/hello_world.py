@@ -3,7 +3,7 @@
 """
 @Time    : 2023/5/6 14:13
 @Author  : alexanderwu
-@File    : llm_hello_world.py
+@File    : hello_world.py
 """
 import asyncio
 
@@ -11,20 +11,16 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 
 
-async def main():
-    llm = LLM()
-    # llm type check
-    question = "what's your name"
-    logger.info(f"{question}: ")
-    logger.info(await llm.aask(question))
-    logger.info("\n\n")
+async def ask_and_print(question: str, llm: LLM, system_prompt) -> str:
+    logger.info(f"Q: {question}")
+    rsp = await llm.aask(question, system_msgs=[system_prompt])
+    logger.info(f"A: {rsp}")
+    logger.info("\n")
+    return rsp
 
-    logger.info(
-        await llm.aask(
-            "who are you", system_msgs=["act as a robot, just answer 'I'am robot' if the question is 'who are you'"]
-        )
-    )
 
+async def lowlevel_api_example(llm: LLM):
+    logger.info("low level api example")
     logger.info(await llm.aask_batch(["hi", "write python hello world."]))
 
     hello_msg = [{"role": "user", "content": "count from 1 to 10. split by newline."}]
@@ -37,6 +33,13 @@ async def main():
     # check completion if exist to test llm complete functions
     if hasattr(llm, "completion"):
         logger.info(llm.completion(hello_msg))
+
+
+async def main():
+    llm = LLM()
+    await ask_and_print("what's your name?", llm, "I'm a helpful AI assistant.")
+    await ask_and_print("who are you?", llm, "just answer 'I'am robot' if the question is 'who are you'")
+    await lowlevel_api_example(llm)
 
 
 if __name__ == "__main__":
