@@ -166,7 +166,7 @@ class WriteCode(Action):
         if not task_doc.content:
             task_doc = project_repo.docs.task.get(filename=task_doc.filename)
         m = json.loads(task_doc.content)
-        code_filenames = m.get(TASK_LIST.key, []) if use_inc else m.get(REFINED_TASK_LIST.key, [])
+        code_filenames = m.get(TASK_LIST.key, []) if not use_inc else m.get(REFINED_TASK_LIST.key, [])
         codes = []
         src_file_repo = project_repo.srcs
 
