@@ -1,5 +1,5 @@
 llm:
-  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  api_type: "openai"  # or azure / ollama / groq etc.
   base_url: "YOUR_BASE_URL"
   api_key: "YOUR_API_KEY"
   model: "gpt-4-turbo"  # or gpt-3.5-turbo
@@ -7,6 +7,7 @@ llm:
   # timeout: 600 # Optional. If set to 0, default value is 300.
   # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
   pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+
 
 # RAG Embedding.
 # For backward compatibility, if the embedding is not set and the llm's api_type is either openai or azure, the llm's config will be used. 
