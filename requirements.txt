@@ -12,12 +12,12 @@ typer==0.9.0
 lancedb==0.4.0
 loguru==0.6.0
 meilisearch==0.21.0
-numpy==1.24.3
-openai==1.6.1
+numpy>=1.24.3
+openai>=1.6.1
 openpyxl
 beautifulsoup4==4.12.3
 pandas==2.1.1
-pydantic==2.5.3
+pydantic>=2.5.3
 #pygame==2.1.3
 #pymilvus==2.2.8
 # pytest==7.2.2 # test extras require
