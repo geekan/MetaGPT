@@ -15,6 +15,7 @@ from metagpt.configs.browser_config import BrowserConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
 from metagpt.configs.redis_config import RedisConfig
+from metagpt.configs.role_custom_config import RoleCustomConfig
 from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
@@ -75,6 +76,9 @@ class Config(CLIParams, YamlModel):
     iflytek_api_key: str = ""
     azure_tts_subscription_key: str = ""
     azure_tts_region: str = ""
+
+    # Role's custom configuration
+    roles: Optional[List[RoleCustomConfig]] = None
 
     @classmethod
     def from_home(cls, path):

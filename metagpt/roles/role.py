@@ -43,7 +43,6 @@ from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 if TYPE_CHECKING:
     from metagpt.environment import Environment  # noqa: F401
 
-
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
 
