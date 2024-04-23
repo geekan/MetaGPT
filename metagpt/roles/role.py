@@ -31,6 +31,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.context_mixin import ContextMixin
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
@@ -42,7 +43,6 @@ from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 if TYPE_CHECKING:
     from metagpt.environment import Environment  # noqa: F401
-
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -167,6 +167,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if self.is_human:
             self.llm = HumanProvider(None)
 
+        if self.context.config.roles:
+            _context, _in = self.get_custom_role_config()
+            if _in:
+                self.context = _context
+                self.llm = LLM(llm_config=self.context.config.llm)
+
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
@@ -239,6 +245,29 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     @property
     def _setting(self):
         return f"{self.name}({self.profile})"
+
+    def get_custom_role_config(self):
+        """
+        check and get current role's custom config
+        1.Check if the custom configurations exist
+        2.Check if the current role exist in custom configurations
+        3.Update corresponding configurations item by item based on custom configurations
+        :return:
+            _context:replaced the corresponding configuration context with custom config
+            _in:current role has custom config
+        """
+        _context = self.context
+        _in = False
+        if self and self.context.config.roles:
+            for role_config in self.context.config.roles:
+                if (not bool(self.role_id) and self.role_id == role_config.role) or type(
+                        self).__name__ == role_config.role:
+                    _in = True
+                    for key, _ in role_config.model_fields.items():
+                        if key not in ["role", "extra_fields"]:
+                            setattr(_context.config, key, getattr(role_config, key))
+                    break
+        return _context, _in
 
     def _check_actions(self):
         """Check actions and set llm and prefix for each action."""
