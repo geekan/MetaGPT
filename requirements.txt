@@ -58,7 +58,7 @@ typing-extensions==4.9.0
 socksio~=1.0.0
 gitignore-parser==0.1.9
 # connexion[uvicorn]~=3.0.5 # Used by metagpt/tools/openapi_v3_hello.py
-websockets~=11.0
+websockets>=10.0,<12.0
 networkx~=3.2.1
 google-generativeai==0.4.1
 playwright>=1.26  # used at metagpt/tools/libs/web_scraping.py
