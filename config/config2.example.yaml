@@ -14,7 +14,6 @@ llm:
   # See for more: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 
 # Role's custom configuration
-# Priority: Role's configuration > Global configuration
 roles:
   - role: "ProductManager" # role's className or role's role_id
     llm:

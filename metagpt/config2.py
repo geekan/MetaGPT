@@ -77,7 +77,7 @@ class Config(CLIParams, YamlModel):
     azure_tts_subscription_key: str = ""
     azure_tts_region: str = ""
 
-    # Role's custom configuration, Priority: Role's configuration > Global configuration
+    # Role's custom configuration
     roles: Optional[List[RoleCustomConfig]] = None
 
     @classmethod
