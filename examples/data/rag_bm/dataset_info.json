@@ -16,4 +16,5 @@
       "document_file":["documents.txt"],
       "gt_file":"answer.json"
     }
+  }
 ]
