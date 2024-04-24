@@ -26,10 +26,6 @@ class TestSimpleEngine:
         return mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
 
     @pytest.fixture
-    def mock_vector_store_index(self, mocker):
-        return mocker.patch("metagpt.rag.engines.simple.VectorStoreIndex.from_documents")
-
-    @pytest.fixture
     def mock_get_retriever(self, mocker):
         return mocker.patch("metagpt.rag.engines.simple.get_retriever")
 
@@ -45,7 +41,6 @@ class TestSimpleEngine:
         self,
         mocker,
         mock_simple_directory_reader,
-        mock_vector_store_index,
         mock_get_retriever,
         mock_get_rankers,
         mock_get_response_synthesizer,
@@ -81,11 +76,8 @@ class TestSimpleEngine:
 
         # Assert
         mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
-        mock_vector_store_index.assert_called_once()
-        mock_get_retriever.assert_called_once_with(
-            configs=retriever_configs, index=mock_vector_store_index.return_value
-        )
-        mock_get_rankers.assert_called_once_with(configs=ranker_configs, llm=llm)
+        mock_get_retriever.assert_called_once()
+        mock_get_rankers.assert_called_once()
         mock_get_response_synthesizer.assert_called_once_with(llm=llm)
         assert isinstance(engine, SimpleEngine)
 
@@ -119,7 +111,7 @@ class TestSimpleEngine:
 
         # Assert
         assert isinstance(engine, SimpleEngine)
-        assert engine.index is not None
+        assert engine._transformations is not None
 
     def test_from_objs_with_bm25_config(self):
         # Setup
@@ -137,6 +129,7 @@ class TestSimpleEngine:
     def test_from_index(self, mocker, mock_llm, mock_embedding):
         # Mock
         mock_index = mocker.MagicMock(spec=VectorStoreIndex)
+        mock_index.as_retriever.return_value = "retriever"
         mock_get_index = mocker.patch("metagpt.rag.engines.simple.get_index")
         mock_get_index.return_value = mock_index
 
@@ -149,7 +142,7 @@ class TestSimpleEngine:
 
         # Assert
         assert isinstance(engine, SimpleEngine)
-        assert engine.index is mock_index
+        assert engine._retriever == "retriever"
 
     @pytest.mark.asyncio
     async def test_asearch(self, mocker):
@@ -200,14 +193,11 @@ class TestSimpleEngine:
 
         mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
 
-        mock_index = mocker.MagicMock(spec=VectorStoreIndex)
-        mock_index._transformations = mocker.MagicMock()
-
         mock_run_transformations = mocker.patch("metagpt.rag.engines.simple.run_transformations")
         mock_run_transformations.return_value = ["node1", "node2"]
 
         # Setup
-        engine = SimpleEngine(retriever=mock_retriever, index=mock_index)
+        engine = SimpleEngine(retriever=mock_retriever)
         input_files = ["test_file1", "test_file2"]
 
         # Exec
@@ -230,7 +220,7 @@ class TestSimpleEngine:
                 return ""
 
         objs = [CustomTextNode(text=f"text_{i}", metadata={"obj": f"obj_{i}"}) for i in range(2)]
-        engine = SimpleEngine(retriever=mock_retriever, index=mocker.MagicMock())
+        engine = SimpleEngine(retriever=mock_retriever)
 
         # Exec
         engine.add_objs(objs=objs)

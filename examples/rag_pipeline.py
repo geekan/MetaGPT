@@ -40,7 +40,10 @@ class Player(BaseModel):
 
 
 class RAGExample:
-    """Show how to use RAG."""
+    """Show how to use RAG.
+
+    Default engine use LLM Reranker, if the answer from the LLM is incorrect, may encounter `IndexError: list index out of range`.
+    """
 
     def __init__(self, engine: SimpleEngine = None):
         self._engine = engine
@@ -59,6 +62,7 @@ class RAGExample:
     def engine(self, value: SimpleEngine):
         self._engine = value
 
+    @handle_exception
     async def run_pipeline(self, question=QUESTION, print_title=True):
         """This example run rag pipeline, use faiss retriever and llm ranker, will print something like:
 
@@ -79,6 +83,7 @@ class RAGExample:
         answer = await self.engine.aquery(question)
         self._print_query_result(answer)
 
+    @handle_exception
     async def add_docs(self):
         """This example show how to add docs.
 
@@ -148,6 +153,7 @@ class RAGExample:
         except Exception as e:
             logger.error(f"nodes is empty, llm don't answer correctly, exception: {e}")
 
+    @handle_exception
     async def init_objects(self):
         """This example show how to from objs, will print something like:
 
@@ -160,6 +166,7 @@ class RAGExample:
         await self.add_objects(print_title=False)
         self.engine = pre_engine
 
+    @handle_exception
     async def init_and_query_chromadb(self):
         """This example show how to use chromadb. how to save and load index. will print something like:
 
@@ -233,7 +240,7 @@ class RAGExample:
 
 
 async def main():
-    """RAG pipeline"""
+    """RAG pipeline."""
     e = RAGExample()
     await e.run_pipeline()
     await e.add_docs()
