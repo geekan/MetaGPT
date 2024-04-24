@@ -220,9 +220,7 @@ class SimpleEngine(RetrieverQueryEngine):
         embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
         llm = llm or get_rag_llm()
 
-        retriever = get_retriever(
-            configs=retriever_configs, nodes=nodes, embed_model=embed_model
-        )  # Default VectorStoreIndex(nodes, embed_model).as_retriever
+        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
         rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
 
         return cls(
