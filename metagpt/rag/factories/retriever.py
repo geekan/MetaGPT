@@ -31,9 +31,9 @@ from metagpt.rag.schema import (
 
 
 def get_or_build_index(build_index_func):
-    """Find index using `_extract_index` method.
+    """Decorator to get or build an index.
 
-    If no index is found, using build_index_func.
+    Get index using `_extract_index` method, if not found, using build_index_func.
     """
 
     @wraps(build_index_func)
