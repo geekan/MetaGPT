@@ -406,7 +406,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response, role=self.profile, cause_by=self.rc.todo, sent_from=self)
+            msg = Message(content=response or "", role=self.profile, cause_by=self.rc.todo, sent_from=self)
         self.rc.memory.add(msg)
 
         return msg

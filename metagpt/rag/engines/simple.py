@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+from llama_index.core import SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.embeddings.mock_embed_model import MockEmbedding
@@ -63,7 +63,7 @@ class SimpleEngine(RetrieverQueryEngine):
         response_synthesizer: Optional[BaseSynthesizer] = None,
         node_postprocessors: Optional[list[BaseNodePostprocessor]] = None,
         callback_manager: Optional[CallbackManager] = None,
-        index: Optional[BaseIndex] = None,
+        transformations: Optional[list[TransformComponent]] = None,
     ) -> None:
         super().__init__(
             retriever=retriever,
@@ -71,7 +71,7 @@ class SimpleEngine(RetrieverQueryEngine):
             node_postprocessors=node_postprocessors,
             callback_manager=callback_manager,
         )
-        self.index = index
+        self._transformations = transformations or self._default_transformations()
 
     @classmethod
     def from_docs(
@@ -103,12 +103,17 @@ class SimpleEngine(RetrieverQueryEngine):
         documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
         cls._fix_document_metadata(documents)
 
-        index = VectorStoreIndex.from_documents(
-            documents=documents,
-            transformations=transformations or [SentenceSplitter()],
-            embed_model=cls._resolve_embed_model(embed_model, retriever_configs),
+        transformations = transformations or cls._default_transformations()
+        nodes = run_transformations(documents, transformations=transformations)
+
+        return cls._from_nodes(
+            nodes=nodes,
+            transformations=transformations,
+            embed_model=embed_model,
+            llm=llm,
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
         )
-        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
     @classmethod
     def from_objs(
@@ -137,12 +142,15 @@ class SimpleEngine(RetrieverQueryEngine):
             raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
-        index = VectorStoreIndex(
+
+        return cls._from_nodes(
             nodes=nodes,
-            transformations=transformations or [SentenceSplitter()],
-            embed_model=cls._resolve_embed_model(embed_model, retriever_configs),
+            transformations=transformations,
+            embed_model=embed_model,
+            llm=llm,
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
         )
-        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
     @classmethod
     def from_index(
@@ -183,7 +191,7 @@ class SimpleEngine(RetrieverQueryEngine):
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
         self._fix_document_metadata(documents)
 
-        nodes = run_transformations(documents, transformations=self.index._transformations)
+        nodes = run_transformations(documents, transformations=self._transformations)
         self._save_nodes(nodes)
 
     def add_objs(self, objs: list[RAGObject]):
@@ -200,6 +208,29 @@ class SimpleEngine(RetrieverQueryEngine):
         self._persist(str(persist_dir), **kwargs)
 
     @classmethod
+    def _from_nodes(
+        cls,
+        nodes: list[BaseNode],
+        transformations: Optional[list[TransformComponent]] = None,
+        embed_model: BaseEmbedding = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ) -> "SimpleEngine":
+        embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
+        llm = llm or get_rag_llm()
+
+        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
+        rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
+
+        return cls(
+            retriever=retriever,
+            node_postprocessors=rankers,
+            response_synthesizer=get_response_synthesizer(llm=llm),
+            transformations=transformations,
+        )
+
+    @classmethod
     def _from_index(
         cls,
         index: BaseIndex,
@@ -208,6 +239,7 @@ class SimpleEngine(RetrieverQueryEngine):
         ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         llm = llm or get_rag_llm()
+
         retriever = get_retriever(configs=retriever_configs, index=index)  # Default index.as_retriever
         rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
 
@@ -215,7 +247,6 @@ class SimpleEngine(RetrieverQueryEngine):
             retriever=retriever,
             node_postprocessors=rankers,
             response_synthesizer=get_response_synthesizer(llm=llm),
-            index=index,
         )
 
     def _ensure_retriever_modifiable(self):
@@ -266,3 +297,7 @@ class SimpleEngine(RetrieverQueryEngine):
             return MockEmbedding(embed_dim=1)
 
         return embed_model or get_rag_embedding()
+
+    @staticmethod
+    def _default_transformations():
+        return [SentenceSplitter()]

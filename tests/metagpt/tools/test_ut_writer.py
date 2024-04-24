@@ -56,7 +56,7 @@ class TestUTWriter:
                     )
                 ],
                 created=1706710532,
-                model="gpt-3.5-turbo-1106",
+                model="gpt-4-turbo",
                 object="chat.completion",
                 system_fingerprint="fp_04f9a1eebf",
                 usage=CompletionUsage(completion_tokens=35, prompt_tokens=1982, total_tokens=2017),
