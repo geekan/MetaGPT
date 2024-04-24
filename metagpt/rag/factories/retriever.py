@@ -1,6 +1,8 @@
 """RAG Retriever Factory."""
 
 
+from functools import wraps
+
 import chromadb
 import faiss
 from llama_index.core import StorageContext, VectorStoreIndex
@@ -26,6 +28,22 @@ from metagpt.rag.schema import (
     ElasticsearchRetrieverConfig,
     FAISSRetrieverConfig,
 )
+
+
+def get_or_build_index(build_index_func):
+    """Find index using `_extract_index` method.
+
+    If no index is found, using build_index_func.
+    """
+
+    @wraps(build_index_func)
+    def wrapper(self, config, **kwargs):
+        index = self._extract_index(config, **kwargs)
+        if index is not None:
+            return index
+        return build_index_func(self, config, **kwargs)
+
+    return wrapper
 
 
 class RetrieverFactory(ConfigBasedFactory):
@@ -59,12 +77,13 @@ class RetrieverFactory(ConfigBasedFactory):
         return index.as_retriever()
 
     def _create_faiss_retriever(self, config: FAISSRetrieverConfig, **kwargs) -> FAISSRetriever:
-        config.index = self._extract_index(config, **kwargs) or self._build_faiss_index(config, **kwargs)
+        config.index = self._build_faiss_index(config, **kwargs)
 
         return FAISSRetriever(**config.model_dump())
 
     def _create_bm25_retriever(self, config: BM25RetrieverConfig, **kwargs) -> DynamicBM25Retriever:
-        nodes = self._extract_nodes(config, **kwargs)
+        index = self._extract_index(config, **kwargs)
+        nodes = list(index.docstore.docs.values()) if index else self._extract_nodes(config, **kwargs)
 
         return DynamicBM25Retriever(nodes=nodes, **config.model_dump())
 
@@ -95,11 +114,13 @@ class RetrieverFactory(ConfigBasedFactory):
 
         return index
 
+    @get_or_build_index
     def _build_faiss_index(self, config: FAISSRetrieverConfig, **kwargs) -> VectorStoreIndex:
         vector_store = FaissVectorStore(faiss_index=faiss.IndexFlatL2(config.dimensions))
 
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 
+    @get_or_build_index
     def _build_chroma_index(self, config: ChromaRetrieverConfig, **kwargs) -> VectorStoreIndex:
         db = chromadb.PersistentClient(path=str(config.persist_path))
         chroma_collection = db.get_or_create_collection(config.collection_name, metadata=config.metadata)
@@ -107,6 +128,7 @@ class RetrieverFactory(ConfigBasedFactory):
 
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 
+    @get_or_build_index
     def _build_es_index(self, config: ElasticsearchRetrieverConfig, **kwargs) -> VectorStoreIndex:
         vector_store = ElasticsearchStore(**config.store_config.model_dump())
 

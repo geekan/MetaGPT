@@ -119,3 +119,19 @@ class TestRetrieverFactory:
         extracted_index = self.retriever_factory._extract_index(index=mock_vector_store_index)
 
         assert extracted_index == mock_vector_store_index
+
+    def test_get_or_build_when_get(self, mocker):
+        want = "existing_index"
+        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=want)
+
+        got = self.retriever_factory._build_es_index(None)
+
+        assert got == want
+
+    def test_get_or_build_when_build(self, mocker):
+        want = "call_build_es_index"
+        mocker.patch.object(self.retriever_factory, "_build_es_index", return_value=want)
+
+        got = self.retriever_factory._build_es_index(None)
+
+        assert got == want
