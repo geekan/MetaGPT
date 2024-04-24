@@ -10,5 +10,10 @@
       "document_file":["documents.txt"],
       "gt_file":"answer.json"
     }
-  }
+  },
+  {
+    "RGB_EN":{
+      "document_file":["documents.txt"],
+      "gt_file":"answer.json"
+    }
 ]
