@@ -45,9 +45,8 @@ class AndroidExtEnv(ExtEnv):
             (width, height) = self.device_shape
             self.width = data.get("width", width)
             self.height = data.get("height", height)
-
-            #self.create_device_path(self.screenshot_dir)
-            #self.create_device_path(self.xml_dir)
+            self.create_device_path(self.screenshot_dir)
+            self.create_device_path(self.xml_dir)
 
     def reset(
             self,
@@ -269,7 +268,7 @@ class AndroidExtEnv(ExtEnv):
             ocr_result[0], ocr_result[1], ocr_result[2], ocr_result[3], ocr_result[4], ocr_result[5])
         if len(in_coordinate) == 0:
             logger.info(f"No App named {app_name}.")
-            return "no"
+            return "no app here"
         else:
             tap_coordinate = [
                 (in_coordinate[0][0] + in_coordinate[0][2]) / 2,
@@ -336,4 +335,5 @@ class AndroidExtEnv(ExtEnv):
             final_box = hash_table[clip_filter]
             tap_coordinate = [(final_box[0] + final_box[2]) / 2, (final_box[1] + final_box[3]) / 2]
             tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
+            print(tap_coordinate[0] * x, tap_coordinate[1] * y)
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)

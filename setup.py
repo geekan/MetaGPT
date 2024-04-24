@@ -62,6 +62,7 @@ extras_require = {
         "pyclipper",
         "shapely",
         "groundingdino-py",
+        "datasets==2.18.0",
     ],
 }
 
