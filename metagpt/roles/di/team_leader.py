@@ -8,7 +8,7 @@ from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.prompts.di.team_leader import CMD_PROMPT, prepare_command_prompt
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
-from metagpt.strategy.experience_retriever import SimplePlanningExpRetriever
+from metagpt.strategy.experience_retriever import SimpleExpRetriever
 from metagpt.strategy.planner import Planner
 from metagpt.strategy.thinking_command import Command
 from metagpt.utils.common import CodeParser
@@ -37,7 +37,7 @@ class TeamLeader(Role):
     def _run_env_command(self, cmd):
         assert isinstance(self.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
         if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
-            self.rc.env.publish_message(Message(sent_from=self.profile, **cmd["args"]), publicer=self.profile)
+            self.publish_message(Message(sent_from=self.profile, **cmd["args"]))
         elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
             self.rc.env.ask_human(**cmd["args"])
         elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
@@ -89,7 +89,7 @@ class TeamLeader(Role):
             if role.profile == "TeamLeader":
                 continue
             team_info += f"{role.name}: {role.profile}, {role.goal}\n"
-        example = SimplePlanningExpRetriever().retrieve()
+        example = SimpleExpRetriever().retrieve()
 
         prompt = CMD_PROMPT.format(
             plan_status=plan_status,
@@ -111,3 +111,12 @@ class TeamLeader(Role):
         self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
         return Message(content="Commands executed", role="assistant")
+
+    def publish_message(self, msg):
+        """If the role belongs to env, then the role's messages will be broadcast to env"""
+        if not msg:
+            return
+        if not self.rc.env:
+            # If env does not exist, do not publish the message
+            return
+        self.rc.env.publish_message(msg, publicer=self.profile)
