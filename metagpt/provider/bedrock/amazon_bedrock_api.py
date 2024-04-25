@@ -6,7 +6,11 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
-import boto3
+try:
+    import boto3
+except ImportError:
+    raise ImportError(
+        "boto3 not found! please install it by `pip install boto3` first ")
 
 
 @register_provider([LLMType.AMAZON_BEDROCK])
@@ -97,7 +101,7 @@ class AmazonBedrockLLM(BaseLLM):
         return full_text
 
     # boto3 don't support support asynchronous calls.
-    # for asynchronous version of boto3,check out:
+    # for asynchronous version of boto3, check out:
     # https://aioboto3.readthedocs.io/en/latest/usage.html
     # However,aioboto3 doesn't support invoke model
 
