@@ -11,7 +11,19 @@ class MistralProvider(BaseBedrockProvider):
 
 class AnthropicProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
-    pass
+    def get_request_body(self, messages, **generate_kwargs):
+        body = json.dumps(
+            {"messages": messages, "anthropic_version": "bedrock-2023-05-31", **generate_kwargs})
+        return body
+
+    def get_choice_text(self, response) -> str:
+        response_body = self._get_response_body_json(response)
+        completions = response_body["content"][0]['text']
+        return completions
+
+    def get_choice_text_from_stream(self, event):
+        completions = json.loads(event["chunk"]["bytes"])["content"][0]["text"]
+        return completions
 
 
 class CohereProvider(BaseBedrockProvider):
@@ -28,7 +40,8 @@ class MetaProvider(BaseBedrockProvider):
         return completions
 
     def get_choice_text_from_stream(self, event):
-        return json.loads(event["chunk"]["bytes"])["generation"]
+        completions = json.loads(event["chunk"]["bytes"])["generation"]
+        return completions
 
 
 class Ai21Provider(BaseBedrockProvider):
