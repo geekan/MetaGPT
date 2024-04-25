@@ -1,15 +1,14 @@
 
 import json
-from typing import Coroutine, Literal
+from typing import Literal
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.logs import log_llm_stream, logger
-from botocore.config import Config
-import boto3
-
 from metagpt.provider.bedrock.bedrock_provider import get_provider
+from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS
+import boto3
 
 
 @register_provider([LLMType.AMAZON_BEDROCK])
@@ -40,8 +39,9 @@ class AmazonBedrockLLM(BaseLLM):
 
     @property
     def _generate_kwargs(self):
+        # for now only use temperature due to the difference of request body
         return {
-            "temperature": self.config.get("temperature", 0.3),
+            "temperature": self.config.get("temperature", 0.1),
         }
 
     def completion(self, messages: list[dict]):
@@ -51,10 +51,14 @@ class AmazonBedrockLLM(BaseLLM):
             modelId=self.config.model, body=request_body
         )
         completions = self.provider.get_choice_text(response)
-        log_llm_stream(completions)
         return completions
 
     def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+        if self.config.model in NOT_SUUPORT_STREAM_MODELS:
+            logger.warning(
+                f"model {self.config.model} doesn't support streaming output!")
+            return self.completion(messages)
+
         request_body = self.provider.get_request_body(
             messages, **self._generate_kwargs)
         response = self.__client.invoke_model_with_response_stream(
@@ -90,5 +94,5 @@ if __name__ == '__main__':
         {"role": "assistant", "content": "hello,my friend"},
         {"role": "user", "content": "What is your name?"}]
     llm = AmazonBedrockLLM(my_config)
-    llm.completion(messages)
-    llm._chat_completion_stream(messages)
+    print(llm.completion(messages))
+    print(llm._chat_completion_stream(messages))
