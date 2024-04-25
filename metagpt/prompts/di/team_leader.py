@@ -46,8 +46,8 @@ Pay close attention to the Example provided
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use finish_task, DON'T append a new task.
 
-# Your commands in a json array, in the following output format:
-Some text indicating your thoughts, including how you categorize the requirement based on Note (is it 1., 2., or 3.?) or how you should update the plan status. Then a json array of commands.
+# Your commands in a json array, in the following output format, always output a json array, if there is nothing to do, use the pass command:
+Some text indicating your thoughts, such as how you categorize the requirement based on Note (is it 1., 2., or 3.?) or how you should update the plan status. Then a json array of commands.
 ```json
 [
     {{
@@ -56,5 +56,15 @@ Some text indicating your thoughts, including how you categorize the requirement
     }},
     ...
 ]
+```
+"""
+
+FINISH_CURRENT_TASK_CMD = """
+```json
+[
+    {
+        "command_name": "finish_current_task",
+        "args": {{}}
+    }
 ```
 """

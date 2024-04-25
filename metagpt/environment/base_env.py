@@ -19,6 +19,7 @@ from metagpt.environment.api.env_api import (
 )
 from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
+from metagpt.memory import Memory
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
 
@@ -131,7 +132,7 @@ class Environment(ExtEnv):
     desc: str = Field(default="")  # 环境描述
     roles: dict[str, SerializeAsAny["Role"]] = Field(default_factory=dict, validate_default=True)
     member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
-    history: str = ""  # For debug
+    history: Memory = Field(default_factory=Memory)  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
     def reset(
@@ -190,7 +191,7 @@ class Environment(ExtEnv):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
-        self.history += f"\n{message}"  # For debug
+        self.history.add(message)  # For debug
 
         return True
 

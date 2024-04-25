@@ -4,8 +4,13 @@ import json
 
 from pydantic import model_validator
 
+from metagpt.actions.di.run_command import RunCommand
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.prompts.di.team_leader import CMD_PROMPT, prepare_command_prompt
+from metagpt.prompts.di.team_leader import (
+    CMD_PROMPT,
+    FINISH_CURRENT_TASK_CMD,
+    prepare_command_prompt,
+)
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.experience_retriever import SimpleExpRetriever
@@ -37,7 +42,7 @@ class TeamLeader(Role):
     def _run_env_command(self, cmd):
         assert isinstance(self.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
         if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
-            self.publish_message(Message(sent_from=self.profile, **cmd["args"]))
+            self.publish_message(Message(**cmd["args"]))
         elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
             self.rc.env.ask_human(**cmd["args"])
         elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
@@ -121,4 +126,10 @@ class TeamLeader(Role):
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
+        msg.sent_from = self.profile
+        msg.cause_by = RunCommand
         self.rc.env.publish_message(msg, publicer=self.profile)
+
+    def finish_current_task(self):
+        self.planner.plan.finish_current_task()
+        self.rc.memory.add(Message(content=FINISH_CURRENT_TASK_CMD, role="assistant"))
