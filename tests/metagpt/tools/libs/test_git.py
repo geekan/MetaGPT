@@ -49,18 +49,22 @@ def test_login():
 
 
 @pytest.mark.skip
-def test_new_issue():
+@pytest.mark.asyncio
+async def test_new_issue():
     issue = await GitRepository.create_issue(
         repo_name="iorisa/MetaGPT",
         title="This is a new issue",
         body="This is the issue body",
         access_token=get_env("GITHUB_PERSONAL_ACCESS_TOKEN"),
     )
+    print(issue)
     assert issue.number
+    pass
 
 
 @pytest.mark.skip
-def test_new_pr():
+@pytest.mark.asyncio
+async def test_new_pr():
     body = """
     >>> SUMMARY
     >>> Change HTTP library used to send requests
@@ -72,12 +76,26 @@ def test_new_pr():
     pr = await GitRepository.create_pull(
         repo_name="iorisa/MetaGPT",
         base="send18",
-        head="featur/intent_detect",
+        head="fixbug/gbk",
         title="Test pr",
         body=body,
         access_token=get_env("GITHUB_PERSONAL_ACCESS_TOKEN"),
     )
+    print(pr)
     assert pr
+
+
+@pytest.mark.skip
+def test_auth():
+    access_token = get_env("GITHUB_PERSONAL_ACCESS_TOKEN")
+    auth = Auth.Token(access_token)
+    g = Github(auth=auth)
+    u = g.get_user()
+    v = u.get_repos(visibility="public")
+    a = [i.full_name for i in v]
+    assert a
+    print(a)
+    pass
 
 
 if __name__ == "__main__":

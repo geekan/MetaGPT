@@ -339,9 +339,10 @@ class GitRepository:
 
     @staticmethod
     async def create_pull(
-        repo_name: str,
         base: str,
         head: str,
+        base_repo_name: str,
+        head_repo_name: Optional[str] = None,
         *,
         title: Optional[str] = None,
         body: Optional[str] = None,
@@ -355,9 +356,10 @@ class GitRepository:
         Creates a pull request in the specified repository.
 
         Args:
-            repo_name (str): The full repository name (user/repo) where the pull request will be created.
             base (str): The name of the base branch.
             head (str): The name of the head branch.
+            base_repo_name (str): The full repository name (user/repo) where the pull request will be created.
+            head_repo_name (Optional[str], optional): The full repository name (user/repo) where the pull request will merge from. Defaults to None.
             title (Optional[str], optional): The title of the pull request. Defaults to None.
             body (Optional[str], optional): The body of the pull request. Defaults to None.
             maintainer_can_modify (Optional[bool], optional): Whether maintainers can modify the pull request. Defaults to None.
@@ -378,23 +380,37 @@ class GitRepository:
             raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
         auth = auth or Auth.Token(access_token)
         g = Github(auth=auth)
-        repo = g.get_repo(repo_name)
-        x_ratelimit_remaining = repo.raw_headers.get("x-ratelimit-remaining")
+        base_repo = g.get_repo(base_repo_name)
+        head_repo = g.get_repo(head_repo_name) if head_repo_name and head_repo_name != base_repo_name else None
+        x_ratelimit_remaining = base_repo.raw_headers.get("x-ratelimit-remaining")
         if (
             x_ratelimit_remaining
             and bool(re.match(r"^-?\d+$", x_ratelimit_remaining))
             and int(x_ratelimit_remaining) <= 0
         ):
             raise RateLimitError()
-        pr = repo.create_pull(
-            base=base,
-            head=head,
-            title=title,
-            body=body,
-            maintainer_can_modify=maintainer_can_modify,
-            draft=draft,
-            issue=issue,
-        )
+        if not head_repo:
+            pr = base_repo.create_pull(
+                base=base,
+                head=head,
+                title=title,
+                body=body,
+                maintainer_can_modify=maintainer_can_modify,
+                draft=draft,
+                issue=issue,
+            )
+        else:
+            head_branch = base_repo.get_branch(base)
+            base_branch = head_repo.get_branch(head)
+            pr = base_repo.create_pull(
+                base=base_branch.name,
+                head=head_branch.commit.sha,
+                title=title,
+                body=body,
+                maintainer_can_modify=maintainer_can_modify,
+                draft=draft,
+                issue=issue,
+            )
         return pr
 
     @staticmethod
@@ -453,3 +469,23 @@ class GitRepository:
             assignees=assignees,
         )
         return issue
+
+    @staticmethod
+    async def get_repos(access_token: Optional[str] = None, auth: Optional[Auth] = None) -> List[str]:
+        """
+        Fetches a list of public repositories belonging to the authenticated user.
+
+        Args:
+            access_token (Optional[str], optional): The access token for authentication. Defaults to None.
+                Visit `https://github.com/settings/tokens` for obtaining a personal access token.
+            auth (Optional[Auth], optional): The authentication method. Defaults to None.
+                Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html` for more information.
+
+        Returns:
+            List[str]: A list of full names of the public repositories belonging to the user.
+        """
+        auth = auth or Auth.Token(access_token)
+        git = Github(auth=auth)
+        user = git.get_user()
+        v = user.get_repos(visibility="public")
+        return [i.full_name for i in v]
