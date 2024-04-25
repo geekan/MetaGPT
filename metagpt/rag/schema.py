@@ -119,6 +119,16 @@ class ColbertRerankConfig(BaseRankerConfig):
     keep_retrieval_score: bool = Field(default=False, description="Whether to keep the retrieval score in metadata.")
 
 
+class CohereRerankConfig(BaseRankerConfig):
+    model: str = Field(default="rerank-english-v3.0")
+    api_key: str = Field(default="YOUR_COHERE_API")
+
+
+class BGERerankConfig(BaseRankerConfig):
+    model: str = Field(default="BAAI/bge-reranker-large", description="BAAI Reranker model name.")
+    use_fp16: bool = Field(default=True, description="Whether to use fp16 for inference.")
+
+
 class ObjectRankerConfig(BaseRankerConfig):
     field_name: str = Field(..., description="field name of the object, field's value must can be compared.")
     order: Literal["desc", "asc"] = Field(default="desc", description="the direction of order.")
