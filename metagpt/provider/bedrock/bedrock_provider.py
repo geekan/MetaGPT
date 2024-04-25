@@ -1,13 +1,14 @@
 import json
+from typing import Literal
 from metagpt.provider.bedrock.base_provider import BaseBedrockProvider
-from metagpt.provider.bedrock.utils import messages_to_prompt_llama
+from metagpt.provider.bedrock.utils import messages_to_prompt_llama2, messages_to_prompt_llama3
 
 
 class MistralProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html
 
     def messages_to_prompt(self, messages: list[dict]):
-        return messages_to_prompt_llama(messages)
+        return messages_to_prompt_llama2(messages)
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict["outputs"][0]["text"]
@@ -36,8 +37,14 @@ class MetaProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html
     max_tokens_field_name = "max_gen_len"
 
+    def __init__(self, llama_version: Literal["llama2", "llama3"]) -> None:
+        self.llama_version = llama_version
+
     def messages_to_prompt(self, messages: list[dict]):
-        return messages_to_prompt_llama(messages)
+        if self.llama_version == "llama2":
+            return messages_to_prompt_llama2(messages)
+        else:
+            return messages_to_prompt_llama3(messages)
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict["generation"]
@@ -72,17 +79,20 @@ class AmazonProvider(BaseBedrockProvider):
 
 
 PROVIDERS = {
-    "mistral": MistralProvider(),
-    "meta": MetaProvider(),
-    "ai21": Ai21Provider(),
-    "cohere": CohereProvider(),
-    "anthropic": AnthropicProvider(),
-    "amazon": AmazonProvider()
+    "mistral": MistralProvider,
+    "meta": MetaProvider,
+    "ai21": Ai21Provider,
+    "cohere": CohereProvider,
+    "anthropic": AnthropicProvider,
+    "amazon": AmazonProvider
 }
 
 
 def get_provider(model_id: str):
-    model_name = model_id.split(".")[0]  # meta、mistral……
-    if model_name not in PROVIDERS:
-        raise KeyError(f"{model_name} is not supported!")
-    return PROVIDERS[model_name]
+    provider, model_name = model_id.split(".")[0:2]  # meta、mistral……
+    if provider not in PROVIDERS:
+        raise KeyError(f"{provider} is not supported!")
+    if provider == "meta":
+        # distinguish llama2 and llama3
+        return PROVIDERS[provider](model_name[:6])
+    return PROVIDERS[provider]()

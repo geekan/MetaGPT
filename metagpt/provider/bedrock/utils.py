@@ -29,8 +29,10 @@ SUPPORT_STREAM_MODELS = {
     "mistral.mistral-large-2402-v1:0": 32000,
 }
 
+# TODO:use a general function for constructing chat templates.
 
-def messages_to_prompt_llama(messages: list[dict]):
+
+def messages_to_prompt_llama2(messages: list[dict]):
     BOS, EOS = "<s>", "</s>"
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -53,7 +55,20 @@ def messages_to_prompt_llama(messages: list[dict]):
     return prompt
 
 
+def messages_to_prompt_llama3(messages: list[dict]):
+    BOS, EOS = "<|begin_of_text|>", "<|eot_id|>"
+    GENERAL_TEMPLATE = "<|start_header_id|>{role}<|end_header_id|>\n\n{content}<|eot_id|>"
+
+    prompt = f"{BOS}"
+    for message in messages:
+        role = message["role"]
+        content = message["content"]
+        prompt += GENERAL_TEMPLATE.format(role=role, content=content)
+    if role != "assistant":
+        prompt += f"<|start_header_id|>assistant<|end_header_id|>"
+
+    return prompt
+
+
 def get_max_tokens(model_id) -> int:
     return (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
-
-

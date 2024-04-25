@@ -96,4 +96,3 @@ class AmazonBedrockLLM(BaseLLM):
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         return self._chat_completion_stream(messages)
-
