@@ -34,6 +34,7 @@ class CohereProvider(BaseBedrockProvider):
 
 class MetaProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html
+    max_tokens_field_name = "max_gen_len"
 
     def messages_to_prompt(self, messages: list[dict]):
         return messages_to_prompt_llama(messages)
@@ -44,6 +45,7 @@ class MetaProvider(BaseBedrockProvider):
 
 class Ai21Provider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-jurassic2.html
+    max_tokens_field_name = "maxTokens"
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict['completions'][0]["data"]["text"]
@@ -51,6 +53,7 @@ class Ai21Provider(BaseBedrockProvider):
 
 class AmazonProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html
+    max_tokens_field_name = "maxTokenCount"
 
     def get_request_body(self, messages: list[dict], **generate_kwargs):
         body = json.dumps({

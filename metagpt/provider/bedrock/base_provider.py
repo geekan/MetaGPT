@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 class BaseBedrockProvider(ABC):
     # to handle different generation kwargs
+    max_tokens_field_name = "max_tokens"
 
     @abstractmethod
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:

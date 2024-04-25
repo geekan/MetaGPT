@@ -5,7 +5,7 @@ from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.bedrock.bedrock_provider import get_provider
-from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, SUPPORT_STREAM_MODELS
+from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
 import boto3
 
 
@@ -15,6 +15,7 @@ class AmazonBedrockLLM(BaseLLM):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(self.config.model)
+        logger.warning("Amazon bedrock doesn't support async now")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         # access key from https://us-east-1.console.aws.amazon.com/iam
@@ -38,7 +39,13 @@ class AmazonBedrockLLM(BaseLLM):
     @property
     def _generate_kwargs(self) -> dict:
         # for now only use temperature due to the difference of request body
+        model_max_tokens = get_max_tokens(self.config.model)
+        if self.config.max_token > model_max_tokens:
+            max_tokens = model_max_tokens
+        else:
+            max_tokens = self.config.max_token
         return {
+            self.__provider.max_tokens_field_name: max_tokens,
             "temperature": self.config.temperature
         }
 
@@ -59,6 +66,7 @@ class AmazonBedrockLLM(BaseLLM):
 
         request_body = self.__provider.get_request_body(
             messages, **self._generate_kwargs)
+
         response = self.__client.invoke_model_with_response_stream(
             modelId=self.config.model, body=request_body
         )
@@ -75,7 +83,13 @@ class AmazonBedrockLLM(BaseLLM):
 
     async def acompletion(self, messages: list[dict]):
         # Amazon bedrock doesn't support async now
-        return self._achat_completion(messages)
+        return await self._achat_completion(messages)
+
+    async def acompletion_text(self, messages: list[dict], stream: bool = False,
+                               timeout: int = USE_CONFIG_TIMEOUT) -> str:
+        if stream:
+            return await self._achat_completion_stream(messages)
+        return await self._achat_completion(messages)
 
     async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         return self.completion(messages)
