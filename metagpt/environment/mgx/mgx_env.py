@@ -24,6 +24,7 @@ class MGXEnv(Environment):
 
         else:
             # every regular message goes through team leader
+            message.send_to.add(tl.name)
             tl.put_message(message)
 
         return True

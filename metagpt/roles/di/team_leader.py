@@ -110,7 +110,9 @@ class TeamLeader(Role):
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
-        return Message(content="Commands executed", role="assistant")
+        msg = Message(content="Commands executed", role="user", send_to=self)
+        self.rc.memory.add(msg)
+        return msg
 
     def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
