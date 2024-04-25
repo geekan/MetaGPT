@@ -89,7 +89,7 @@ class ResourceReporter(BaseModel):
                 ...     print(value, name)
                 ```
         """
-        cls._report = fn
+        cls._async_report = fn
 
     def _report(self, value: Any, name: str):
         if not self.callback_url:
