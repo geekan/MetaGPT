@@ -132,8 +132,38 @@ async def test_plan_update_and_routing(env):
 
     # TL should mark current task as finished, and forward Product Manager's message to Architect
     # Current task should be updated to the second task
-    plan_cmd = tl.commands[:-1]
+    plan_cmd = tl.commands[0]
     route_cmd = tl.commands[-1]
-    assert "finish_current_task" in [cmd["command_name"] for cmd in plan_cmd]
+    assert plan_cmd["command_name"] == "finish_current_task"
     assert route_cmd["command_name"] == "publish_message"
+    assert route_cmd["args"]["send_to"] == Architect().name
     assert tl.planner.plan.current_task_id == "2"
+
+    # Next step, assuming Architect finishes its task
+    env.publish_message(Message(content=DESIGN_CONTENT, role="Bob(Architect)", sent_from="Bob"))
+    await tl.run()
+    plan_cmd = tl.commands[0]
+    route_cmd = tl.commands[-1]
+    assert plan_cmd["command_name"] == "finish_current_task"
+    assert route_cmd["command_name"] == "publish_message"
+    assert route_cmd["args"]["send_to"] == ProjectManager().name
+    assert tl.planner.plan.current_task_id == "3"
+
+
+@pytest.mark.asyncio
+async def test_reply_to_human(env):
+    requirement = "create a 2048 game"
+
+    tl = env.get_role("Team Leader")
+    env.publish_message(Message(content=requirement))
+    await tl.run()
+
+    # Assuming Product Manager finishes its task
+    env.publish_message(Message(content=PRD_MSG_CONTENT, role="Alice(Product Manager)", sent_from="Alice"))
+    await tl.run()
+
+    # Human inquires about the progress
+    env.publish_message(Message(content="Who is working? How does the project go?"))
+    await tl.run()
+
+    assert tl.commands[0]["command_name"] == "reply_to_human"
