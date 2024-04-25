@@ -1,18 +1,16 @@
-from metagpt.provider.bedrock.base_provider import BaseBedrockProvider
 import json
+from metagpt.provider.bedrock.base_provider import BaseBedrockProvider
+from metagpt.provider.bedrock.utils import messages_to_prompt_llama
 
 
 class MistralProvider(BaseBedrockProvider):
-
-    def format_prompt(self, prompt: str) -> str:
-        # for mixtral and llama
-        return f"<s>[INST]{prompt}[/INST]"
-
-    def get_request_body(self, messages, **generate_kwargs):
-        return json.dumps({"prompt": self.format_prompt(self.messages_to_prompt(messages))} | generate_kwargs)
+    # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html
+    def messages_to_prompt(self, messages: list[dict]):
+        return messages_to_prompt_llama(messages)
 
 
 class AnthropicProvider(BaseBedrockProvider):
+    # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
     pass
 
 
@@ -21,7 +19,16 @@ class CohereProvider(BaseBedrockProvider):
 
 
 class MetaProvider(BaseBedrockProvider):
-    pass
+    def messages_to_prompt(self, messages: list[dict]):
+        return messages_to_prompt_llama(messages)
+
+    def get_choice_text(self, response) -> str:
+        response_body = self._get_response_body_json(response)
+        completions = response_body['generation']
+        return completions
+
+    def get_choice_text_from_stream(self, event):
+        return json.loads(event["chunk"]["bytes"])["generation"]
 
 
 class Ai21Provider(BaseBedrockProvider):
@@ -29,7 +36,8 @@ class Ai21Provider(BaseBedrockProvider):
 
 
 PROVIDERS = {
-    "mistral": MistralProvider()
+    "mistral": MistralProvider(),
+    "meta": MetaProvider(),
 }
 
 NOT_SUUPORT_STREAM_MODELS = {

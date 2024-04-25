@@ -51,6 +51,7 @@ class AmazonBedrockLLM(BaseLLM):
             modelId=self.config.model, body=request_body
         )
         completions = self.provider.get_choice_text(response)
+        log_llm_stream(completions)
         return completions
 
     def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
@@ -59,11 +60,10 @@ class AmazonBedrockLLM(BaseLLM):
         response = self.__client.invoke_model_with_response_stream(
             modelId=self.config.model, body=request_body
         )
-        collected_content = []
 
-        for event in response.get("body"):
-            chunk_text = json.loads(event["chunk"]["bytes"])[
-                "outputs"][0]["text"]
+        collected_content = []
+        for event in response["body"]:
+            chunk_text = self.provider.get_choice_text_from_stream(event)
             collected_content.append(chunk_text)
             log_llm_stream(chunk_text)
 
@@ -84,7 +84,11 @@ class AmazonBedrockLLM(BaseLLM):
 
 if __name__ == '__main__':
     from .config import my_config
-    prompt = "write an essay for living on mars in 1000 word"
-    messages = [{"role": "user", "content": prompt}]
+    messages = [
+        {"role": "system", "content": "your name is Bob"},
+        {"role": "user", "content": "hello"},
+        {"role": "assistant", "content": "hello,my friend"},
+        {"role": "user", "content": "What is your name?"}]
     llm = AmazonBedrockLLM(my_config)
+    llm.completion(messages)
     llm._chat_completion_stream(messages)
