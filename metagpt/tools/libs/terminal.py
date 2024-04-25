@@ -2,7 +2,7 @@ import subprocess
 import threading
 from queue import Queue
 
-from metagpt.logs import TOOL_LOG_END_MARKER, ToolLogItem, log_tool_output
+from metagpt.report import END_MARKER_VALUE, TerminalReporter
 from metagpt.tools.tool_registry import register_tool
 
 
@@ -28,9 +28,10 @@ class Terminal:
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,  # Line buffered
-            executable="/bin/bash"
+            executable="/bin/bash",
         )
         self.stdout_queue = Queue()
+        self.observer = TerminalReporter()
 
     def run_command(self, cmd: str, daemon=False) -> str:
         """
@@ -59,7 +60,7 @@ class Terminal:
         # Send the command
         self.process.stdin.write(cmd + self.command_terminator)
         self.process.stdin.write(
-            f'echo "{TOOL_LOG_END_MARKER.value}"' + self.command_terminator  # write EOF
+            f'echo "{END_MARKER_VALUE}"' + self.command_terminator  # write EOF
         )  # Unique marker to signal command end
         self.process.stdin.flush()
         if daemon:
@@ -93,28 +94,26 @@ class Terminal:
         return self.run_command(cmd, daemon=daemon)
 
     def _read_and_process_output(self, cmd):
-        cmd_output = []
-        log_tool_output(
-            output=ToolLogItem(name="cmd", value=cmd + self.command_terminator), tool_name="Terminal"
-        )  # log the command
+        with self.observer as observer:
+            cmd_output = []
+            observer.report(cmd + self.command_terminator, "cmd")
+            # report the command
 
-        # Read the output until the unique marker is found
-        while True:
-            line = self.process.stdout.readline()
-            ix = line.rfind(TOOL_LOG_END_MARKER.value)
-            if ix >= 0:
-                line = line[0:ix]
-                if line:
-                    log_tool_output(
-                        output=ToolLogItem(name="output", value=line), tool_name="Terminal"
-                    )  # log stdout in real-time
-                    cmd_output.append(line)
-                log_tool_output(TOOL_LOG_END_MARKER)
-                break
-            # log stdout in real-time
-            log_tool_output(output=ToolLogItem(name="output", value=line), tool_name="Terminal")
-            cmd_output.append(line)
-            self.stdout_queue.put(line)
+            # Read the output until the unique marker is found
+            while True:
+                line = self.process.stdout.readline()
+                ix = line.rfind(END_MARKER_VALUE)
+                if ix >= 0:
+                    line = line[0:ix]
+                    if line:
+                        observer.report(line, "output")
+                        # report stdout in real-time
+                        cmd_output.append(line)
+                    break
+                # log stdout in real-time
+                observer.report(line, "output")
+                cmd_output.append(line)
+                self.stdout_queue.put(line)
 
         return "".join(cmd_output)
 

@@ -2,7 +2,7 @@ import asyncio
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional, Union
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlparse, urlunparse
 from uuid import UUID, uuid4
 
 from aiohttp import ClientSession, UnixConnector
@@ -98,7 +98,7 @@ class ResourceReporter(BaseModel):
         data = self._format_data(value, name)
         resp = requests.post(self.callback_url, json=data)
         resp.raise_for_status()
-        return resp.text()
+        return resp.text
 
     async def _async_report(self, value: Any, name: str):
         if not self.callback_url:
@@ -108,8 +108,11 @@ class ResourceReporter(BaseModel):
         url = self.callback_url
         _result = urlparse(url)
         sessiion_kwargs = {}
-        if "unix" in _result.scheme:
-            url = str(_result._replace(scheme="http", netloc="fake.org"))
+        if _result.scheme.endswith("+unix"):
+            parsed_list = list(_result)
+            parsed_list[0] = parsed_list[0][:-5]
+            parsed_list[1] = "fake.org"
+            url = urlunparse(parsed_list)
             sessiion_kwargs["connector"] = UnixConnector(path=unquote(_result.netloc))
 
         async with ClientSession(**sessiion_kwargs) as client:
@@ -119,7 +122,7 @@ class ResourceReporter(BaseModel):
 
     def _format_data(self, value, name):
         data = self.model_dump(mode="json", exclude=("callback_url", "llm_stream"))
-        data["value"] = value
+        data["value"] = str(value) if isinstance(value, Path) else value
         data["name"] = name
         return data
 
@@ -192,15 +195,13 @@ class BrowserReporter(ResourceReporter):
     def report(self, value: Union[str, SyncPage], name: Literal["url", "page"]):
         """Report browser URL or page content synchronously."""
         if name == "page":
-            value = value.screenshot()
-            value = str(value)
+            value = {"page_url": value.url, "title": value.title(), "screenshot": str(value.screenshot())}
         return super().report(value, name)
 
     async def async_report(self, value: Union[str, AsyncPage], name: Literal["url", "page"]):
         """Report browser URL or page content asynchronously."""
         if name == "page":
-            value = await value.screenshot()
-            value = str(value)
+            value = {"page_url": value.url, "title": await value.title(), "screenshot": str(await value.screenshot())}
         return await super().async_report(value, name)
 
 
