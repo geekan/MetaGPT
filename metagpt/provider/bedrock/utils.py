@@ -1,5 +1,6 @@
 from metagpt.logs import logger
 
+# max_tokens for each model
 NOT_SUUPORT_STREAM_MODELS = {
     "ai21.j2-grande-instruct": 8000,
     "ai21.j2-jumbo-instruct": 8000,
@@ -29,7 +30,7 @@ SUPPORT_STREAM_MODELS = {
     "mistral.mistral-large-2402-v1:0": 32000,
 }
 
-# TODO:use a general function for constructing chat templates.
+# TODO:use a more general function for constructing chat templates.
 
 
 def messages_to_prompt_llama2(messages: list[dict]):
@@ -64,6 +65,7 @@ def messages_to_prompt_llama3(messages: list[dict]):
         role = message["role"]
         content = message["content"]
         prompt += GENERAL_TEMPLATE.format(role=role, content=content)
+
     if role != "assistant":
         prompt += f"<|start_header_id|>assistant<|end_header_id|>"
 
@@ -77,11 +79,12 @@ def messages_to_prompt_claude(messages: list[dict]):
         role = message["role"]
         content = message["content"]
         prompt += GENERAL_TEMPLATE.format(role=role, content=content)
+
     if role != "assistant":
         prompt += f"\n\nAssistant:"
+
     return prompt
 
 
 def get_max_tokens(model_id) -> int:
     return (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
-
