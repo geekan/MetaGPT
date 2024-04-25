@@ -1,6 +1,5 @@
 import asyncio
-from typing import List, Union, Tuple
-
+from typing import List, Tuple, Union
 
 import evaluate
 import jieba
@@ -31,25 +30,25 @@ class RAGBenchmark:
         embed_model: BaseEmbedding = None,
     ):
         self.evaluator = SemanticSimilarityEvaluator(
-                embed_model=embed_model or get_rag_embedding(),
+            embed_model=embed_model or get_rag_embedding(),
         )
 
     def set_metrics(
         self,
-        bleu_avg :float = 0.0,
-        bleu_1 :float = 0.0,
-        bleu_2 :float = 0.0,
-        bleu_3 :float = 0.0,
-        bleu_4 :float = 0.0,
-        rouge_l :float = 0.0,
-        semantic_similarity :float = 0.0,
-        recall :float = 0.0,
-        hit_rate :float = 0.0,
-        mrr :float = 0.0,
-        length :float = 0.0,
-        generated_text :str = None,
+        bleu_avg: float = 0.0,
+        bleu_1: float = 0.0,
+        bleu_2: float = 0.0,
+        bleu_3: float = 0.0,
+        bleu_4: float = 0.0,
+        rouge_l: float = 0.0,
+        semantic_similarity: float = 0.0,
+        recall: float = 0.0,
+        hit_rate: float = 0.0,
+        mrr: float = 0.0,
+        length: float = 0.0,
+        generated_text: str = None,
         ground_truth_text: str = None,
-        question: str = None
+        question: str = None,
     ):
         metrics = {
             "bleu-avg": bleu_avg,
@@ -72,7 +71,6 @@ class RAGBenchmark:
         }
 
         return {"metrics": metrics, "log": log}
-
 
     def bleu_score(self, response: str, reference: str, with_penalty=False) -> Union[float, Tuple[float]]:
         f = lambda text: list(jieba.cut(text))
@@ -133,39 +131,49 @@ class RAGBenchmark:
         return result.score
 
     async def compute_metric(
-            self,
-            response: str = None,
-            reference: str = None,
-            nodes: list[NodeWithScore] = None,
-            reference_doc: list[str] = None,
-            question: str = None,
+        self,
+        response: str = None,
+        reference: str = None,
+        nodes: list[NodeWithScore] = None,
+        reference_doc: list[str] = None,
+        question: str = None,
     ):
         recall = self.recall(nodes, reference_doc)
         bleu_avg, bleu1, bleu2, bleu3, bleu4 = self.bleu_score(response, reference)
         rouge_l = self.rougel_score(response, reference)
         hit_rate = self.hit_rate(nodes, reference_doc)
         mrr = self.mean_reciprocal_rank(nodes, reference_doc)
-        
+
         similarity = await self.semantic_similarity(response, reference)
-        
+
         result = self.set_metrics(
-            bleu_avg, bleu1, bleu2, bleu3, bleu4, rouge_l,
+            bleu_avg,
+            bleu1,
+            bleu2,
+            bleu3,
+            bleu4,
+            rouge_l,
             similarity,
-            recall, hit_rate, mrr, len(response), response, reference, question
+            recall,
+            hit_rate,
+            mrr,
+            len(response),
+            response,
+            reference,
+            question,
         )
-    
+
         return result
 
     @staticmethod
     def load_dataset(ds_names: list[str] = ["all"]):
-        infos =  read_json_file((EXAMPLE_BENCHMARK_PATH / "dataset_info.json").as_posix())
+        infos = read_json_file((EXAMPLE_BENCHMARK_PATH / "dataset_info.json").as_posix())
         dataset_config = DatasetConfig(
             datasets=[
                 DatasetInfo(
                     name=name,
                     document_files=[
-                        (EXAMPLE_BENCHMARK_PATH / name / file).as_posix()
-                        for file in info["document_file"]
+                        (EXAMPLE_BENCHMARK_PATH / name / file).as_posix() for file in info["document_file"]
                     ],
                     gt_info=read_json_file((EXAMPLE_BENCHMARK_PATH / name / info["gt_file"]).as_posix()),
                 )
@@ -174,7 +182,7 @@ class RAGBenchmark:
                 if name in ds_names or "all" in ds_names
             ]
         )
-        
+
         return dataset_config
 
 
@@ -191,5 +199,3 @@ if __name__ == "__main__":
         f"RougeL Score: {rougeL_score}, "
         f"Semantic Similarity: {similarity}"
     )
-
-  

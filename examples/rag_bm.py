@@ -1,7 +1,6 @@
 """RAG benchmark pipeline"""
 
 import asyncio
-import os
 
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import NodeWithScore
@@ -13,15 +12,12 @@ from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories import get_rag_embedding, get_rag_llm
 from metagpt.rag.schema import (
     BM25RetrieverConfig,
-    FAISSIndexConfig,
-    FAISSRetrieverConfig,
-    BGERerankConfig,
-    LLMRankerConfig,
     CohereRerankConfig,
     ColbertRerankConfig,
+    FAISSIndexConfig,
+    FAISSRetrieverConfig,
 )
 from metagpt.utils.common import write_json_file
-
 
 DOC_PATH = EXAMPLE_DATA_PATH / "rag_bm/summary_writer.txt"
 QUESTION = "2023年7月20日，应急管理部、财政部联合下发《因灾倒塌、损坏住房恢复重建救助工作规范》的通知，规范倒损住房恢复重建救助相关工作。"
@@ -49,7 +45,7 @@ class RAGExample:
 
     async def rag_evaluate_pipeline(self, dataset_name: list[str] = ["all"]):
         dataset_config = self.benchmark.load_dataset(dataset_name)
-    
+
         for dataset in dataset_config.datasets:
             if "all" in dataset_name or dataset.name in dataset_name:
                 output_dir = DATA_PATH / f"{dataset.name}"
