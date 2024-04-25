@@ -39,7 +39,7 @@ class AmazonBedrockLLM(BaseLLM):
     def _generate_kwargs(self) -> dict:
         # for now only use temperature due to the difference of request body
         return {
-            "temperature": self.config.get("temperature", 0.1),
+            "temperature": self.config.temperature
         }
 
     def completion(self, messages: list[dict]) -> str:
@@ -74,11 +74,12 @@ class AmazonBedrockLLM(BaseLLM):
         return full_text
 
     async def acompletion(self, messages: list[dict]):
+        # Amazon bedrock doesn't support async now
         return self._achat_completion(messages)
 
     async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        # TODO:make it async
         return self.completion(messages)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         return self._chat_completion_stream(messages)
+
