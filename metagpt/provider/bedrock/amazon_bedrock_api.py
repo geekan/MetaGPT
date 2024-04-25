@@ -7,7 +7,7 @@ from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.bedrock.bedrock_provider import get_provider
-from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS
+from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, SUPPORT_STREAM_MODELS
 import boto3
 
 
@@ -86,13 +86,3 @@ class AmazonBedrockLLM(BaseLLM):
         return self._chat_completion_stream(messages)
 
 
-if __name__ == '__main__':
-    from .config import my_config
-    messages = [
-        {"role": "system", "content": "your name is Bob"},
-        {"role": "user", "content": "hello"},
-        {"role": "assistant", "content": "hello,my friend"},
-        {"role": "user", "content": "What is your name?"}]
-    llm = AmazonBedrockLLM(my_config)
-    print(llm.completion(messages))
-    print(llm._chat_completion_stream(messages))

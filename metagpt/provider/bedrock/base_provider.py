@@ -4,6 +4,11 @@ from abc import ABC, abstractmethod
 
 class BaseBedrockProvider(ABC):
     # to handle different generation kwargs
+
+    @abstractmethod
+    def _get_completion_from_dict(self, rsp_dict: dict) -> str:
+        ...
+
     def get_request_body(self, messages, **generate_kwargs):
         body = json.dumps(
             {"prompt": self.messages_to_prompt(messages), **generate_kwargs})
@@ -22,10 +27,6 @@ class BaseBedrockProvider(ABC):
     def _get_response_body_json(self, response):
         response_body = json.loads(response["body"].read())
         return response_body
-
-    @abstractmethod
-    def _get_completion_from_dict(self, rsp_dict: dict) -> str:
-        ...
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""

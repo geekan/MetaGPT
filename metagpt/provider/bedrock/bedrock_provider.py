@@ -49,12 +49,30 @@ class Ai21Provider(BaseBedrockProvider):
         return rsp_dict['completions'][0]["data"]["text"]
 
 
+class AmazonProvider(BaseBedrockProvider):
+    def get_request_body(self, messages, **generate_kwargs):
+        body = json.dumps({
+            "inputText": self.messages_to_prompt(messages),
+            "textGenerationConfig": generate_kwargs
+        })
+        return body
+
+    def _get_completion_from_dict(self, rsp_dict: dict) -> str:
+        return rsp_dict['results'][0]['outputText'].strip()
+
+    def get_choice_text_from_stream(self, event):
+        rsp_dict = json.loads(event["chunk"]["bytes"])
+        completions = rsp_dict["outputText"]
+        return completions
+
+
 PROVIDERS = {
     "mistral": MistralProvider(),
     "meta": MetaProvider(),
     "ai21": Ai21Provider(),
     "cohere": CohereProvider(),
     "anthropic": AnthropicProvider(),
+    "amazon": AmazonProvider()
 }
 
 
