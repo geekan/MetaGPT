@@ -8,8 +8,8 @@ class ExpRetriever(BaseModel):
         raise NotImplementedError
 
 
-class SimplePlanningExpRetriever(ExpRetriever):
-    """A simple experience retriever that returns manually crafted planning examples."""
+class SimpleExpRetriever(ExpRetriever):
+    """A simple experience retriever that returns manually crafted examples."""
 
     EXAMPLE: str = """
     ## example 1
