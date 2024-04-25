@@ -1,19 +1,14 @@
-
 import json
+
 
 class BaseBedrockProvider(object):
     # to handle different generation kwargs
-    max_length = "max_tokens"
-    temperature = "temperature"
-    top_p = "top-p"
-    top_k = "top-k"
-
-    def get_request_body(self, prompt, generate_kwargs: dict):
-        return {"prompt": prompt} | generate_kwargs
+    def get_request_body(self, messages, max_token=None, temperature=None, top_p=None, top_k=None, **kwargs):
+        return json.dumps({"prompt": self.messages_to_prompt(messages)})
 
     def get_choice_text(self, response) -> str:
         response_body = json.loads(response["body"].read())
-        completions = response_body["content"]["outputs"][0]['text']
+        completions = response_body["outputs"][0]['text']
         return completions
 
     def messages_to_prompt(self, messages: list[dict]):
