@@ -44,9 +44,9 @@ class TeamLeader(Role):
         if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
             self.publish_message(Message(**cmd["args"]))
         elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
-            self.rc.env.ask_human(**cmd["args"])
+            self.rc.env.ask_human(sent_from=self, **cmd["args"])
         elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
-            self.rc.env.reply_to_human(**cmd["args"])
+            self.rc.env.reply_to_human(sent_from=self, **cmd["args"])
 
     def _run_internal_command(self, cmd):
         if cmd["command_name"] == Command.APPEND_TASK.cmd_name:

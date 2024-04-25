@@ -14,6 +14,7 @@ from metagpt.roles import (
     ProductManager,
     ProjectManager,
     QaEngineer,
+    Role,
 )
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, any_to_str_set
@@ -58,11 +59,11 @@ class MGXEnv(Environment):
 
         return True
 
-    async def ask_human(self, question: str) -> str:
+    async def ask_human(self, question: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
         return get_human_input(question)
 
-    async def reply_to_human(self, content: str) -> str:
+    async def reply_to_human(self, content: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
         return content
 
