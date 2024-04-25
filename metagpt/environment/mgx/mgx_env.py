@@ -42,6 +42,6 @@ class MGXEnv(Environment):
         # NOTE: Can be overwritten in remote setting
         return get_human_input(question)
 
-    async def reply_to_human(self, message: str) -> str:
+    async def reply_to_human(self, content: str) -> str:
         # NOTE: Can be overwritten in remote setting
-        return message
+        return content

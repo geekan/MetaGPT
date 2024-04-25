@@ -190,7 +190,7 @@ class Environment(ExtEnv):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
-        self.history += f"\n{message}"  # For debug
+        # self.history += f"\n{message}"  # For debug
 
         return True
 

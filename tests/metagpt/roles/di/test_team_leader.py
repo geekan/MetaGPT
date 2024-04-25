@@ -123,7 +123,7 @@ async def test_plan_update_and_routing(env):
     requirement = "create a 2048 game"
 
     tl = env.get_role("Team Leader")
-    env.publish_message(Message(content=requirement, send_to=tl.name))
+    env.publish_message(Message(content=requirement))
     await tl.run()
 
     # Assuming Product Manager finishes its task
@@ -131,37 +131,9 @@ async def test_plan_update_and_routing(env):
     await tl.run()
 
     # TL should mark current task as finished, and forward Product Manager's message to Architect
-    plan_cmd = tl.commands[0]
+    # Current task should be updated to the second task
+    plan_cmd = tl.commands[:-1]
     route_cmd = tl.commands[-1]
-    assert plan_cmd["command_name"] == "finish_current_task"
+    assert "finish_current_task" in [cmd["command_name"] for cmd in plan_cmd]
     assert route_cmd["command_name"] == "forward_message" or route_cmd["command_name"] == "publish_message"
-
-
-async def main():
-    requirement = [
-        # "Create a cli snake game",
-        # "I want to use yolov5 for target detection, yolov5 all the information from the following link, please help me according to the content of the link(https://github.com/ultralytics/yolov5), set up the environment and download the model parameters, and finally provide a few pictures for inference, the inference results will be saved!",
-        # "Create a website widget for TODO list management. Users should be able to add, mark as complete, and delete tasks. Include features like prioritization, due dates, and categories. Make it visually appealing, responsive, and user-friendly. Use HTML, CSS, and JavaScript. Consider additional features like notifications or task export. Keep it simple and enjoyable for users.dont use vue or react.dont use third party library, use localstorage to save data",
-        # "Search the web for the new game 2048X, then replicate it",
-        # """从36kr创投平台https://pitchhub.36kr.com/financing-flash 所有初创企业融资的信息, **注意: 这是一个中文网站**;
-        # 下面是一个大致流程, 你会根据每一步的运行结果对当前计划中的任务做出适当调整:
-        # 1. 爬取并本地保存html结构;
-        # 2. 直接打印第7个*`快讯`*关键词后2000个字符的html内容, 作为*快讯的html内容示例*;
-        # 3. 反思*快讯的html内容示例*中的规律, 设计正则匹配表达式来获取*`快讯`*的标题、链接、时间;
-        # 4. 筛选最近3天的初创企业融资*`快讯`*, 以list[dict]形式打印前5个。
-        # 5. 将全部结果存在本地csv中
-        # """,
-        """
-        I would like to imitate the website available at  https://news.youth.cn/gn/202404/t20240406_15178916.htm. Could you please browse through it?
-        Note:
-        - don't ignore the image, use https://source.unsplash.com/random to get random images
-        - use the same text, the same layout, the same color as the original website
-        if you can not do it, please try to get as close as possible.
-        """,
-    ]
-    tl.put_message(Message(requirement[0]))
-    await tl._observe()
-    await tl._think()
-
-
-# asyncio.run(main())
+    assert tl.planner.plan.current_task_id == "2"

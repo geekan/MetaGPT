@@ -7,13 +7,15 @@ from pydantic import model_validator
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.prompts.di.team_leader import (
     PLANNING_CMD_PROMPT,
-    PLANNING_EXAMPLE,
     ROUTING_CMD_PROMPT,
-    ROUTING_EXAMPLE,
     prepare_command_prompt,
 )
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
+from metagpt.strategy.experience_retriever import (
+    SimplePlanningExpRetriever,
+    SimpleRoutingExpRetriever,
+)
 from metagpt.strategy.planner import Planner
 from metagpt.strategy.thinking_command import Command
 from metagpt.utils.common import CodeParser
@@ -92,7 +94,7 @@ class TeamLeader(Role):
         if not self.planner.plan.goal:
             user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = user_requirement
-            example = PLANNING_EXAMPLE
+            example = SimplePlanningExpRetriever().retrieve()
 
         # common info
         team_info = ""
@@ -114,8 +116,6 @@ class TeamLeader(Role):
             available_commands=prepare_command_prompt(self.planning_commands),
         )
         context = self.llm.format_msg(self.get_memory() + [Message(content=plan_prompt, role="user")])
-        print(*context, sep="*" * 10 + "\n\n")
-        # breakpoint()
 
         plan_rsp = await self.llm.aask(context)
         plan_rsp_dict = json.loads(CodeParser.parse_code(block=None, text=plan_rsp))
@@ -126,12 +126,10 @@ class TeamLeader(Role):
         route_prompt = ROUTING_CMD_PROMPT.format(
             plan_status=plan_status,
             team_info=team_info,
-            example=ROUTING_EXAMPLE,
+            example=SimpleRoutingExpRetriever().retrieve(),
             available_commands=prepare_command_prompt(self.env_commands),
         )
         context = self.llm.format_msg(self.get_memory() + [Message(content=route_prompt, role="user")])
-        print(*context, sep="*" * 10 + "\n\n")
-        # breakpoint()
 
         route_rsp = await self.llm.aask(context)
         route_rsp_dict = json.loads(CodeParser.parse_code(block=None, text=route_rsp))
@@ -144,8 +142,4 @@ class TeamLeader(Role):
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
-
-    async def run(self, with_message=None) -> Message | None:
-        if await self._observe():
-            await self._think()
-            await self._act()
+        return "\n".join(self.commands)
