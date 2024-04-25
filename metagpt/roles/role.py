@@ -455,8 +455,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
-            await self._think()
-            if self.rc.todo is None:
+            has_todo = await self._think()
+            if not has_todo:
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
