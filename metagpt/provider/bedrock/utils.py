@@ -70,5 +70,18 @@ def messages_to_prompt_llama3(messages: list[dict]):
     return prompt
 
 
+def messages_to_prompt_claude(messages: list[dict]):
+    GENERAL_TEMPLATE = "\n\n{role}: {content}"
+    prompt = ""
+    for message in messages:
+        role = message["role"]
+        content = message["content"]
+        prompt += GENERAL_TEMPLATE.format(role=role, content=content)
+    if role != "assistant":
+        prompt += f"\n\nAssistant:"
+    return prompt
+
+
 def get_max_tokens(model_id) -> int:
     return (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
+
