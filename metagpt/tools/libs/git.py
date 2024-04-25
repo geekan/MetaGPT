@@ -70,7 +70,7 @@ async def git_checkout(repo_dir: str | Path, commit_id: str):
 
 
 @register_tool(tags=["git"])
-async def git_create_pull_request(
+async def create_pull_request(
     access_token: str,
     base: str,
     head: str,
@@ -109,7 +109,7 @@ async def git_create_pull_request(
         >>> head = "feature/new_feature" # branch that merge from
         >>> title = "Implement new feature"
         >>> body = "This pull request adds functionality X, Y, and Z."
-        >>> pull_request = await git_create_pull_request(
+        >>> pull_request = await create_pull_request(
             repo_name=repo_name,
             base=base,
             head=head,
@@ -127,7 +127,7 @@ async def git_create_pull_request(
         >>> head = "feature/new_feature" # branch that merge from
         >>> title = "Implement new feature"
         >>> body = "This pull request adds functionality X, Y, and Z."
-        >>> pull_request = await git_create_pull_request(
+        >>> pull_request = await create_pull_request(
             base_repo_name=base_repo_name,
             head_repo_name=head_repo_name,
             base=base,
