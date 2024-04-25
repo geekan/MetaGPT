@@ -12,10 +12,7 @@ from metagpt.prompts.di.team_leader import (
 )
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
-from metagpt.strategy.experience_retriever import (
-    SimplePlanningExpRetriever,
-    SimpleRoutingExpRetriever,
-)
+from metagpt.strategy.experience_retriever import SimplePlanningExpRetriever
 from metagpt.strategy.planner import Planner
 from metagpt.strategy.thinking_command import Command
 from metagpt.utils.common import CodeParser
@@ -35,7 +32,6 @@ class TeamLeader(Role):
     ]
     env_commands: list[Command] = [
         Command.PUBLISH_MESSAGE,
-        Command.FORWARD_MESSAGE,
         Command.ASK_HUMAN,
         Command.REPLY_TO_HUMAN,
         Command.PASS,
@@ -50,8 +46,6 @@ class TeamLeader(Role):
         assert isinstance(self.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
         if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
             self.rc.env.publish_message(Message(**cmd["args"]), publicer=self.profile)
-        elif cmd["command_name"] in Command.FORWARD_MESSAGE.cmd_name:
-            self.rc.env.forward_message(**cmd["args"])
         elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
             self.rc.env.ask_human(**cmd["args"])
         elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
@@ -82,7 +76,7 @@ class TeamLeader(Role):
         mem = self.rc.memory.get()
         for m in mem:
             if m.role not in ["system", "user", "assistant"]:
-                m.content = f"id: {m.id[:10]}, from {m.role} to {m.send_to}: {m.content}"
+                m.content = f"from {m.role} to {m.send_to}: {m.content}"
                 m.role = "assistant"
         return mem
 
@@ -126,7 +120,7 @@ class TeamLeader(Role):
         route_prompt = ROUTING_CMD_PROMPT.format(
             plan_status=plan_status,
             team_info=team_info,
-            example=SimpleRoutingExpRetriever().retrieve(),
+            example="",
             available_commands=prepare_command_prompt(self.env_commands),
         )
         context = self.llm.format_msg(self.get_memory() + [Message(content=route_prompt, role="user")])
@@ -142,4 +136,4 @@ class TeamLeader(Role):
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
-        return "\n".join(self.commands)
+        return Message(content="Commands executed", role="assistant")

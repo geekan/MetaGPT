@@ -38,11 +38,6 @@ class Command(Enum):
         signature="publish_message(content: str, send_to: str)",
         desc="Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work. DONT omit any necessary info such as path, link, environment from original content to team members because you are their sole info source. However, if the original content is long or contains concrete info, you should forward the message using forward_message instead of publishing it.",
     )
-    FORWARD_MESSAGE = CommandDef(
-        name="forward_message",
-        signature="forward_message(message_id: str)",
-        desc="Forward a message from one team member to another or all without any modification. This will make the recipient start their work, too.",
-    )
     REPLY_TO_HUMAN = CommandDef(
         name="reply_to_human",
         signature="reply_to_human(content: str)",

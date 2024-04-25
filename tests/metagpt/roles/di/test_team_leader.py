@@ -20,7 +20,7 @@ def env():
     da = DataInterpreter(
         name="David",
         profile="Data Analyst",
-        goal="Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web deployment, terminal operation, git operation, etc.",
+        goal="Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, git operation, etc.",
         react_mode="react",
     )
     test_env.add_roles(
@@ -135,5 +135,5 @@ async def test_plan_update_and_routing(env):
     plan_cmd = tl.commands[:-1]
     route_cmd = tl.commands[-1]
     assert "finish_current_task" in [cmd["command_name"] for cmd in plan_cmd]
-    assert route_cmd["command_name"] == "forward_message" or route_cmd["command_name"] == "publish_message"
+    assert route_cmd["command_name"] == "publish_message"
     assert tl.planner.plan.current_task_id == "2"

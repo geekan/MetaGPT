@@ -86,7 +86,7 @@ class SimplePlanningExpRetriever(ExpRetriever):
     Conversation History:
     [
         ...,
-        {'role': 'assistant', 'content': 'id: 739d9b4983fd4e97a0f78fde5e9ef158, from Alice(Product Manager) to {'Bob'}: {'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a cli snake game","Project Name":"snake_game","Product Goals":["Develop an intuitive and addictive snake game",...], ...}}}}},
+        {'role': 'assistant', 'content': 'from Alice(Product Manager) to {'Bob'}: {'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a cli snake game","Project Name":"snake_game","Product Goals":["Develop an intuitive and addictive snake game",...], ...}}}}},
     ]
     Explanation: You received a message from Alice, the Product Manager, that she has completed the PRD, use finish_current_task, this marks her task as finished and moves the plan to the next task.
     ```json
@@ -97,33 +97,6 @@ class SimplePlanningExpRetriever(ExpRetriever):
         }
     ]
     ```
-    """
-
-    def retrieve(self, context: str = "") -> str:
-        return self.EXAMPLE
-
-
-class SimpleRoutingExpRetriever(ExpRetriever):
-    """A simple experience retriever that returns manually crafted routing examples."""
-
-    EXAMPLE: str = """
-    ## example 1: Forward a message from one team member to another
-    Conversation History:
-    [
-        ...,
-        {'role': 'assistant', 'content': 'id: 739d9b4983fd4e97a0f78fde5e9ef158, from Alice(Product Manager) to {'Bob'}: {'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a cli snake game","Project Name":"snake_game","Product Goals":["Develop an intuitive and addictive snake game",...], ...}}}}},
-        {'role': 'assistant', 'content': 'Based on the feedback from Alice, the Product Manager, it seems that the PRD for the snake game has been successfully created. Since the PRD is complete and there are no indications of issues with the task, we can mark the current task as finished and move on to the next task in the plan. The next task is assigned to Bob, the Architect, who will be responsible for designing the software architecture for the game based on the PRD provided by Alice.\n\nHere are the commands to update the plan status:\n\n```json\n[\n    {\n        "command_name": "finish_current_task"\n    }\n]\n```'}
-    ]
-    Command:
-    ```json
-    [
-        {
-            "command_name": "forward_message",
-            "args": {
-                "message_id": "739d9b4983fd4e97a0f78fde5e9ef158"
-            }
-        }
-    ]
     """
 
     def retrieve(self, context: str = "") -> str:
