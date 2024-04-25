@@ -1,5 +1,3 @@
-
-import json
 from typing import Literal
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.provider.llm_provider_registry import register_provider
@@ -38,13 +36,13 @@ class AmazonBedrockLLM(BaseLLM):
         logger.info("\n"+"\n".join(summaries))
 
     @property
-    def _generate_kwargs(self):
+    def _generate_kwargs(self) -> dict:
         # for now only use temperature due to the difference of request body
         return {
             "temperature": self.config.get("temperature", 0.1),
         }
 
-    def completion(self, messages: list[dict]):
+    def completion(self, messages: list[dict]) -> str:
         request_body = self.__provider.get_request_body(
             messages, **self._generate_kwargs)
         response = self.__client.invoke_model(
@@ -53,7 +51,7 @@ class AmazonBedrockLLM(BaseLLM):
         completions = self.__provider.get_choice_text(response)
         return completions
 
-    def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+    def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         if self.config.model in NOT_SUUPORT_STREAM_MODELS:
             logger.warning(
                 f"model {self.config.model} doesn't support streaming output!")
@@ -84,5 +82,3 @@ class AmazonBedrockLLM(BaseLLM):
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         return self._chat_completion_stream(messages)
-
-

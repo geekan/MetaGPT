@@ -16,7 +16,7 @@ class MistralProvider(BaseBedrockProvider):
 class AnthropicProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
 
-    def get_request_body(self, messages, **generate_kwargs):
+    def get_request_body(self, messages: list[dict], **generate_kwargs):
         body = json.dumps(
             {"messages": messages, "anthropic_version": "bedrock-2023-05-31", **generate_kwargs})
         return body
@@ -50,7 +50,9 @@ class Ai21Provider(BaseBedrockProvider):
 
 
 class AmazonProvider(BaseBedrockProvider):
-    def get_request_body(self, messages, **generate_kwargs):
+    # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html
+
+    def get_request_body(self, messages: list[dict], **generate_kwargs):
         body = json.dumps({
             "inputText": self.messages_to_prompt(messages),
             "textGenerationConfig": generate_kwargs
@@ -60,7 +62,7 @@ class AmazonProvider(BaseBedrockProvider):
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict['results'][0]['outputText'].strip()
 
-    def get_choice_text_from_stream(self, event):
+    def get_choice_text_from_stream(self, event) -> str:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = rsp_dict["outputText"]
         return completions

@@ -9,7 +9,7 @@ class BaseBedrockProvider(ABC):
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         ...
 
-    def get_request_body(self, messages, **generate_kwargs):
+    def get_request_body(self, messages: list[dict], **generate_kwargs):
         body = json.dumps(
             {"prompt": self.messages_to_prompt(messages), **generate_kwargs})
         return body
@@ -19,7 +19,7 @@ class BaseBedrockProvider(ABC):
         completions = self._get_completion_from_dict(response_body)
         return completions
 
-    def get_choice_text_from_stream(self, event):
+    def get_choice_text_from_stream(self, event) -> str:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = self._get_completion_from_dict(rsp_dict)
         return completions
@@ -28,6 +28,6 @@ class BaseBedrockProvider(ABC):
         response_body = json.loads(response["body"].read())
         return response_body
 
-    def messages_to_prompt(self, messages: list[dict]):
+    def messages_to_prompt(self, messages: list[dict]) -> str:
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
         return "\n".join([f"{i['role']}: {i['content']}" for i in messages])

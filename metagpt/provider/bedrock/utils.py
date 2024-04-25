@@ -1,6 +1,5 @@
 from metagpt.logs import logger
 
-
 def messages_to_prompt_llama(messages: list[dict]):
     BOS, EOS = "<s>", "</s>"
     B_INST, E_INST = "[INST]", "[/INST]"
