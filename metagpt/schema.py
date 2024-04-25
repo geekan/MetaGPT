@@ -46,8 +46,9 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.logs import ToolLogItem, log_tool_output, logger
+from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
+from metagpt.report import TaskReporter
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.serialize import (
@@ -510,14 +511,7 @@ class Plan(BaseModel):
                 current_task_id = task.task_id
                 break
         self.current_task_id = current_task_id
-
-        log_tool_output(
-            [
-                ToolLogItem(type="object", name="tasks", value=self.tasks),
-                ToolLogItem(type="object", name="current_task_id", value=self.current_task_id),
-            ],
-            tool_name="Plan",
-        )
+        TaskReporter().report({"tasks": self.tasks, "current_task_id": current_task_id})
 
     @property
     def current_task(self) -> Task:

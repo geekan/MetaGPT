@@ -33,6 +33,7 @@ from metagpt.const import (
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
+from metagpt.report import DocsReporter
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
@@ -102,19 +103,22 @@ class WritePRD(Action):
 
     async def _handle_new_requirement(self, req: Document) -> ActionOutput:
         """handle new requirement"""
-        project_name = self.project_name
-        context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
-        exclude = [PROJECT_NAME.key] if project_name else []
-        node = await WRITE_PRD_NODE.fill(
-            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
-        )  # schema=schema
-        await self._rename_workspace(node)
-        new_prd_doc = await self.repo.docs.prd.save(
-            filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
-        )
-        await self._save_competitive_analysis(new_prd_doc)
-        await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
-        return Documents.from_iterable(documents=[new_prd_doc]).to_action_output()
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "prd"}, "meta")
+            project_name = self.project_name
+            context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
+            exclude = [PROJECT_NAME.key] if project_name else []
+            node = await WRITE_PRD_NODE.fill(
+                context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+            )  # schema=schema
+            await self._rename_workspace(node)
+            new_prd_doc = await self.repo.docs.prd.save(
+                filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
+            )
+            await self._save_competitive_analysis(new_prd_doc)
+            md = await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
+            await reporter.async_report(self.repo.workdir / md.root_relative_path, "path")
+            return Documents.from_iterable(documents=[new_prd_doc]).to_action_output()
 
     async def _handle_requirement_update(self, req: Document, related_docs: list[Document]) -> ActionOutput:
         # ... requirement update logic ...
@@ -148,10 +152,13 @@ class WritePRD(Action):
         return related_doc
 
     async def _update_prd(self, req: Document, prd_doc: Document) -> Document:
-        new_prd_doc: Document = await self._merge(req, prd_doc)
-        await self.repo.docs.prd.save_doc(doc=new_prd_doc)
-        await self._save_competitive_analysis(new_prd_doc)
-        await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "prd"}, "meta")
+            new_prd_doc: Document = await self._merge(req, prd_doc)
+            await self.repo.docs.prd.save_doc(doc=new_prd_doc)
+            await self._save_competitive_analysis(new_prd_doc)
+            md = await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
+            await reporter.async_report(self.repo.workdir / md.root_relative_path, "path")
         return new_prd_doc
 
     async def _save_competitive_analysis(self, prd_doc: Document):

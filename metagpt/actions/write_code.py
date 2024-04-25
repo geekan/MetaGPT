@@ -25,6 +25,7 @@ from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import logger
+from metagpt.report import EditorReporter
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.project_repo import ProjectRepo
@@ -139,12 +140,15 @@ class WriteCode(Action):
                 summary_log=summary_doc.content if summary_doc else "",
             )
         logger.info(f"Writing {coding_context.filename}..")
-        code = await self.write_code(prompt)
-        if not coding_context.code_doc:
-            # avoid root_path pydantic ValidationError if use WriteCode alone
-            root_path = self.context.src_workspace if self.context.src_workspace else ""
-            coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
-        coding_context.code_doc.content = code
+        async with EditorReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"filename": coding_context.filename}, "meta")
+            code = await self.write_code(prompt)
+            if not coding_context.code_doc:
+                # avoid root_path pydantic ValidationError if use WriteCode alone
+                root_path = self.context.src_workspace if self.context.src_workspace else ""
+                coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
+            coding_context.code_doc.content = code
+            await reporter.async_report(self.repo.workdir / coding_context.code_doc.root_relative_path, "path")
         return coding_context
 
     @staticmethod
