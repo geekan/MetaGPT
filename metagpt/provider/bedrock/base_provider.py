@@ -3,8 +3,8 @@ import json
 
 class BaseBedrockProvider(object):
     # to handle different generation kwargs
-    def get_request_body(self, messages, max_token=None, temperature=None, top_p=None, top_k=None, **kwargs):
-        return json.dumps({"prompt": self.messages_to_prompt(messages)})
+    def get_request_body(self, messages, **generate_kwargs):
+        return json.dumps({"prompt": self.messages_to_prompt(messages)} | generate_kwargs)
 
     def get_choice_text(self, response) -> str:
         response_body = json.loads(response["body"].read())

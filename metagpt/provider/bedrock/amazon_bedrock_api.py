@@ -41,7 +41,6 @@ class AmazonBedrockLLM(BaseLLM):
     @property
     def _generate_kwargs(self):
         return {
-            "max_token": self.config.get("max_token", 1024),
             "temperature": self.config.get("temperature", 0.3),
             "top_p": self.config.get("top_p", 0.95),
             "top_k": self.config.get("top_k", 1),

@@ -8,13 +8,24 @@ class MistralProvider(BaseBedrockProvider):
         # for mixtral and llama
         return f"<s>[INST]{prompt}[/INST]"
 
-    def get_request_body(self, messages, max_token=None, temperature=None, top_p=None, top_k=None, **kwargs):
-        return json.dumps({
-            "prompt": self.format_prompt(self.messages_to_prompt(messages)),
-            "max_tokens": max_token,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k, })
+    def get_request_body(self, messages, **generate_kwargs):
+        return json.dumps({"prompt": self.format_prompt(self.messages_to_prompt(messages))} | generate_kwargs)
+
+
+class AnthropicProvider(BaseBedrockProvider):
+    pass
+
+
+class CohereProvider(BaseBedrockProvider):
+    pass
+
+
+class MetaProvider(BaseBedrockProvider):
+    pass
+
+
+class Ai21Provider(BaseBedrockProvider):
+    pass
 
 
 PROVIDERS = {
