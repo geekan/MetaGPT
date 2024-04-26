@@ -27,12 +27,12 @@ class AmazonBedrockLLM(BaseLLM):
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         """initialize boto3 client"""
         # access key and secret key from https://us-east-1.console.aws.amazon.com/iam
-        self.__credentital_kwards = {
+        self.__credentital_kwargs = {
             "aws_secret_access_key": self.config.secret_key,
             "aws_access_key_id": self.config.access_key,
             "region_name": self.config.region_name
         }
-        session = boto3.Session(**self.__credentital_kwards)
+        session = boto3.Session(**self.__credentital_kwargs)
         client = session.client(service_name)
         return client
 
