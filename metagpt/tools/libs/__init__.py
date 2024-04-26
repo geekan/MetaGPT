@@ -16,6 +16,7 @@ from metagpt.tools.libs import (
     browser,
     deployer,
 )
+from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env
 from metagpt.tools.libs.software_development import (
     write_prd,
     write_design,
@@ -44,4 +45,7 @@ _ = (
     file_manager,
     browser,
     deployer,
+    get_env,
+    set_get_env_entry,
+    default_get_env,
 )  # Avoid pre-commit error
