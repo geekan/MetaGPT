@@ -70,12 +70,8 @@ class TeamLeader(Role):
             self._set_state(-1)
 
     def get_memory(self, k=10) -> list[Message]:
-        mem = self.rc.memory.get(k=k)
-        for m in mem:
-            if m.role not in ["system", "user", "assistant"]:
-                m.content = f"from {m.role} to {m.send_to}: {m.content}"
-                m.role = "assistant"
-        return mem
+        """A wrapper with default value"""
+        return self.rc.memory.get(k=k)
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
@@ -115,7 +111,7 @@ class TeamLeader(Role):
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
-        msg = Message(content="Commands executed", role="user", send_to=self)
+        msg = Message(content="Commands executed", send_to="no one")  # a dummy message to conform to the interface
         self.rc.memory.add(msg)
         return msg
 

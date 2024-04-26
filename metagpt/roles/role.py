@@ -492,6 +492,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             await self.planner.process_task_result(task_result)
 
         rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+        rsp.role = "assistant"
+        rsp.sent_from = self._setting
 
         self.rc.memory.add(rsp)  # add to persistent memory
 
