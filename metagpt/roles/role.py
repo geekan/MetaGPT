@@ -43,7 +43,6 @@ from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 if TYPE_CHECKING:
     from metagpt.environment import Environment  # noqa: F401
 
-
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
 
@@ -455,8 +454,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
-            await self._think()
-            if self.rc.todo is None:
+            has_todo = await self._think()
+            if not has_todo:
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
@@ -492,6 +491,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             await self.planner.process_task_result(task_result)
 
         rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+        rsp.role = "assistant"
+        rsp.sent_from = self._setting
 
         self.rc.memory.add(rsp)  # add to persistent memory
 

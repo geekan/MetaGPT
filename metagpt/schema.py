@@ -349,6 +349,7 @@ class Task(BaseModel):
     result: str = ""
     is_success: bool = False
     is_finished: bool = False
+    assignee: str = ""
 
     def reset(self):
         self.code = ""
@@ -490,7 +491,11 @@ class Plan(BaseModel):
         Returns:
             None
         """
-        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        # assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        if self.has_task_id(new_task.task_id):
+            logger.warning(
+                "Task already in current plan, should use replace_task instead. Overwriting the existing task."
+            )
 
         assert all(
             [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
@@ -505,6 +510,10 @@ class Plan(BaseModel):
         return task_id in self.task_map
 
     def _update_current_task(self):
+        self.tasks = self._topological_sort(self.tasks)
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
         current_task_id = ""
         for task in self.tasks:
             if not task.is_finished:
@@ -527,6 +536,10 @@ class Plan(BaseModel):
         if self.current_task_id:
             self.current_task.is_finished = True
             self._update_current_task()  # set to next task
+
+    def is_plan_finished(self) -> bool:
+        """Check if all tasks are finished"""
+        return all(task.is_finished for task in self.tasks)
 
     def get_finished_tasks(self) -> list[Task]:
         """return all finished tasks in correct linearized order

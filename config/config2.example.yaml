@@ -13,6 +13,37 @@ llm:
   # - gpt-4 8k: "gpt-4"
   # See for more: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 
+# Role's custom configuration
+roles:
+  - role: "ProductManager" # role's className or role's role_id
+    llm:
+      api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      proxy: "YOUR_PROXY"  # for LLM API requests
+      model: "gpt-4-turbo-1106"
+  - role: "Architect"
+    llm:
+      api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      proxy: "YOUR_PROXY"  # for LLM API requests
+      model: "gpt-35-turbo"
+  - role: "ProjectManager"
+    llm:
+      api_type: "azure"
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      api_version: "YOUR_API_VERSION"
+      model: "gpt-4-1106"
+  - role: "Engineer"
+    llm:
+      api_type: "azure"
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      api_version: "YOUR_API_VERSION"
+      model: "gpt-35-turbo-1106"
+
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
 proxy: "YOUR_PROXY"  # for tools like requests, playwright, selenium, etc.
