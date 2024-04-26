@@ -17,12 +17,17 @@ def mock_bedrock_provider_response(self, *args, **kwargs) -> dict:
 
 def mock_bedrock_provider_stream_response(self, *args, **kwargs) -> dict:
     # use json object to mock EventStream
+    def dict2bytes(x):
+        return json.dumps(x).encode("utf-8")
     provider = self.config.model.split(".")[0]
-    response_body_bytes = json.dumps(
-        BEDROCK_PROVIDER_RESPONSE_BODY[provider]).encode("utf-8")
-    # decoded bytes share the same format as non-stream response_body
-    response_body_stream = {
-        "body": [{'chunk': {'bytes': response_body_bytes}},]}
+    response_body_bytes = dict2bytes(BEDROCK_PROVIDER_RESPONSE_BODY[provider])
+    # decoded bytes share the same format as non-stream response_body except for titan
+    if provider == "amazon":
+        response_body_stream = {
+            "body": [{'chunk': {'bytes': dict2bytes({"outputText": "Hello World"})}}]}
+    else:
+        response_body_stream = {
+            "body": [{'chunk': {'bytes': response_body_bytes}}]}
     return response_body_stream
 
 

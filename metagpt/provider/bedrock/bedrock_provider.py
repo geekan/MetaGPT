@@ -74,6 +74,11 @@ class AmazonProvider(BaseBedrockProvider):
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict['results'][0]['outputText']
+    
+    def get_choice_text_from_stream(self, event) -> str:
+        rsp_dict = json.loads(event["chunk"]["bytes"])
+        completions = rsp_dict["outputText"]
+        return completions
 
 
 PROVIDERS = {
