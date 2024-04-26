@@ -33,7 +33,7 @@ SUPPORT_STREAM_MODELS = {
 # TODO:use a more general function for constructing chat templates.
 
 
-def messages_to_prompt_llama2(messages: list[dict]):
+def messages_to_prompt_llama2(messages: list[dict]) -> str:
     BOS, EOS = "<s>", "</s>"
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -56,7 +56,7 @@ def messages_to_prompt_llama2(messages: list[dict]):
     return prompt
 
 
-def messages_to_prompt_llama3(messages: list[dict]):
+def messages_to_prompt_llama3(messages: list[dict]) -> str:
     BOS, EOS = "<|begin_of_text|>", "<|eot_id|>"
     GENERAL_TEMPLATE = "<|start_header_id|>{role}<|end_header_id|>\n\n{content}<|eot_id|>"
 
@@ -72,7 +72,7 @@ def messages_to_prompt_llama3(messages: list[dict]):
     return prompt
 
 
-def messages_to_prompt_claude(messages: list[dict]):
+def messages_to_prompt_claude2(messages: list[dict]) -> str:
     GENERAL_TEMPLATE = "\n\n{role}: {content}"
     prompt = ""
     for message in messages:

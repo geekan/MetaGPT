@@ -1,4 +1,5 @@
 from typing import Literal
+import json
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.configs.llm_config import LLMConfig, LLMType
@@ -8,9 +9,10 @@ from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
 try:
     import boto3
+    from botocore.response import StreamingBody
 except ImportError:
     raise ImportError(
-        "boto3 not found! please install it by `pip install boto3` first ")
+        "boto3 not found! please install it by `pip install boto3` ")
 
 
 @register_provider([LLMType.AMAZON_BEDROCK])
@@ -25,7 +27,7 @@ class AmazonBedrockLLM(BaseLLM):
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(self.config.model)
         logger.warning(
-            "Amazon bedrock doesn't support asynchronous calls now")
+            "Amazon bedrock doesn't support asynchronous now")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         """initialize boto3 client"""
@@ -38,6 +40,12 @@ class AmazonBedrockLLM(BaseLLM):
         session = boto3.Session(**self.__credentital_kwards)
         client = session.client(service_name)
         return client
+
+    def _get_client(self):
+        return self.__client
+
+    def _get_provider(self):
+        return self.__provider
 
     def list_models(self):
         """list all available text-generation models
@@ -55,6 +63,19 @@ class AmazonBedrockLLM(BaseLLM):
                      for summary in response["modelSummaries"]]
         logger.info("\n"+"\n".join(summaries))
 
+    def invoke_model(self, request_body) -> dict:
+        response = self.__client.invoke_model(
+            modelId=self.config.model, body=request_body
+        )
+        response_body = self._get_response_body(response)
+        return response_body
+
+    def invoke_model_with_response_stream(self, request_body) -> StreamingBody:
+        response = self.__client.invoke_model_with_response_stream(
+            modelId=self.config.model, body=request_body
+        )
+        return response
+
     @property
     def _generate_kwargs(self) -> dict:
         model_max_tokens = get_max_tokens(self.config.model)
@@ -71,10 +92,8 @@ class AmazonBedrockLLM(BaseLLM):
     def completion(self, messages: list[dict]) -> str:
         request_body = self.__provider.get_request_body(
             messages, **self._generate_kwargs)
-        response = self.__client.invoke_model(
-            modelId=self.config.model, body=request_body
-        )
-        completions = self.__provider.get_choice_text(response)
+        response_body = self.invoke_model(request_body)
+        completions = self.__provider.get_choice_text(response_body)
         return completions
 
     def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
@@ -86,9 +105,7 @@ class AmazonBedrockLLM(BaseLLM):
         request_body = self.__provider.get_request_body(
             messages, **self._generate_kwargs)
 
-        response = self.__client.invoke_model_with_response_stream(
-            modelId=self.config.model, body=request_body
-        )
+        response = self.invoke_model_with_response_stream(request_body)
 
         collected_content = []
         for event in response["body"]:
@@ -119,3 +136,7 @@ class AmazonBedrockLLM(BaseLLM):
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
         return self._chat_completion_stream(messages)
+
+    def _get_response_body(self, response) -> dict:
+        response_body = json.loads(response["body"].read())
+        return response_body

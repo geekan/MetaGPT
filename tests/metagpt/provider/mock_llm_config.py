@@ -60,3 +60,12 @@ mock_llm_config_dashscope = LLMConfig(api_type="dashscope", api_key="xxx", model
 mock_llm_config_anthropic = LLMConfig(
     api_type="anthropic", api_key="xxx", base_url="https://api.anthropic.com", model="claude-3-opus-20240229"
 )
+
+mock_llm_config_bedrock = LLMConfig(
+    api_type="amazon_bedrock",
+    model="gpt-100",
+    region_name="somewhere",
+    access_key="123abc",
+    secret_key="123abc",
+    max_token=10000,
+)

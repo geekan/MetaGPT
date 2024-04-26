@@ -15,8 +15,7 @@ class BaseBedrockProvider(ABC):
             {"prompt": self.messages_to_prompt(messages), **generate_kwargs})
         return body
 
-    def get_choice_text(self, response) -> str:
-        response_body = self._get_response_body_json(response)
+    def get_choice_text(self, response_body: dict) -> str:
         completions = self._get_completion_from_dict(response_body)
         return completions
 
@@ -24,10 +23,6 @@ class BaseBedrockProvider(ABC):
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = self._get_completion_from_dict(rsp_dict)
         return completions
-
-    def _get_response_body_json(self, response):
-        response_body = json.loads(response["body"].read())
-        return response_body
 
     def messages_to_prompt(self, messages: list[dict]) -> str:
         """[{"role": "user", "content": msg}] to user: <msg> etc."""

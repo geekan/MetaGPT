@@ -1,7 +1,7 @@
 import json
 from typing import Literal
 from metagpt.provider.bedrock.base_provider import BaseBedrockProvider
-from metagpt.provider.bedrock.utils import messages_to_prompt_llama2, messages_to_prompt_llama3, messages_to_prompt_claude
+from metagpt.provider.bedrock.utils import messages_to_prompt_llama2, messages_to_prompt_llama3
 
 
 class MistralProvider(BaseBedrockProvider):
@@ -16,9 +16,6 @@ class MistralProvider(BaseBedrockProvider):
 
 class AnthropicProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
-
-    def messages_to_prompt(self, messages: list[dict]) -> str:
-        return messages_to_prompt_claude(messages)
 
     def get_request_body(self, messages: list[dict], **generate_kwargs):
         body = json.dumps(
