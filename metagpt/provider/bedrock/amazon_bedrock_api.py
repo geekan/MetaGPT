@@ -17,11 +17,6 @@ except ImportError:
 
 @register_provider([LLMType.AMAZON_BEDROCK])
 class AmazonBedrockLLM(BaseLLM):
-    """
-    check out:
-    https://docs.aws.amazon.com/code-library/latest/ug/python_3_bedrock-runtime_code_examples.html
-    """
-
     def __init__(self, config: LLMConfig):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")

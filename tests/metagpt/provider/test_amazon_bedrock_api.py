@@ -31,7 +31,7 @@ def get_bedrock_request_body(model_id) -> dict:
     return BEDROCK_PROVIDER_REQUEST_BODY[provider]
 
 
-def is_subset(subset, superset):
+def is_subset(subset, superset) -> bool:
     """Ensure all fields in request body are allowed.
 
     ```python
@@ -71,9 +71,6 @@ class TestAPI:
         provider = bedrock_api._get_provider()
         request_body = json.loads(provider.get_request_body(
             messages, **bedrock_api._generate_kwargs))
-        print(get_bedrock_request_body(
-            bedrock_api.config.model))
-        print(request_body)
 
         assert is_subset(request_body, get_bedrock_request_body(
             bedrock_api.config.model))
@@ -88,5 +85,4 @@ class TestAPI:
                      mock_bedrock_provider_response)
         mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model_with_response_stream",
                      mock_bedrock_provider_stream_response)
-        assert bedrock_api._chat_completion_stream(
-            messages) == "Hello World"
+        assert bedrock_api._chat_completion_stream(messages) == "Hello World"
