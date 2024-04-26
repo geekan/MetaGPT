@@ -329,10 +329,10 @@ class AndroidExtEnv(ExtEnv):
         if iw > ih:
             x, y = y, x
             iw, ih = ih, iw
-        file_url = 'https://huggingface.co/ShilongLiu/GroundingDINO/blob/main/groundingdino_swint_ogc.pth'  # 加载远程model
-        target_folder = Path(f'{DEFAULT_WORKSPACE_ROOT}/weights')
-        file_path = download_model(file_url, target_folder)
         if self.cv_model_status['clip_model_loaded'] == False:
+            file_url = 'https://huggingface.co/ShilongLiu/GroundingDINO/blob/main/groundingdino_swint_ogc.pth'  # 加载远程model
+            target_folder = Path(f'{DEFAULT_WORKSPACE_ROOT}/weights')
+            file_path = download_model(file_url, target_folder)
             groundingdino_model = load_model(file_path, device=device).eval()
             self.cv_model_status['clip_model_loaded'] = True
         in_coordinate, out_coordinate = det(image, "icon", groundingdino_model)  # 检测icon
