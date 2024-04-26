@@ -11,6 +11,8 @@ from metagpt.rag.schema import (
     ColbertRerankConfig,
     LLMRankerConfig,
     ObjectRankerConfig,
+    CohereRerankConfig,
+    BGERerankConfig
 )
 
 
@@ -22,6 +24,8 @@ class RankerFactory(ConfigBasedFactory):
             LLMRankerConfig: self._create_llm_ranker,
             ColbertRerankConfig: self._create_colbert_ranker,
             ObjectRankerConfig: self._create_object_ranker,
+            CohereRerankConfig: self._create_cohere_rerank,
+            BGERerankConfig: self._create_bge_rerank,
         }
         super().__init__(creators)
 
@@ -45,6 +49,24 @@ class RankerFactory(ConfigBasedFactory):
             )
         return ColbertRerank(**config.model_dump())
 
+    def _create_cohere_rerank(self, config: CohereRerankConfig, **kwargs) -> LLMRerank:
+        try:
+            from llama_index.postprocessor.cohere_rerank import CohereRerank
+        except ImportError:
+            raise ImportError(
+                "`llama-index-postprocessor-cohere-rerank` package not found, please run `pip install llama-index-postprocessor-cohere-rerank`"
+            )
+        return CohereRerank(**config.model_dump())
+
+    def _create_bge_rerank(self, config: BGERerankConfig, **kwargs) -> LLMRerank:
+        try:
+            from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
+        except ImportError:
+            raise ImportError(
+                "`llama-index-postprocessor-flag-embedding-reranker` package not found, please run `pip install llama-index-postprocessor-flag-embedding-reranker`"
+            )
+        return FlagEmbeddingReranker(**config.model_dump())
+        
     def _create_object_ranker(self, config: ObjectRankerConfig, **kwargs) -> LLMRerank:
         return ObjectSortPostprocessor(**config.model_dump())
 
