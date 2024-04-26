@@ -9,7 +9,7 @@ from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
 try:
     import boto3
-    from botocore.response import StreamingBody
+    from botocore.eventstream import EventStream
 except ImportError:
     raise ImportError(
         "boto3 not found! please install it by `pip install boto3` ")
@@ -70,7 +70,7 @@ class AmazonBedrockLLM(BaseLLM):
         response_body = self._get_response_body(response)
         return response_body
 
-    def invoke_model_with_response_stream(self, request_body) -> StreamingBody:
+    def invoke_model_with_response_stream(self, request_body) -> EventStream:
         response = self.__client.invoke_model_with_response_stream(
             modelId=self.config.model, body=request_body
         )
@@ -106,7 +106,6 @@ class AmazonBedrockLLM(BaseLLM):
             messages, **self._generate_kwargs)
 
         response = self.invoke_model_with_response_stream(request_body)
-
         collected_content = []
         for event in response["body"]:
             chunk_text = self.__provider.get_choice_text_from_stream(event)

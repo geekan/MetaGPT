@@ -3,14 +3,10 @@ import json
 from metagpt.provider.bedrock.amazon_bedrock_api import AmazonBedrockLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_bedrock
 from metagpt.provider.bedrock.utils import get_max_tokens, SUPPORT_STREAM_MODELS, NOT_SUUPORT_STREAM_MODELS
-from tests.metagpt.provider.req_resp_const import (
-    BEDROCK_PROVIDER_REQUEST_BODY,
-    BEDROCK_PROVIDER_RESPONSE_BODY,
-    BEDROCK_PROVIDER_STREAM_RESPONSE)
-from botocore.response import StreamingBody
+from tests.metagpt.provider.req_resp_const import BEDROCK_PROVIDER_REQUEST_BODY, BEDROCK_PROVIDER_RESPONSE_BODY
 
 # all available model from bedrock
-models = SUPPORT_STREAM_MODELS | NOT_SUUPORT_STREAM_MODELS
+models = (SUPPORT_STREAM_MODELS | NOT_SUUPORT_STREAM_MODELS)
 messages = [{"role": "user", "content": "Hi!"}]
 
 
@@ -19,10 +15,15 @@ def mock_bedrock_provider_response(self, *args, **kwargs) -> dict:
     return BEDROCK_PROVIDER_RESPONSE_BODY[provider]
 
 
-def mock_bedrock_provider_stream_response(self, *args, **kwargs) -> StreamingBody:
+def mock_bedrock_provider_stream_response(self, *args, **kwargs) -> dict:
+    # use json object to mock EventStream
     provider = self.config.model.split(".")[0]
-    response_json = BEDROCK_PROVIDER_STREAM_RESPONSE[provider]
-    return
+    response_body_bytes = json.dumps(
+        BEDROCK_PROVIDER_RESPONSE_BODY[provider]).encode("utf-8")
+    # decoded bytes share the same format as non-stream response_body
+    response_body_stream = {
+        "body": [{'chunk': {'bytes': response_body_bytes}},]}
+    return response_body_stream
 
 
 def get_bedrock_request_body(model_id) -> dict:
@@ -51,7 +52,7 @@ def is_subset(subset, superset):
     return True
 
 
-@ pytest.fixture(scope="class", params=models)
+@pytest.fixture(scope="class", params=models)
 def bedrock_api(request) -> AmazonBedrockLLM:
     model_id = request.param
     mock_llm_config_bedrock.model = model_id
@@ -66,6 +67,7 @@ class TestAPI:
             bedrock_api.config.model)
 
     def test_get_request_body(self, bedrock_api: AmazonBedrockLLM):
+        """Ensure request body has correct format"""
         provider = bedrock_api._get_provider()
         request_body = json.loads(provider.get_request_body(
             messages, **bedrock_api._generate_kwargs))
@@ -77,15 +79,14 @@ class TestAPI:
             bedrock_api.config.model))
 
     def test_completion(self, bedrock_api: AmazonBedrockLLM, mocker):
-        mocker.patch(
-            "metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model", mock_bedrock_provider_response)
+        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model",
+                     mock_bedrock_provider_response)
         assert bedrock_api.completion(messages) == "Hello World"
 
-    # def test_stream_completion(self, bedrock_api: AmazonBedrockLLM, mocker):
-    #     mocker.patch(
-    #         "metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model_with_response_stream", mock_bedrock_provider_response)
-    #     assert bedrock_api._chat_completion_stream(messages) == "Hello World"
-
-
-if __name__ == '__main__':
-    print(get_bedrock_request_body("amazon.titan-tg1-large"))
+    def test_stream_completion(self, bedrock_api: AmazonBedrockLLM, mocker):
+        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model",
+                     mock_bedrock_provider_response)
+        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model_with_response_stream",
+                     mock_bedrock_provider_stream_response)
+        assert bedrock_api._chat_completion_stream(
+            messages) == "Hello World"

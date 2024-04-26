@@ -193,6 +193,8 @@ async def llm_general_chat_funcs_test(llm: BaseLLM, prompt: str, messages: list[
 
 
 # For Amazon Bedrock
+# Check the API documentation of each model
+# https://docs.aws.amazon.com/bedrock/latest/userguide
 BEDROCK_PROVIDER_REQUEST_BODY = {
     "mistral": {"prompt": "", "max_tokens": 0, "stop": [], "temperature": 0.0, "top_p": 0.0, "top_k": 0},
     "meta": {"prompt": "", "temperature": 0.0, "top_p": 0.0, "max_gen_len": 0},
@@ -237,5 +239,3 @@ BEDROCK_PROVIDER_RESPONSE_BODY = {
 
     "amazon": {'inputTextTokenCount': 0, 'results': [{'tokenCount': 0, 'outputText': 'Hello World', 'completionReason': ""}]}
 }
-
-BEDROCK_PROVIDER_STREAM_RESPONSE = {}
