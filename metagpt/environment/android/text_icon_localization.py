@@ -221,7 +221,7 @@ def crop_for_clip(image: any, box: any, i: int, temp_file: Path) -> bool:
     bound = [0, 0, w, h]
     if in_box(box, bound):
         cropped_image = image.crop(box)
-        cropped_image.save(temp_file.joinpath(f"{i}.jpg"))
+        cropped_image.save(temp_file.joinpath(f"{i}.png"))
         return True
     else:
         return False
@@ -271,7 +271,7 @@ def load_model(model_checkpoint_path: Path, device: str) -> any:
     return model
 
 
-def get_grounding_output(model: any, image: any, caption: str, box_threshold: any, text_threshold: any, with_logits=True) -> any:
+def get_grounding_output(model: any, image: any, caption: str, box_threshold: any, text_threshold: any, with_logits: bool = True) -> any:
     caption = caption.lower()
     caption = caption.strip()
     if not caption.endswith("."):
@@ -306,7 +306,7 @@ def get_grounding_output(model: any, image: any, caption: str, box_threshold: an
     return boxes_filt, torch.Tensor(scores), pred_phrases
 
 
-def remove_boxes(boxes_filt: any, size: any, iou_threshold=0.5) -> any:
+def remove_boxes(boxes_filt: any, size: any, iou_threshold: float = 0.5) -> any:
     boxes_to_remove = set()
 
     for i in range(len(boxes_filt)):
@@ -328,7 +328,7 @@ def remove_boxes(boxes_filt: any, size: any, iou_threshold=0.5) -> any:
     return boxes_filt
 
 
-def det(input_image: any, text_prompt: str, groundingdino_model: any, box_threshold=0.05, text_threshold=0.5) -> any:
+def det(input_image: any, text_prompt: str, groundingdino_model: any, box_threshold:float = 0.05, text_threshold:float = 0.5) -> any:
     image = Image.open(input_image)
     size = image.size
 
@@ -361,22 +361,3 @@ def det(input_image: any, text_prompt: str, groundingdino_model: any, box_thresh
     return image_data, coordinate
 
 
-def get_screenshot_only(screenshot_dir: Path) -> Path:
-    command = " adb shell rm /sdcard/screenshot.png"
-    subprocess.run(command, capture_output=True, text=True, shell=True)
-    time.sleep(0.1)
-    command = "adb shell screencap -p /sdcard/screenshot.png"
-    subprocess.run(command, capture_output=True, text=True, shell=True)
-    time.sleep(0.1)
-    command = f"adb pull /sdcard/screenshot.png {screenshot_dir}"
-    subprocess.run(command, capture_output=True, text=True, shell=True)
-    image_path = Path(f"{screenshot_dir}/screenshot.png")
-    save_path = Path(f"{screenshot_dir}/screenshot.jpg")
-    image = Image.open(image_path)
-    original_width, original_height = image.size
-    new_width = int(original_width * 0.5)
-    new_height = int(original_height * 0.5)
-    resized_image = image.resize((new_width, new_height))
-    resized_image.convert("RGB").save(save_path, "JPEG")
-    time.sleep(0.1)
-    return save_path
