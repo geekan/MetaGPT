@@ -38,7 +38,7 @@ class MGXEnv(Environment):
         elif self.message_within_software_sop(message) and not self.has_user_requirement():
             # Quick routing for messages within software SOP, bypassing TL.
             # Use rules to check for user intervention and to finish task.
-            # NOTE: This escapes TL's supervision and has pitfalls such as routing obsolete messages when TL has acquired a new user requirement.
+            # NOTE: This escapes TL's supervision and has pitfalls such as routing obsolete messages even if TL has acquired a new user requirement.
             #       In addition, we should not determine the status of a task based on message cause_by.
             #       Consider replacing this in the future.
             self._publish_message(message)
@@ -61,7 +61,7 @@ class MGXEnv(Environment):
 
     async def ask_human(self, question: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
-        return get_human_input(question)
+        return await get_human_input(question)
 
     async def reply_to_human(self, content: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
