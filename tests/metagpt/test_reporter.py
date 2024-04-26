@@ -5,7 +5,7 @@ import aiohttp.web
 import pytest
 
 from metagpt.logs import log_llm_stream
-from metagpt.report import (
+from metagpt.utils.report import (
     END_MARKER_NAME,
     BlockType,
     BrowserReporter,

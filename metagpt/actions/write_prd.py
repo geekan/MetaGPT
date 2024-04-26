@@ -33,11 +33,11 @@ from metagpt.const import (
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.report import DocsReporter
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.report import DocsReporter
 
 CONTEXT_TEMPLATE = """
 ### Project Name

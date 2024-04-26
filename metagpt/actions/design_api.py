@@ -24,9 +24,9 @@ from metagpt.actions.design_api_an import (
 )
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
-from metagpt.report import DocsReporter
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content

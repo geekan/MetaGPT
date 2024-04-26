@@ -25,10 +25,10 @@ from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
 from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import logger
-from metagpt.report import EditorReporter
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.project_repo import ProjectRepo
+from metagpt.utils.report import EditorReporter
 
 PROMPT_TEMPLATE = """
 NOTICE

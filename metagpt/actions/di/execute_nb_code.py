@@ -27,7 +27,7 @@ from rich.syntax import Syntax
 from metagpt.actions import Action
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.report import NotebookReporter
+from metagpt.utils.report import NotebookReporter
 
 INSTALL_KEEPLEN = 500
 

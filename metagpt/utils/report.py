@@ -89,7 +89,7 @@ class ResourceReporter(BaseModel):
                 ...     print(value, name)
                 ```
         """
-        cls._report = fn
+        cls._async_report = fn
 
     def _report(self, value: Any, name: str):
         if not self.callback_url:
@@ -146,14 +146,14 @@ class ResourceReporter(BaseModel):
 
     async def __aexit__(self, *args, **kwargs):
         """Exit the asynchronous streaming callback context."""
-        await self.async_report(None, END_MARKER_NAME)
         self.is_chunk = False
         if self.enable_llm_stream:
             self._llm_task.cancel()
             self._llm_task = None
+        await self.async_report(None, END_MARKER_NAME)
 
     async def _llm_stream_report(self, queue: asyncio.Queue):
-        while True:
+        while self.is_chunk:
             await self.async_report(await queue.get(), "content")
 
     async def wait_llm_stream_report(self):

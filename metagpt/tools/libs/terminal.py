@@ -2,8 +2,8 @@ import subprocess
 import threading
 from queue import Queue
 
-from metagpt.report import END_MARKER_VALUE, TerminalReporter
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
 
 
 @register_tool()
