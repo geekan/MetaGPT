@@ -1,4 +1,6 @@
 import asyncio
+import os
+import typing
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional, Union
@@ -13,10 +15,17 @@ from pydantic import BaseModel, Field, PrivateAttr
 from metagpt.const import METAGPT_REPORTER_DEFAULT_URL
 from metagpt.logs import create_llm_stream_queue, get_llm_stream_queue
 
+if typing.TYPE_CHECKING:
+    from metagpt.roles.role import Role
+
 try:
     import requests_unixsocket as requests
 except ImportError:
     import requests
+
+from contextvars import ContextVar
+
+CURRENT_ROLE: ContextVar["Role"] = ContextVar("role")
 
 
 class BlockType(str, Enum):
@@ -124,6 +133,12 @@ class ResourceReporter(BaseModel):
         data = self.model_dump(mode="json", exclude=("callback_url", "llm_stream"))
         data["value"] = str(value) if isinstance(value, Path) else value
         data["name"] = name
+        role = CURRENT_ROLE.get(None)
+        if role:
+            role_name = role.name
+        else:
+            role_name = os.environ.get("METAGPT_ROLE")
+        data["role"] = role_name
         return data
 
     def __enter__(self):
