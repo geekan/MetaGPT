@@ -48,9 +48,9 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.report import TaskReporter
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.report import TaskReporter
 from metagpt.utils.serialize import (
     actionoutout_schema_to_mapping,
     actionoutput_mapping_to_str,

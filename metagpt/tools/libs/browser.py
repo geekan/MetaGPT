@@ -1,8 +1,8 @@
 from playwright.async_api import async_playwright
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.report import BrowserReporter
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.report import BrowserReporter
 
 
 @register_tool()

@@ -18,8 +18,8 @@ from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
-from metagpt.report import DocsReporter
 from metagpt.schema import Document, Documents
+from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content

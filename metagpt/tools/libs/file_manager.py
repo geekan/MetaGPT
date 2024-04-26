@@ -4,8 +4,8 @@ import subprocess
 
 from pydantic import BaseModel, Field
 
-from metagpt.report import EditorReporter
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.report import EditorReporter
 
 
 class FileBlock(BaseModel):
