@@ -25,6 +25,15 @@ class AnthropicProvider(BaseBedrockProvider):
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict["content"][0]["text"]
 
+    def get_choice_text_from_stream(self, event) -> str:
+        # https://docs.anthropic.com/claude/reference/messages-streaming
+        rsp_dict = json.loads(event["chunk"]["bytes"])
+        if rsp_dict["type"] == "content_block_delta":
+            completions = rsp_dict["delta"]["text"]
+            return completions
+        else:
+            return ""
+
 
 class CohereProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command.html
@@ -74,7 +83,7 @@ class AmazonProvider(BaseBedrockProvider):
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict['results'][0]['outputText']
-    
+
     def get_choice_text_from_stream(self, event) -> str:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = rsp_dict["outputText"]
