@@ -114,14 +114,14 @@ class RAGBenchmark:
     def mean_reciprocal_rank(self, nodes: list[NodeWithScore], reference_docs: list[str]) -> float:
         mrr_sum = 0.0
 
-        for i, doc in enumerate(reference_docs, start=1):
-            for node in nodes:
-                if node.text in doc:
+        for i, node in enumerate(nodes, start=1):
+            for doc in reference_docs:
+                if text in doc:
                     mrr_sum += 1.0 / i
-                    break
+                    return mrr_sum
 
-        return mrr_sum / len(reference_docs) if reference_docs else 0.0
-
+        return mrr_sum
+        
     async def semantic_similarity(self, response: str, reference: str) -> float:
         result = await self.evaluator.aevaluate(
             response=response,
