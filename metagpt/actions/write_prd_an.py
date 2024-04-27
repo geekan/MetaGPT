@@ -165,7 +165,7 @@ ANYTHING_UNCLEAR = ActionNode(
     key="Anything UNCLEAR",
     expected_type=str,
     instruction="Mention any aspects of the project that are unclear and try to clarify them.",
-    example="",
+    example="Currently, all aspects of the project are clear.",
 )
 
 ISSUE_TYPE = ActionNode(
