@@ -17,7 +17,7 @@ class MistralProvider(BaseBedrockProvider):
 class AnthropicProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
 
-    def get_request_body(self, messages: list[dict], **generate_kwargs):
+    def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs):
         body = json.dumps(
             {"messages": messages, "anthropic_version": "bedrock-2023-05-31", **generate_kwargs})
         return body
@@ -40,6 +40,16 @@ class CohereProvider(BaseBedrockProvider):
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict["generations"][0]["text"]
+
+    def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs):
+        body = json.dumps(
+            {"prompt": self.messages_to_prompt(messages), "stream": kwargs.get("stream", False), **generate_kwargs})
+        return body
+
+    def get_choice_text_from_stream(self, event) -> str:
+        rsp_dict = json.loads(event["chunk"]["bytes"])
+        completions = rsp_dict.get("text", "")
+        return completions
 
 
 class MetaProvider(BaseBedrockProvider):
@@ -74,7 +84,7 @@ class AmazonProvider(BaseBedrockProvider):
 
     max_tokens_field_name = "maxTokenCount"
 
-    def get_request_body(self, messages: list[dict], **generate_kwargs):
+    def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs):
         body = json.dumps({
             "inputText": self.messages_to_prompt(messages),
             "textGenerationConfig": generate_kwargs

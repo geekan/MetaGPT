@@ -86,7 +86,7 @@ class AmazonBedrockLLM(BaseLLM):
 
     def completion(self, messages: list[dict]) -> str:
         request_body = self.__provider.get_request_body(
-            messages, **self._generate_kwargs)
+            messages, self._generate_kwargs)
         response_body = self.invoke_model(request_body)
         completions = self.__provider.get_choice_text(response_body)
         return completions
@@ -98,7 +98,7 @@ class AmazonBedrockLLM(BaseLLM):
             return self.completion(messages)
 
         request_body = self.__provider.get_request_body(
-            messages, **self._generate_kwargs)
+            messages, self._generate_kwargs, stream=True)
 
         response = self.invoke_model_with_response_stream(request_body)
         collected_content = []

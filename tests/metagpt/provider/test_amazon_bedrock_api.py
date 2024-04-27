@@ -20,14 +20,21 @@ def mock_bedrock_provider_stream_response(self, *args, **kwargs) -> dict:
     def dict2bytes(x):
         return json.dumps(x).encode("utf-8")
     provider = self.config.model.split(".")[0]
-    response_body_bytes = dict2bytes(BEDROCK_PROVIDER_RESPONSE_BODY[provider])
-    # decoded bytes share the same format as non-stream response_body except for titan
+
     if provider == "amazon":
-        response_body_stream = {
-            "body": [{'chunk': {'bytes': dict2bytes({"outputText": "Hello World"})}}]}
+        response_body_bytes = dict2bytes({"outputText": "Hello World"})
+    elif provider == "anthropic":
+        response_body_bytes = dict2bytes({"type": "content_block_delta", "index": 0,
+                                          "delta": {"type": "text_delta", "text": "Hello World"}})
+    elif provider == "cohere":
+        response_body_bytes = dict2bytes(
+            {"is_finished": False, "text": "Hello World"})
     else:
-        response_body_stream = {
-            "body": [{'chunk': {'bytes': response_body_bytes}}]}
+        response_body_bytes = dict2bytes(
+            BEDROCK_PROVIDER_RESPONSE_BODY[provider])
+
+    response_body_stream = {
+        "body": [{'chunk': {'bytes': response_body_bytes}}]}
     return response_body_stream
 
 
@@ -75,7 +82,7 @@ class TestAPI:
         """Ensure request body has correct format"""
         provider = bedrock_api._get_provider()
         request_body = json.loads(provider.get_request_body(
-            messages, **bedrock_api._generate_kwargs))
+            messages, bedrock_api._generate_kwargs))
 
         assert is_subset(request_body, get_bedrock_request_body(
             bedrock_api.config.model))
