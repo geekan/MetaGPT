@@ -39,14 +39,14 @@ class TeamLeader(Role):
         self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=True)
         return self
 
-    def _run_env_command(self, cmd):
+    async def _run_env_command(self, cmd):
         assert isinstance(self.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
         if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
             self.publish_message(Message(**cmd["args"]))
         elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
-            self.rc.env.ask_human(sent_from=self, **cmd["args"])
+            await self.rc.env.ask_human(sent_from=self, **cmd["args"])
         elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
-            self.rc.env.reply_to_human(sent_from=self, **cmd["args"])
+            await self.rc.env.reply_to_human(sent_from=self, **cmd["args"])
 
     def _run_internal_command(self, cmd):
         if cmd["command_name"] == Command.APPEND_TASK.cmd_name:
@@ -60,10 +60,10 @@ class TeamLeader(Role):
             self.planner.plan.finish_current_task()
             self.rc.working_memory.clear()
 
-    def run_commands(self, cmds):
+    async def run_commands(self, cmds):
         print(*cmds, sep="\n")
         for cmd in cmds:
-            self._run_env_command(cmd)
+            await self._run_env_command(cmd)
             self._run_internal_command(cmd)
 
         if self.planner.plan.is_plan_finished():
@@ -109,7 +109,7 @@ class TeamLeader(Role):
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
-        self.run_commands(self.commands)
+        await self.run_commands(self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
         msg = Message(content="Commands executed", send_to="no one")  # a dummy message to conform to the interface
         self.rc.memory.add(msg)
