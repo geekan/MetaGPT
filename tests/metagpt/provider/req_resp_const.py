@@ -160,8 +160,7 @@ def get_anthropic_response(name: str, stream: bool = False) -> Message:
             ),
             ContentBlockDeltaEvent(
                 index=0,
-                delta=TextDelta(text=resp_cont_tmpl.format(
-                    name=name), type="text_delta"),
+                delta=TextDelta(text=resp_cont_tmpl.format(name=name), type="text_delta"),
                 type="content_block_delta",
             ),
         ]
@@ -237,5 +236,5 @@ BEDROCK_PROVIDER_RESPONSE_BODY = {
         "stop_reason": "", "stop_sequence": "", "usage": {"input_tokens": 0, "output_tokens": 0}
     },
 
-    "amazon": {'inputTextTokenCount': 0, 'results': [{'tokenCount': 0, 'outputText': 'Hello World', 'completionReason': ""}]}
+    "amazon": {"inputTextTokenCount": 0, "results": [{"tokenCount": 0, "outputText": "Hello World", "completionReason": ""}]}
 }

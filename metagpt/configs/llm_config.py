@@ -32,7 +32,7 @@ class LLMType(Enum):
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
-    AMAZON_BEDROCK = "amazon_bedrock"
+    BEDROCK = "bedrock"
 
     def __missing__(self, key):
         return self.OPENAI

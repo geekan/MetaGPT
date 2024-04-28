@@ -1,6 +1,6 @@
 import pytest
 import json
-from metagpt.provider.bedrock.amazon_bedrock_api import AmazonBedrockLLM
+from metagpt.provider.bedrock_api import AmazonBedrockLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_bedrock
 from metagpt.provider.bedrock.utils import get_max_tokens, SUPPORT_STREAM_MODELS, NOT_SUUPORT_STREAM_MODELS
 from tests.metagpt.provider.req_resp_const import BEDROCK_PROVIDER_REQUEST_BODY, BEDROCK_PROVIDER_RESPONSE_BODY
@@ -34,7 +34,7 @@ def mock_bedrock_provider_stream_response(self, *args, **kwargs) -> dict:
             BEDROCK_PROVIDER_RESPONSE_BODY[provider])
 
     response_body_stream = {
-        "body": [{'chunk': {'bytes': response_body_bytes}}]}
+        "body": [{"chunk": {"bytes": response_body_bytes}}]}
     return response_body_stream
 
 
@@ -74,13 +74,13 @@ def bedrock_api(request) -> AmazonBedrockLLM:
 
 class TestAPI:
     def test_generate_kwargs(self, bedrock_api: AmazonBedrockLLM):
-        provider = bedrock_api._get_provider()
+        provider = bedrock_api.provider
         assert bedrock_api._generate_kwargs[provider.max_tokens_field_name] <= get_max_tokens(
             bedrock_api.config.model)
 
     def test_get_request_body(self, bedrock_api: AmazonBedrockLLM):
         """Ensure request body has correct format"""
-        provider = bedrock_api._get_provider()
+        provider = bedrock_api.provider
         request_body = json.loads(provider.get_request_body(
             messages, bedrock_api._generate_kwargs))
 
@@ -88,13 +88,13 @@ class TestAPI:
             bedrock_api.config.model))
 
     def test_completion(self, bedrock_api: AmazonBedrockLLM, mocker):
-        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model",
+        mocker.patch("metagpt.provider.bedrock_api.AmazonBedrockLLM.invoke_model",
                      mock_bedrock_provider_response)
         assert bedrock_api.completion(messages) == "Hello World"
 
     def test_stream_completion(self, bedrock_api: AmazonBedrockLLM, mocker):
-        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model",
+        mocker.patch("metagpt.provider.bedrock_api.AmazonBedrockLLM.invoke_model",
                      mock_bedrock_provider_response)
-        mocker.patch("metagpt.provider.bedrock.amazon_bedrock_api.AmazonBedrockLLM.invoke_model_with_response_stream",
+        mocker.patch("metagpt.provider.bedrock_api.AmazonBedrockLLM.invoke_model_with_response_stream",
                      mock_bedrock_provider_stream_response)
         assert bedrock_api._chat_completion_stream(messages) == "Hello World"

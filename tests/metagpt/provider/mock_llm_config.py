@@ -62,7 +62,7 @@ mock_llm_config_anthropic = LLMConfig(
 )
 
 mock_llm_config_bedrock = LLMConfig(
-    api_type="amazon_bedrock",
+    api_type="bedrock",
     model="gpt-100",
     region_name="somewhere",
     access_key="123abc",

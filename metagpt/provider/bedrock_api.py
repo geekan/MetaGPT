@@ -15,7 +15,7 @@ except ImportError:
         "boto3 not found! please install it by `pip install boto3` ")
 
 
-@register_provider([LLMType.AMAZON_BEDROCK])
+@register_provider([LLMType.BEDROCK])
 class AmazonBedrockLLM(BaseLLM):
     def __init__(self, config: LLMConfig):
         self.config = config
@@ -36,10 +36,12 @@ class AmazonBedrockLLM(BaseLLM):
         client = session.client(service_name)
         return client
 
-    def _get_client(self):
+    @property
+    def client(self):
         return self.__client
 
-    def _get_provider(self):
+    @property
+    def provider(self):
         return self.__provider
 
     def list_models(self):
@@ -53,22 +55,21 @@ class AmazonBedrockLLM(BaseLLM):
         """
         client = self.__init_client("bedrock")
         # only output text-generation models
-        response = client.list_foundation_models(byOutputModality='TEXT')
+        response = client.list_foundation_models(byOutputModality="TEXT")
         summaries = [f'{summary["modelId"]:50} Support Streaming:{summary["responseStreamingSupported"]}'
                      for summary in response["modelSummaries"]]
         logger.info("\n"+"\n".join(summaries))
 
-    def invoke_model(self, request_body) -> dict:
+    def invoke_model(self, request_body: str) -> dict:
         response = self.__client.invoke_model(
             modelId=self.config.model, body=request_body
         )
         response_body = self._get_response_body(response)
         return response_body
 
-    def invoke_model_with_response_stream(self, request_body) -> EventStream:
+    def invoke_model_with_response_stream(self, request_body: str) -> EventStream:
         response = self.__client.invoke_model_with_response_stream(
-            modelId=self.config.model, body=request_body
-        )
+            modelId=self.config.model, body=request_body)
         return response
 
     @property
