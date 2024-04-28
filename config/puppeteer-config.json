@@ -1,6 +1,0 @@
-{
-    "executablePath": "/usr/bin/chromium",
-    "args": [
-        "--no-sandbox"
-    ]
-}
