@@ -7,8 +7,7 @@
 @Desc: Implement `get_env`. RFC 216 2.4.2.4.2.
 """
 import os
-
-from metagpt.context import Context
+from typing import Dict
 
 
 class EnvKeyNotFoundError(Exception):
@@ -19,6 +18,9 @@ class EnvKeyNotFoundError(Exception):
 async def default_get_env(key: str, app_name: str = None) -> str:
     if key in os.environ:
         return os.environ[key]
+
+    from metagpt.context import Context
+
     context = Context()
     val = context.kwargs.get(key, None)
     if val is not None:
@@ -27,7 +29,23 @@ async def default_get_env(key: str, app_name: str = None) -> str:
     raise EnvKeyNotFoundError(f"EnvKeyNotFoundError: {key}, app_name:{app_name or ''}")
 
 
+async def default_get_env_description() -> Dict[str, str]:
+    result = {}
+    for k in os.environ.keys():
+        call = f'await get_env(key="{k}", app_name="")'
+        result[call] = f"Return the value of environment variable `{k}`."
+
+    from metagpt.context import Context
+
+    context = Context()
+    for k in context.kwargs.__dict__.keys():
+        call = f'await get_env(key="{k}", app_name="")'
+        result[call] = f"Get the value of environment variable `{k}`."
+    return result
+
+
 _get_env_entry = default_get_env
+_get_env_description_entry = default_get_env_description
 
 
 async def get_env(key: str, app_name: str = None) -> str:
@@ -66,11 +84,26 @@ async def get_env(key: str, app_name: str = None) -> str:
     return await default_get_env(key=key, app_name=app_name)
 
 
-def set_get_env_entry(func):
-    """Modify `get_env` entry.
+async def get_env_description() -> Dict[str, str]:
+    global _get_env_description_entry
+
+    if _get_env_description_entry:
+        return await _get_env_description_entry()
+
+    return await default_get_env_description()
+
+
+def set_get_env_entry(value, description):
+    """Modify `get_env` entry and `get_description` entry.
 
     Args:
-        func: New function entry.
+        value (function): New function entry.
+        description (str): Description of the function.
+
+    This function modifies the `get_env` entry by updating the function
+    to the provided `value` and its description to the provided `description`.
     """
     global _get_env_entry
-    _get_env_entry = func
+    global _get_env_description_entry
+    _get_env_entry = value
+    _get_env_description_entry = description

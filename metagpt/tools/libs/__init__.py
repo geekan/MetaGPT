@@ -16,14 +16,8 @@ from metagpt.tools.libs import (
     browser,
     deployer,
 )
-from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env
+from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description
 from metagpt.tools.libs.software_development import (
-    write_prd,
-    write_design,
-    write_project_plan,
-    write_codes,
-    run_qa_test,
-    fix_bug,
     git_archive,
 )
 
@@ -34,18 +28,13 @@ _ = (
     gpt_v_generator,
     web_scraping,
     email_login,
-    write_prd,
-    write_design,
-    write_project_plan,
-    write_codes,
-    run_qa_test,
-    fix_bug,
     git_archive,
     terminal,
     file_manager,
     browser,
     deployer,
     get_env,
+    get_env_description,
     set_get_env_entry,
     default_get_env,
 )  # Avoid pre-commit error
