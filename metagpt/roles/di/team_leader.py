@@ -6,16 +6,12 @@ from pydantic import model_validator
 
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.prompts.di.team_leader import (
-    CMD_PROMPT,
-    FINISH_CURRENT_TASK_CMD,
-    prepare_command_prompt,
-)
+from metagpt.prompts.di.team_leader import CMD_PROMPT, FINISH_CURRENT_TASK_CMD
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.experience_retriever import SimpleExpRetriever
 from metagpt.strategy.planner import Planner
-from metagpt.strategy.thinking_command import Command
+from metagpt.strategy.thinking_command import Command, prepare_command_prompt
 from metagpt.utils.common import CodeParser
 
 
@@ -23,7 +19,7 @@ class TeamLeader(Role):
     name: str = "Tim"
     profile: str = "Team Leader"
     task_result: TaskResult = None
-    commands: list[Command] = [
+    available_commands: list[Command] = [
         Command.APPEND_TASK,
         Command.RESET_TASK,
         Command.REPLACE_TASK,
@@ -33,6 +29,7 @@ class TeamLeader(Role):
         Command.REPLY_TO_HUMAN,
         Command.PASS,
     ]
+    commands: list[dict] = []  # issued commands to be executed
 
     @model_validator(mode="after")
     def set_plan(self) -> "TeamLeader":
@@ -69,13 +66,8 @@ class TeamLeader(Role):
         if self.planner.plan.is_plan_finished():
             self._set_state(-1)
 
-    def get_memory(self, k=10) -> list[Message]:
-        """A wrapper with default value"""
-        return self.rc.memory.get(k=k)
-
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
-        self.commands = []
 
         if not self.planner.plan.goal:
             user_requirement = self.get_memories()[-1].content
@@ -96,13 +88,12 @@ class TeamLeader(Role):
             plan_status=plan_status,
             team_info=team_info,
             example=example,
-            available_commands=prepare_command_prompt(self.commands),
+            available_commands=prepare_command_prompt(self.available_commands),
         )
-        context = self.llm.format_msg(self.get_memory() + [Message(content=prompt, role="user")])
+        context = self.llm.format_msg(self.get_memories(k=10) + [Message(content=prompt, role="user")])
 
         rsp = await self.llm.aask(context)
-        rsp_dict = json.loads(CodeParser.parse_code(block=None, text=rsp))
-        self.commands.extend(rsp_dict)
+        self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
         return True
