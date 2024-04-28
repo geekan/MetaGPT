@@ -64,12 +64,16 @@ class AmazonBedrockLLM(BaseLLM):
         response = self.__client.invoke_model(
             modelId=self.config.model, body=request_body
         )
+        usage = self._get_usage(response)
+        self._update_costs(usage)
         response_body = self._get_response_body(response)
         return response_body
 
     def invoke_model_with_response_stream(self, request_body: str) -> EventStream:
         response = self.__client.invoke_model_with_response_stream(
             modelId=self.config.model, body=request_body)
+        usage = self._get_usage(response)
+        self._update_costs(usage)
         return response
 
     @property
@@ -135,3 +139,13 @@ class AmazonBedrockLLM(BaseLLM):
     def _get_response_body(self, response) -> dict:
         response_body = json.loads(response["body"].read())
         return response_body
+
+    def _get_usage(self, response) -> dict[str, int]:
+        headers = response.get("ResponseMetadata", {}).get("HTTPHeaders", {})
+        prompt_tokens = int(headers.get("x-amzn-bedrock-input-token-count", 0))
+        completion_tokens = int(headers.get("x-amzn-bedrock-output-token-count", 0))
+        usage = {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+        },
+        return usage
