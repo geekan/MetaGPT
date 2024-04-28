@@ -1,13 +1,3 @@
-from metagpt.strategy.thinking_command import Command
-
-
-def prepare_command_prompt(commands: list[Command]) -> str:
-    command_prompt = ""
-    for i, command in enumerate(commands):
-        command_prompt += f"{i+1}. {command.value.signature}:\n{command.value.desc}\n\n"
-    return command_prompt
-
-
 CMD_PROMPT = """
 # Data Structure
 class Task(BaseModel):
