@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
+import re
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
@@ -186,6 +187,14 @@ class Documents(BaseModel):
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
+class Resource(BaseModel):
+    """Used by `Message`.`parse_resources`"""
+
+    resource_type: str  # the type of resource
+    value: str  # a string type of resource content
+    description: str  # explanation
+
+
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
@@ -310,6 +319,31 @@ class Message(BaseModel):
         except JSONDecodeError as err:
             logger.error(f"parse json failed: {val}, error:{err}")
         return None
+
+    async def parse_resources(self, llm: "BaseLLM", key_descriptions: Dict[str, str] = None) -> Dict:
+        if not self.content:
+            return {}
+        content = f"## Original Requirement\n```text\n{self.content}\n```\n"
+        return_format = (
+            "Return a markdown JSON object with:\n"
+            '- a "resources" key contain a list of objects. Each object with:\n'
+            '  - a "resource_type" key explain the type of resource;\n'
+            '  - a "value" key containing a string type of resource content;\n'
+            '  - a "description" key explaining why;\n'
+        )
+        key_descriptions = key_descriptions or {}
+        for k, v in key_descriptions.items():
+            return_format += f'- a "{k}" key containing {v};\n'
+        return_format += '- a "reason" key explaining why;\n'
+        instructions = ['Lists all the resources contained in the "Original Requirement".', return_format]
+        rsp = await llm.aask(msg=content, system_msgs=instructions)
+        pattern = r"```json\s*({[\s\S]*?})\s*```"
+        matches = re.findall(pattern, rsp)
+        if not matches:
+            return {}
+        m = json.loads(matches[0])
+        m["resources"] = [Resource(**i) for i in m.get("resources", [])]
+        return m
 
 
 class UserMessage(Message):
