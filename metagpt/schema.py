@@ -351,8 +351,9 @@ class UserMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="user")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="user", **kwargs)
 
 
 class SystemMessage(Message):
@@ -360,8 +361,9 @@ class SystemMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="system")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="system", **kwargs)
 
 
 class AIMessage(Message):
@@ -369,8 +371,9 @@ class AIMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="assistant")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="assistant", **kwargs)
 
 
 class Task(BaseModel):

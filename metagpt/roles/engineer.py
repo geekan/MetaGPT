@@ -24,8 +24,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional, Set
 
-from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
+from metagpt.actions import (
+    Action,
+    UserRequirement,
+    WriteCode,
+    WriteCodeReview,
+    WriteTasks,
+)
 from metagpt.actions.fix_bug import FixBug
+from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
@@ -95,7 +102,18 @@ class Engineer(Role):
         super().__init__(**kwargs)
 
         self.set_actions([WriteCode])
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
+        self._watch(
+            [
+                UserRequirement,
+                PrepareDocuments,
+                WriteTasks,
+                SummarizeCode,
+                WriteCode,
+                WriteCodeReview,
+                FixBug,
+                WriteCodePlanAndChange,
+            ]
+        )
         self.code_todos = []
         self.summarize_todos = []
         self.next_todo_action = any_to_name(WriteCode)
@@ -245,14 +263,25 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
-        if not self.src_workspace:
-            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
-        write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
-        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None
         msg = self.rc.news[0]
+        if msg.cause_by == any_to_str(UserRequirement):
+            self.rc.todo = PrepareDocuments(
+                key_descriptions={
+                    "project_path": 'the project path if exists in "Original Requirement"',
+                    "src_file_path": 'the path of the source code file explicitly requested for modification if exists in "Original Requirement"',
+                },
+                context=self.context,
+                send_to=any_to_str(self),
+            )
+            return self.rc.todo
+
+        if not self.src_workspace:
+            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
+        write_plan_and_change_filters = any_to_str_set([PrepareDocuments, WriteTasks, FixBug])
+        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
+        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if self.config.inc and msg.cause_by in write_plan_and_change_filters:
             logger.debug(f"TODO WriteCodePlanAndChange:{msg.model_dump_json()}")
             await self._new_code_plan_and_change_action(cause_by=msg.cause_by)

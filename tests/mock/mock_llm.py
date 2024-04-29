@@ -85,7 +85,7 @@ class MockLLM(OriginalLLM):
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=LLM_API_TIMEOUT,
-        stream=True,
+        stream=False,
     ) -> str:
         # used to identify it a message has been called before
         if isinstance(msg, list):

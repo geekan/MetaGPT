@@ -6,9 +6,11 @@
 @File    : project_manager.py
 """
 
-from metagpt.actions import WriteTasks
+from metagpt.actions import UserRequirement, WriteTasks
 from metagpt.actions.design_api import WriteDesign
+from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.roles.role import Role
+from metagpt.utils.common import any_to_str
 
 
 class ProjectManager(Role):
@@ -33,5 +35,23 @@ class ProjectManager(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self.set_actions([WriteTasks])
-        self._watch([WriteDesign])
+        self.set_actions([PrepareDocuments(send_to=any_to_str(self), context=self.context), WriteTasks])
+        self._watch([UserRequirement, PrepareDocuments, WriteDesign])
+
+    async def _think(self) -> bool:
+        """Decide what to do"""
+        mappings = {
+            any_to_str(UserRequirement): 0,
+            any_to_str(PrepareDocuments): 1,
+            any_to_str(WriteDesign): 1,
+        }
+        for i in self.rc.news:
+            idx = mappings.get(i.cause_by, -1)
+            if idx < 0:
+                continue
+            self.rc.todo = self.actions[idx]
+            return bool(self.rc.todo)
+        return False
+
+    async def _observe(self, ignore_memory=False) -> int:
+        return await super()._observe(ignore_memory=True)

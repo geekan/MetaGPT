@@ -17,9 +17,6 @@ from metagpt.tools.libs import (
     deployer,
 )
 from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description
-from metagpt.tools.libs.software_development import (
-    git_archive,
-)
 
 _ = (
     data_preprocess,
@@ -28,7 +25,6 @@ _ = (
     gpt_v_generator,
     web_scraping,
     email_login,
-    git_archive,
     terminal,
     file_manager,
     browser,
