@@ -34,7 +34,7 @@ class ProjectManager(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-
+        self.enable_memory = False
         self.set_actions([PrepareDocuments(send_to=any_to_str(self), context=self.context), WriteTasks])
         self._watch([UserRequirement, PrepareDocuments, WriteDesign])
 
@@ -52,6 +52,3 @@ class ProjectManager(Role):
             self.rc.todo = self.actions[idx]
             return bool(self.rc.todo)
         return False
-
-    async def _observe(self, ignore_memory=False) -> int:
-        return await super()._observe(ignore_memory=True)

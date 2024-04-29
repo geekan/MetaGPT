@@ -43,6 +43,7 @@ class QaEngineer(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.enable_memory = False
 
         # FIXME: a bit hack here, only init one action to circumvent _think() logic,
         #  will overwrite _think() in future updates
@@ -188,8 +189,3 @@ class QaEngineer(Role):
             sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
-
-    async def _observe(self, ignore_memory=False) -> int:
-        # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
-        # content of memory to activate.
-        return await super()._observe(ignore_memory=True)

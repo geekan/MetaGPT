@@ -34,7 +34,14 @@ from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
-from metagpt.schema import AIMessage, Message, MessageQueue, SerializationMixin
+from metagpt.schema import (
+    AIMessage,
+    Message,
+    MessageQueue,
+    SerializationMixin,
+    Task,
+    TaskResult,
+)
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
@@ -134,6 +141,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     constraints: str = ""
     desc: str = ""
     is_human: bool = False
+    enable_memory: bool = (
+        True  # Stateless, atomic roles, or roles that use external memory can disable this to save memory.
+    )
 
     role_id: str = ""
     states: list[str] = []
@@ -400,11 +410,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             msg = response
         else:
             msg = AIMessage(content=response, cause_by=self.rc.todo, sent_from=self)
-        self.rc.memory.add(msg)
+        if self.enable_memory:
+            self.rc.memory.add(msg)
 
         return msg
 
-    async def _observe(self, ignore_memory=False) -> int:
+    async def _observe(self) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
@@ -413,7 +424,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        old_messages = [] if ignore_memory else self.rc.memory.get()
+        old_messages = [] if not self.enable_memory else self.rc.memory.get()
         self.rc.memory.add_batch(news)
         # Filter out messages of interest.
         self.rc.news = [
