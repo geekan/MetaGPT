@@ -22,6 +22,7 @@ If plan is created, you should track the progress and update the plan accordingl
 Pay close attention to new user message, review the conversation history, use reply_to_human to respond to new user requirement.
 Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use ask_human to ask for help.
+2. Each time you finish a task, use reply_to_human to report your progress.
 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use finish_task, DON'T append a new task.
