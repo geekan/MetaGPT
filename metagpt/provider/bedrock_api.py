@@ -23,6 +23,8 @@ class BedrockLLM(BaseLLM):
         self.__provider = get_provider(self.config.model)
         self.cost_manager = CostManager(token_costs=BEDROCK_TOKEN_COSTS)
         logger.warning("Amazon bedrock doesn't support asynchronous now")
+        if self.config.model in NOT_SUUPORT_STREAM_MODELS:
+            logger.warning(f"model {self.config.model} doesn't support streaming output!")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         """initialize boto3 client"""
@@ -103,7 +105,6 @@ class BedrockLLM(BaseLLM):
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         if self.config.model in NOT_SUUPORT_STREAM_MODELS:
-            logger.warning(f"model {self.config.model} doesn't support streaming output!")
             rsp = await self.acompletion(messages)
             full_text = self.get_choice_text(rsp)
             log_llm_stream(full_text)
