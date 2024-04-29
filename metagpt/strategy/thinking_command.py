@@ -85,7 +85,7 @@ async def run_env_command(role: Role, cmd):
         await role.rc.env.reply_to_human(sent_from=role, **cmd["args"])
 
 
-def run_internal_command(role: Role, cmd):
+def run_plan_command(role: Role, cmd):
     if cmd["command_name"] == Command.APPEND_TASK.cmd_name:
         role.planner.plan.append_task(Task(**cmd["args"]))
     elif cmd["command_name"] == Command.RESET_TASK.cmd_name:
@@ -102,7 +102,7 @@ async def run_commands(role: Role, cmds):
     print(*cmds, sep="\n")
     for cmd in cmds:
         await run_env_command(role, cmd)
-        run_internal_command(role, cmd)
+        run_plan_command(role, cmd)
 
     if role.planner.plan.is_plan_finished():
         role._set_state(-1)
