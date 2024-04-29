@@ -181,13 +181,13 @@ class STRole(Role):
 
         logger.info(f"Role: {self.name} saved role's memory into {str(self.role_storage_path)}")
 
-    async def _observe(self, ignore_memory=False) -> int:
+    async def _observe(self) -> int:
         if not self.rc.env:
             return 0
         news = []
         if not news:
             news = self.rc.msg_buffer.pop_all()
-        old_messages = [] if ignore_memory else self.rc.memory.get()
+        old_messages = [] if not self.enable_memory else self.rc.memory.get()
         # Filter out messages of interest.
         self.rc.news = [
             n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages

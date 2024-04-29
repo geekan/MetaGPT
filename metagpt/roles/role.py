@@ -142,7 +142,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     desc: str = ""
     is_human: bool = False
     enable_memory: bool = (
-        True  # Stateless, atomic roles, or roles that use external memory can disable this to save memory.
+        True  # Stateless, atomic roles, or roles that use external storage can disable this to save memory.
     )
 
     role_id: str = ""

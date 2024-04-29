@@ -97,14 +97,14 @@ class MockEnv(Environment):
         #     "Add 'random moving enemy, and dispears after 10 seconds' design to the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
         #     any_to_str(Architect),
         # ),
-        (
-            'Rewrite the tasks file of the project at "/Users/iorishinier/github/MetaGPT/workspace/snake_game"',
-            any_to_str(ProjectManager),
-        ),
         # (
-        #     "Rewrite 'main.py' of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
-        #     any_to_str(Engineer),
+        #     'Rewrite the tasks file of the project at "/Users/iorishinier/github/MetaGPT/workspace/snake_game"',
+        #     any_to_str(ProjectManager),
         # ),
+        (
+            "Rewrite 'main.py' of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            any_to_str(Engineer),
+        ),
         # (
         #     "Rewrite the unit test of 'test_main.py' at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
         #     any_to_str(QaEngineer),
