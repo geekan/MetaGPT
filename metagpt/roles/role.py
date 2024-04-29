@@ -255,10 +255,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return self
 
     def _init_action(self, action: Action):
-        if not action.private_config:
-            action.set_llm(self.llm, override=True)
-        else:
-            action.set_llm(self.llm, override=False)
+        action.set_context(self.context)
+        override = not action.private_config
+        action.set_llm(self.llm, override=override)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):

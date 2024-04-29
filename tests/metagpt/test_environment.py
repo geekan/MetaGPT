@@ -88,27 +88,27 @@ class MockEnv(Environment):
 @pytest.mark.parametrize(
     ("content", "send_to"),
     [
-        # ("snake game", any_to_str(ProductManager)),
-        # (
-        #     "Rewrite the PRD file of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game', add 'moving enemy' to the original requirement",
-        #     any_to_str(ProductManager),
-        # ),
-        # (
-        #     "Add 'random moving enemy, and dispears after 10 seconds' design to the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
-        #     any_to_str(Architect),
-        # ),
-        # (
-        #     'Rewrite the tasks file of the project at "/Users/iorishinier/github/MetaGPT/workspace/snake_game"',
-        #     any_to_str(ProjectManager),
-        # ),
+        ("snake game", any_to_str(ProductManager)),
+        (
+            "Rewrite the PRD file of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game', add 'moving enemy' to the original requirement",
+            any_to_str(ProductManager),
+        ),
+        (
+            "Add 'random moving enemy, and dispears after 10 seconds' design to the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            any_to_str(Architect),
+        ),
+        (
+            'Rewrite the tasks file of the project at "/Users/iorishinier/github/MetaGPT/workspace/snake_game"',
+            any_to_str(ProjectManager),
+        ),
         (
             "Rewrite 'main.py' of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
             any_to_str(Engineer),
         ),
-        # (
-        #     "Rewrite the unit test of 'test_main.py' at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
-        #     any_to_str(QaEngineer),
-        # ),
+        (
+            "Rewrite the unit test of 'main.py' at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            any_to_str(QaEngineer),
+        ),
     ],
 )
 async def test_env(content, send_to):
@@ -120,7 +120,7 @@ async def test_env(content, send_to):
             Architect(context=context),
             ProjectManager(context=context),
             Engineer(n_borg=5, use_code_review=True, context=context),
-            QaEngineer(context=context),
+            QaEngineer(context=context, test_round_allowed=2),
         ]
     )
     msg = UserMessage(content=content, send_to=send_to)
