@@ -31,5 +31,5 @@ __all__ = [
     "QianFanLLM",
     "DashScopeLLM",
     "AnthropicLLM",
-    "BedrockLLM"
+    "BedrockLLM",
 ]

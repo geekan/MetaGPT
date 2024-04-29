@@ -100,4 +100,3 @@ class LLMConfig(YamlModel):
     @classmethod
     def check_timeout(cls, v):
         return v or LLM_API_TIMEOUT
-

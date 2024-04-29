@@ -65,20 +65,17 @@ def get_openai_chat_completion(name: str) -> ChatCompletion:
             Choice(
                 finish_reason="stop",
                 index=0,
-                message=ChatCompletionMessage(
-                    role="assistant", content=resp_cont_tmpl.format(name=name)),
+                message=ChatCompletionMessage(role="assistant", content=resp_cont_tmpl.format(name=name)),
                 logprobs=None,
             )
         ],
-        usage=CompletionUsage(completion_tokens=110,
-                              prompt_tokens=92, total_tokens=202),
+        usage=CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202),
     )
     return openai_chat_completion
 
 
 def get_openai_chat_completion_chunk(name: str, usage_as_dict: bool = False) -> ChatCompletionChunk:
-    usage = CompletionUsage(completion_tokens=110,
-                            prompt_tokens=92, total_tokens=202)
+    usage = CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202)
     usage = usage if not usage_as_dict else usage.model_dump()
     openai_chat_completion_chunk = ChatCompletionChunk(
         id="cmpl-a6652c1bb181caae8dd19ad8",
@@ -87,8 +84,7 @@ def get_openai_chat_completion_chunk(name: str, usage_as_dict: bool = False) -> 
         created=1703300855,
         choices=[
             AChoice(
-                delta=ChoiceDelta(role="assistant",
-                                  content=resp_cont_tmpl.format(name=name)),
+                delta=ChoiceDelta(role="assistant", content=resp_cont_tmpl.format(name=name)),
                 finish_reason="stop",
                 index=0,
                 logprobs=None,
@@ -137,8 +133,7 @@ def get_dashscope_response(name: str) -> GenerationResponse:
                     ],
                 }
             ),
-            usage=GenerationUsage(
-                **{"input_tokens": 12, "output_tokens": 98, "total_tokens": 110}),
+            usage=GenerationUsage(**{"input_tokens": 12, "output_tokens": 98, "total_tokens": 110}),
         )
     )
 
@@ -170,8 +165,7 @@ def get_anthropic_response(name: str, stream: bool = False) -> Message:
             model=name,
             role="assistant",
             type="message",
-            content=[ContentBlock(
-                text=resp_cont_tmpl.format(name=name), type="text")],
+            content=[ContentBlock(text=resp_cont_tmpl.format(name=name), type="text")],
             usage=AnthropicUsage(input_tokens=10, output_tokens=10),
         )
 
@@ -198,43 +192,81 @@ BEDROCK_PROVIDER_REQUEST_BODY = {
     "mistral": {"prompt": "", "max_tokens": 0, "stop": [], "temperature": 0.0, "top_p": 0.0, "top_k": 0},
     "meta": {"prompt": "", "temperature": 0.0, "top_p": 0.0, "max_gen_len": 0},
     "ai21": {
-        "prompt": "", "temperature": 0.0, "topP": 0.0, "maxTokens": 0,
-        "stopSequences": [], "countPenalty": {"scale": 0.0},
-        "presencePenalty": {"scale": 0.0}, "frequencyPenalty": {"scale": 0.0}
+        "prompt": "",
+        "temperature": 0.0,
+        "topP": 0.0,
+        "maxTokens": 0,
+        "stopSequences": [],
+        "countPenalty": {"scale": 0.0},
+        "presencePenalty": {"scale": 0.0},
+        "frequencyPenalty": {"scale": 0.0},
     },
     "cohere": {
-        "prompt": "", "temperature": 0.0, "p": 0.0, "k": 0.0, "max_tokens": 0, "stop_sequences": [],
-        "return_likelihoods": "NONE", "stream": False, "num_generations": 0, "logit_bias": {}, "truncate": "NONE"
+        "prompt": "",
+        "temperature": 0.0,
+        "p": 0.0,
+        "k": 0.0,
+        "max_tokens": 0,
+        "stop_sequences": [],
+        "return_likelihoods": "NONE",
+        "stream": False,
+        "num_generations": 0,
+        "logit_bias": {},
+        "truncate": "NONE",
     },
     "anthropic": {
-        "anthropic_version": "bedrock-2023-05-31", "max_tokens": 0, "system": "",
-        "messages": [{"role": "", "content": ""}], "temperature": 0.0, "top_p": 0.0, "top_k": 0, "stop_sequences": []
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 0,
+        "system": "",
+        "messages": [{"role": "", "content": ""}],
+        "temperature": 0.0,
+        "top_p": 0.0,
+        "top_k": 0,
+        "stop_sequences": [],
     },
     "amazon": {
-        "inputText": "", "textGenerationConfig": {"temperature": 0.0, "topP": 0.0, "maxTokenCount": 0, "stopSequences": []}
-    }
+        "inputText": "",
+        "textGenerationConfig": {"temperature": 0.0, "topP": 0.0, "maxTokenCount": 0, "stopSequences": []},
+    },
 }
 
 BEDROCK_PROVIDER_RESPONSE_BODY = {
     "mistral": {"outputs": [{"text": "Hello World", "stop_reason": ""}]},
-
     "meta": {"generation": "Hello World", "prompt_token_count": 0, "generation_token_count": 0, "stop_reason": ""},
-
     "ai21": {
-        "id": "", "prompt": {"text": "Hello World", "tokens": []},
-        "completions": [{"data": {"text": "Hello World", "tokens": []},
-                         "finishReason": {"reason": "length", "length": 2}}]
+        "id": "",
+        "prompt": {"text": "Hello World", "tokens": []},
+        "completions": [
+            {"data": {"text": "Hello World", "tokens": []}, "finishReason": {"reason": "length", "length": 2}}
+        ],
     },
     "cohere": {
         "generations": [
-            {"finish_reason": "", "id": "", "text": "Hello World", "likelihood": 0.0,
-             "token_likelihoods": [{"token": 0.0}], "is_finished": True, "index": 0}], "id": "", "prompt": ""
+            {
+                "finish_reason": "",
+                "id": "",
+                "text": "Hello World",
+                "likelihood": 0.0,
+                "token_likelihoods": [{"token": 0.0}],
+                "is_finished": True,
+                "index": 0,
+            }
+        ],
+        "id": "",
+        "prompt": "",
     },
-
     "anthropic": {
-        "id": "", "model": "", "type": "message", "role": "assistant", "content": [{"type": "text", "text": "Hello World"}],
-        "stop_reason": "", "stop_sequence": "", "usage": {"input_tokens": 0, "output_tokens": 0}
+        "id": "",
+        "model": "",
+        "type": "message",
+        "role": "assistant",
+        "content": [{"type": "text", "text": "Hello World"}],
+        "stop_reason": "",
+        "stop_sequence": "",
+        "usage": {"input_tokens": 0, "output_tokens": 0},
     },
-
-    "amazon": {"inputTextTokenCount": 0, "results": [{"tokenCount": 0, "outputText": "Hello World", "completionReason": ""}]}
+    "amazon": {
+        "inputTextTokenCount": 0,
+        "results": [{"tokenCount": 0, "outputText": "Hello World", "completionReason": ""}],
+    },
 }

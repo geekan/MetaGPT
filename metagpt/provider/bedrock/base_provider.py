@@ -11,8 +11,7 @@ class BaseBedrockProvider(ABC):
         ...
 
     def get_request_body(self, messages: list[dict], const_kwargs, *args, **kwargs) -> str:
-        body = json.dumps(
-            {"prompt": self.messages_to_prompt(messages), **const_kwargs})
+        body = json.dumps({"prompt": self.messages_to_prompt(messages), **const_kwargs})
         return body
 
     def get_choice_text(self, response_body: dict) -> str:

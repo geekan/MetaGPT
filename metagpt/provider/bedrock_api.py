@@ -1,14 +1,16 @@
-from typing import Literal
 import json
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.bedrock.bedrock_provider import get_provider
-from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
+from typing import Literal
+
 import boto3
 from botocore.eventstream import EventStream
+
+from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.logs import log_llm_stream, logger
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider.bedrock.bedrock_provider import get_provider
+from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
+from metagpt.provider.llm_provider_registry import register_provider
 
 
 @register_provider([LLMType.BEDROCK])
@@ -17,8 +19,7 @@ class BedrockLLM(BaseLLM):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(self.config.model)
-        logger.warning(
-            "Amazon bedrock doesn't support asynchronous now")
+        logger.warning("Amazon bedrock doesn't support asynchronous now")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         """initialize boto3 client"""
@@ -26,7 +27,7 @@ class BedrockLLM(BaseLLM):
         self.__credentital_kwargs = {
             "aws_secret_access_key": self.config.secret_key,
             "aws_access_key_id": self.config.access_key,
-            "region_name": self.config.region_name
+            "region_name": self.config.region_name,
         }
         session = boto3.Session(**self.__credentital_kwargs)
         client = session.client(service_name)
@@ -52,22 +53,21 @@ class BedrockLLM(BaseLLM):
         client = self.__init_client("bedrock")
         # only output text-generation models
         response = client.list_foundation_models(byOutputModality="TEXT")
-        summaries = [f'{summary["modelId"]:50} Support Streaming:{summary["responseStreamingSupported"]}'
-                     for summary in response["modelSummaries"]]
-        logger.info("\n"+"\n".join(summaries))
+        summaries = [
+            f'{summary["modelId"]:50} Support Streaming:{summary["responseStreamingSupported"]}'
+            for summary in response["modelSummaries"]
+        ]
+        logger.info("\n" + "\n".join(summaries))
 
     def invoke_model(self, request_body: str) -> dict:
-        response = self.__client.invoke_model(
-            modelId=self.config.model, body=request_body
-        )
+        response = self.__client.invoke_model(modelId=self.config.model, body=request_body)
         usage = self._get_usage(response)
         self._update_costs(usage)
         response_body = self._get_response_body(response)
         return response_body
 
     def invoke_model_with_response_stream(self, request_body: str) -> EventStream:
-        response = self.__client.invoke_model_with_response_stream(
-            modelId=self.config.model, body=request_body)
+        response = self.__client.invoke_model_with_response_stream(modelId=self.config.model, body=request_body)
         usage = self._get_usage(response)
         self._update_costs(usage)
         return response
@@ -80,26 +80,20 @@ class BedrockLLM(BaseLLM):
         else:
             max_tokens = self.config.max_token
 
-        return {
-            self.__provider.max_tokens_field_name: max_tokens,
-            "temperature": self.config.temperature
-        }
+        return {self.__provider.max_tokens_field_name: max_tokens, "temperature": self.config.temperature}
 
     def completion(self, messages: list[dict]) -> str:
-        request_body = self.__provider.get_request_body(
-            messages, self._const_kwargs)
+        request_body = self.__provider.get_request_body(messages, self._const_kwargs)
         response_body = self.invoke_model(request_body)
         completions = self.__provider.get_choice_text(response_body)
         return completions
 
     def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         if self.config.model in NOT_SUUPORT_STREAM_MODELS:
-            logger.warning(
-                f"model {self.config.model} doesn't support streaming output!")
+            logger.warning(f"model {self.config.model} doesn't support streaming output!")
             return self.completion(messages)
 
-        request_body = self.__provider.get_request_body(
-            messages, self._const_kwargs, stream=True)
+        request_body = self.__provider.get_request_body(messages, self._const_kwargs, stream=True)
 
         response = self.invoke_model_with_response_stream(request_body)
         collected_content = []
@@ -134,8 +128,10 @@ class BedrockLLM(BaseLLM):
         headers = response.get("ResponseMetadata", {}).get("HTTPHeaders", {})
         prompt_tokens = int(headers.get("x-amzn-bedrock-input-token-count", 0))
         completion_tokens = int(headers.get("x-amzn-bedrock-output-token-count", 0))
-        usage = {
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-        },
+        usage = (
+            {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+            },
+        )
         return usage
