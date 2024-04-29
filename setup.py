@@ -48,6 +48,7 @@ extras_require = {
         "protobuf<3.20,>=3.9.2",
         "modelscope",
         "tensorflow==2.9.1; os_name == 'linux'",
+        "tensorflow==2.9.1; os_name == 'win32'",
         "tensorflow-macos==2.9; os_name == 'darwin'",
         "keras==2.9.0",
         "torch",

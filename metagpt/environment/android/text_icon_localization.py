@@ -260,7 +260,7 @@ def transform_image(image_pil: any) -> any:
 
 
 def load_model(model_checkpoint_path: Path, device: str) -> any:
-    model_config_path = 'grounding_dino_config.py'
+    model_config_path = "grounding_dino_config.py"
     args = SLConfig.fromfile(model_config_path)
     args.device = device
     model = build_model(args)
