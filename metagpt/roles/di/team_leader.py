@@ -6,7 +6,11 @@ from pydantic import model_validator
 
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.prompts.di.team_leader import CMD_PROMPT, FINISH_CURRENT_TASK_CMD
+from metagpt.prompts.di.team_leader import (
+    CMD_PROMPT,
+    FINISH_CURRENT_TASK_CMD,
+    SYSTEM_PROMPT,
+)
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.experience_retriever import SimpleExpRetriever
@@ -92,7 +96,7 @@ class TeamLeader(Role):
         )
         context = self.llm.format_msg(self.get_memories(k=10) + [Message(content=prompt, role="user")])
 
-        rsp = await self.llm.aask(context)
+        rsp = await self.llm.aask(context, system_msgs=[SYSTEM_PROMPT])
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
