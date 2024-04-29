@@ -60,8 +60,8 @@ class AndroidExtEnv(ExtEnv):
             (width, height) = self.device_shape
             self.width = data.get("width", width)
             self.height = data.get("height", height)
-            #self.create_device_path(self.screenshot_dir)
-            #self.create_device_path(self.xml_dir)
+            self.create_device_path(self.screenshot_dir)
+            self.create_device_path(self.xml_dir)
 
     def reset(
             self,
