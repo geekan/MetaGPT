@@ -11,6 +11,8 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
 from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.token_counter import BEDROCK_TOKEN_COSTS
 
 
 @register_provider([LLMType.BEDROCK])
@@ -19,6 +21,7 @@ class BedrockLLM(BaseLLM):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(self.config.model)
+        self.cost_manager = CostManager(token_costs=BEDROCK_TOKEN_COSTS)
         logger.warning("Amazon bedrock doesn't support asynchronous now")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
@@ -62,14 +65,14 @@ class BedrockLLM(BaseLLM):
     def invoke_model(self, request_body: str) -> dict:
         response = self.__client.invoke_model(modelId=self.config.model, body=request_body)
         usage = self._get_usage(response)
-        self._update_costs(usage)
+        self._update_costs(usage, self.config.model)
         response_body = self._get_response_body(response)
         return response_body
 
     def invoke_model_with_response_stream(self, request_body: str) -> EventStream:
         response = self.__client.invoke_model_with_response_stream(modelId=self.config.model, body=request_body)
         usage = self._get_usage(response)
-        self._update_costs(usage)
+        self._update_costs(usage, self.config.model)
         return response
 
     @property
@@ -82,16 +85,29 @@ class BedrockLLM(BaseLLM):
 
         return {self.__provider.max_tokens_field_name: max_tokens, "temperature": self.config.temperature}
 
-    def completion(self, messages: list[dict]) -> str:
+    # boto3 don't support support asynchronous calls.
+    # for asynchronous version of boto3, check out:
+    # https://aioboto3.readthedocs.io/en/latest/usage.html
+    # However,aioboto3 doesn't support invoke model
+
+    def get_choice_text(self, rsp: dict) -> str:
+        return self.__provider.get_choice_text(rsp)
+
+    async def acompletion(self, messages: list[dict]) -> dict:
         request_body = self.__provider.get_request_body(messages, self._const_kwargs)
         response_body = self.invoke_model(request_body)
-        completions = self.__provider.get_choice_text(response_body)
-        return completions
+        return response_body
 
-    def _chat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+        return await self.acompletion(messages)
+
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
         if self.config.model in NOT_SUUPORT_STREAM_MODELS:
             logger.warning(f"model {self.config.model} doesn't support streaming output!")
-            return self.completion(messages)
+            rsp = await self.acompletion(messages)
+            full_text = self.get_choice_text(rsp)
+            log_llm_stream(full_text)
+            return full_text
 
         request_body = self.__provider.get_request_body(messages, self._const_kwargs, stream=True)
 
@@ -105,20 +121,6 @@ class BedrockLLM(BaseLLM):
         log_llm_stream("\n")
         full_text = ("".join(collected_content)).lstrip()
         return full_text
-
-    # boto3 don't support support asynchronous calls.
-    # for asynchronous version of boto3, check out:
-    # https://aioboto3.readthedocs.io/en/latest/usage.html
-    # However,aioboto3 doesn't support invoke model
-
-    async def acompletion(self, messages: list[dict]):
-        return await self._achat_completion(messages)
-
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        return self.completion(messages)
-
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        return self._chat_completion_stream(messages)
 
     def _get_response_body(self, response) -> dict:
         response_body = json.loads(response["body"].read())

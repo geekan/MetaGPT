@@ -13,25 +13,34 @@ NOT_SUUPORT_STREAM_MODELS = {
 SUPPORT_STREAM_MODELS = {
     "amazon.titan-tg1-large": 8000,
     "amazon.titan-text-express-v1": 8000,
+    "amazon.titan-text-express-v1:0:8k": 8000,
+    "amazon.titan-text-lite-v1:0:4k": 4000,
+    "amazon.titan-text-lite-v1": 4000,
     "anthropic.claude-instant-v1": 100000,
     "anthropic.claude-instant-v1:2:100k": 100000,
     "anthropic.claude-v1": 100000,
     "anthropic.claude-v2": 100000,
     "anthropic.claude-v2:1": 200000,
+    "anthropic.claude-v2:0:18k": 18000,
+    "anthropic.claude-v2:1:200k": 200000,
     "anthropic.claude-3-sonnet-20240229-v1:0": 200000,
     "anthropic.claude-3-sonnet-20240229-v1:0:28k": 28000,
     "anthropic.claude-3-sonnet-20240229-v1:0:200k": 200000,
     "anthropic.claude-3-haiku-20240307-v1:0": 200000,
     "anthropic.claude-3-haiku-20240307-v1:0:48k": 48000,
     "anthropic.claude-3-haiku-20240307-v1:0:200k": 200000,
+    # currently (2024-4-29) only available at US West (Oregon) AWS Region.
+    "anthropic.claude-3-opus-20240229-v1:0": 200000,
     "cohere.command-text-v14": 4000,
     "cohere.command-text-v14:7:4k": 4000,
     "cohere.command-light-text-v14": 4000,
     "cohere.command-light-text-v14:7:4k": 4000,
-    "meta.llama2-70b-v1": 4000,
     "meta.llama2-13b-chat-v1:0:4k": 4000,
     "meta.llama2-13b-chat-v1": 2000,
+    "meta.llama2-70b-v1": 4000,
     "meta.llama2-70b-v1:0:4k": 4000,
+    "meta.llama2-70b-chat-v1": 4000,
+    "meta.llama2-70b-chat-v1:0:4k": 4000,
     "meta.llama3-8b-instruct-v1:0": 2000,
     "meta.llama3-70b-instruct-v1:0": 2000,
     "mistral.mistral-7b-instruct-v0:2": 32000,
@@ -43,14 +52,14 @@ SUPPORT_STREAM_MODELS = {
 
 
 def messages_to_prompt_llama2(messages: list[dict]) -> str:
-    BOS, EOS = "<s>", "</s>"
+    BOS = ("<s>",)
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 
     prompt = f"{BOS}"
     for message in messages:
-        role = message["role"]
-        content = message["content"]
+        role = message.get("role", "")
+        content = message.get("content", "")
         if role == "system":
             prompt += f"{B_SYS} {content} {E_SYS}"
         elif role == "user":
@@ -58,25 +67,24 @@ def messages_to_prompt_llama2(messages: list[dict]) -> str:
         elif role == "assistant":
             prompt += f"{content}"
         else:
-            logger.warning(
-                f"Unknown role name {role} when formatting messages")
+            logger.warning(f"Unknown role name {role} when formatting messages")
             prompt += f"{content}"
 
     return prompt
 
 
 def messages_to_prompt_llama3(messages: list[dict]) -> str:
-    BOS, EOS = "<|begin_of_text|>", "<|eot_id|>"
+    BOS = "<|begin_of_text|>"
     GENERAL_TEMPLATE = "<|start_header_id|>{role}<|end_header_id|>\n\n{content}<|eot_id|>"
 
     prompt = f"{BOS}"
     for message in messages:
-        role = message["role"]
-        content = message["content"]
+        role = message.get("role", "")
+        content = message.get("content", "")
         prompt += GENERAL_TEMPLATE.format(role=role, content=content)
 
     if role != "assistant":
-        prompt += f"<|start_header_id|>assistant<|end_header_id|>"
+        prompt += "<|start_header_id|>assistant<|end_header_id|>"
 
     return prompt
 
@@ -85,15 +93,20 @@ def messages_to_prompt_claude2(messages: list[dict]) -> str:
     GENERAL_TEMPLATE = "\n\n{role}: {content}"
     prompt = ""
     for message in messages:
-        role = message["role"]
-        content = message["content"]
+        role = message.get("role", "")
+        content = message.get("content", "")
         prompt += GENERAL_TEMPLATE.format(role=role, content=content)
 
     if role != "assistant":
-        prompt += f"\n\nAssistant:"
+        prompt += "\n\nAssistant:"
 
     return prompt
 
 
-def get_max_tokens(model_id) -> int:
-    return (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
+def get_max_tokens(model_id: str) -> int:
+    try:
+        max_tokens = (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
+    except KeyError:
+        logger.warning(f"Couldn't find model:{model_id} , max tokens has been set to 2048")
+        max_tokens = 2048
+    return max_tokens
