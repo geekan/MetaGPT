@@ -10,9 +10,9 @@ class BaseBedrockProvider(ABC):
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         ...
 
-    def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs):
+    def get_request_body(self, messages: list[dict], const_kwargs, *args, **kwargs) -> str:
         body = json.dumps(
-            {"prompt": self.messages_to_prompt(messages), **generate_kwargs})
+            {"prompt": self.messages_to_prompt(messages), **const_kwargs})
         return body
 
     def get_choice_text(self, response_body: dict) -> str:

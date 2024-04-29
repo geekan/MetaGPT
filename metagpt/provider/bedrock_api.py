@@ -7,16 +7,12 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
-try:
-    import boto3
-    from botocore.eventstream import EventStream
-except ImportError:
-    raise ImportError(
-        "boto3 not found! please install it by `pip install boto3` ")
+import boto3
+from botocore.eventstream import EventStream
 
 
 @register_provider([LLMType.BEDROCK])
-class AmazonBedrockLLM(BaseLLM):
+class BedrockLLM(BaseLLM):
     def __init__(self, config: LLMConfig):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
@@ -77,7 +73,7 @@ class AmazonBedrockLLM(BaseLLM):
         return response
 
     @property
-    def _generate_kwargs(self) -> dict:
+    def _const_kwargs(self) -> dict:
         model_max_tokens = get_max_tokens(self.config.model)
         if self.config.max_token > model_max_tokens:
             max_tokens = model_max_tokens
@@ -91,7 +87,7 @@ class AmazonBedrockLLM(BaseLLM):
 
     def completion(self, messages: list[dict]) -> str:
         request_body = self.__provider.get_request_body(
-            messages, self._generate_kwargs)
+            messages, self._const_kwargs)
         response_body = self.invoke_model(request_body)
         completions = self.__provider.get_choice_text(response_body)
         return completions
@@ -103,7 +99,7 @@ class AmazonBedrockLLM(BaseLLM):
             return self.completion(messages)
 
         request_body = self.__provider.get_request_body(
-            messages, self._generate_kwargs, stream=True)
+            messages, self._const_kwargs, stream=True)
 
         response = self.invoke_model_with_response_stream(request_body)
         collected_content = []
@@ -122,12 +118,6 @@ class AmazonBedrockLLM(BaseLLM):
     # However,aioboto3 doesn't support invoke model
 
     async def acompletion(self, messages: list[dict]):
-        return await self._achat_completion(messages)
-
-    async def acompletion_text(self, messages: list[dict], stream: bool = False,
-                               timeout: int = USE_CONFIG_TIMEOUT) -> str:
-        if stream:
-            return await self._achat_completion_stream(messages)
         return await self._achat_completion(messages)
 
     async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):

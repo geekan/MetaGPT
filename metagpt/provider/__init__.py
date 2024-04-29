@@ -17,7 +17,7 @@ from metagpt.provider.spark_api import SparkLLM
 from metagpt.provider.qianfan_api import QianFanLLM
 from metagpt.provider.dashscope_api import DashScopeLLM
 from metagpt.provider.anthropic_api import AnthropicLLM
-from metagpt.provider.bedrock_api import AmazonBedrockLLM
+from metagpt.provider.bedrock_api import BedrockLLM
 
 __all__ = [
     "GeminiLLM",
@@ -31,5 +31,5 @@ __all__ = [
     "QianFanLLM",
     "DashScopeLLM",
     "AnthropicLLM",
-    "AmazonBedrockLLM"
+    "BedrockLLM"
 ]
