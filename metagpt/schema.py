@@ -18,7 +18,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
-import re
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
@@ -49,7 +48,7 @@ from metagpt.const import (
 )
 from metagpt.logs import ToolLogItem, log_tool_output, logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.utils.common import any_to_str, any_to_str_set, import_class
+from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.serialize import (
     actionoutout_schema_to_mapping,
@@ -337,11 +336,8 @@ class Message(BaseModel):
         return_format += '- a "reason" key explaining why;\n'
         instructions = ['Lists all the resources contained in the "Original Requirement".', return_format]
         rsp = await llm.aask(msg=content, system_msgs=instructions)
-        pattern = r"```json\s*({[\s\S]*?})\s*```"
-        matches = re.findall(pattern, rsp)
-        if not matches:
-            return {}
-        m = json.loads(matches[0])
+        json_data = CodeParser.parse_code(text=rsp, lang="json")
+        m = json.loads(json_data)
         m["resources"] = [Resource(**i) for i in m.get("resources", [])]
         return m
 

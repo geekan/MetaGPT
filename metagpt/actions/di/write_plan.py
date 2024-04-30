@@ -47,7 +47,7 @@ class WritePlan(Action):
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
         )
         rsp = await self._aask(prompt)
-        rsp = CodeParser.parse_code(block=None, text=rsp)
+        rsp = CodeParser.parse_code(text=rsp)
         return rsp
 
 

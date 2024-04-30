@@ -93,7 +93,7 @@ class TeamLeader(Role):
         context = self.llm.format_msg(self.get_memories(k=10) + [Message(content=prompt, role="user")])
 
         rsp = await self.llm.aask(context)
-        self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
+        self.commands = json.loads(CodeParser.parse_code(text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
         return True

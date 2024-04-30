@@ -220,7 +220,7 @@ class OpenAILLM(BaseLLM):
             # The response content is `code``, but it appears in the content instead of the arguments.
             code_formats = "```"
             if message.content.startswith(code_formats) and message.content.endswith(code_formats):
-                code = CodeParser.parse_code(None, message.content)
+                code = CodeParser.parse_code(text=message.content)
                 return {"language": "python", "code": code}
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}

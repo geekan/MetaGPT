@@ -89,7 +89,7 @@ class GPTvGenerator:
         webpages_path.mkdir(parents=True, exist_ok=True)
 
         index_path = webpages_path / "index.html"
-        index_path.write_text(CodeParser.parse_code(block=None, text=webpages, lang="html"))
+        index_path.write_text(CodeParser.parse_code(text=webpages, lang="html"))
 
         extract_and_save_code(folder=webpages_path, text=webpages, pattern="styles?.css", language="css")
 
@@ -102,5 +102,5 @@ def extract_and_save_code(folder, text, pattern, language):
     word = re.search(pattern, text)
     if word:
         path = folder / word.group(0)
-        code = CodeParser.parse_code(block=None, text=text, lang=language)
+        code = CodeParser.parse_code(text=text, lang=language)
         path.write_text(code, encoding="utf-8")
