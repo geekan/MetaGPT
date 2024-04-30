@@ -38,6 +38,7 @@ from pydantic import (
 )
 
 from metagpt.const import (
+    AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
@@ -342,6 +343,9 @@ class Message(BaseModel):
         m["resources"] = [Resource(**i) for i in m.get("resources", [])]
         return m
 
+    def add_metadata(self, key: str, value: str):
+        self.metadata[key] = value
+
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
@@ -371,6 +375,13 @@ class AIMessage(Message):
     def __init__(self, content: str, **kwargs):
         kwargs.pop("role", None)
         super().__init__(content=content, role="assistant", **kwargs)
+
+    def with_agent(self, name: str):
+        self.add_metadata(key=AGENT, value=name)
+
+    @property
+    def agent(self) -> str:
+        return self.metadata.get(AGENT, "")
 
 
 class Task(BaseModel):

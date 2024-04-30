@@ -139,3 +139,6 @@ LLM_API_TIMEOUT = 300
 
 # Assistant alias
 ASSISTANT_ALIAS = "response"
+
+# Metadata defines
+AGENT = "agent"
