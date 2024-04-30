@@ -68,6 +68,12 @@ class SimpleExpRetriever(ExpRetriever):
                 "content": "User request to create a cli snake game. Please create a product requirement document (PRD) outlining the features, user interface, and user experience of the snake game.",
                 "send_to": "Alice"
             }
+        },
+        {
+            "command_name": "reply_to_human",
+            "args": {
+                "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
+            }
         }
     ]
     ```
@@ -92,6 +98,12 @@ class SimpleExpRetriever(ExpRetriever):
                 "content": "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy.",
                 "send_to": "David"
             }
+        },
+        {
+            "command_name": "reply_to_human",
+            "args": {
+                "content": "I have assigned the task to David. He will break down the task further by himself and starts solving it.",
+            }
         }
     ]
     ```
@@ -110,10 +122,16 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {}
         },
         {
-        "command_name": "publish_message",
+            "command_name": "publish_message",
+                "args": {
+                    "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at 'docs/prd/20240424153821.json'. Include the choice of programming language, libraries, and data flow, etc.",
+                    "send_to": "Bob"
+                }
+        },
+        {
+            "command_name": "reply_to_human",
             "args": {
-                "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at 'docs/prd/20240424153821.json'. Include the choice of programming language, libraries, and data flow, etc.",
-                "send_to": "Bob"
+                "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
             }
         }
     ]

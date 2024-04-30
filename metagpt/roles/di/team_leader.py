@@ -5,13 +5,20 @@ import json
 from pydantic import model_validator
 
 from metagpt.actions.di.run_command import RunCommand
-from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.prompts.di.team_leader import CMD_PROMPT, FINISH_CURRENT_TASK_CMD
+from metagpt.prompts.di.team_leader import (
+    CMD_PROMPT,
+    FINISH_CURRENT_TASK_CMD,
+    SYSTEM_PROMPT,
+)
 from metagpt.roles import Role
-from metagpt.schema import Message, Task, TaskResult
+from metagpt.schema import Message, TaskResult
 from metagpt.strategy.experience_retriever import SimpleExpRetriever
 from metagpt.strategy.planner import Planner
-from metagpt.strategy.thinking_command import Command, prepare_command_prompt
+from metagpt.strategy.thinking_command import (
+    Command,
+    prepare_command_prompt,
+    run_commands,
+)
 from metagpt.utils.common import CodeParser
 
 
@@ -33,38 +40,11 @@ class TeamLeader(Role):
 
     @model_validator(mode="after")
     def set_plan(self) -> "TeamLeader":
+        self.rc.working_memory = (
+            self.rc.memory
+        )  # TeamLeader does not need working memory, all messages should go into memory
         self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=True)
         return self
-
-    async def _run_env_command(self, cmd):
-        assert isinstance(self.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
-        if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
-            self.publish_message(Message(**cmd["args"]))
-        elif cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
-            await self.rc.env.ask_human(sent_from=self, **cmd["args"])
-        elif cmd["command_name"] == Command.REPLY_TO_HUMAN.cmd_name:
-            await self.rc.env.reply_to_human(sent_from=self, **cmd["args"])
-
-    def _run_internal_command(self, cmd):
-        if cmd["command_name"] == Command.APPEND_TASK.cmd_name:
-            self.planner.plan.append_task(Task(**cmd["args"]))
-        elif cmd["command_name"] == Command.RESET_TASK.cmd_name:
-            self.planner.plan.reset_task(**cmd["args"])
-        elif cmd["command_name"] == Command.REPLACE_TASK.cmd_name:
-            self.planner.plan.replace_task(Task(**cmd["args"]))
-        elif cmd["command_name"] == Command.FINISH_CURRENT_TASK.cmd_name:
-            self.planner.plan.current_task.update_task_result(task_result=self.task_result)
-            self.planner.plan.finish_current_task()
-            self.rc.working_memory.clear()
-
-    async def run_commands(self, cmds):
-        print(*cmds, sep="\n")
-        for cmd in cmds:
-            await self._run_env_command(cmd)
-            self._run_internal_command(cmd)
-
-        if self.planner.plan.is_plan_finished():
-            self._set_state(-1)
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
@@ -92,7 +72,7 @@ class TeamLeader(Role):
         )
         context = self.llm.format_msg(self.get_memories(k=10) + [Message(content=prompt, role="user")])
 
-        rsp = await self.llm.aask(context)
+        rsp = await self.llm.aask(context, system_msgs=[SYSTEM_PROMPT])
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
@@ -100,7 +80,7 @@ class TeamLeader(Role):
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
-        await self.run_commands(self.commands)
+        await run_commands(self, self.commands)
         self.task_result = TaskResult(result="Success", is_success=True)
         msg = Message(content="Commands executed", send_to="no one")  # a dummy message to conform to the interface
         self.rc.memory.add(msg)
