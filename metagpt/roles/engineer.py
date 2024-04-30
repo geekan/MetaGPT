@@ -332,12 +332,11 @@ class Engineer(Role):
     async def _new_code_actions(self):
         bug_fix = await self._is_fixbug()
         # Prepare file repos
-        changed_src_files = (
-            {self.context.kwargs.src_filename: ChangeType.UNTRACTED}
-            if self.context.kwargs.src_filename
-            else self.project_repo.srcs.changed_files
-        )
-        changed_src_files = self.project_repo.srcs.all_files if bug_fix else changed_src_files
+        changed_src_files = self.project_repo.srcs.changed_files
+        if self.context.kwargs.src_filename:
+            changed_src_files = {self.context.kwargs.src_filename: ChangeType.UNTRACTED}
+        if bug_fix:
+            changed_src_files = self.project_repo.srcs.all_files
         changed_task_files = self.project_repo.docs.task.changed_files
         changed_files = Documents()
         # Recode caused by upstream changes.
