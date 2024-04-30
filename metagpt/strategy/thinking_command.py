@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from pydantic import BaseModel
 
 from metagpt.environment.mgx.mgx_env import MGXEnv
+from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message, Task
 
@@ -72,11 +75,12 @@ def prepare_command_prompt(commands: list[Command]) -> str:
     return command_prompt
 
 
-async def run_env_command(role: Role, cmd):
+async def run_env_command(role: Role, cmd: list[dict], role_memory: Memory = None):
     assert isinstance(role.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
     if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
         role.publish_message(Message(**cmd["args"]))
     if cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
+        # TODO: Operation on role memory should not appear here, consider moving it into role
         role.rc.working_memory.add(Message(content=cmd["args"]["question"], role="assistant"))
         human_rsp = await role.rc.env.ask_human(sent_from=role, **cmd["args"])
         role.rc.working_memory.add(Message(content=human_rsp, role="user"))
@@ -85,7 +89,7 @@ async def run_env_command(role: Role, cmd):
         await role.rc.env.reply_to_human(sent_from=role, **cmd["args"])
 
 
-def run_plan_command(role: Role, cmd):
+def run_plan_command(role: Role, cmd: list[dict]):
     if cmd["command_name"] == Command.APPEND_TASK.cmd_name:
         role.planner.plan.append_task(Task(**cmd["args"]))
     elif cmd["command_name"] == Command.RESET_TASK.cmd_name:
@@ -93,15 +97,17 @@ def run_plan_command(role: Role, cmd):
     elif cmd["command_name"] == Command.REPLACE_TASK.cmd_name:
         role.planner.plan.replace_task(Task(**cmd["args"]))
     elif cmd["command_name"] == Command.FINISH_CURRENT_TASK.cmd_name:
+        if role.planner.plan.is_plan_finished():
+            return
         role.planner.plan.current_task.update_task_result(task_result=role.task_result)
         role.planner.plan.finish_current_task()
         role.rc.working_memory.clear()
 
 
-async def run_commands(role: Role, cmds):
+async def run_commands(role: Role, cmds: list[dict], role_memory: Memory = None):
     print(*cmds, sep="\n")
     for cmd in cmds:
-        await run_env_command(role, cmd)
+        await run_env_command(role, cmd, role_memory)
         run_plan_command(role, cmd)
 
     if role.planner.plan.is_plan_finished():

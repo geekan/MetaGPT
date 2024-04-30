@@ -6,6 +6,7 @@ from metagpt.actions import (
     WriteTest,
 )
 from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.const import AGENT
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
 from metagpt.roles import (
@@ -23,6 +24,9 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 class MGXEnv(Environment):
     """MGX Environment"""
 
+    # Before enabling TL to fully take over the routing, all software company roles need to be able to handle TL messages, which requires restructuring.
+    allow_bypass_team_leader: bool = True
+
     def _publish_message(self, message: Message, peekable: bool = True) -> bool:
         return super().publish_message(message, peekable)
 
@@ -35,7 +39,11 @@ class MGXEnv(Environment):
             # bypass team leader, team leader only needs to know but not to react
             tl.rc.memory.add(self.move_message_info_to_content(message))
 
-        elif self.message_within_software_sop(message) and not self.has_user_requirement():
+        elif (
+            self.allow_bypass_team_leader
+            and self.message_within_software_sop(message)
+            and not self.has_user_requirement()
+        ):
             # Quick routing for messages within software SOP, bypassing TL.
             # Use rules to check for user intervention and to finish task.
             # NOTE: This escapes TL's supervision and has pitfalls such as routing obsolete messages even if TL has acquired a new user requirement.
@@ -47,6 +55,9 @@ class MGXEnv(Environment):
                 tl.finish_current_task()
 
         elif publicer == tl.profile:
+            if message.send_to == {"no one"}:
+                # skip the dummy message from team leader
+                return True
             # message processed by team leader can be published now
             self._publish_message(message)
 
@@ -71,7 +82,7 @@ class MGXEnv(Environment):
     def message_within_software_sop(self, message: Message) -> bool:
         return message.sent_from in any_to_str_set([ProductManager, Architect, ProjectManager, Engineer, QaEngineer])
 
-    def has_user_requirement(self, k=2) -> bool:
+    def has_user_requirement(self, k=1) -> bool:
         """A heuristics to check if there is a recent user intervention"""
         return any_to_str(UserRequirement) in [msg.cause_by for msg in self.history.get(k)]
 
@@ -86,10 +97,8 @@ class MGXEnv(Environment):
         1. Convert role, since role field must be reserved for LLM API, and is limited to, for example, one of ["user", "assistant", "system"]
         2. Add sender and recipient info to content, making TL aware, since LLM API only takes content as input
         """
-        if message.role in ["system", "user", "assistant"]:
-            sent_from = message.sent_from
-        else:
-            sent_from = message.role
+        if message.role not in ["system", "user", "assistant"]:
             message.role = "assistant"
+        sent_from = message.metadata[AGENT] if AGENT in message.metadata else message.sent_from
         message.content = f"from {sent_from} to {message.send_to}: {message.content}"
         return message
