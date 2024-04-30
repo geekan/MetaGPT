@@ -407,8 +407,10 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             )
         elif isinstance(response, Message):
             msg = response
+        elif isinstance(response, AIMessage):
+            msg = response.with_agent(self._setting)
         else:
-            msg = AIMessage(content=response, cause_by=self.rc.todo, sent_from=self)
+            msg = AIMessage(content=response, cause_by=self.rc.todo, sent_from=self).with_agent(self._setting)
         if self.enable_memory:
             self.rc.memory.add(msg)
 

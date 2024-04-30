@@ -378,6 +378,7 @@ class AIMessage(Message):
 
     def with_agent(self, name: str):
         self.add_metadata(key=AGENT, value=name)
+        return self
 
     @property
     def agent(self) -> str:
