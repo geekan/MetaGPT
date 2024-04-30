@@ -2,17 +2,21 @@ from __future__ import annotations
 
 import json
 
+import yaml
+
 from metagpt.actions.di.ask_review import ReviewConst
+
+# from user_develop.prompt.report_task_type import UserTaskType
 from metagpt.actions.di.write_plan import (
     WritePlan,
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
 )
+from metagpt.const import TEST_DATA_PATH
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import CodeParser, remove_comments
-from user_develop.prompt.report_task_type import UserTaskType
 
 PLAN_STATUS = """
 您的目标是构建一个完整、连贯的事故报告, 请确保您的文字精确、逻辑清晰，并保持专业和客观的写作风格。
@@ -26,6 +30,10 @@ PLAN_STATUS = """
 {guidance}
 
 """
+#  Prompt for loading chapters or paragraph
+with open(TEST_DATA_PATH / "report_writer/domain.yaml", "r") as file:
+    usertasktype = yaml.safe_load(file)
+guidances = {v["name"]: v["guidance"] for k, v in usertasktype.items()}
 
 
 class WriteReportPlan(WritePlan):
@@ -36,18 +44,16 @@ class WriteReportPlan(WritePlan):
     """
 
     async def run(self, context: list[Message], max_tasks: int = 7, human_design_sop=True) -> str:
-        self.PROMPT_TEMPLATE = f"{self.PROMPT_TEMPLATE}\n\n{self.CONSTRAINTS}"
         if not human_design_sop:
-            task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in UserTaskType])
+            self.PROMPT_TEMPLATE = f"{self.PROMPT_TEMPLATE}\n\n{self.CONSTRAINTS}"
+            task_type_desc = "\n".join([f"- **{v['name']}**: {v['desc']}" for k, v in usertasktype.items()])
             prompt = self.PROMPT_TEMPLATE.format(
                 context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
             )
             rsp = await self._aask(prompt)
             rsp = CodeParser.parse_code(block=None, text=rsp)
         else:
-            from metagpt.const import DATA_PATH
-
-            with open(DATA_PATH / "sop.json", "r", encoding="utf-8") as file:
+            with open(TEST_DATA_PATH / "report_writer/sop.json", "r", encoding="utf-8") as file:
                 rsp = json.dumps(json.loads(file.read()), ensure_ascii=False)  # 读取人类设计 `sop` 流程
         return rsp
 
@@ -85,8 +91,7 @@ class WritePlanner(Planner):
         task_results = [task.result for task in finished_tasks]
         task_results = "\n\n".join(task_results)
         task_type_name = self.current_task.task_type.lower()
-        guidance = UserTaskType[task_type_name].value.guidance if hasattr(UserTaskType, task_type_name) else ""
-
+        guidance = guidances.get(task_type_name, "")
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
             report_written=paragraph_written,
