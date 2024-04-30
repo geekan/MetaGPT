@@ -407,10 +407,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             )
         elif isinstance(response, Message):
             msg = response
-        elif isinstance(response, AIMessage):
-            msg = response.with_agent(self._setting)
         else:
-            msg = AIMessage(content=response, cause_by=self.rc.todo, sent_from=self).with_agent(self._setting)
+            msg = AIMessage(content=response, cause_by=self.rc.todo, sent_from=self)
         if self.enable_memory:
             self.rc.memory.add(msg)
 
@@ -534,6 +532,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         else:
             raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
+        if isinstance(rsp, AIMessage):
+            rsp.with_agent(self._setting)
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:
