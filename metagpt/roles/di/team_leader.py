@@ -40,9 +40,6 @@ class TeamLeader(Role):
 
     @model_validator(mode="after")
     def set_plan(self) -> "TeamLeader":
-        self.rc.working_memory = (
-            self.rc.memory
-        )  # TeamLeader does not need working memory, all messages should go into memory
         self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=True)
         return self
 
@@ -80,7 +77,7 @@ class TeamLeader(Role):
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
-        await run_commands(self, self.commands)
+        await run_commands(self, self.commands, self.rc.memory)
         self.task_result = TaskResult(result="Success", is_success=True)
         msg = Message(content="Commands executed", send_to="no one")  # a dummy message to conform to the interface
         self.rc.memory.add(msg)

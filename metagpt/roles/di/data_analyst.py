@@ -83,7 +83,7 @@ class DataAnalyst(DataInterpreter):
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
-        await run_commands(self, self.commands)
+        await run_commands(self, self.commands, self.rc.working_memory)
 
         return bool(self.rc.todo)
 
