@@ -132,7 +132,7 @@ class ToolRecommender(BaseModel):
             topk=topk,
         )
         rsp = await LLM().aask(prompt, stream=False)
-        rsp = CodeParser.parse_code(block=None, text=rsp)
+        rsp = CodeParser.parse_code(text=rsp)
         ranked_tools = json.loads(rsp)
 
         valid_tools = validate_tool_names(ranked_tools)

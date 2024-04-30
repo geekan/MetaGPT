@@ -132,7 +132,7 @@ class WriteCodeReview(Action):
         # if LBTM, rewrite code
         rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
         code_rsp = await self._aask(rewrite_prompt)
-        code = CodeParser.parse_code(block="", text=code_rsp)
+        code = CodeParser.parse_code(text=code_rsp)
         return result, code
 
     async def run(self, *args, **kwargs) -> CodingContext:

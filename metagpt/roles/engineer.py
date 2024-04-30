@@ -24,8 +24,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional, Set
 
-from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
+from metagpt.actions import (
+    Action,
+    UserRequirement,
+    WriteCode,
+    WriteCodeReview,
+    WriteTasks,
+)
 from metagpt.actions.fix_bug import FixBug
+from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
@@ -39,6 +46,7 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
+    AIMessage,
     CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
@@ -53,6 +61,7 @@ from metagpt.utils.common import (
     get_project_srcs_path,
     init_python_folder,
 )
+from metagpt.utils.git_repository import ChangeType
 
 IS_PASS_PROMPT = """
 {context}
@@ -93,9 +102,20 @@ class Engineer(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-
+        self.enable_memory = False
         self.set_actions([WriteCode])
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
+        self._watch(
+            [
+                UserRequirement,
+                PrepareDocuments,
+                WriteTasks,
+                SummarizeCode,
+                WriteCode,
+                WriteCodeReview,
+                FixBug,
+                WriteCodePlanAndChange,
+            ]
+        )
         self.code_todos = []
         self.summarize_todos = []
         self.next_todo_action = any_to_name(WriteCode)
@@ -130,13 +150,11 @@ class Engineer(Role):
                 dependencies=list(dependencies),
                 content=coding_context.code_doc.content,
             )
-            msg = Message(
+            AIMessage(
                 content=coding_context.model_dump_json(),
                 instruct_content=coding_context,
-                role=self.profile,
                 cause_by=WriteCode,
             )
-            self.rc.memory.add(msg)
 
             changed_files.add(coding_context.code_doc.filename)
         if not changed_files:
@@ -156,13 +174,12 @@ class Engineer(Role):
         if isinstance(self.rc.todo, SummarizeCode):
             self.next_todo_action = any_to_name(WriteCode)
             return await self._act_summarize()
-        return None
+        return await self.rc.todo.run(self.rc.history)
 
     async def _act_write_code(self):
         changed_files = await self._act_sp_with_cr(review=self.use_code_review)
-        return Message(
+        return AIMessage(
             content="\n".join(changed_files),
-            role=self.profile,
             cause_by=WriteCodeReview if self.use_code_review else WriteCode,
             send_to=self,
             sent_from=self,
@@ -195,9 +212,8 @@ class Engineer(Role):
 
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:
-            return Message(
+            return AIMessage(
                 content="",
-                role=self.profile,
                 cause_by=SummarizeCode,
                 sent_from=self,
                 send_to="Edward",  # The name of QaEngineer
@@ -205,9 +221,7 @@ class Engineer(Role):
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
         self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return Message(
-            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
-        )
+        return AIMessage(content=json.dumps(tasks), cause_by=SummarizeCode, send_to=self, sent_from=self)
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
@@ -229,9 +243,8 @@ class Engineer(Role):
             dependencies=dependencies,
         )
 
-        return Message(
+        return AIMessage(
             content=code_plan_and_change,
-            role=self.profile,
             cause_by=WriteCodePlanAndChange,
             send_to=self,
             sent_from=self,
@@ -245,14 +258,25 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
-        if not self.src_workspace:
-            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
-        write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
-        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None
         msg = self.rc.news[0]
+        if msg.cause_by == any_to_str(UserRequirement):
+            self.rc.todo = PrepareDocuments(
+                key_descriptions={
+                    "project_path": 'the project path if exists in "Original Requirement"',
+                    "src_filename": 'the file name of the source code file explicitly requested for modification if exists in "Original Requirement"',
+                },
+                context=self.context,
+                send_to=any_to_str(self),
+            )
+            return self.rc.todo
+
+        if not self.src_workspace:
+            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
+        write_plan_and_change_filters = any_to_str_set([PrepareDocuments, WriteTasks, FixBug])
+        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
+        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if self.config.inc and msg.cause_by in write_plan_and_change_filters:
             logger.debug(f"TODO WriteCodePlanAndChange:{msg.model_dump_json()}")
             await self._new_code_plan_and_change_action(cause_by=msg.cause_by)
@@ -308,7 +332,11 @@ class Engineer(Role):
     async def _new_code_actions(self):
         bug_fix = await self._is_fixbug()
         # Prepare file repos
-        changed_src_files = self.project_repo.srcs.all_files if bug_fix else self.project_repo.srcs.changed_files
+        changed_src_files = self.project_repo.srcs.changed_files
+        if self.context.kwargs.src_filename:
+            changed_src_files = {self.context.kwargs.src_filename: ChangeType.UNTRACTED}
+        if bug_fix:
+            changed_src_files = self.project_repo.srcs.all_files
         changed_task_files = self.project_repo.docs.task.changed_files
         changed_files = Documents()
         # Recode caused by upstream changes.
@@ -319,6 +347,8 @@ class Engineer(Role):
             task_list = self._parse_tasks(task_doc)
             await self._init_python_folder(task_list)
             for task_filename in task_list:
+                if self.context.kwargs.src_filename and task_filename != self.context.kwargs.src_filename:
+                    continue
                 old_code_doc = await self.project_repo.srcs.get(task_filename)
                 if not old_code_doc:
                     old_code_doc = Document(

@@ -20,7 +20,7 @@ from metagpt.context import Context
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import Message
+from metagpt.schema import UserMessage
 from metagpt.utils.common import (
     NoMoneyException,
     read_json_file,
@@ -102,7 +102,7 @@ class Team(BaseModel):
 
         # Human requirement.
         self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
+            UserMessage(content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
             peekable=False,
         )
 
