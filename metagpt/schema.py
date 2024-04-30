@@ -322,6 +322,19 @@ class Message(BaseModel):
         return None
 
     async def parse_resources(self, llm: "BaseLLM", key_descriptions: Dict[str, str] = None) -> Dict:
+        """
+        `parse_resources` corresponds to the in-context adaptation capability of the input of the atomic action,
+        which will be migrated to the context builder later.
+
+        Args:
+            llm (BaseLLM): The instance of the BaseLLM class.
+            key_descriptions (Dict[str, str], optional): A dictionary containing descriptions for each key,
+                if provided. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing parsed resources.
+
+        """
         if not self.content:
             return {}
         content = f"## Original Requirement\n```text\n{self.content}\n```\n"
