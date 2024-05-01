@@ -18,6 +18,7 @@ embedding:
   model: ""
   api_version: ""
   embed_batch_size: 100
+  dimensions: 
 
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
