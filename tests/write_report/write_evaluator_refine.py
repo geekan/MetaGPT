@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+from typing import Union
 
 from metagpt.actions import Action
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, process_message
+from metagpt.utils.common import CodeParser
 
 STRUCTUAL_PROMPT = """
 # User Requirement
@@ -37,7 +38,7 @@ EVALUTIONS = """
     [
         {{
             "Evaluation_point": str = "依据五个评价标准，按顺序对 生成的文本进行详细评估",
-            "score":int =  "评分，范围在 0-5 之间，用于量化文本质量",
+            "score":int =  "评分，范围在 0-5 之间，用于量化文本质量,精确到十分位",
             "reason": str = "评分的依据和解释",
             "critique": str = "提供针对生成文本的具体改进建议"
         }},
@@ -51,6 +52,29 @@ REFINE = """请根据 `user` 的具体任务要求（Plan Status）以及以下�
 
 在修订时，请保持与 `assistant` 原始回应的格式和风格一致，并确保输出的内容充分体现了用户的具体任务要求。
 """
+
+
+def process_message(messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    """convert messages to list[dict]."""
+    from metagpt.schema import Message
+
+    # 全部转成list
+    if not isinstance(messages, list):
+        messages = [messages]
+
+    # 转成list[dict]
+    processed_messages = []
+    for msg in messages:
+        if isinstance(msg, str):
+            processed_messages.append({"role": "user", "content": msg})
+        elif isinstance(msg, dict):
+            assert set(msg.keys()) == set(["role", "content"])
+            processed_messages.append(msg)
+        elif isinstance(msg, Message):
+            processed_messages.append(msg.to_dict())
+        else:
+            raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
+    return processed_messages
 
 
 class WriteAnalysisReport(Action):
@@ -91,7 +115,7 @@ class EvaluatorReport(Action):
             suggestion = "\n".join([str({x["Evaluation_point"]: x["critique"]}) for x in rsp])
             all_score = sum([x["score"] for x in rsp]) / len(rsp)
             min_score = min([x["score"] for x in rsp])
-            return suggestion, True if (all_score > 4.5 and min_score > 4) else False
+            return suggestion, True if (all_score >= 4.5 and min_score >= 4) else False
         except:
             # 不可解析, 直接拿模型输出
             return rsp_report, False
@@ -106,5 +130,5 @@ class RefineReport(Action):
     ) -> str:
         refine = REFINE.format(suggestion=suggestion)
         context = process_message(working_memory + [Message(content=refine, role="user")])
-        fefine_report = await self.llm.aask(context, **kwargs)
-        return fefine_report
+        refine_report = await self.llm.aask(context, **kwargs)
+        return refine_report

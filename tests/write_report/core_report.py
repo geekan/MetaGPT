@@ -10,9 +10,12 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
-
-from .write_evaluator_refine import EvaluatorReport, RefineReport, WriteAnalysisReport
-from .write_report_planner import WritePlanner
+from tests.write_report.write_evaluator_refine import (
+    EvaluatorReport,
+    RefineReport,
+    WriteAnalysisReport,
+)
+from tests.write_report.write_report_planner import WritePlanner
 
 
 class RewriteReport(Role):
@@ -26,12 +29,11 @@ class RewriteReport(Role):
 
     use_evaluator: bool = True
     tools: Union[str, list[str]] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = None
+    tool_recommender: ToolRecommender = ToolRecommender()
     react_mode: Literal["plan_and_act", "react"] = "plan_and_act"  # "by_order"
     human_design_sop: bool = False
     max_react_loop: int = 5
     use_reflection: bool = False
-    upload_file: str = ""
 
     # 重构
     @model_validator(mode="after")
@@ -56,8 +58,10 @@ class RewriteReport(Role):
 
     # 重构
     async def run(self, with_message=None, upload_file="") -> Message | None:
+        if not os.path.exists(upload_file):
+            raise ValueError("upload_file must be provided")
         self.upload_file = upload_file
-        await super().run(with_message)
+        return await super().run(with_message)
 
     # 重构
     async def _plan_and_act(self) -> Message:
@@ -71,7 +75,14 @@ class RewriteReport(Role):
         return task_result
 
     async def _ready_write_report(self, max_retry: int = 3):
-        plan_status = self.planner.get_plan_status() if self.use_plan else ""
+        # plan_status = self.planner.get_plan_status() if self.use_plan else ""
+        if self.use_plan:
+            if self.planner is None:
+                raise AttributeError("Planner is not initialized")
+            plan_status = self.planner.get_plan_status()
+        else:
+            plan_status = ""
+
         if self.tools:
             context = self.working_memory.get()[-1].content if self.working_memory.get() else ""
             plan = self.planner.plan if self.use_plan else None
@@ -96,6 +107,8 @@ class RewriteReport(Role):
                     # 更新working_memory 用审查后的稿件代替初稿
                     self.working_memory.delete(self.working_memory.get()[-1])
                     self.working_memory.add(Message(content=report, role="assistant", cause_by=RefineReport))
+                else:
+                    break
                 counter += 1
         return report, suggestion, success
 
@@ -104,6 +117,8 @@ class RewriteReport(Role):
         plan_status: str = "",
         tool_info: str = "",
     ):
+        if not hasattr(self, "rc") or not hasattr(self.rc, "todo"):
+            raise AttributeError("Expected 'rc' and 'rc.todo' to be initialized")
         todo = self.rc.todo  # todo is WriteAnalysisCode
         logger.info(f"ready to {todo.name}")
         user_requirement = self.get_memories()[0].content
@@ -123,28 +138,27 @@ class RewriteReport(Role):
         # 检查用户是否附带文件信息
         # file_path = DATA_PATH / 'info.json'
         file_path = self.upload_file
-        if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8") as file:
-                data_info = json.loads(file.read())
-                key = self.planner.current_task.task_type
-                data = "\n".join([str(x) for x in data_info[key].items()])
-            #   加入业务规则性条件
-            if key == "second_paragraph":
-                data += "\n".join([str(x) for x in data_info["third_paragraph"].items()])
-            self.working_memory.add(Message(content=data, role="user", cause_by="custom"))
+        with open(file_path, "r", encoding="utf-8") as file:
+            data_info = json.loads(file.read())
+            key = self.planner.current_task.task_type
+            data = "\n".join([str(x) for x in data_info[key].items()])
+        #   加入业务规则性条件
+        if key == "second_paragraph":
+            data += "\n".join([str(x) for x in data_info["third_paragraph"].items()])
+        self.working_memory.add(Message(content=data, role="user", cause_by="custom"))
 
     def write_out_report(self):
         # file_path = DATA_PATH / 'report.txt'
         directory, _ = os.path.splitext(self.upload_file)
         file_path = f"{directory}_metagpt.txt"
-        output = ""
+        result = ""
         for task in self.planner.plan.tasks:
-            output += f"{task.code}\n"
+            result += f"{task.code}\n"
         with open(file_path, "w") as f:
-            f.write(output)
+            f.write(result)
 
     async def _check_data(self):
-        if "custom" not in self.working_memory.index:
+        if self.working_memory.index is None or "custom" not in self.working_memory.index:
             logger.info("add user additional data into working_memory")
             self.read_data_info()
         if not self.use_plan or not self.planner.plan.get_finished_tasks() or self.planner.plan.current_task.task_type:
