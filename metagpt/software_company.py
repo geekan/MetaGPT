@@ -8,7 +8,6 @@ import typer
 
 from metagpt.const import CONFIG_ROOT
 from metagpt.utils.common import any_to_str
-from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 

@@ -139,4 +139,5 @@ def get_llm_stream_queue():
     """
     return LLM_STREAM_QUEUE.get(None)
 
+
 _get_human_input = input  # get human input from console by default
