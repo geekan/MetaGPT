@@ -62,7 +62,7 @@ class ThoughtSolverBase(BaseModel):
             current_state=current_state, **{"n_generate_sample": self.config.n_generate_sample}
         )
         rsp = await self.llm.aask(msg=state_prompt + "\n" + OUTPUT_FORMAT)
-        thoughts = CodeParser.parse_code(block="", text=rsp)
+        thoughts = CodeParser.parse_code(text=rsp)
         thoughts = eval(thoughts)
         # fixme 避免不跟随，生成过多nodes
         # valid_thoughts = [_node for idx, _node in enumerate(thoughts) if idx < self.n_generate_sample]

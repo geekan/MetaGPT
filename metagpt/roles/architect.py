@@ -6,9 +6,11 @@
 @File    : architect.py
 """
 
-from metagpt.actions import WritePRD
+from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.design_api import WriteDesign
+from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.roles.role import Role
+from metagpt.utils.common import any_to_str
 
 
 class Architect(Role):
@@ -32,8 +34,24 @@ class Architect(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self.enable_memory = False
         # Initialize actions specific to the Architect role
-        self.set_actions([WriteDesign])
+        self.set_actions([PrepareDocuments(send_to=any_to_str(self), context=self.context), WriteDesign])
 
         # Set events or actions the Architect should watch or be aware of
-        self._watch({WritePRD})
+        self._watch({UserRequirement, PrepareDocuments, WritePRD})
+
+    async def _think(self) -> bool:
+        """Decide what to do"""
+        mappings = {
+            any_to_str(UserRequirement): 0,
+            any_to_str(PrepareDocuments): 1,
+            any_to_str(WritePRD): 1,
+        }
+        for i in self.rc.news:
+            idx = mappings.get(i.cause_by, -1)
+            if idx < 0:
+                continue
+            self.rc.todo = self.actions[idx]
+            return bool(self.rc.todo)
+        return False

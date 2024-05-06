@@ -271,7 +271,7 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: Optional[str], text: str, lang: str = "") -> str:
+    def parse_code(cls, text: str, lang: str = "", block: Optional[str] = None) -> str:
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*?)```"
@@ -287,7 +287,7 @@ class CodeParser:
 
     @classmethod
     def parse_str(cls, block: str, text: str, lang: str = ""):
-        code = cls.parse_code(block, text, lang)
+        code = cls.parse_code(block=block, text=text, lang=lang)
         code = code.split("=")[-1]
         code = code.strip().strip("'").strip('"')
         return code
@@ -295,7 +295,7 @@ class CodeParser:
     @classmethod
     def parse_file_list(cls, block: str, text: str, lang: str = "") -> list[str]:
         # Regular expression pattern to find the tasks list.
-        code = cls.parse_code(block, text, lang)
+        code = cls.parse_code(block=block, text=text, lang=lang)
         # print(code)
         pattern = r"\s*(.*=.*)?(\[.*\])"
 

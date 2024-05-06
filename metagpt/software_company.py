@@ -7,6 +7,8 @@ from pathlib import Path
 import typer
 
 from metagpt.const import CONFIG_ROOT
+from metagpt.utils.common import any_to_str
+from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -64,7 +66,7 @@ def generate_repo(
         idea = company.idea
 
     company.invest(investment)
-    company.run_project(idea)
+    company.run_project(idea, send_to=any_to_str(ProductManager))
     asyncio.run(company.run(n_round=n_round))
 
     return ctx.repo

@@ -145,3 +145,6 @@ MARKDOWN_TITLE_PREFIX = "## "
 
 # Reporter
 METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
+
+# Metadata defines
+AGENT = "agent"

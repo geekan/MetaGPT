@@ -38,6 +38,7 @@ from pydantic import (
 )
 
 from metagpt.const import (
+    AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
@@ -48,7 +49,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.utils.common import any_to_str, any_to_str_set, import_class
+from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.report import TaskReporter
 from metagpt.utils.serialize import (
@@ -187,6 +188,14 @@ class Documents(BaseModel):
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
+class Resource(BaseModel):
+    """Used by `Message`.`parse_resources`"""
+
+    resource_type: str  # the type of resource
+    value: str  # a string type of resource content
+    description: str  # explanation
+
+
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
@@ -197,6 +206,7 @@ class Message(BaseModel):
     cause_by: str = Field(default="", validate_default=True)
     sent_from: str = Field(default="", validate_default=True)
     send_to: set[str] = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
+    metadata: Dict[str, str] = Field(default_factory=dict)  # metadata for `content` and `instruct_content`
 
     @field_validator("id", mode="before")
     @classmethod
@@ -312,14 +322,53 @@ class Message(BaseModel):
             logger.error(f"parse json failed: {val}, error:{err}")
         return None
 
+    async def parse_resources(self, llm: "BaseLLM", key_descriptions: Dict[str, str] = None) -> Dict:
+        """
+        `parse_resources` corresponds to the in-context adaptation capability of the input of the atomic action,
+        which will be migrated to the context builder later.
+
+        Args:
+            llm (BaseLLM): The instance of the BaseLLM class.
+            key_descriptions (Dict[str, str], optional): A dictionary containing descriptions for each key,
+                if provided. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing parsed resources.
+
+        """
+        if not self.content:
+            return {}
+        content = f"## Original Requirement\n```text\n{self.content}\n```\n"
+        return_format = (
+            "Return a markdown JSON object with:\n"
+            '- a "resources" key contain a list of objects. Each object with:\n'
+            '  - a "resource_type" key explain the type of resource;\n'
+            '  - a "value" key containing a string type of resource content;\n'
+            '  - a "description" key explaining why;\n'
+        )
+        key_descriptions = key_descriptions or {}
+        for k, v in key_descriptions.items():
+            return_format += f'- a "{k}" key containing {v};\n'
+        return_format += '- a "reason" key explaining why;\n'
+        instructions = ['Lists all the resources contained in the "Original Requirement".', return_format]
+        rsp = await llm.aask(msg=content, system_msgs=instructions)
+        json_data = CodeParser.parse_code(text=rsp, lang="json")
+        m = json.loads(json_data)
+        m["resources"] = [Resource(**i) for i in m.get("resources", [])]
+        return m
+
+    def add_metadata(self, key: str, value: str):
+        self.metadata[key] = value
+
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="user")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="user", **kwargs)
 
 
 class SystemMessage(Message):
@@ -327,8 +376,9 @@ class SystemMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="system")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="system", **kwargs)
 
 
 class AIMessage(Message):
@@ -336,8 +386,17 @@ class AIMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="assistant")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="assistant", **kwargs)
+
+    def with_agent(self, name: str):
+        self.add_metadata(key=AGENT, value=name)
+        return self
+
+    @property
+    def agent(self) -> str:
+        return self.metadata.get(AGENT, "")
 
 
 class Task(BaseModel):

@@ -88,7 +88,7 @@ class WriteCode(Action):
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
         code_rsp = await self._aask(prompt)
-        code = CodeParser.parse_code(block="", text=code_rsp)
+        code = CodeParser.parse_code(text=code_rsp)
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:

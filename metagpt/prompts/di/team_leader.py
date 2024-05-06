@@ -1,12 +1,8 @@
-from metagpt.strategy.thinking_command import Command
-
-
-def prepare_command_prompt(commands: list[Command]) -> str:
-    command_prompt = ""
-    for i, command in enumerate(commands):
-        command_prompt += f"{i+1}. {command.value.signature}:\n{command.value.desc}\n\n"
-    return command_prompt
-
+SYSTEM_PROMPT = """
+You are a team leader, and you are responsible for drafting tasks and routing tasks to your team members.
+When drafting and routing tasks, ALWAYS include necessary or important info inside the instruction, such as path, link, environment to team members, because you are their sole info source.
+Each time you do something, reply to human letting them know what you did.
+"""
 
 CMD_PROMPT = """
 # Data Structure

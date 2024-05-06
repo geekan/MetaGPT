@@ -30,7 +30,7 @@ class WriteAnalysisCode(Action):
         )
 
         rsp = await self._aask(reflection_prompt, system_msgs=[REFLECTION_SYSTEM_MSG])
-        reflection = json.loads(CodeParser.parse_code(block=None, text=rsp))
+        reflection = json.loads(CodeParser.parse_code(text=rsp))
 
         return reflection["improved_impl"]
 
@@ -57,7 +57,7 @@ class WriteAnalysisCode(Action):
             code = await self._debug_with_reflection(context=context, working_memory=working_memory)
         else:
             rsp = await self.llm.aask(context, system_msgs=[INTERPRETER_SYSTEM_MSG], **kwargs)
-            code = CodeParser.parse_code(block=None, text=rsp)
+            code = CodeParser.parse_code(text=rsp)
 
         return code
 
@@ -69,5 +69,5 @@ class CheckData(Action):
         code_written = "\n\n".join(code_written)
         prompt = CHECK_DATA_PROMPT.format(code_written=code_written)
         rsp = await self._aask(prompt)
-        code = CodeParser.parse_code(block=None, text=rsp)
+        code = CodeParser.parse_code(text=rsp)
         return code
