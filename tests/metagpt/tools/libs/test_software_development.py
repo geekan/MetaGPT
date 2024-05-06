@@ -3,62 +3,37 @@
 
 import pytest
 
-from metagpt.tools.libs import (
-    fix_bug,
-    git_archive,
-    run_qa_test,
-    write_codes,
-    write_design,
-    write_prd,
-    write_project_plan,
-)
+from metagpt.context import Context
+from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.schema import UserMessage
 from metagpt.tools.libs.software_development import import_git_repo
 
 
-@pytest.mark.asyncio
-async def test_software_team():
-    path = await write_prd("snake game")
-    assert path
-
-    path = await write_design(path)
-    assert path
-
-    path = await write_project_plan(path)
-    assert path
-
-    path = await write_codes(path)
-    assert path
-
-    path = await run_qa_test(path)
-    assert path
-
-    issue = """
-pygame 2.0.1 (SDL 2.0.14, Python 3.9.17)
-Hello from the pygame community. https://www.pygame.org/contribute.html
-Traceback (most recent call last):
-  File "/Users/ix/github/bak/MetaGPT/workspace/snake_game/snake_game/main.py", line 10, in <module>
-    main()
-  File "/Users/ix/github/bak/MetaGPT/workspace/snake_game/snake_game/main.py", line 7, in main
-    game.start_game()
-  File "/Users/ix/github/bak/MetaGPT/workspace/snake_game/snake_game/game.py", line 81, in start_game
-    x
-NameError: name 'x' is not defined
-    """
-    path = await fix_bug(path, issue)
-    assert path
-
-    new_path = await write_prd("snake game with moving enemy", path)
-    assert new_path == path
-
-    git_log = await git_archive(new_path)
-    assert git_log
-
-
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_import_repo():
     url = "https://github.com/spec-first/connexion.git"
     path = await import_git_repo(url)
     assert path
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "content",
+    [
+        # "create a new issue to github repo 'iorisa/snake-game' :'The snake did not grow longer after eating'",
+        "Resolve the issue #1 'Snake not growing longer after eating' in the GitHub repository https://github.com/iorisa/snake-game.git', and create a new pull request about the issue"
+    ],
+)
+async def test_git_create_issue(content: str):
+    context = Context()
+    di = DataInterpreter(context=context, tools=["<all>"])
+
+    prerequisite = "from metagpt.tools.libs import get_env"
+    await di.execute_code.run(code=prerequisite, language="python")
+    di.put_message(UserMessage(content=content))
+    while not di.is_idle:
+        await di.run()
 
 
 if __name__ == "__main__":

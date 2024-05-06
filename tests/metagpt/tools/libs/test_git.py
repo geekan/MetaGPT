@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import os
+import uuid
 
 import pytest
 from github import Auth, Github
 from pydantic import BaseModel
 
 from metagpt.tools.libs.git import git_checkout, git_clone
+from metagpt.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
 
 
@@ -17,7 +19,7 @@ class SWEBenchItem(BaseModel):
     repo: str
 
 
-def get_env(key):
+async def get_env(key: str, app_name: str = ""):
     return os.environ.get(key)
 
 
@@ -37,8 +39,9 @@ async def test_git(url: str, commit_id: str):
 
 
 @pytest.mark.skip
-def test_login():
-    auth = Auth.Login(get_env("GITHUB_USER"), get_env("GITHUB_PWD"))
+@pytest.mark.asyncio
+async def test_login():
+    auth = Auth.Login(await get_env("GITHUB_USER"), await get_env("GITHUB_PWD"))
     g = Github(auth=auth)
     repo = g.get_repo("geekan/MetaGPT")
     topics = repo.get_topics()
@@ -55,7 +58,7 @@ async def test_new_issue():
         repo_name="iorisa/MetaGPT",
         title="This is a new issue",
         body="This is the issue body",
-        access_token=get_env("GITHUB_PERSONAL_ACCESS_TOKEN"),
+        access_token=await get_env(key="access_token", app_name="github"),
     )
     print(issue)
     assert issue.number
@@ -74,20 +77,21 @@ async def test_new_pr():
     >>>   - [x] Send 'POST' request with/without body
     """
     pr = await GitRepository.create_pull(
-        repo_name="iorisa/MetaGPT",
+        base_repo_name="iorisa/MetaGPT",
         base="send18",
         head="fixbug/gbk",
         title="Test pr",
         body=body,
-        access_token=get_env("GITHUB_PERSONAL_ACCESS_TOKEN"),
+        access_token=await get_env(key="access_token", app_name="github"),
     )
     print(pr)
     assert pr
 
 
 @pytest.mark.skip
-def test_auth():
-    access_token = get_env("GITHUB_PERSONAL_ACCESS_TOKEN")
+@pytest.mark.asyncio
+async def test_auth():
+    access_token = await get_env(key="access_token", app_name="github")
     auth = Auth.Token(access_token)
     g = Github(auth=auth)
     u = g.get_user()
@@ -96,6 +100,25 @@ def test_auth():
     assert a
     print(a)
     pass
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_github(context):
+    repo = await GitRepository.clone_from(url="https://github.com/iorisa/snake-game.git")
+    content = uuid.uuid4().hex
+    await awrite(filename=repo.workdir / "README.md", data=content)
+    branch = await repo.push(
+        new_branch=f"feature/{content[0:8]}", access_token=await get_env(key="access_token", app_name="github")
+    )
+    pr = await GitRepository.create_pull(
+        base=branch.base,
+        head=branch.head,
+        base_repo_name=branch.repo_name,
+        title=f"new pull {content[0:8]}",
+        access_token=await get_env(key="access_token", app_name="github"),
+    )
+    assert pr
 
 
 if __name__ == "__main__":

@@ -13,11 +13,12 @@ import shutil
 import uuid
 from enum import Enum
 from pathlib import Path
+from subprocess import TimeoutExpired
 from typing import Dict, List, Optional
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
-from github import Auth, Github
+from github import Auth, BadCredentialsException, Github
 from github.GithubObject import NotSet
 from github.Issue import Issue
 from github.Label import Label
@@ -25,6 +26,7 @@ from github.Milestone import Milestone
 from github.NamedUser import NamedUser
 from github.PullRequest import PullRequest
 from gitignore_parser import parse_gitignore
+from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.logs import logger
@@ -47,6 +49,12 @@ class RateLimitError(Exception):
     def __init__(self, message="Rate limit exceeded"):
         self.message = message
         super().__init__(self.message)
+
+
+class GitBranch(BaseModel):
+    head: str
+    base: str
+    repo_name: str
 
 
 class GitRepository:
@@ -177,6 +185,52 @@ class GitRepository:
             return None
         return Path(self._repository.working_dir)
 
+    @property
+    def current_branch(self) -> str:
+        """
+        Returns the name of the current active branch.
+
+        Returns:
+            str: The name of the current active branch.
+        """
+        return self._repository.active_branch.name
+
+    @property
+    def remote_url(self) -> str:
+        try:
+            return self._repository.remotes.origin.url
+        except AttributeError:
+            return ""
+
+    @property
+    def repo_name(self) -> str:
+        if self.remote_url:
+            # This assumes a standard HTTPS or SSH format URL
+            # HTTPS format example: https://github.com/username/repo_name.git
+            # SSH format example: git@github.com:username/repo_name.git
+            if self.remote_url.startswith("https://"):
+                return self.remote_url.split("/", maxsplit=3)[-1].replace(".git", "")
+            elif self.remote_url.startswith("git@"):
+                return self.remote_url.split(":")[-1].replace(".git", "")
+        return ""
+
+    def new_branch(self, branch_name: str) -> str:
+        """
+        Creates a new branch with the given name.
+
+        Args:
+            branch_name (str): The name of the new branch to create.
+
+        Returns:
+            str: The name of the newly created branch.
+                If the provided branch_name is empty, returns the name of the current active branch.
+        """
+        if not branch_name:
+            return self.current_branch
+        new_branch = self._repository.create_head(branch_name)
+        new_branch.checkout()
+        return new_branch.name
+
     def archive(self, comments="Archive"):
         """Archive the current state of the Git repository.
 
@@ -185,6 +239,36 @@ class GitRepository:
         logger.info(f"Archive: {list(self.changed_files.keys())}")
         self.add_change(self.changed_files)
         self.commit(comments)
+
+    async def push(
+        self, new_branch: str, comments="Archive", access_token: Optional[str] = None, auth: Optional[Auth] = None
+    ) -> GitBranch:
+        if not auth and not access_token:
+            raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
+        from metagpt.context import Context
+
+        base = self.current_branch
+        head = base if not new_branch else self.new_branch(new_branch)
+        self.archive(comments)
+        ctx = Context()
+        env = ctx.new_environ()
+        proxy = ["-c", f"http.proxy={ctx.config.proxy}"] if ctx.config.proxy else []
+        token = access_token or auth.token
+        remote_url = f"https://{token}@" + self.remote_url.removeprefix("https://")
+        command = ["git"] + proxy + ["push", remote_url]
+        logger.info(" ".join(command).replace(token, "<TOKEN>"))
+        try:
+            stdout, stderr, return_code = await shell_execute(
+                command=command, cwd=str(self.workdir), env=env, timeout=15
+            )
+        except TimeoutExpired as e:
+            info = str(e).replace(token, "<TOKEN>")
+            raise BadCredentialsException(status=401, message=info)
+        info = f"{stdout}\n{stderr}\nexit: {return_code}\n"
+        info = info.replace(token, "<TOKEN>")
+        logger.info(info)
+
+        return GitBranch(base=base, head=head, repo_name=self.repo_name)
 
     def new_file_repository(self, relative_path: Path | str = ".") -> FileRepository:
         """Create a new instance of FileRepository associated with this Git repository.

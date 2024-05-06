@@ -49,12 +49,5 @@ async def shell_execute(
     """
     cwd = str(cwd) if cwd else None
     shell = True if isinstance(command, str) else False
-    process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, shell=shell)
-    try:
-        # Wait for the process to complete, with a timeout
-        stdout, stderr = process.communicate(timeout=timeout)
-        return stdout.decode("utf-8"), stderr.decode("utf-8"), process.returncode
-    except subprocess.TimeoutExpired:
-        process.kill()  # Kill the process if it times out
-        stdout, stderr = process.communicate()
-        raise ValueError(f"{stdout.decode('utf-8')}\n{stderr.decode('utf-8')}")
+    result = subprocess.run(command, cwd=cwd, capture_output=True, text=True, env=env, timeout=timeout, shell=shell)
+    return result.stdout, result.stderr, result.returncode
