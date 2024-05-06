@@ -10,12 +10,12 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
-from tests.write_report.write_evaluator_refine import (
+from tests.metagpt.ext.write_report.write_evaluator_refine import (
     EvaluatorReport,
     RefineReport,
     WriteAnalysisReport,
 )
-from tests.write_report.write_report_planner import WritePlanner
+from tests.metagpt.ext.write_report.write_report_planner import WritePlanner
 
 
 class RewriteReport(Role):

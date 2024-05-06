@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2024/5/06 11:42
+@Time    : 2024/5/06 13:54
 @Author  : wangwenju269
 @File    : report.py
 """
-# import sys
-# sys.path.append("E:\workspace\MetaGPT")
 import fire
 
-from tests.write_report.core_report import RewriteReport
+from tests.metagpt.ext.write_report.core_report import RewriteReport
 
 
 async def main(auto_run: bool = True):
