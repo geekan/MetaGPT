@@ -1,4 +1,3 @@
-# Prompt for sub_task
 first_paragraph:
      name: first_paragraph
      desc: 请帮我依据用户所提供事故要点信息进行简要扩写, 完整事故报告的第一自然段。

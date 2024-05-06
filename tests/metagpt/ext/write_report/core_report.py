@@ -58,6 +58,19 @@ class RewriteReport(Role):
 
     # 重构
     async def run(self, with_message=None, upload_file="") -> Message | None:
+        """
+        Asynchronously runs the function.
+
+        Args:
+            with_message (Any, optional): The message to be passed to the superclass run method. Defaults to None.
+            upload_file (str, optional): The file to be uploaded. Defaults to "".
+
+        Raises:
+            ValueError: If the upload_file does not exist.
+
+        Returns:
+            Message | None: The result of the superclass run method.
+        """
         if not os.path.exists(upload_file):
             raise ValueError("upload_file must be provided")
         self.upload_file = upload_file
@@ -75,7 +88,22 @@ class RewriteReport(Role):
         return task_result
 
     async def _ready_write_report(self, max_retry: int = 3):
-        # plan_status = self.planner.get_plan_status() if self.use_plan else ""
+        """
+        Asynchronously prepares the report for writing.
+
+        Args:
+            max_retry (int, optional): The maximum number of retries for evaluating the report. Defaults to 3.
+
+        Returns:
+            Tuple[str, str, bool]: A tuple containing the report, suggestion, and success status.
+                - report (str): The generated report.
+                - suggestion (str): The suggestion for improving the report.
+                - success (bool): Indicates whether the report evaluation was successful.
+
+        Raises:
+            AttributeError: If the planner is not initialized and use_plan is True.
+
+        """
         if self.use_plan:
             if self.planner is None:
                 raise AttributeError("Planner is not initialized")
@@ -91,20 +119,20 @@ class RewriteReport(Role):
             tool_info = ""
 
         await self._check_data()
-        # 先写报告初稿
+        # Write the first draft of the report first
         report, cause_by = await self._write_report(plan_status, tool_info)
         self.working_memory.add(Message(content=report, role="assistant", cause_by=cause_by))
         suggestion, success = "", True
-        # 对报告初稿进行评估
+        # Evaluate the first draft of the report
         if self.use_evaluator:
             counter = 0
             success = False
             while not success and counter < max_retry:
                 suggestion, success = await self.evaluator.run(working_memory=self.working_memory.get())
-                # 评价不成功, 稿件改进
+                # Unsuccessful evaluation, manuscript improvement
                 if not success:
                     report = await self.refine.run(suggestion=suggestion, working_memory=self.working_memory.get())
-                    # 更新working_memory 用审查后的稿件代替初稿
+                    # Update working_memory to replace the first draft with the reviewed manuscript
                     self.working_memory.delete(self.working_memory.get()[-1])
                     self.working_memory.add(Message(content=report, role="assistant", cause_by=RefineReport))
                 else:
@@ -128,21 +156,19 @@ class RewriteReport(Role):
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
         )
-        # 初始时, 用户附带的文件信息加载到 working_memory 里, 现在想办法去更新, 让 working_memory 只保留问答(user/assistant)模块。
+        # Initially, the file information attached to the user is loaded into working_memory. Now we are trying to update it so that working_memory only retains questions and answers (user/assistant).
         if self.working_memory and self.working_memory.get()[-1].cause_by == "custom":
             self.working_memory.delete(self.working_memory.get()[-1])
             self.working_memory.add(Message(content=structual_prompt, role="user", cause_by=RewriteReport))
         return report, todo
 
     def read_data_info(self):
-        # 检查用户是否附带文件信息
-        # file_path = DATA_PATH / 'info.json'
         file_path = self.upload_file
         with open(file_path, "r", encoding="utf-8") as file:
             data_info = json.loads(file.read())
             key = self.planner.current_task.task_type
             data = "\n".join([str(x) for x in data_info[key].items()])
-        #   加入业务规则性条件
+        #   Add rule conditions
         if key == "second_paragraph":
             data += "\n".join([str(x) for x in data_info["third_paragraph"].items()])
         self.working_memory.add(Message(content=data, role="user", cause_by="custom"))

@@ -61,7 +61,6 @@ class WriteReportPlan(WritePlan):
 class WritePlanner(Planner):
     human_design_sop: bool = False
 
-    # 不改变原有代码结构的基础上, 重写这段方法代码
     async def update_plan(self, goal: str = "", max_tasks: int = 7, max_retries: int = 3):
         if goal:
             self.plan = Plan(goal=goal)

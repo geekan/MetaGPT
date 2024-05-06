@@ -5,6 +5,7 @@
 @Author  : wangwenju269
 @File    : report.py
 """
+
 import fire
 
 from tests.metagpt.ext.write_report.core_report import RewriteReport
