@@ -1,8 +1,8 @@
 from playwright.async_api import async_playwright
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.logs import ToolLogItem, log_tool_output_async
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.report import BrowserReporter
 
 
 @register_tool()
@@ -20,6 +20,7 @@ class Browser:
         self.pages = {}
         self.current_page_url = None
         self.current_page = None
+        self.reporter = BrowserReporter()
 
     async def start(self):
         """Starts Playwright and launches a browser"""
@@ -34,21 +35,19 @@ class Browser:
 
     async def open_new_page(self, url: str):
         """open a new page in the browser and view the page"""
-        page = await self.browser.new_page()
-        await page.goto(url)
-        self.pages[url] = page
-        await self._set_current_page(page, url)
-        await log_tool_output_async(
-            ToolLogItem(type="object", name="open_new_page", value=self.current_page), tool_name="Browser"
-        )
+        async with self.reporter as reporter:
+            page = await self.browser.new_page()
+            await reporter.async_report(url, "url")
+            await page.goto(url)
+            self.pages[url] = page
+            await self._set_current_page(page, url)
+            await reporter.async_report(page, "page")
 
     async def switch_page(self, url: str):
         """switch to an opened page in the browser and view the page"""
         if url in self.pages:
             await self._set_current_page(self.pages[url], url)
-            await log_tool_output_async(
-                ToolLogItem(type="object", name="switch_page", value=self.current_page), tool_name="Browser"
-            )
+            await self.reporter.async_report(self.current_page, "page")
         else:
             print(f"Page not found: {url}")
 
@@ -110,9 +109,8 @@ class Browser:
             index = len(search_results) - 1
         element = search_results[index]["element_obj"]
         await element.scroll_into_view_if_needed()
-        await log_tool_output_async(
-            ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
-        )
+        await self.reporter.async_report(self.current_page, "page")
+
         print(f"Successfully scrolled to the {index}-th search result")
         print(await self._view())
 
@@ -152,9 +150,8 @@ class Browser:
     async def scroll_current_page(self, offset: int = 500):
         """scroll the current page by offset pixels, negative value means scrolling up, will print out observed content after scrolling"""
         await self.current_page.evaluate(f"window.scrollBy(0, {offset})")
-        await log_tool_output_async(
-            ToolLogItem(type="object", name="scroll_page", value=self.current_page), tool_name="Browser"
-        )
+        await self.reporter.async_report(self.current_page, "page")
+
         print(f"Scrolled current page by {offset} pixels.")
         print(await self._view())
 

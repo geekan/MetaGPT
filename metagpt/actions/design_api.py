@@ -26,6 +26,7 @@ from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -70,31 +71,34 @@ class WriteDesign(Action):
         return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context):
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)
         return node
 
     async def _merge(self, prd_doc, system_design_doc):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm)
+        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
     async def _update_system_design(self, filename) -> Document:
         prd = await self.repo.docs.prd.get(filename)
         old_system_design_doc = await self.repo.docs.system_design.get(filename)
-        if not old_system_design_doc:
-            system_design = await self._new_system_design(context=prd.content)
-            doc = await self.repo.docs.system_design.save(
-                filename=filename,
-                content=system_design.instruct_content.model_dump_json(),
-                dependencies={prd.root_relative_path},
-            )
-        else:
-            doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
-            await self.repo.docs.system_design.save_doc(doc=doc, dependencies={prd.root_relative_path})
-        await self._save_data_api_design(doc)
-        await self._save_seq_flow(doc)
-        await self.repo.resources.system_design.save_pdf(doc=doc)
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "design"}, "meta")
+            if not old_system_design_doc:
+                system_design = await self._new_system_design(context=prd.content)
+                doc = await self.repo.docs.system_design.save(
+                    filename=filename,
+                    content=system_design.instruct_content.model_dump_json(),
+                    dependencies={prd.root_relative_path},
+                )
+            else:
+                doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
+                await self.repo.docs.system_design.save_doc(doc=doc, dependencies={prd.root_relative_path})
+            await self._save_data_api_design(doc)
+            await self._save_seq_flow(doc)
+            md = await self.repo.resources.system_design.save_pdf(doc=doc)
+            await reporter.async_report(self.repo.workdir / md.root_relative_path, "path")
         return doc
 
     async def _save_data_api_design(self, design_doc):

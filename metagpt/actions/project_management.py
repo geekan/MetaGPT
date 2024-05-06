@@ -19,6 +19,7 @@ from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
+from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -59,18 +60,21 @@ class WriteTasks(Action):
     async def _update_tasks(self, filename):
         system_design_doc = await self.repo.docs.system_design.get(filename)
         task_doc = await self.repo.docs.task.get(filename)
-        if task_doc:
-            task_doc = await self._merge(system_design_doc=system_design_doc, task_doc=task_doc)
-            await self.repo.docs.task.save_doc(doc=task_doc, dependencies={system_design_doc.root_relative_path})
-        else:
-            rsp = await self._run_new_tasks(context=system_design_doc.content)
-            task_doc = await self.repo.docs.task.save(
-                filename=filename,
-                content=rsp.instruct_content.model_dump_json(),
-                dependencies={system_design_doc.root_relative_path},
-            )
-        await self._update_requirements(task_doc)
-        await self.repo.resources.api_spec_and_task.save_pdf(doc=task_doc)
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "task"}, "meta")
+            if task_doc:
+                task_doc = await self._merge(system_design_doc=system_design_doc, task_doc=task_doc)
+                await self.repo.docs.task.save_doc(doc=task_doc, dependencies={system_design_doc.root_relative_path})
+            else:
+                rsp = await self._run_new_tasks(context=system_design_doc.content)
+                task_doc = await self.repo.docs.task.save(
+                    filename=filename,
+                    content=rsp.instruct_content.model_dump_json(),
+                    dependencies={system_design_doc.root_relative_path},
+                )
+            await self._update_requirements(task_doc)
+            md = await self.repo.resources.api_spec_and_task.save_pdf(doc=task_doc)
+            await reporter.async_report(self.repo.workdir / md.root_relative_path, "path")
         return task_doc
 
     async def _run_new_tasks(self, context):

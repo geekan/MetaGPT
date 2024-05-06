@@ -4,8 +4,8 @@ import subprocess
 
 from pydantic import BaseModel, Field
 
-from metagpt.logs import ToolLogItem, log_tool_output
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.report import EditorReporter
 
 
 class FileBlock(BaseModel):
@@ -23,17 +23,20 @@ class FileBlock(BaseModel):
 class FileManager:
     """A tool for reading, understanding, writing, and editing files"""
 
+    def __init__(self) -> None:
+        self.resource = EditorReporter()
+
     def write(self, path: str, content: str):
         """Write the whole content to a file."""
         with open(path, "w") as f:
             f.write(content)
-        log_tool_output(ToolLogItem(name="write_file_path", value=path), tool_name="FileManager")
+        self.resource.report(path, "path")
 
     def read(self, path: str) -> str:
         """Read the whole content of a file."""
         with open(path, "r") as f:
+            self.resource.report(path, "path")
             return f.read()
-        log_tool_output(ToolLogItem(name="read_file_path", value=path), tool_name="FileManager")
 
     def search_content(self, symbol: str, root_path: str = "", window: int = 20) -> FileBlock:
         """
@@ -78,10 +81,7 @@ class FileManager:
                             symbol=symbol,
                             symbol_line=i + 1,
                         )
-                        log_tool_output(
-                            ToolLogItem(type="object", name="file_block_searched", value=result),
-                            tool_name="FileManager",
-                        )
+                        self.resource.report(result.file_path, "path")
                         return result
         return None
 
@@ -124,9 +124,7 @@ class FileManager:
                 block_start_line=start_line,
                 block_end_line=-1 if end_line < start_line else start_line + new_block_content.count("\n"),
             )
-            log_tool_output(
-                ToolLogItem(type="object", name="file_block_written", value=new_file_block), tool_name="FileManager"
-            )
+            self.resource.report(new_file_block.file_path, "path")
 
             return f"Content written successfully to {file_path}"
 
