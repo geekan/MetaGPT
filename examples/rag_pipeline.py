@@ -42,7 +42,7 @@ class Player(BaseModel):
 class RAGExample:
     """Show how to use RAG."""
 
-    def __init__(self, engine: SimpleEngine = None, use_llm_ranker: bool = False):
+    def __init__(self, engine: SimpleEngine = None, use_llm_ranker: bool = True):
         self._engine = engine
         self._use_llm_ranker = use_llm_ranker
 
