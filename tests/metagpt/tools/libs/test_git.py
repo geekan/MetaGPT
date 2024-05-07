@@ -9,6 +9,9 @@ import pytest
 from github import Auth, Github
 from pydantic import BaseModel
 
+from metagpt.context import Context
+from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.schema import UserMessage
 from metagpt.tools.libs.git import git_checkout, git_clone
 from metagpt.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
@@ -119,6 +122,25 @@ async def test_github(context):
         access_token=await get_env(key="access_token", app_name="github"),
     )
     assert pr
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "content",
+    [
+        # "create a new issue to github repo 'iorisa/snake-game' :'The snake did not grow longer after eating'",
+        "Resolve the issue #1 'Snake not growing longer after eating' in the GitHub repository https://github.com/iorisa/snake-game.git', and create a new pull request about the issue"
+    ],
+)
+async def test_git_create_issue(content: str):
+    context = Context()
+    di = DataInterpreter(context=context, tools=["<all>"])
+
+    prerequisite = "from metagpt.tools.libs import get_env"
+    await di.execute_code.run(code=prerequisite, language="python")
+    di.put_message(UserMessage(content=content))
+    while not di.is_idle:
+        await di.run()
 
 
 if __name__ == "__main__":
