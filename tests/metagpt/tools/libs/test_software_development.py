@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import Dict
 
 import pytest
 
@@ -7,6 +8,10 @@ from metagpt.context import Context
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import UserMessage
 from metagpt.tools.libs.software_development import import_git_repo
+
+
+async def get_env_description() -> Dict[str, str]:
+    return {'await get_env(key="access_token", app_name="github")': "get the access token for github authentication."}
 
 
 @pytest.mark.skip
@@ -31,6 +36,9 @@ async def test_git_create_issue(content: str):
 
     prerequisite = "from metagpt.tools.libs import get_env"
     await di.execute_code.run(code=prerequisite, language="python")
+    usage = await get_env_description()
+    acknowledge = [f"- You can use `{k}` to '{v}'" for k, v in usage.items()]
+    content += "\n---\n## Acknowledge\n" + "\n".join(acknowledge)
     di.put_message(UserMessage(content=content))
     while not di.is_idle:
         await di.run()
