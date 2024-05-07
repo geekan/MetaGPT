@@ -35,22 +35,23 @@ class IndexRetrieverConfig(BaseRetrieverConfig):
 class FAISSRetrieverConfig(IndexRetrieverConfig):
     """Config for FAISS-based retrievers."""
 
-    dimensions: int = Field(
-        default=config.embedding.dimensions, description="Dimensionality of the vectors for FAISS index construction."
-    )
+    dimensions: int = Field(default=0, description="Dimensionality of the vectors for FAISS index construction.")
 
     _embedding_type_to_dimensions: ClassVar[dict[EmbeddingType, int]] = {
         EmbeddingType.GEMINI: 768,
+        EmbeddingType.OLLAMA: 4096,
     }
 
     @model_validator(mode="after")
     def check_dimensions(self):
-        if self.dimensions is None:
+        if self.dimensions == 0:
+            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.embedding.api_type, 1536
+            )
             if config.embedding.api_type not in self._embedding_type_to_dimensions:
-                logger.info(
-                    f"You didn't set the dimensions in config when using {config.embedding.api_type}, default to 1536"
+                logger.warning(
+                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
                 )
-            self.dimensions = self._embedding_type_to_dimensions.get(config.embedding.api_type, 1536)
 
         return self
 
