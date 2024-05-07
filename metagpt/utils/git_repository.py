@@ -243,6 +243,27 @@ class GitRepository:
     async def push(
         self, new_branch: str, comments="Archive", access_token: Optional[str] = None, auth: Optional[Auth] = None
     ) -> GitBranch:
+        """
+        Pushes changes to the remote repository.
+
+        Args:
+            new_branch (str): The name of the new branch to be pushed.
+            comments (str, optional): Comments to be associated with the push. Defaults to "Archive".
+            access_token (str, optional): Access token for authentication. Defaults to None. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`, `https://github.com/PyGithub/PyGithub/blob/main/doc/examples/Authentication.rst`.
+            auth (Auth, optional): Optional authentication object. Defaults to None.
+
+        Returns:
+            GitBranch: The pushed branch object.
+
+        Raises:
+            ValueError: If neither `auth` nor `access_token` is provided.
+            BadCredentialsException: If authentication fails due to bad credentials or timeout.
+
+        Note:
+            This function assumes that `self.current_branch`, `self.new_branch()`, `self.archive()`,
+            `ctx.config.proxy`, `ctx.config`, `self.remote_url`, `shell_execute()`, and `logger` are
+            defined and accessible within the scope of this function.
+        """
         if not auth and not access_token:
             raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
         from metagpt.context import Context

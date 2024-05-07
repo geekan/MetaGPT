@@ -85,7 +85,7 @@ async def git_push(
 
     Args:
         local_path (Union[str, Path]): The path to the local Git repository.
-        access_token (str): The access token for authentication. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`, `https://github.com/PyGithub/PyGithub/blob/main/doc/examples/Authentication.rst`.
+        access_token (str): The access token for authentication. Use `await get_env(key="access_token", app_name="github")` to get access token.
         comments (str, optional): The commit message to use. Defaults to "Commit".
         new_branch (str, optional): The name of the new branch to create and push changes to.
             If not provided, changes will be pushed to the current branch. Defaults to "".
@@ -98,6 +98,7 @@ async def git_push(
     Example:
         >>> url = "https://github.com/iorisa/snake-game.git"
         >>> local_path = await git_clone(url=url)
+        >>> from metagpt.tools.libs import get_env
         >>> access_token = await get_env(key="access_token", app_name="github")  # Read access token from enviroment variables.
         >>> comments = "Archive"
         >>> new_branch = "feature/new"
@@ -135,7 +136,7 @@ async def git_create_pull(
         base (str): The base branch of the pull request.
         head (str): The head branch of the pull request.
         base_repo_name (str): The full repository name (user/repo) where the pull request will be created.
-        access_token (str): The access token for authentication. Visit `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`, `https://github.com/PyGithub/PyGithub/blob/main/doc/examples/Authentication.rst`.
+        access_token (str): The access token for authentication. Use `await get_env(key="access_token", app_name="github")` to get access token.
         head_repo_name (Optional[str], optional): The full repository name (user/repo) where the pull request will merge from. Defaults to None.
         title (Optional[str], optional): The title of the pull request. Defaults to None.
         body (Optional[str], optional): The body of the pull request. Defaults to None.
@@ -145,7 +146,8 @@ async def git_create_pull(
         >>> # push and create pull
         >>> url = "https://github.com/iorisa/snake-game.git"
         >>> local_path = await git_clone(url=url)
-        >>> access_token = await get_env(key="access_token", app_name="github") # Read access token from enviroment variables.
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
         >>> comments = "Archive"
         >>> new_branch = "feature/new"
         >>> branch = await git_push(local_path=local_path, access_token=access_token, comments=comments, new_branch=new_branch)
@@ -174,7 +176,8 @@ async def git_create_pull(
         >>> head = "feature/http"
         >>> title = "feat: modify http lib",
         >>> body = "Change HTTP library used to send requests"
-        >>> access_token = await get_env(key="access_token", app_name="github")  # Read access token from enviroment variables.
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
         >>> pr = await git_create_pull(
         >>>   base_repo_name=base_repo_name,
         >>>   head_repo_name=head_repo_name,
@@ -216,13 +219,14 @@ async def git_create_issue(
     Args:
         repo_name (str): The name of the repository.
         title (str): The title of the issue.
-        access_token (str): The access token for authentication.
+        access_token (str): The access token for authentication. Use `await get_env(key="access_token", app_name="github")` to get access token.
         body (Optional[str], optional): The body of the issue. Defaults to None.
 
     Example:
         >>> repo_name = "geekan/MetaGPT"
         >>> title = "This is a new issue"
-        >>> access_token = await get_env(key="access_token", app_name="github")  # Read access token from enviroment variables.
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
         >>> body = "This is the issue body."
         >>> issue = await git_create_issue(
         >>>   repo_name=repo_name,
