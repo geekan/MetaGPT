@@ -12,7 +12,7 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.git_repository import GitRepository
 
 
-@register_tool(tags=["git"])
+# @register_tool(tags=["git"])
 async def git_clone(url: str, output_dir: str | Path = None) -> Path:
     """
     Clones a Git repository from the given URL.

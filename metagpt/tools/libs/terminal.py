@@ -28,9 +28,15 @@ class Terminal:
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,  # Line buffered
-            executable="/bin/bash"
+            executable="/bin/bash",
         )
         self.stdout_queue = Queue()
+
+        self._check_state()
+
+    def _check_state(self):
+        """Check the state of the terminal, e.g. the current directory of the terminal process. Useful for agent to understand."""
+        print("The terminal is at:", self.run_command("pwd"))
 
     def run_command(self, cmd: str, daemon=False) -> str:
         """

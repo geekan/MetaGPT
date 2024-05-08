@@ -15,6 +15,7 @@ from metagpt.tools.libs import (
     file_manager,
     browser,
     deployer,
+    git,
 )
 from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description
 
@@ -29,6 +30,7 @@ _ = (
     file_manager,
     browser,
     deployer,
+    git,
     get_env,
     get_env_description,
     set_get_env_entry,
