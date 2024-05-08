@@ -23,6 +23,7 @@ Pay close attention to new user message, review the conversation history, use re
 Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use ask_human to ask for help.
 2. Each time you finish a task, use reply_to_human to report your progress.
+Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use finish_task, DON'T append a new task.

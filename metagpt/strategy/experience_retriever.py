@@ -154,3 +154,49 @@ class SimpleExpRetriever(ExpRetriever):
 
     def retrieve(self, context: str = "") -> str:
         return self.EXAMPLE
+
+
+class KeywordExpRetriever(ExpRetriever):
+    """An experience retriever that returns examples based on keywords in the context."""
+
+    EXAMPLE: dict = {
+        "deploy": """
+        ## example 1
+        User Requirement: launch a service from workspace/web_snake_game/web_snake_game, and deploy it to public
+        Explanation: Launching a service requires Terminal tool with daemon mode, write this into task instruction.
+        ```json
+        [
+            {
+                "command_name": "append_task",
+                "args": {
+                    "task_id": "1",
+                    "dependent_task_ids": [],
+                    "instruction": "Use the Terminal tool to launch the service in daemon mode",
+                    "assignee": "David"
+                }
+            },
+            {
+                "command_name": "append_task",
+                "args": {
+                    "task_id": "2",
+                    "dependent_task_ids": ["1"],
+                    "instruction": "Test the service with a simple request",
+                    "assignee": "David"
+                }
+            },
+            {
+                "command_name": "append_task",
+                "args": {
+                    "task_id": "3",
+                    "dependent_task_ids": ["2"],
+                    "instruction": "Deploy the service to public",
+                    "assignee": "David"
+                }
+            },
+        """
+    }
+
+    def retrieve(self, context: str) -> str:
+        if "deploy" in context.lower():
+            return self.EXAMPLE["deploy"]
+        return ""
