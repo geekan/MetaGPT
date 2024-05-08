@@ -443,6 +443,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not msg:
             return
+        if all(to in {any_to_str(self), self.name} for to in msg.send_to):  # Message to myself
+            self.put_message(msg)
+            return
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
