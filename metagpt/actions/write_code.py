@@ -141,7 +141,7 @@ class WriteCode(Action):
             )
         logger.info(f"Writing {coding_context.filename}..")
         async with EditorReporter(enable_llm_stream=True) as reporter:
-            await reporter.async_report({"filename": coding_context.filename}, "meta")
+            await reporter.async_report({"type": "code", "filename": coding_context.filename}, "meta")
             code = await self.write_code(prompt)
             if not coding_context.code_doc:
                 # avoid root_path pydantic ValidationError if use WriteCode alone

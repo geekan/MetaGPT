@@ -579,7 +579,7 @@ class Plan(BaseModel):
                 current_task_id = task.task_id
                 break
         self.current_task_id = current_task_id
-        TaskReporter().report({"tasks": self.tasks, "current_task_id": current_task_id})
+        TaskReporter().report({"tasks": [i.model_dump() for i in self.tasks], "current_task_id": current_task_id})
 
     @property
     def current_task(self) -> Task:
