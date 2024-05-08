@@ -1,0 +1,8 @@
+llm:
+  api_type: 'bedrock'  
+  access_key: 'YOUR_AWS_KEY'
+  secret_key: 'YOUR_AWS_SECRET'
+  model: 'anthropic.claude-3-sonnet-20240229-v1:0'
+  # use environemnt variable AWS_REGION to control aws_region, 
+  # default is "us-east-1", 
+  # some region does not support LLM model service, please find https://aws.amazon.com/bedrock/pricing/?refid=c0acda64-df2a-4080-9d0d-938d8963b57d

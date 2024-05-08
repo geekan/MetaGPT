@@ -32,6 +32,7 @@ class LLMType(Enum):
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
+    BEDROCK = "bedrock" # AWS bedrock
 
     def __missing__(self, key):
         return self.OPENAI
@@ -52,7 +53,7 @@ class LLMConfig(YamlModel):
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
     pricing_plan: Optional[str] = None  # Cost Settlement Plan Parameters.
 
-    # For Cloud Service Provider like Baidu/ Alibaba
+    # For Cloud Service Provider like Baidu/ Alibaba / AWS BedRock
     access_key: Optional[str] = None
     secret_key: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
