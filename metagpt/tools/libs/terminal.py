@@ -95,9 +95,10 @@ class Terminal:
         with self.observer as observer:
             cmd_output = []
             observer.report(cmd + self.command_terminator, "cmd")
-            # report the command
-
-            # Read the output until the unique marker is found
+            # report the comman
+            # Read the output until the unique marker is found.
+            # We read bytes directly from stdout instead of text because when reading text,
+            # '\r' is changed to '\n', resulting in excessive output.
             tmp = b""
             while True:
                 output = tmp + self.process.stdout.read(1)
