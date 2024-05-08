@@ -110,9 +110,14 @@ LGTM
 
 REWRITE_CODE_TEMPLATE = """
 # Instruction: rewrite code based on the Code Review and Actions
-## Rewrite Code: CodeBlock. If it still has some bugs, rewrite {filename} with triple quotes. Do your utmost to optimize THIS SINGLE FILE. Return all completed codes and prohibit the return of unfinished codes.
-```Code
+## Rewrite Code: CodeBlock. If it still has some bugs, rewrite {filename} using a Markdown code block, with the filename docstring preceding the code block. Do your utmost to optimize THIS SINGLE FILE. Return all completed codes and prohibit the return of unfinished codes.
+```python
 ## {filename}
+...
+```
+or
+```javascript
+// {filename}
 ...
 ```
 """

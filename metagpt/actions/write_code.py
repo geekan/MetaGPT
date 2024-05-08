@@ -66,6 +66,11 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 ## {filename}
 ...
 ```
+## Code: {filename}
+```javascript
+// {filename}
+...
+```
 
 # Instruction: Based on the context, follow "Format example", write code.
 
