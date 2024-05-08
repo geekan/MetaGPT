@@ -6,10 +6,8 @@ from pathlib import Path
 
 from metagpt.const import ASSISTANT_ALIAS
 from metagpt.logs import ToolLogItem, log_tool_output
-from metagpt.tools.tool_registry import register_tool
 
 
-@register_tool(tags=["software development", "import git repo"])
 async def import_git_repo(url: str) -> Path:
     """
     Imports a project from a Git website and formats it to MetaGPT project format to enable incremental appending requirements.
