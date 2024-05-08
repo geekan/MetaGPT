@@ -11,6 +11,7 @@ from metagpt.logs import logger
 from metagpt.prompts.di.data_analyst import CMD_PROMPT
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, TaskResult
+from metagpt.strategy.experience_retriever import KeywordExpRetriever
 from metagpt.strategy.planner import Planner
 from metagpt.strategy.thinking_command import (
     Command,
@@ -61,9 +62,11 @@ class DataAnalyst(DataInterpreter):
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         self._set_state(0)
+        example = ""
         if not self.planner.plan.goal:
             self.user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = self.user_requirement
+            example = KeywordExpRetriever().retrieve(self.user_requirement)
         else:
             self.working_memory.add_batch(self.rc.news)
 
@@ -71,7 +74,6 @@ class DataAnalyst(DataInterpreter):
         for task in plan_status["tasks"]:
             task.pop("code")
             task.pop("result")
-        example = ""
         prompt = CMD_PROMPT.format(
             plan_status=plan_status,
             example=example,

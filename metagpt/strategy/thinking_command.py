@@ -76,7 +76,8 @@ def prepare_command_prompt(commands: list[Command]) -> str:
 
 
 async def run_env_command(role: Role, cmd: list[dict], role_memory: Memory = None):
-    assert isinstance(role.rc.env, MGXEnv), "TeamLeader should only be used in an MGXEnv"
+    if not isinstance(role.rc.env, MGXEnv):
+        return
     if cmd["command_name"] == Command.PUBLISH_MESSAGE.cmd_name:
         role.publish_message(Message(**cmd["args"]))
     if cmd["command_name"] == Command.ASK_HUMAN.cmd_name:
