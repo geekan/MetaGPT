@@ -76,7 +76,7 @@ class BedRockLLM(BaseLLM):
     async def _achat_completion_stream(
         self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
     ) -> str:
-        kwargs = self._const_kwargs(messages)
+        kwargs = self._const_kwargs(messages, stream=True)
         stream = await self.aclient.messages.create(
             timeout=timeout,
             **kwargs,
