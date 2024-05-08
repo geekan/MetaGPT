@@ -184,6 +184,11 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 ## {filename}
 ...
 ```
+## Code: {filename}
+```javascript
+// {filename}
+...
+```
 
 # Instruction: Based on the context, follow "Format example", write or rewrite code.
 ## Write/Rewrite Code: Only write one file {filename}, write or rewrite complete code using triple quotes based on the following attentions and context.
