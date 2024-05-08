@@ -54,6 +54,7 @@ TOKEN_COSTS = {
     "claude-2.1": {"prompt": 0.008, "completion": 0.024},
     "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
+    "claude-3-haiku-20240307": {"prompt": 0.003, "completion": 0.015}, # aws-bedrock
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
     "microsoft/wizardlm-2-8x22b": {"prompt": 0.00108, "completion": 0.00108},  # for openrouter, start

@@ -41,12 +41,12 @@ class BedRockLLM(BaseLLM):
     def _update_costs(
         self, usage: Usage, model: str = None, local_calc_usage: bool = True
     ):
-        usage = {
+        updated_usage = {
             "prompt_tokens": usage.input_tokens,
             "completion_tokens": usage.output_tokens,
         }
         model = self._model_name_trim(model)
-        super()._update_costs(usage, model)
+        super()._update_costs(updated_usage, model)
     
     def _model_name_trim(self, model: str) -> str:
         # "anthropic.claude-3-sonnet-20240229-v1:0" -> claude-3-sonnet-20240229
@@ -54,7 +54,6 @@ class BedRockLLM(BaseLLM):
         last_hyphen_index = head_trimed.rfind('-')
         return head_trimed[:last_hyphen_index]
         
-
     def get_choice_text(self, resp: Message) -> str:
         return resp.content[0].text
 
@@ -62,8 +61,8 @@ class BedRockLLM(BaseLLM):
         self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
     ) -> Message:
         kwargs = self._const_kwargs(messages)
-        kwargs["timeout"] = timeout
         resp: Message = await self.aclient.messages.create(
+            timeout=timeout,
             **kwargs
         )
         self._update_costs(resp.usage, self.model)
@@ -77,8 +76,10 @@ class BedRockLLM(BaseLLM):
     async def _achat_completion_stream(
         self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT
     ) -> str:
+        kwargs = self._const_kwargs(messages)
         stream = await self.aclient.messages.create(
-            **self._const_kwargs(messages, stream=True)
+            timeout=timeout,
+            **kwargs,
         )
         collected_content = []
         usage = Usage(input_tokens=0, output_tokens=0)
