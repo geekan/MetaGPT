@@ -52,7 +52,15 @@ class MGXEnv(Environment):
             self._publish_message(message)
             if self.is_software_task_finished(message):
                 tl.rc.memory.add(self.move_message_info_to_content(message))
-                tl.finish_current_task()
+                from metagpt.utils.report import CURRENT_ROLE
+
+                role = CURRENT_ROLE.get(None)
+                if role:
+                    CURRENT_ROLE.set(tl)
+                    tl.finish_current_task()
+                    CURRENT_ROLE.set(role)
+                else:
+                    tl.finish_current_task()
 
         elif publicer == tl.profile:
             if message.send_to == {"no one"}:

@@ -21,6 +21,7 @@ from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import MESSAGE_ROUTE_TO_NONE
 from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.utils.report import EditorReporter
 from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import (
     any_to_str,
@@ -75,10 +76,15 @@ class QaEngineer(Role):
                 )
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
+
             context = await WriteTest(i_context=context, context=self.context, llm=self.llm).run()
-            await self.project_repo.tests.save_doc(
-                doc=context.test_doc, dependencies={context.code_doc.root_relative_path}
-            )
+            async with EditorReporter(enable_llm_stream=True) as reporter:
+                await reporter.async_report({"type": "test", "filename": test_doc.filename}, "meta")
+
+                doc = await self.project_repo.tests.save_doc(
+                    doc=context.test_doc, dependencies={context.code_doc.root_relative_path}
+                )
+                await reporter.async_report(self.project_repo.workdir / doc.root_relative_path, "path")
 
             # prepare context for run tests in next round
             run_code_context = RunCodeContext(

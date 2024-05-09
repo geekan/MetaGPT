@@ -26,7 +26,7 @@ from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.mermaid import mermaid_to_file
-from metagpt.utils.report import DocsReporter
+from metagpt.utils.report import DocsReporter, GalleryReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -122,3 +122,6 @@ class WriteDesign(Action):
     async def _save_mermaid_file(self, data: str, pathname: Path):
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, data, pathname)
+        image_path = pathname.parent / f"{pathname.name}.png"
+        if image_path.exists():
+            await GalleryReporter().async_report(image_path, "path")

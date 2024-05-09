@@ -37,7 +37,7 @@ from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
-from metagpt.utils.report import DocsReporter
+from metagpt.utils.report import DocsReporter, GalleryReporter
 
 CONTEXT_TEMPLATE = """
 ### Project Name
@@ -169,6 +169,9 @@ class WritePRD(Action):
         pathname = self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, quadrant_chart, pathname)
+        image_path = pathname.parent / f"{pathname.name}.png"
+        if image_path.exists():
+            await GalleryReporter().async_report(image_path, "path")
 
     async def _rename_workspace(self, prd):
         if not self.project_name:

@@ -26,8 +26,6 @@ class Terminal:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,  # Line buffered
             executable="/bin/bash",
         )
         self.stdout_queue = Queue()
@@ -64,9 +62,9 @@ class Terminal:
         """
 
         # Send the command
-        self.process.stdin.write(cmd + self.command_terminator)
+        self.process.stdin.write((cmd + self.command_terminator).encode())
         self.process.stdin.write(
-            f'echo "{END_MARKER_VALUE}"' + self.command_terminator  # write EOF
+            (f'echo "{END_MARKER_VALUE}"{self.command_terminator}').encode()  # write EOF
         )  # Unique marker to signal command end
         self.process.stdin.flush()
         if daemon:
@@ -103,25 +101,28 @@ class Terminal:
         with self.observer as observer:
             cmd_output = []
             observer.report(cmd + self.command_terminator, "cmd")
-            # report the command
-
-            # Read the output until the unique marker is found
+            # report the comman
+            # Read the output until the unique marker is found.
+            # We read bytes directly from stdout instead of text because when reading text,
+            # '\r' is changed to '\n', resulting in excessive output.
+            tmp = b""
             while True:
-                line = self.process.stdout.readline()
-                ix = line.rfind(END_MARKER_VALUE)
-                if ix >= 0:
-                    line = line[0:ix]
-                    if line:
-                        observer.report(line, "output")
-                        # report stdout in real-time
-                        cmd_output.append(line)
-                    break
-                # log stdout in real-time
-                observer.report(line, "output")
-                cmd_output.append(line)
-                self.stdout_queue.put(line)
-
-        return "".join(cmd_output)
+                output = tmp + self.process.stdout.read(1)
+                *lines, tmp = output.splitlines(True)
+                for line in lines:
+                    line = line.decode()
+                    ix = line.rfind(END_MARKER_VALUE)
+                    if ix >= 0:
+                        line = line[0:ix]
+                        if line:
+                            observer.report(line, "output")
+                            # report stdout in real-time
+                            cmd_output.append(line)
+                        return "".join(cmd_output)
+                    # log stdout in real-time
+                    observer.report(line, "output")
+                    cmd_output.append(line)
+                    self.stdout_queue.put(line)
 
     def close(self):
         """Close the persistent shell process."""
