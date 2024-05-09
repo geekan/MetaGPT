@@ -449,6 +449,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
+        if isinstance(msg, AIMessage) and not msg.agent:
+            msg.with_agent(self._setting)
         self.rc.env.publish_message(msg)
 
     def put_message(self, message):
