@@ -748,10 +748,6 @@ class CodeSummarizeContext(BaseModel):
         return hash((self.design_filename, self.task_filename))
 
 
-class BugFixContext(BaseContext):
-    filename: str = ""
-
-
 class CodePlanAndChangeContext(BaseModel):
     requirement: str = ""
     issue: str = ""

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Optional, Union
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -33,7 +34,7 @@ from metagpt.const import (
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.schema import BugFixContext, Document, Documents, Message
+from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -66,7 +67,7 @@ class WritePRD(Action):
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
     """
 
-    async def run(self, with_messages, *args, **kwargs) -> ActionOutput | Message:
+    async def run(self, with_messages, *args, **kwargs) -> Optional[Union[ActionOutput, Message]]:
         """Run the action."""
         req: Document = await self.repo.requirement
         docs: list[Document] = await self.repo.docs.prd.get_all()
@@ -82,20 +83,17 @@ class WritePRD(Action):
         # if requirement is related to other documents, update them, otherwise create a new one
         if related_docs := await self.get_related_docs(req, docs):
             logger.info(f"Requirement update detected: {req.content}")
-            return await self._handle_requirement_update(req, related_docs)
+            await self._handle_requirement_update(req, related_docs)
         else:
             logger.info(f"New requirement detected: {req.content}")
-            return await self._handle_new_requirement(req)
+            await self._handle_new_requirement(req)
 
     async def _handle_bugfix(self, req: Document) -> Message:
         # ... bugfix logic ...
         await self.repo.docs.save(filename=BUGFIX_FILENAME, content=req.content)
         await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
-        bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
-        return Message(
-            content=bug_fix.model_dump_json(),
-            instruct_content=bug_fix,
-            role="",
+        return AIMessage(
+            content="",
             cause_by=FixBug,
             sent_from=self,
             send_to="Alex",  # the name of Engineer

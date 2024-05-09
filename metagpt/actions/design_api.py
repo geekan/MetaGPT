@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action
 from metagpt.actions.design_api_an import (
     DATA_STRUCTURES_AND_INTERFACES,
     DESIGN_API_NODE,
@@ -68,7 +68,6 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
-        return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)

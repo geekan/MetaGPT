@@ -21,7 +21,6 @@ from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import MESSAGE_ROUTE_TO_NONE
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.utils.report import EditorReporter
 from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import (
     any_to_str,
@@ -29,6 +28,7 @@ from metagpt.utils.common import (
     init_python_folder,
     parse_recipient,
 )
+from metagpt.utils.report import EditorReporter
 
 
 class QaEngineer(Role):
