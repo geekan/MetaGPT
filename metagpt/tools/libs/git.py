@@ -12,8 +12,8 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.git_repository import GitBranch, GitRepository
 
 
-@register_tool(tags=["software development", "git", "Clone a git repository to local"])
-async def git_clone(url: Union[str, Path], output_dir: Union[str, Path] = None) -> Path:
+# @register_tool(tags=["git"])
+async def git_clone(url: str, output_dir: str | Path = None) -> Path:
     """
     Clones a Git repository from the given URL.
 

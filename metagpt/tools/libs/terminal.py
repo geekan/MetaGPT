@@ -33,6 +33,12 @@ class Terminal:
         self.stdout_queue = Queue()
         self.observer = TerminalReporter()
 
+        self._check_state()
+
+    def _check_state(self):
+        """Check the state of the terminal, e.g. the current directory of the terminal process. Useful for agent to understand."""
+        print("The terminal is at:", self.run_command("pwd"))
+
     def run_command(self, cmd: str, daemon=False) -> str:
         """
         Executes a specified command in the terminal and streams the output back in real time.
