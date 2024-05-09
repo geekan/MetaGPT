@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from github.Issue import Issue
 from github.PullRequest import PullRequest
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.git_repository import GitRepository
+from metagpt.utils.git_repository import GitBranch, GitRepository
 
 
 # @register_tool(tags=["git"])
@@ -18,41 +18,33 @@ async def git_clone(url: str, output_dir: str | Path = None) -> Path:
     Clones a Git repository from the given URL.
 
     Args:
-        url (str): The URL of the Git repository to clone.
-        output_dir (str or Path, optional): The directory where the repository will be cloned.
-            If not provided, the repository will be cloned into the current working directory.
+        url (Union[str, Path]): The URL or local path of the Git repository to clone.
+        output_dir (Union[str, Path], optional): The directory where the repository should be cloned.
+            If None, the repository will be cloned into the current working directory. Defaults to None.
 
     Returns:
         Path: The path to the cloned repository.
 
-    Raises:
-        ValueError: If the specified Git root is invalid.
-
     Example:
-        >>> # git clone to /TO/PATH
-        >>> url = 'https://github.com/geekan/MetaGPT.git'
-        >>> output_dir = "/TO/PATH"
-        >>> repo_dir = await git_clone(url=url, output_dir=output_dir)
-        >>> print(repo_dir)
-        /TO/PATH/MetaGPT
-
-        >>> # git clone to default directory.
-        >>> url = 'https://github.com/geekan/MetaGPT.git'
-        >>> repo_dir = await git_clone(url)
-        >>> print(repo_dir)
-        /WORK_SPACE/downloads/MetaGPT
+        >>> url = "https://github.com/iorisa/snake-game.git"
+        >>> local_path = await git_clone(url=url)
+        >>> print(local_path)
+        /local/path/to/snake-game
     """
-    repo = await GitRepository.clone_from(url, output_dir)
+    repo = await GitRepository.clone_from(url=url, output_dir=output_dir)
     return repo.workdir
 
 
+@register_tool(
+    tags=["software development", "git", "Checks out the specific commit/branch/tag of the local Git repository."]
+)
 async def git_checkout(repo_dir: str | Path, commit_id: str):
     """
     Checks out a specific commit in a Git repository.
 
     Args:
         repo_dir (str or Path): The directory containing the Git repository.
-        commit_id (str): The ID of the commit to check out.
+        commit_id (str): The ID of the commit or the name of branch/tag to check out.
 
     Raises:
         ValueError: If the specified Git root is invalid.
@@ -69,145 +61,171 @@ async def git_checkout(repo_dir: str | Path, commit_id: str):
     await repo.checkout(commit_id)
 
 
-@register_tool(tags=["git"])
-async def create_pull_request(
+@register_tool(tags=["software development", "git", "Commit the changes and push to remote git repository."])
+async def git_push(
+    local_path: Union[str, Path],
     access_token: str,
+    comments: str = "Commit",
+    new_branch: str = "",
+) -> GitBranch:
+    """
+    Pushes changes from a local Git repository to its remote counterpart.
+
+    Args:
+        local_path (Union[str, Path]): The path to the local Git repository.
+        access_token (str): The access token for authentication. Use `get_env` to get access token.
+        comments (str, optional): The commit message to use. Defaults to "Commit".
+        new_branch (str, optional): The name of the new branch to create and push changes to.
+            If not provided, changes will be pushed to the current branch. Defaults to "".
+
+    Returns:
+        GitBranch: The branch to which the changes were pushed.
+    Raises:
+        ValueError: If the provided local_path does not point to a valid Git repository.
+
+    Example:
+        >>> url = "https://github.com/iorisa/snake-game.git"
+        >>> local_path = await git_clone(url=url)
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")  # Read access token from enviroment variables.
+        >>> comments = "Archive"
+        >>> new_branch = "feature/new"
+        >>> branch = await git_push(local_path=local_path, access_token=access_token, comments=comments, new_branch=new_branch)
+        >>> base = branch.base
+        >>> head = branch.head
+        >>> repo_name = branch.repo_name
+        >>> print(f"base branch:'{base}', head branch:'{head}', repo_name:'{repo_name}'")
+        base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
+
+    """
+    if not GitRepository.is_git_dir(local_path):
+        raise ValueError("Invalid local git repository")
+
+    repo = GitRepository(local_path=local_path, auto_init=False)
+    branch = await repo.push(new_branch=new_branch, comments=comments, access_token=access_token)
+    return branch
+
+
+@register_tool(tags=["software development", "git", "create a git pull/merge request"])
+async def git_create_pull(
     base: str,
     head: str,
     base_repo_name: str,
+    access_token: str,
     head_repo_name: Optional[str] = None,
     title: Optional[str] = None,
     body: Optional[str] = None,
+    issue: Optional[Issue] = None,
 ) -> PullRequest:
     """
-    Creates a pull request in a Git repository.
+    Creates a pull request on a Git repository.
 
     Args:
-        access_token (str): The access token for authentication.
-        base (str): The name of the base branch of the pull request (e.g., 'main', 'master').
-        head (str): The name of the head branch of the pull request (e.g., 'feature-branch').
+        base (str): The base branch of the pull request.
+        head (str): The head branch of the pull request.
         base_repo_name (str): The full repository name (user/repo) where the pull request will be created.
+        access_token (str): The access token for authentication. Use `get_env` to get access token.
         head_repo_name (Optional[str], optional): The full repository name (user/repo) where the pull request will merge from. Defaults to None.
-        title (Optional[str]): The title of the pull request.
-        body (Optional[str]): The body of the pull request.
+        title (Optional[str], optional): The title of the pull request. Defaults to None.
+        body (Optional[str], optional): The body of the pull request. Defaults to None.
+        issue (Optional[Issue], optional): The related issue of the pull request. Defaults to None.
+
+    Example:
+        >>> # push and create pull
+        >>> url = "https://github.com/iorisa/snake-game.git"
+        >>> local_path = await git_clone(url=url)
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
+        >>> comments = "Archive"
+        >>> new_branch = "feature/new"
+        >>> branch = await git_push(local_path=local_path, access_token=access_token, comments=comments, new_branch=new_branch)
+        >>> base = branch.base
+        >>> head = branch.head
+        >>> repo_name = branch.repo_name
+        >>> print(f"base branch:'{base}', head branch:'{head}', repo_name:'{repo_name}'")
+        base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
+        >>> title = "feat: modify http lib",
+        >>> body = "Change HTTP library used to send requests"
+        >>> pr = await git_create_pull(
+        >>>   base_repo_name=repo_name,
+        >>>   base=base,
+        >>>   head=head,
+        >>>   title=title,
+        >>>   body=body,
+        >>>   access_token=access_token,
+        >>> )
+        >>> print(pr)
+        PullRequest("feat: modify http lib")
+
+        >>> # create pull request
+        >>> base_repo_name = "geekan/MetaGPT"
+        >>> head_repo_name = "ioris/MetaGPT"
+        >>> base = "master"
+        >>> head = "feature/http"
+        >>> title = "feat: modify http lib",
+        >>> body = "Change HTTP library used to send requests"
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
+        >>> pr = await git_create_pull(
+        >>>   base_repo_name=base_repo_name,
+        >>>   head_repo_name=head_repo_name,
+        >>>   base=base,
+        >>>   head=head,
+        >>>   title=title,
+        >>>   body=body,
+        >>>   access_token=access_token,
+        >>> )
+        >>> print(pr)
+        PullRequest("feat: modify http lib")
 
 
     Returns:
-        PullRequest: The created pull request object.
-
-    Raises:
-        ValueError: If `access_token` is invalid. Visit: "https://github.com/settings/tokens"
-        Any exceptions that might occur during the pull request creation process.
-
-    Note:
-        This function is intended to be used in an asynchronous context (with `await`).
-
-    Example:
-        >>> # Merge Request
-        >>> repo_name = "user/repo" # "user/repo" for example: "https://github.com/user/repo.git"
-        >>> base = "master" # branch that merge to
-        >>> head = "feature/new_feature" # branch that merge from
-        >>> title = "Implement new feature"
-        >>> body = "This pull request adds functionality X, Y, and Z."
-        >>> pull_request = await create_pull_request(
-            repo_name=repo_name,
-            base=base,
-            head=head,
-            title=title,
-            body=body,
-            access_token=get_env("git_access_token")
-        )
-        >>> print(pull_request)
-        PullRequest(title="Implement new feature", number=26)
-
-        >>> # Pull Request
-        >>> base_repo_name = "user1/repo1" # for example: "user1/repo1" from "https://github.com/user1/repo1.git"
-        >>> head_repo_name = "user2/repo2" # for example: "user2/repo2" from "https://github.com/user2/repo2.git"
-        >>> base = "master" # branch that merge to
-        >>> head = "feature/new_feature" # branch that merge from
-        >>> title = "Implement new feature"
-        >>> body = "This pull request adds functionality X, Y, and Z."
-        >>> pull_request = await create_pull_request(
-            base_repo_name=base_repo_name,
-            head_repo_name=head_repo_name,
-            base=base,
-            head=head,
-            title=title,
-            body=body,
-            access_token=get_env("git_access_token")
-        )
-        >>> print(pull_request)
-        PullRequest(title="Implement new feature", number=26)
-
+        PullRequest: The created pull request.
     """
     return await GitRepository.create_pull(
-        base_repo_name=base_repo_name,
-        head_repo_name=head_repo_name,
         base=base,
         head=head,
+        base_repo_name=base_repo_name,
+        head_repo_name=head_repo_name,
         title=title,
         body=body,
+        issue=issue,
         access_token=access_token,
     )
 
 
-@register_tool(tags=["git"])
-async def create_issue(
-    access_token: str,
+@register_tool(tags=["software development", "create a git issue"])
+async def git_create_issue(
     repo_name: str,
     title: str,
+    access_token: str,
     body: Optional[str] = None,
-    assignee: Optional[str] = None,
-    labels: Optional[list[str]] = None,
 ) -> Issue:
     """
-    Creates an issue in the specified repository.
+    Creates an issue on a Git repository.
 
     Args:
-        access_token (str): The access token for authentication.
-            Visit `https://github.com/settings/tokens` to obtain a personal access token.
-            For more authentication options, visit: `https://pygithub.readthedocs.io/en/latest/examples/Authentication.html`
-        repo_name (str): The full repository name (user/repo) where the issue will be created.
+        repo_name (str): The name of the repository.
         title (str): The title of the issue.
+        access_token (str): The access token for authentication. Use `get_env` to get access token.
         body (Optional[str], optional): The body of the issue. Defaults to None.
-        assignee (Optional[str], optional): The username of the assignee for the issue. Defaults to None.
-        labels (Optional[list[str]], optional): A list of label names to associate with the issue. Defaults to None.
-
-
-    Returns:
-        Issue: The created issue object.
 
     Example:
-        >>> # Create an issue with title and body
-        >>> repo_name = "username/repository"
-        >>> title = "Bug Report"
-        >>> body = "I found a bug in the application."
-        >>> issue = await create_issue(
-            repo_name=repo_name,
-            title=title,
-            body=body,
-            access_token=get_env("git_access_token")
-        )
+        >>> repo_name = "geekan/MetaGPT"
+        >>> title = "This is a new issue"
+        >>> from metagpt.tools.libs import get_env
+        >>> access_token = await get_env(key="access_token", app_name="github")
+        >>> body = "This is the issue body."
+        >>> issue = await git_create_issue(
+        >>>   repo_name=repo_name,
+        >>>   title=title,
+        >>>   access_token=access_token,
+        >>>   body=body,
+        >>> )
         >>> print(issue)
-        Issue(title="Bug Report", number=26)
+        Issue("This is a new issue")
 
-        >>> # Create an issue with title, body, assignee, and labels
-        >>> repo_name = "username/repository"
-        >>> title = "Bug Report"
-        >>> body = "I found a bug in the application."
-        >>> assignee = "john_doe"
-        >>> labels = ["enhancement", "help wanted"]
-        >>> issue = await create_issue(
-            repo_name=repo_name,
-            title=title,
-            body=body,
-            assignee=assigee,
-            labels=labels,
-            access_token=get_env("git_access_token")
-        )
-        >>> print(issue)
-        Issue(title="Bug Report", number=26)
+    Returns:
+        Issue: The created issue.
     """
-    return await GitRepository.create_issue(
-        repo_name=repo_name, title=title, body=body, assignee=assignee, labels=labels, access_token=access_token
-    )
+    return await GitRepository.create_issue(repo_name=repo_name, title=title, body=body, access_token=access_token)

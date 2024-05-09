@@ -8,7 +8,6 @@ import typer
 
 from metagpt.const import CONFIG_ROOT
 from metagpt.utils.common import any_to_str
-from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -26,7 +25,7 @@ def generate_repo(
     reqa_file="",
     max_auto_summarize_code=0,
     recover_path=None,
-) -> ProjectRepo:
+):
     """Run the startup logic. Can be called from CLI or other Python scripts."""
     from metagpt.config2 import config
     from metagpt.context import Context

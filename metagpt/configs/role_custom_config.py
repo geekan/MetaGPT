@@ -14,6 +14,6 @@ class RoleCustomConfig(YamlModel):
     role: role's className or role's role_id
     To be expanded
     """
+
     role: str = ""
     llm: LLMConfig
-

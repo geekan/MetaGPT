@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
-from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.const import MARKDOWN_TITLE_PREFIX, USE_CONFIG_TIMEOUT
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -113,7 +113,7 @@ Follow format example's {prompt_schema} format, generate output and make sure it
 """
 
 
-def dict_to_markdown(d, prefix="- ", kv_sep="\n", postfix="\n"):
+def dict_to_markdown(d, prefix=MARKDOWN_TITLE_PREFIX, kv_sep="\n", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix}{key}{kv_sep}{value}{postfix}"
