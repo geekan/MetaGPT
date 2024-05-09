@@ -8,11 +8,11 @@ from metagpt.rag.factories.base import ConfigBasedFactory
 from metagpt.rag.rankers.object_ranker import ObjectSortPostprocessor
 from metagpt.rag.schema import (
     BaseRankerConfig,
+    BGERerankConfig,
+    CohereRerankConfig,
     ColbertRerankConfig,
     LLMRankerConfig,
     ObjectRankerConfig,
-    CohereRerankConfig,
-    BGERerankConfig
 )
 
 
@@ -60,13 +60,15 @@ class RankerFactory(ConfigBasedFactory):
 
     def _create_bge_rerank(self, config: BGERerankConfig, **kwargs) -> LLMRerank:
         try:
-            from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
+            from llama_index.postprocessor.flag_embedding_reranker import (
+                FlagEmbeddingReranker,
+            )
         except ImportError:
             raise ImportError(
                 "`llama-index-postprocessor-flag-embedding-reranker` package not found, please run `pip install llama-index-postprocessor-flag-embedding-reranker`"
             )
         return FlagEmbeddingReranker(**config.model_dump())
-        
+
     def _create_object_ranker(self, config: ObjectRankerConfig, **kwargs) -> LLMRerank:
         return ObjectSortPostprocessor(**config.model_dump())
 
