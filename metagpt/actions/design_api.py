@@ -24,7 +24,7 @@ from metagpt.actions.design_api_an import (
 )
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
-from metagpt.schema import Document, Documents, Message
+from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.report import DocsReporter, GalleryReporter
 
@@ -68,6 +68,16 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
+        return AIMessage(
+            content="Designing is complete. "
+            + "\n".join(
+                list(self.repo.docs.system_design.changed_files.keys())
+                + list(self.repo.resources.data_api_design.changed_files.keys())
+                + list(self.repo.resources.seq_flow.changed_files.keys())
+            ),
+            cause_by=self,
+            sent_from=self,
+        )
 
     async def _new_system_design(self, context):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)

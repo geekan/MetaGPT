@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Union
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -67,7 +66,7 @@ class WritePRD(Action):
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
     """
 
-    async def run(self, with_messages, *args, **kwargs) -> Optional[Union[ActionOutput, Message]]:
+    async def run(self, with_messages, *args, **kwargs) -> Message:
         """Run the action."""
         req: Document = await self.repo.requirement
         docs: list[Document] = await self.repo.docs.prd.get_all()
@@ -87,13 +86,23 @@ class WritePRD(Action):
         else:
             logger.info(f"New requirement detected: {req.content}")
             await self._handle_new_requirement(req)
+        return AIMessage(
+            content="PRD is completed. "
+            + "\n".join(
+                list(self.repo.docs.prd.changed_files.keys())
+                + list(self.repo.resources.prd.changed_files.keys())
+                + list(self.repo.resources.competitive_analysis.changed_files.keys())
+            ),
+            cause_by=self,
+            sent_from=self,
+        )
 
     async def _handle_bugfix(self, req: Document) -> Message:
         # ... bugfix logic ...
         await self.repo.docs.save(filename=BUGFIX_FILENAME, content=req.content)
         await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
         return AIMessage(
-            content="",
+            content=f"A new issue is received: {BUGFIX_FILENAME}",
             cause_by=FixBug,
             sent_from=self,
             send_to="Alex",  # the name of Engineer

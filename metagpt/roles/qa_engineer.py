@@ -157,7 +157,8 @@ class QaEngineer(Role):
             await init_python_folder(self.project_repo.tests.workdir)
         if self.test_round > self.test_round_allowed:
             result_msg = AIMessage(
-                content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
+                content=f"Exceeding {self.test_round_allowed} rounds of tests, stop. "
+                + "\n".join(list(self.project_repo.tests.changed_files.keys())),
                 cause_by=WriteTest,
                 sent_from=self.profile,
                 send_to=MESSAGE_ROUTE_TO_NONE,

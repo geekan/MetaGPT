@@ -182,6 +182,8 @@ class Engineer(Role):
     async def _act_summarize(self):
         tasks = []
         for todo in self.summarize_todos:
+            if self.n_summarize >= self.config.max_auto_summarize_code:
+                break
             summary = await todo.run()
             summary_filename = Path(todo.i_context.design_filename).with_suffix(".md").name
             dependencies = {todo.i_context.design_filename, todo.i_context.task_filename}
@@ -203,11 +205,16 @@ class Engineer(Role):
                 )
             else:
                 await self.project_repo.docs.code_summary.delete(filename=Path(todo.i_context.design_filename).name)
-
+        self.summarize_todos = []
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:
+            self.n_summarize = 0
             return AIMessage(
-                content="",
+                content="Coding is complete. "
+                "\n".join(
+                    list(self.project_repo.resources.code_summary.changed_files.keys())
+                    + list(self.project_repo.srcs.changed_files.keys())
+                ),
                 cause_by=SummarizeCode,
                 sent_from=self,
                 send_to="Edward",  # The name of QaEngineer
@@ -410,7 +417,6 @@ class Engineer(Role):
                 self.summarize_todos.append(new_summarize)
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
-            self.summarize_todos.pop(0)
 
     async def _new_code_plan_and_change_action(self, cause_by: str):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
