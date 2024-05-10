@@ -62,7 +62,6 @@ class WriteTasks(Action):
                 + list(self.repo.resources.api_spec_and_task.changed_files.keys())
             ),
             cause_by=self,
-            sent_from=self,
         )
 
     async def _update_tasks(self, filename):

@@ -43,6 +43,7 @@ from metagpt.const import (
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    MESSAGE_ROUTE_TO_SELF,
     PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
@@ -200,7 +201,7 @@ class Message(BaseModel):
     """list[<role>: <content>]"""
 
     id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
-    content: str
+    content: str  # natural language for user or agent
     instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
     cause_by: str = Field(default="", validate_default=True)
@@ -397,6 +398,13 @@ class AIMessage(Message):
     @property
     def agent(self) -> str:
         return self.metadata.get(AGENT, "")
+
+
+class AISelfMessage(AIMessage):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sent_from = MESSAGE_ROUTE_TO_SELF
+        self.send_to = MESSAGE_ROUTE_TO_SELF
 
 
 class Task(BaseModel):

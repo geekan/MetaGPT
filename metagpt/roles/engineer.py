@@ -47,6 +47,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
     AIMessage,
+    AISelfMessage,
     CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
@@ -172,12 +173,7 @@ class Engineer(Role):
 
     async def _act_write_code(self):
         await self._act_sp_with_cr(review=self.use_code_review)
-        return AIMessage(
-            content="",
-            cause_by=WriteCodeReview if self.use_code_review else WriteCode,
-            send_to=self,
-            sent_from=self,
-        )
+        return AISelfMessage(content="", cause_by=WriteCodeReview if self.use_code_review else WriteCode)
 
     async def _act_summarize(self):
         tasks = []
@@ -216,7 +212,6 @@ class Engineer(Role):
                     + list(self.project_repo.srcs.changed_files.keys())
                 ),
                 cause_by=SummarizeCode,
-                sent_from=self,
                 send_to="Edward",  # The name of QaEngineer
             )
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
@@ -244,12 +239,7 @@ class Engineer(Role):
             dependencies=dependencies,
         )
 
-        return AIMessage(
-            content="",
-            cause_by=WriteCodePlanAndChange,
-            send_to=self,
-            sent_from=self,
-        )
+        return AISelfMessage(content="", cause_by=WriteCodePlanAndChange)
 
     async def _is_pass(self, summary) -> (str, str):
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)

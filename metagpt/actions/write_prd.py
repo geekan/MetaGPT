@@ -94,7 +94,6 @@ class WritePRD(Action):
                 + list(self.repo.resources.competitive_analysis.changed_files.keys())
             ),
             cause_by=self,
-            sent_from=self,
         )
 
     async def _handle_bugfix(self, req: Document) -> Message:
@@ -104,7 +103,6 @@ class WritePRD(Action):
         return AIMessage(
             content=f"A new issue is received: {BUGFIX_FILENAME}",
             cause_by=FixBug,
-            sent_from=self,
             send_to="Alex",  # the name of Engineer
         )
 

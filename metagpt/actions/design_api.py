@@ -76,7 +76,6 @@ class WriteDesign(Action):
                 + list(self.repo.resources.seq_flow.changed_files.keys())
             ),
             cause_by=self,
-            sent_from=self,
         )
 
     async def _new_system_design(self, context):
