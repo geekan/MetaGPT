@@ -13,6 +13,7 @@ from typing import Dict, Optional
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.const import REQUIREMENT_FILENAME
+from metagpt.logs import logger
 from metagpt.schema import AIMessage
 from metagpt.utils.common import any_to_str
 from metagpt.utils.file_repository import FileRepository
@@ -56,6 +57,7 @@ class PrepareDocuments(Action):
                 if not v or k in ["resources", "reason"]:
                     continue
                 self.context.kwargs.set(k, v)
+                logger.info(f"{k}={v}")
             if self.context.kwargs.project_path:
                 self.config.update_via_cli(
                     project_path=self.context.kwargs.project_path,

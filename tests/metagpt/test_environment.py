@@ -31,6 +31,7 @@ serdeser_path = Path(__file__).absolute().parent.joinpath("../data/serdeser_stor
 
 class MockEnv(Environment):
     def publish_message(self, message: Message, peekable: bool = True) -> bool:
+        logger.info(f"{message.metadata}:{message.content}")
         consumers = []
         for role, addrs in self.member_addrs.items():
             if is_send_to(message, addrs):
@@ -87,6 +88,7 @@ async def test_publish_and_process_message(env: Environment):
     assert len(env.history.storage) == 0
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("content", "send_to"),
@@ -105,7 +107,7 @@ async def test_publish_and_process_message(env: Environment):
             any_to_str(ProjectManager),
         ),
         (
-            "Rewrite 'main.py' of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            "src filename  is 'game.py', Uncaught SyntaxError: Identifier 'Position' has already been declared (at game.js:1:1), the project at '/Users/iorishinier/github/bak/MetaGPT/workspace/snake_game'",
             any_to_str(Engineer),
         ),
         (

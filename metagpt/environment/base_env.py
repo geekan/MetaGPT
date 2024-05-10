@@ -202,6 +202,8 @@ class Environment(ExtEnv):
         for _ in range(k):
             futures = []
             for role in self.roles.values():
+                if role.is_idle:
+                    continue
                 future = role.run()
                 futures.append(future)
 

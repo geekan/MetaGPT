@@ -505,11 +505,11 @@ class GitRepository:
                 issue=issue,
             )
         else:
-            head_branch = base_repo.get_branch(base)
-            base_branch = head_repo.get_branch(head)
+            base_branch = base_repo.get_branch(base)
+            head_branch = head_repo.get_branch(head)
             pr = base_repo.create_pull(
                 base=base_branch.name,
-                head=head_branch.commit.sha,
+                head=f"{head_repo.full_name}:{head_branch.name}",
                 title=title,
                 body=body,
                 maintainer_can_modify=maintainer_can_modify,

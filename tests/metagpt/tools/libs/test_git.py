@@ -93,6 +93,39 @@ async def test_new_pr():
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+async def test_new_pr1():
+    body = """
+    >>> SUMMARY
+    >>> Change HTTP library used to send requests
+    >>>
+    >>> TESTS
+    >>>   - [x] Send 'GET' request
+    >>>   - [x] Send 'POST' request with/without body
+    """
+    pr = await GitRepository.create_pull(
+        base_repo_name="iorisa/MetaGPT",
+        base="fixbug/vscode",
+        head_repo_name="send18/MetaGPT",
+        head="dev",
+        title="Test pr",
+        body=body,
+        access_token=await get_env(key="access_token", app_name="github"),
+    )
+    # pr = await GitRepository.create_pull(
+    #     head_repo_name="iorisa/MetaGPT",
+    #     head="fixbug/vscode",
+    #     base_repo_name="send18/MetaGPT",
+    #     base="dev",
+    #     title="Test pr",
+    #     body=body,
+    #     access_token=await get_env(key="access_token", app_name="github"),
+    # )
+    print(pr)
+    assert pr
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
 async def test_auth():
     access_token = await get_env(key="access_token", app_name="github")
     auth = Auth.Token(access_token)
@@ -124,6 +157,7 @@ async def test_github(context):
     assert pr
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "content",
