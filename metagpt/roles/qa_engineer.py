@@ -21,7 +21,14 @@ from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import MESSAGE_ROUTE_TO_NONE
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
+from metagpt.schema import (
+    AIMessage,
+    AISelfMessage,
+    Document,
+    Message,
+    RunCodeContext,
+    TestingContext,
+)
 from metagpt.utils.common import (
     any_to_str,
     any_to_str_set,
@@ -95,11 +102,9 @@ class QaEngineer(Role):
                 additional_python_paths=[str(self.context.src_workspace)],
             )
             self.publish_message(
-                AIMessage(
+                AISelfMessage(
                     content=run_code_context.model_dump_json(),
                     cause_by=WriteTest,
-                    sent_from=self,
-                    send_to=self,
                 )
             )
 
@@ -133,7 +138,6 @@ class QaEngineer(Role):
             AIMessage(
                 content=run_code_context.model_dump_json(),
                 cause_by=RunCode,
-                sent_from=self,
                 send_to=mappings.get(recipient, MESSAGE_ROUTE_TO_NONE),
             )
         )
@@ -143,14 +147,7 @@ class QaEngineer(Role):
         code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
         run_code_context.output = None
-        self.publish_message(
-            AIMessage(
-                content=run_code_context.model_dump_json(),
-                cause_by=DebugError,
-                sent_from=self,
-                send_to=self,
-            )
-        )
+        self.publish_message(AISelfMessage(content=run_code_context.model_dump_json(), cause_by=DebugError))
 
     async def _act(self) -> Message:
         if self.project_path:
@@ -160,7 +157,6 @@ class QaEngineer(Role):
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, stop. "
                 + "\n".join(list(self.project_repo.tests.changed_files.keys())),
                 cause_by=WriteTest,
-                sent_from=self.profile,
                 send_to=MESSAGE_ROUTE_TO_NONE,
             )
             return result_msg
@@ -186,7 +182,6 @@ class QaEngineer(Role):
         return AIMessage(
             content=f"Round {self.test_round} of tests done",
             cause_by=WriteTest,
-            sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
 
