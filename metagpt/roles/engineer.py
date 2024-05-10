@@ -217,7 +217,7 @@ class Engineer(Role):
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
         self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return AIMessage(content="", cause_by=SummarizeCode, send_to=self, sent_from=self)
+        return AISelfMessage(content="", cause_by=SummarizeCode)
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
