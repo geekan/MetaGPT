@@ -14,7 +14,8 @@ import uuid
 from enum import Enum
 from pathlib import Path
 from subprocess import TimeoutExpired
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
+from urllib.parse import quote
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
@@ -456,7 +457,7 @@ class GitRepository:
         issue: Optional[Issue] = None,
         access_token: Optional[str] = None,
         auth: Optional[Auth] = None,
-    ) -> PullRequest:
+    ) -> Union[PullRequest, str]:
         """
         Creates a pull request in the specified repository.
 
@@ -483,38 +484,42 @@ class GitRepository:
         issue = issue or NotSet
         if not auth and not access_token:
             raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
-        auth = auth or Auth.Token(access_token)
-        g = Github(auth=auth)
-        base_repo = g.get_repo(base_repo_name)
-        head_repo = g.get_repo(head_repo_name) if head_repo_name and head_repo_name != base_repo_name else None
-        x_ratelimit_remaining = base_repo.raw_headers.get("x-ratelimit-remaining")
-        if (
-            x_ratelimit_remaining
-            and bool(re.match(r"^-?\d+$", x_ratelimit_remaining))
-            and int(x_ratelimit_remaining) <= 0
-        ):
-            raise RateLimitError()
-        if not head_repo:
-            pr = base_repo.create_pull(
+        clone_url = f"https://github.com/{base_repo_name}.git"
+        try:
+            auth = auth or Auth.Token(access_token)
+            g = Github(auth=auth)
+            base_repo = g.get_repo(base_repo_name)
+            clone_url = base_repo.clone_url
+            head_repo = g.get_repo(head_repo_name) if head_repo_name and head_repo_name != base_repo_name else None
+            if not head_repo:
+                pr = base_repo.create_pull(
+                    base=base,
+                    head=head,
+                    title=title,
+                    body=body,
+                    maintainer_can_modify=maintainer_can_modify,
+                    draft=draft,
+                    issue=issue,
+                )
+            else:
+                base_branch = base_repo.get_branch(base)
+                head_branch = head_repo.get_branch(head)
+                pr = base_repo.create_pull(
+                    base=base_branch.name,
+                    head=f"{head_repo.full_name}:{head_branch.name}",
+                    title=title,
+                    body=body,
+                    maintainer_can_modify=maintainer_can_modify,
+                    draft=draft,
+                    issue=issue,
+                )
+        except Exception as e:
+            logger.warning(f"Pull Request Error: {e}")
+            return GitRepository.create_github_pull_url(
+                clone_url=clone_url,
                 base=base,
                 head=head,
-                title=title,
-                body=body,
-                maintainer_can_modify=maintainer_can_modify,
-                draft=draft,
-                issue=issue,
-            )
-        else:
-            base_branch = base_repo.get_branch(base)
-            head_branch = head_repo.get_branch(head)
-            pr = base_repo.create_pull(
-                base=base_branch.name,
-                head=f"{head_repo.full_name}:{head_branch.name}",
-                title=title,
-                body=body,
-                maintainer_can_modify=maintainer_can_modify,
-                draft=draft,
-                issue=issue,
+                head_repo_name=head_repo_name,
             )
         return pr
 
@@ -594,3 +599,41 @@ class GitRepository:
         user = git.get_user()
         v = user.get_repos(visibility="public")
         return [i.full_name for i in v]
+
+    @staticmethod
+    def create_github_pull_url(clone_url: str, base: str, head: str, head_repo_name: Optional[str] = None) -> str:
+        """
+        Create a URL for comparing changes between branches or repositories on GitHub.
+
+        Args:
+            clone_url (str): The URL used for cloning the repository, ending with '.git'.
+            base (str): The base branch or commit.
+            head (str): The head branch or commit.
+            head_repo_name (str, optional): The name of the repository for the head branch. If not provided, assumes the same repository.
+
+        Returns:
+            str: The URL for comparing changes between the specified branches or commits.
+        """
+        url = clone_url.removesuffix(".git") + f"/compare/{base}..."
+        if head_repo_name:
+            url += head_repo_name.replace("/", ":")
+        url += ":" + head
+        return url
+
+    @staticmethod
+    def create_gitlab_merge_request_url(clone_url: str, head: str) -> str:
+        """
+        Create a URL for creating a new merge request on GitLab.
+
+        Args:
+            clone_url (str): The URL used for cloning the repository, ending with '.git'.
+            head (str): The name of the branch to be merged.
+
+        Returns:
+            str: The URL for creating a new merge request for the specified branch.
+        """
+        return (
+            clone_url.removesuffix(".git")
+            + "/-/merge_requests/new?merge_request%5Bsource_branch%5D="
+            + quote(head, safe="")
+        )
