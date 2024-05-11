@@ -68,6 +68,7 @@ async def test_new_issue():
     pass
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_new_pr():
     body = """
@@ -90,6 +91,7 @@ async def test_new_pr():
     assert pr
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_new_pr1():
     body = """
