@@ -1,7 +1,7 @@
 import pytest
 
 from metagpt.const import TEST_DATA_PATH
-from metagpt.tools.libs.file_manager import FileBlock, FileManager
+from metagpt.tools.libs.editor import Editor, FileBlock
 
 TEST_FILE_CONTENT = """
 # this is line one
@@ -13,7 +13,7 @@ def test_function_for_fm():
     # this is the 7th line
 """.strip()
 
-TEST_FILE_PATH = TEST_DATA_PATH / "tools/test_script_for_file_manager.py"
+TEST_FILE_PATH = TEST_DATA_PATH / "tools/test_script_for_editor.py"
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ EXPECTED_SEARCHED_BLOCK = FileBlock(
 
 
 def test_search_content(test_file):
-    block = FileManager().search_content("def test_function_for_fm", root_path=TEST_DATA_PATH, window=3)
+    block = Editor().search_content("def test_function_for_fm", root_path=TEST_DATA_PATH, window=3)
     assert block == EXPECTED_SEARCHED_BLOCK
 
 
@@ -51,7 +51,7 @@ def test_function_for_fm():
 
 
 def test_replace_content(test_file):
-    FileManager().write_content(
+    Editor().write_content(
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=5,
@@ -71,7 +71,7 @@ def test_function_for_fm():
 
 
 def test_delete_content(test_file):
-    FileManager().write_content(file_path=str(TEST_FILE_PATH), start_line=3, end_line=5)
+    Editor().write_content(file_path=str(TEST_FILE_PATH), start_line=3, end_line=5)
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
     assert new_content == EXPECTED_CONTENT_AFTER_DELETE
@@ -90,7 +90,7 @@ def test_function_for_fm():
 
 
 def test_insert_content(test_file):
-    FileManager().write_content(
+    Editor().write_content(
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=-1,
@@ -102,7 +102,7 @@ def test_insert_content(test_file):
 
 
 def test_new_content_wrong_indentation(test_file):
-    msg = FileManager().write_content(
+    msg = Editor().write_content(
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=-1,
@@ -112,7 +112,7 @@ def test_new_content_wrong_indentation(test_file):
 
 
 def test_new_content_format_issue(test_file):
-    msg = FileManager().write_content(
+    msg = Editor().write_content(
         file_path=str(TEST_FILE_PATH),
         start_line=3,
         end_line=-1,

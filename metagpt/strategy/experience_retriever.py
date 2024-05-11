@@ -159,44 +159,101 @@ class SimpleExpRetriever(ExpRetriever):
 class KeywordExpRetriever(ExpRetriever):
     """An experience retriever that returns examples based on keywords in the context."""
 
-    EXAMPLE: dict = {
-        "deploy": """
-        ## example 1
-        User Requirement: launch a service from workspace/web_snake_game/web_snake_game, and deploy it to public
-        Explanation: Launching a service requires Terminal tool with daemon mode, write this into task instruction.
-        ```json
-        [
-            {
-                "command_name": "append_task",
-                "args": {
-                    "task_id": "1",
-                    "dependent_task_ids": [],
-                    "instruction": "Use the Terminal tool to launch the service in daemon mode",
-                    "assignee": "David"
-                }
-            },
-            {
-                "command_name": "append_task",
-                "args": {
-                    "task_id": "2",
-                    "dependent_task_ids": ["1"],
-                    "instruction": "Test the service with a simple request",
-                    "assignee": "David"
-                }
-            },
-            {
-                "command_name": "append_task",
-                "args": {
-                    "task_id": "3",
-                    "dependent_task_ids": ["2"],
-                    "instruction": "Deploy the service to public",
-                    "assignee": "David"
-                }
-            },
-        """
-    }
-
     def retrieve(self, context: str) -> str:
         if "deploy" in context.lower():
-            return self.EXAMPLE["deploy"]
+            return DEPLOY_EXAMPLE
+        elif "issue" in context.lower():
+            return FIX_ISSUE_EXAMPLE
         return ""
+
+
+DEPLOY_EXAMPLE = """
+## example 1
+User Requirement: launch a service from workspace/web_snake_game/web_snake_game, and deploy it to public
+Explanation: Launching a service requires Terminal tool with daemon mode, write this into task instruction.
+```json
+[
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "Use the Terminal tool to launch the service in daemon mode",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Test the service with a simple request",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "3",
+            "dependent_task_ids": ["2"],
+            "instruction": "Deploy the service to public",
+            "assignee": "David"
+        }
+    },
+"""
+
+
+FIX_ISSUE_EXAMPLE = """
+## example 1
+User Requirement: Write a fix for this issue: https://github.com/xxx/xxx/issues/xxx, and commit and push your changes.
+Explanation: The requirement is for software development, focusing on fixing an issue in an existing repository. The process is broken down into several steps, each demanding specific actions and tools.
+```json
+[
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "Read the issue description to understand the problem using the Browser tool.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Clone the repository using the Terminal tool.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "3",
+            "dependent_task_ids": ["2"],
+            "instruction": "Use Editor to search the relevant function(s), then diagnose and identify the source of the problem.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "4",
+            "dependent_task_ids": ["3"],
+            "instruction": "Use Editor tool to fix the problem in the corresponding file(s).",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "append_task",
+        "args": {
+            "task_id": "5",
+            "dependent_task_ids": ["4"],
+            "instruction": "Commit, push the changes to the repository.",
+            "assignee": "David"
+        }
+    },
+]
+```
+"""
