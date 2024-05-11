@@ -17,7 +17,6 @@ from subprocess import TimeoutExpired
 from typing import Dict, List, Optional, Union
 from urllib.parse import quote
 
-import aiohttp
 from git.repo import Repo
 from git.repo.fun import is_git_dir
 from github import Auth, BadCredentialsException, Github
@@ -492,32 +491,18 @@ class GitRepository:
             base_repo = g.get_repo(base_repo_name)
             clone_url = base_repo.clone_url
             head_repo = g.get_repo(head_repo_name) if head_repo_name and head_repo_name != base_repo_name else None
-            if not head_repo:
-                pr = base_repo.create_pull(
-                    base=base,
-                    head=head,
-                    title=title,
-                    body=body,
-                    maintainer_can_modify=maintainer_can_modify,
-                    draft=draft,
-                    issue=issue,
-                )
-            else:
-                base_branch = base_repo.get_branch(base)
-                head_branch = head_repo.get_branch(head)
-                pr = await GitRepository.post_github_pull_request(
-                    base=base_branch.name,
-                    head=head_branch.name,
-                    base_repo_name=base_repo.full_name,
-                    head_repo_name=head_repo.full_name,
-                    title=title,
-                    body=body,
-                    maintainer_can_modify=maintainer_can_modify,
-                    draft=draft,
-                    issue=issue,
-                    access_token=access_token,
-                    auth=auth,
-                )
+            if head_repo:
+                user = head_repo.full_name.split("/")[0]
+                head = f"{user}:{head}"
+            pr = base_repo.create_pull(
+                base=base,
+                head=head,
+                title=title,
+                body=body,
+                maintainer_can_modify=maintainer_can_modify,
+                draft=draft,
+                issue=issue,
+            )
         except Exception as e:
             logger.warning(f"Pull Request Error: {e}")
             return GitRepository.create_github_pull_url(
@@ -527,73 +512,6 @@ class GitRepository:
                 head_repo_name=head_repo_name,
             )
         return pr
-
-    @staticmethod
-    async def post_github_pull_request(
-        base: str,
-        head: str,
-        base_repo_name: str,
-        head_repo_name: Optional[str] = None,
-        *,
-        title: Optional[str] = None,
-        body: Optional[str] = None,
-        maintainer_can_modify: Optional[bool] = None,
-        draft: Optional[bool] = None,
-        issue: Optional[Issue] = None,
-        access_token: Optional[str] = None,
-        auth: Optional[Auth] = None,
-    ):
-        """
-        Posts a pull request to GitHub.
-
-        Args:
-            base (str): The name of the base branch (e.g., 'main').
-            head (str): The name of the head branch (e.g., 'feature-branch').
-            base_repo_name (str): The name of the base repository (e.g., 'username/repository').
-            head_repo_name (Optional[str]): The name of the head repository. Defaults to None.
-            title (Optional[str]): The title of the pull request. Defaults to None.
-            body (Optional[str]): The body of the pull request. Defaults to None.
-            maintainer_can_modify (Optional[bool]): Whether maintainers can modify the pull request. Defaults to None.
-            draft (Optional[bool]): Whether the pull request is a draft. Defaults to None.
-            issue (Optional[Issue]): The issue associated with the pull request. Defaults to None.
-            access_token (Optional[str]): The access token for authenticating with GitHub. Defaults to None.
-            auth (Optional[Auth]): The authentication method. Defaults to None.
-
-        Returns:
-            PullRequest: The created pull request object.
-        """
-        url = f"https://api.github.com/repos/{base_repo_name}/pulls"
-        auth = auth or Auth.Token(access_token)
-        headers = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {auth.token}",
-            "Content-Type": "application/json",
-        }
-        head_repo_name = head_repo_name.split("/")[0] if head_repo_name else ""
-        data = {
-            "title": title or "",
-            "body": body or "",
-            "head": f"{head_repo_name}:{head}" if head_repo_name else head,
-            "base": base,
-        }
-        if maintainer_can_modify is not None and maintainer_can_modify != NotSet:
-            data["maintainer_can_modify"] = maintainer_can_modify
-        if draft is not None and draft != NotSet:
-            data["draft"] = draft
-        if issue is not None and issue != NotSet:
-            data["issue"] = issue
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, json=data) as response:
-                if response.status == 201:
-                    response_json = await response.json()
-                else:
-                    raise ValueError(f"{response.status}:{response.content}")
-        g = Github(auth=auth)
-        repo = g.get_repo(base_repo_name)
-        pull_request_number = response_json["number"]
-        pull_request = repo.get_pull(pull_request_number)
-        return pull_request
 
     @staticmethod
     async def create_issue(
