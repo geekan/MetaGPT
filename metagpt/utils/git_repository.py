@@ -14,7 +14,7 @@ import uuid
 from enum import Enum
 from pathlib import Path
 from subprocess import TimeoutExpired
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
@@ -456,7 +456,7 @@ class GitRepository:
         issue: Optional[Issue] = None,
         access_token: Optional[str] = None,
         auth: Optional[Auth] = None,
-    ) -> PullRequest:
+    ) -> Union[PullRequest, str]:
         """
         Creates a pull request in the specified repository.
 
@@ -505,17 +505,26 @@ class GitRepository:
                 issue=issue,
             )
         else:
-            head_branch = base_repo.get_branch(base)
-            base_branch = head_repo.get_branch(head)
-            pr = base_repo.create_pull(
-                base=base_branch.name,
-                head=head_branch.commit.sha,
-                title=title,
-                body=body,
-                maintainer_can_modify=maintainer_can_modify,
-                draft=draft,
-                issue=issue,
-            )
+            base_branch = base_repo.get_branch(base)
+            head_branch = head_repo.get_branch(head)
+            try:
+                pr = base_repo.create_pull(
+                    base=base_branch.name,
+                    head=f"{head_repo.full_name}:{head_branch.name}",
+                    title=title,
+                    body=body,
+                    maintainer_can_modify=maintainer_can_modify,
+                    draft=draft,
+                    issue=issue,
+                )
+            except Exception as e:
+                logger.warning(f"Pull Request Error: {e}")
+                return GitRepository.create_pull_url(
+                    clone_url=base_repo.clone_url,
+                    base=base_branch.name,
+                    head=head_branch.name,
+                    head_repo_name=head_repo.full_name,
+                )
         return pr
 
     @staticmethod
@@ -594,3 +603,20 @@ class GitRepository:
         user = git.get_user()
         v = user.get_repos(visibility="public")
         return [i.full_name for i in v]
+
+    @staticmethod
+    def create_pull_url(clone_url: str, base: str, head: str, head_repo_name: str = None) -> str:
+        """
+        Create a URL for comparing changes between branches or repositories on GitHub.
+
+        Args:
+            clone_url (str): The URL used for cloning the repository, ending with '.git'.
+            base (str): The base branch or commit.
+            head (str): The head branch or commit.
+            head_repo_name (str): The name of the repository for the head branch. If not provided, assumes the same repository.
+
+        Returns:
+            str: The URL for comparing changes between the specified branches or commits.
+        """
+        url = clone_url.removesuffix(".git") + f"/compare/{base}..." + head_repo_name.replace("/", ":") + ":" + head
+        return url

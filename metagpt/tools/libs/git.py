@@ -175,9 +175,12 @@ async def git_create_pull(
         >>>   body=body,
         >>>   access_token=access_token,
         >>> )
-        >>> print(pr)
+        >>> if isinstance(pr, PullRequest):
+        >>>     print(pr)
         PullRequest("feat: modify http lib")
-
+        >>> elif isinstance(pr, str)
+        >>>     print(f"Visit this url to create a new pull request: {pr}")
+        Visit this url to create a new pull request: https://github.com/geekan/MetaGPT/compare/master...iorisa:MetaGPT:dev
 
     Returns:
         PullRequest: The created pull request.
