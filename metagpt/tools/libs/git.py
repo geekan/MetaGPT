@@ -154,8 +154,12 @@ async def git_create_pull(
         >>>   body=body,
         >>>   access_token=access_token,
         >>> )
-        >>> print(pr)
+        >>> if isinstance(pr, PullRequest):
+        >>>     print(pr)
         PullRequest("feat: modify http lib")
+        >>> if isinstance(pr, str):
+        >>>     print(f"Visit this url to create a new pull request: '{pr}'")
+        Visit this url to create a new pull request: 'https://github.com/iorisa/snake-game/compare/master...feature/new'
 
         >>> # create pull request
         >>> base_repo_name = "geekan/MetaGPT"
@@ -175,9 +179,12 @@ async def git_create_pull(
         >>>   body=body,
         >>>   access_token=access_token,
         >>> )
-        >>> print(pr)
+        >>> if isinstance(pr, PullRequest):
+        >>>     print(pr)
         PullRequest("feat: modify http lib")
-
+        >>> if isinstance(pr, str):
+        >>>     print(f"Visit this url to create a new pull request: '{pr}'")
+        Visit this url to create a new pull request: 'https://github.com/geekan/MetaGPT/compare/master...iorisa:MetaGPT:feature/http'
 
     Returns:
         PullRequest: The created pull request.
