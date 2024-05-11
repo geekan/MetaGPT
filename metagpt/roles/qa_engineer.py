@@ -18,17 +18,10 @@
 from metagpt.actions import DebugError, RunCode, UserRequirement, WriteTest
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import MESSAGE_ROUTE_TO_NONE
+from metagpt.const import MESSAGE_ROUTE_TO_NONE, MESSAGE_ROUTE_TO_SELF
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import (
-    AIMessage,
-    AISelfMessage,
-    Document,
-    Message,
-    RunCodeContext,
-    TestingContext,
-)
+from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import (
     any_to_str,
     any_to_str_set,
@@ -102,10 +95,7 @@ class QaEngineer(Role):
                 additional_python_paths=[str(self.context.src_workspace)],
             )
             self.publish_message(
-                AISelfMessage(
-                    content=run_code_context.model_dump_json(),
-                    cause_by=WriteTest,
-                )
+                AIMessage(content=run_code_context.model_dump_json(), cause_by=WriteTest, send_to=MESSAGE_ROUTE_TO_SELF)
             )
 
         logger.info(f"Done {str(self.project_repo.tests.workdir)} generating.")
@@ -147,7 +137,9 @@ class QaEngineer(Role):
         code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
         run_code_context.output = None
-        self.publish_message(AISelfMessage(content=run_code_context.model_dump_json(), cause_by=DebugError))
+        self.publish_message(
+            AIMessage(content=run_code_context.model_dump_json(), cause_by=DebugError, send_to=MESSAGE_ROUTE_TO_SELF)
+        )
 
     async def _act(self) -> Message:
         if self.project_path:

@@ -39,6 +39,7 @@ from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_PLAN_AND_CHANGE_FILE_REPO,
+    MESSAGE_ROUTE_TO_SELF,
     REQUIREMENT_FILENAME,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
@@ -47,7 +48,6 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
     AIMessage,
-    AISelfMessage,
     CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
@@ -173,7 +173,9 @@ class Engineer(Role):
 
     async def _act_write_code(self):
         await self._act_sp_with_cr(review=self.use_code_review)
-        return AISelfMessage(content="", cause_by=WriteCodeReview if self.use_code_review else WriteCode)
+        return AIMessage(
+            content="", cause_by=WriteCodeReview if self.use_code_review else WriteCode, send_to=MESSAGE_ROUTE_TO_SELF
+        )
 
     async def _act_summarize(self):
         tasks = []
@@ -217,7 +219,7 @@ class Engineer(Role):
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
         self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return AISelfMessage(content="", cause_by=SummarizeCode)
+        return AIMessage(content="", cause_by=SummarizeCode, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
@@ -239,7 +241,7 @@ class Engineer(Role):
             dependencies=dependencies,
         )
 
-        return AISelfMessage(content="", cause_by=WriteCodePlanAndChange)
+        return AIMessage(content="", cause_by=WriteCodePlanAndChange, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _is_pass(self, summary) -> (str, str):
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)

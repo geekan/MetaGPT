@@ -43,7 +43,6 @@ from metagpt.const import (
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
-    MESSAGE_ROUTE_TO_SELF,
     PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
@@ -398,13 +397,6 @@ class AIMessage(Message):
     @property
     def agent(self) -> str:
         return self.metadata.get(AGENT, "")
-
-
-class AISelfMessage(AIMessage):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.sent_from = MESSAGE_ROUTE_TO_SELF
-        self.send_to = MESSAGE_ROUTE_TO_SELF
 
 
 class Task(BaseModel):
