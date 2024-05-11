@@ -131,7 +131,11 @@ class ResourceReporter(BaseModel):
 
     def _format_data(self, value, name):
         data = self.model_dump(mode="json", exclude=("callback_url", "llm_stream"))
-        data["value"] = str(value) if isinstance(value, Path) else value
+        if isinstance(value, BaseModel):
+            value = value.model_dump(mode="json")
+        elif isinstance(value, Path):
+            value = str(value)
+        data["value"] = value
         data["name"] = name
         role = CURRENT_ROLE.get(None)
         if role:
@@ -263,7 +267,7 @@ class FileReporter(ResourceReporter):
         """Report file resource synchronously."""
         return super().report(value, name)
 
-    async def async_report(self, value: Path, name: Literal["path", "meta", "content"] = "path"):
+    async def async_report(self, value: Path, name: Literal["path", "meta", "content", "document"] = "path"):
         """Report file resource asynchronously."""
         return await super().async_report(value, name)
 
