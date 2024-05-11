@@ -202,10 +202,13 @@ class Environment(ExtEnv):
         for _ in range(k):
             futures = []
             for role in self.roles.values():
+                if role.is_idle:
+                    continue
                 future = role.run()
                 futures.append(future)
 
-            await asyncio.gather(*futures)
+            if futures:
+                await asyncio.gather(*futures)
             logger.debug(f"is idle: {self.is_idle}")
 
     def get_roles(self) -> dict[str, "Role"]:

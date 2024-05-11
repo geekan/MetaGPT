@@ -18,10 +18,9 @@
 from metagpt.actions import DebugError, RunCode, UserRequirement, WriteTest
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import MESSAGE_ROUTE_TO_NONE
+from metagpt.const import MESSAGE_ROUTE_TO_NONE, MESSAGE_ROUTE_TO_SELF
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.utils.report import EditorReporter
 from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import (
     any_to_str,
@@ -29,6 +28,7 @@ from metagpt.utils.common import (
     init_python_folder,
     parse_recipient,
 )
+from metagpt.utils.report import EditorReporter
 
 
 class QaEngineer(Role):
@@ -95,12 +95,7 @@ class QaEngineer(Role):
                 additional_python_paths=[str(self.context.src_workspace)],
             )
             self.publish_message(
-                AIMessage(
-                    content=run_code_context.model_dump_json(),
-                    cause_by=WriteTest,
-                    sent_from=self,
-                    send_to=self,
-                )
+                AIMessage(content=run_code_context.model_dump_json(), cause_by=WriteTest, send_to=MESSAGE_ROUTE_TO_SELF)
             )
 
         logger.info(f"Done {str(self.project_repo.tests.workdir)} generating.")
@@ -133,7 +128,6 @@ class QaEngineer(Role):
             AIMessage(
                 content=run_code_context.model_dump_json(),
                 cause_by=RunCode,
-                sent_from=self,
                 send_to=mappings.get(recipient, MESSAGE_ROUTE_TO_NONE),
             )
         )
@@ -144,12 +138,7 @@ class QaEngineer(Role):
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
         run_code_context.output = None
         self.publish_message(
-            AIMessage(
-                content=run_code_context.model_dump_json(),
-                cause_by=DebugError,
-                sent_from=self,
-                send_to=self,
-            )
+            AIMessage(content=run_code_context.model_dump_json(), cause_by=DebugError, send_to=MESSAGE_ROUTE_TO_SELF)
         )
 
     async def _act(self) -> Message:
@@ -157,9 +146,9 @@ class QaEngineer(Role):
             await init_python_folder(self.project_repo.tests.workdir)
         if self.test_round > self.test_round_allowed:
             result_msg = AIMessage(
-                content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
+                content=f"Exceeding {self.test_round_allowed} rounds of tests, stop. "
+                + "\n".join(list(self.project_repo.tests.changed_files.keys())),
                 cause_by=WriteTest,
-                sent_from=self.profile,
                 send_to=MESSAGE_ROUTE_TO_NONE,
             )
             return result_msg
@@ -185,7 +174,6 @@ class QaEngineer(Role):
         return AIMessage(
             content=f"Round {self.test_round} of tests done",
             cause_by=WriteTest,
-            sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
 

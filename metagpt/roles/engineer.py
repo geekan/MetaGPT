@@ -39,6 +39,7 @@ from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_PLAN_AND_CHANGE_FILE_REPO,
+    MESSAGE_ROUTE_TO_SELF,
     REQUIREMENT_FILENAME,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
@@ -150,12 +151,6 @@ class Engineer(Role):
                 dependencies=list(dependencies),
                 content=coding_context.code_doc.content,
             )
-            AIMessage(
-                content=coding_context.model_dump_json(),
-                instruct_content=coding_context,
-                cause_by=WriteCode,
-            )
-
             changed_files.add(coding_context.code_doc.filename)
         if not changed_files:
             logger.info("Nothing has changed.")
@@ -177,17 +172,16 @@ class Engineer(Role):
         return await self.rc.todo.run(self.rc.history)
 
     async def _act_write_code(self):
-        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+        await self._act_sp_with_cr(review=self.use_code_review)
         return AIMessage(
-            content="\n".join(changed_files),
-            cause_by=WriteCodeReview if self.use_code_review else WriteCode,
-            send_to=self,
-            sent_from=self,
+            content="", cause_by=WriteCodeReview if self.use_code_review else WriteCode, send_to=MESSAGE_ROUTE_TO_SELF
         )
 
     async def _act_summarize(self):
         tasks = []
         for todo in self.summarize_todos:
+            if self.n_summarize >= self.config.max_auto_summarize_code:
+                break
             summary = await todo.run()
             summary_filename = Path(todo.i_context.design_filename).with_suffix(".md").name
             dependencies = {todo.i_context.design_filename, todo.i_context.task_filename}
@@ -209,19 +203,23 @@ class Engineer(Role):
                 )
             else:
                 await self.project_repo.docs.code_summary.delete(filename=Path(todo.i_context.design_filename).name)
-
+        self.summarize_todos = []
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:
+            self.n_summarize = 0
             return AIMessage(
-                content="",
+                content="Coding is complete. "
+                "\n".join(
+                    list(self.project_repo.resources.code_summary.changed_files.keys())
+                    + list(self.project_repo.srcs.changed_files.keys())
+                ),
                 cause_by=SummarizeCode,
-                sent_from=self,
                 send_to="Edward",  # The name of QaEngineer
             )
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
         self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return AIMessage(content=json.dumps(tasks), cause_by=SummarizeCode, send_to=self, sent_from=self)
+        return AIMessage(content="", cause_by=SummarizeCode, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
@@ -243,12 +241,7 @@ class Engineer(Role):
             dependencies=dependencies,
         )
 
-        return AIMessage(
-            content=code_plan_and_change,
-            cause_by=WriteCodePlanAndChange,
-            send_to=self,
-            sent_from=self,
-        )
+        return AIMessage(content="", cause_by=WriteCodePlanAndChange, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _is_pass(self, summary) -> (str, str):
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
@@ -416,7 +409,6 @@ class Engineer(Role):
                 self.summarize_todos.append(new_summarize)
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
-            self.summarize_todos.pop(0)
 
     async def _new_code_plan_and_change_action(self, cause_by: str):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""

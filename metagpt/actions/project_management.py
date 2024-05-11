@@ -14,11 +14,10 @@ import json
 from typing import Optional
 
 from metagpt.actions.action import Action
-from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
-from metagpt.schema import Document, Documents
+from metagpt.schema import AIMessage, Document, Documents
 from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
@@ -55,7 +54,15 @@ class WriteTasks(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
-        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
+        return AIMessage(
+            content="WBS is completed. "
+            + "\n".join(
+                [PACKAGE_REQUIREMENTS_FILENAME]
+                + list(self.repo.docs.task.changed_files.keys())
+                + list(self.repo.resources.api_spec_and_task.changed_files.keys())
+            ),
+            cause_by=self,
+        )
 
     async def _update_tasks(self, filename):
         system_design_doc = await self.repo.docs.system_design.get(filename)

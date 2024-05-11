@@ -200,7 +200,7 @@ class Message(BaseModel):
     """list[<role>: <content>]"""
 
     id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
-    content: str
+    content: str  # natural language for user or agent
     instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
     cause_by: str = Field(default="", validate_default=True)
@@ -746,10 +746,6 @@ class CodeSummarizeContext(BaseModel):
 
     def __hash__(self):
         return hash((self.design_filename, self.task_filename))
-
-
-class BugFixContext(BaseContext):
-    filename: str = ""
 
 
 class CodePlanAndChangeContext(BaseModel):
