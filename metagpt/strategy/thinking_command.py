@@ -43,7 +43,7 @@ class Command(Enum):
     PUBLISH_MESSAGE = CommandDef(
         name="publish_message",
         signature="publish_message(content: str, send_to: str)",
-        desc="Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work. DONT omit any necessary info such as path, link, environment from original content to team members because you are their sole info source.",
+        desc="Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work. DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.",
     )
     REPLY_TO_HUMAN = CommandDef(
         name="reply_to_human",

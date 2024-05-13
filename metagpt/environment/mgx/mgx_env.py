@@ -9,14 +9,7 @@ from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import AGENT
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
-from metagpt.roles import (
-    Architect,
-    Engineer,
-    ProductManager,
-    ProjectManager,
-    QaEngineer,
-    Role,
-)
+from metagpt.roles import Architect, ProductManager, ProjectManager, Role
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, any_to_str_set
 
@@ -88,7 +81,9 @@ class MGXEnv(Environment):
         return content
 
     def message_within_software_sop(self, message: Message) -> bool:
-        return message.sent_from in any_to_str_set([ProductManager, Architect, ProjectManager, Engineer, QaEngineer])
+        # Engineer, QaEngineer can be end of the SOP. Their msg requires routing outside.
+        members_concerned = [ProductManager, Architect, ProjectManager]
+        return message.sent_from in any_to_str_set(members_concerned)
 
     def has_user_requirement(self, k=1) -> bool:
         """A heuristics to check if there is a recent user intervention"""
@@ -105,8 +100,9 @@ class MGXEnv(Environment):
         1. Convert role, since role field must be reserved for LLM API, and is limited to, for example, one of ["user", "assistant", "system"]
         2. Add sender and recipient info to content, making TL aware, since LLM API only takes content as input
         """
-        if message.role not in ["system", "user", "assistant"]:
-            message.role = "assistant"
-        sent_from = message.metadata[AGENT] if AGENT in message.metadata else message.sent_from
-        message.content = f"from {sent_from} to {message.send_to}: {message.content}"
-        return message
+        converted_msg = message.model_copy(deep=True)
+        if converted_msg.role not in ["system", "user", "assistant"]:
+            converted_msg.role = "assistant"
+        sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
+        converted_msg.content = f"from {sent_from} to {converted_msg.send_to}: {converted_msg.content}"
+        return converted_msg
