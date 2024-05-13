@@ -11,7 +11,7 @@ Notice: Don't write all codes in one response, each time, just write code for on
 
 
 async def main():
-    di = DataInterpreter(tools=["Terminal", "FileManager"])
+    di = DataInterpreter(tools=["Terminal", "Editor"])
     await di.run(USE_GOT_REPO_REQ)
 
 
