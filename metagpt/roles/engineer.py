@@ -141,6 +141,7 @@ class Engineer(Role):
     async def _act(self) -> Message | None:
         """Determines the mode of action based on whether code review is used."""
         if self.rc.todo is None:
+            logger.warning("engineer got no todo to act.")
             return None
         if isinstance(self.rc.todo, WriteCodePlanAndChange):
             self.next_todo_action = any_to_name(WriteCode)
@@ -151,6 +152,7 @@ class Engineer(Role):
         if isinstance(self.rc.todo, SummarizeCode):
             self.next_todo_action = any_to_name(WriteCode)
             return await self._act_summarize()
+        logger.warning(f"engineer act got nothing done: {self.rc.todo=}")
         return None
 
     async def _act_write_code(self):
