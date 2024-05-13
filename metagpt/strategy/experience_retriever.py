@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -159,11 +161,15 @@ class SimpleExpRetriever(ExpRetriever):
 class KeywordExpRetriever(ExpRetriever):
     """An experience retriever that returns examples based on keywords in the context."""
 
-    def retrieve(self, context: str) -> str:
-        if "deploy" in context.lower():
-            return DEPLOY_EXAMPLE
-        elif "issue" in context.lower():
-            return FIX_ISSUE_EXAMPLE
+    def retrieve(self, context: str, exp_type: Literal["plan", "task"] = "plan") -> str:
+        if exp_type == "plan":
+            if "deploy" in context.lower():
+                return DEPLOY_EXAMPLE
+            elif "issue" in context.lower():
+                return FIX_ISSUE_EXAMPLE
+        elif exp_type == "task":
+            if "diagnose" in context.lower():
+                return SEARCH_SYMBOL_EXAMPLE
         return ""
 
 
@@ -255,5 +261,26 @@ Explanation: The requirement is for software development, focusing on fixing an 
         }
     },
 ]
+```
+"""
+
+
+SEARCH_SYMBOL_EXAMPLE = """
+## Past Experience
+Issue: PaiEasChatEndpoint._call_eas should return bytes type instead of str type
+Explanation: To understand the issue, we first need to know the content of the method in the codebase. Therefore, we search the symbol `def _call_eas` in the cloned repo langchain. 
+
+```python
+from metagpt.tools.libs.editor import Editor
+
+# Initialize the Editor tool
+editor = Editor()
+                                                                                                                                                                                                             
+# Search for the PaiEasChatEndpoint._call_eas method in the codebase to understand the issue
+symbol_to_search = "def _call_eas"
+file_block = editor.search_content(symbol=symbol_to_search, root_path="langchain")
+
+# Output the file block containing the method to diagnose the problem
+file_block
 ```
 """

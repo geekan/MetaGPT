@@ -57,7 +57,7 @@ async def git_push(
     return branch
 
 
-@register_tool(tags=["software development", "git", "create a git pull/merge request"])
+@register_tool(tags=["software development", "git", "create a git pull request or merge request"])
 async def git_create_pull(
     base: str,
     head: str,

@@ -514,6 +514,13 @@ class Plan(BaseModel):
         if task_id in self.task_map:
             task = self.task_map[task_id]
             task.reset()
+            # reset all downstream tasks that are dependent on the reset task
+            for dep_task in self.tasks:
+                if task_id in dep_task.dependent_task_ids:
+                    # FIXME: if LLM generates cyclic tasks, this will result in infinite recursion
+                    self.reset_task(dep_task.task_id)
+
+        self._update_current_task()
 
     def replace_task(self, new_task: Task):
         """

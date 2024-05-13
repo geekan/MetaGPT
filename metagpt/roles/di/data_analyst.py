@@ -70,8 +70,7 @@ class DataAnalyst(DataInterpreter):
             example = KeywordExpRetriever().retrieve(self.user_requirement)
         else:
             self.working_memory.add_batch(self.rc.news)
-            context = "\n\n".join([str(mem) for mem in self.working_memory.get()])
-            example = KeywordExpRetriever().retrieve(context)
+            # TODO: implement experience retrieval in multi-round setting
 
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
         for task in plan_status["tasks"]:
@@ -95,6 +94,13 @@ class DataAnalyst(DataInterpreter):
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         logger.info(f"ready to take on task {self.planner.plan.current_task}")
+
+        # TODO: Consider an appropriate location to insert task experience formally
+        experience = KeywordExpRetriever().retrieve(self.planner.plan.current_task.instruction, exp_type="task")
+        if experience and experience not in [msg.content for msg in self.rc.working_memory.get()]:
+            exp_msg = Message(content=experience, role="assistant")
+            self.rc.working_memory.add(exp_msg)
+
         code, result, is_success = await self._write_and_exec_code()
         self.planner.plan.current_task.is_success = (
             is_success  # mark is_success, determine is_finished later in thinking

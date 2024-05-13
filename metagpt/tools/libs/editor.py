@@ -16,7 +16,9 @@ class FileBlock(BaseModel):
     block_start_line: int
     block_end_line: int
     symbol: str = Field(default="", description="The symbol of interest in the block, empty if not applicable.")
-    symbol_line: int = Field(default=-1, description="The line number of the symbol in the file, -1 if not applicable")
+    symbol_start_line: int = Field(
+        default=-1, description="The line number of the symbol in the file, -1 if not applicable"
+    )
 
 
 @register_tool()
@@ -57,7 +59,7 @@ class Editor:
                 block_start_line: int
                 block_end_line: int
                 symbol: str = Field(default="", description="The symbol of interest in the block, empty if not applicable.")
-                symbol_line: int = Field(default=-1, description="The line number of the symbol in the file, -1 if not applicable")
+                symbol_start_line: int = Field(default=-1, description="The line number of the symbol in the file, -1 if not applicable")
         """
         if not os.path.exists(root_path):
             print(f"Currently at {os.getcwd()}. Path {root_path} does not exist.")
@@ -83,7 +85,7 @@ class Editor:
                             block_start_line=start + 1,
                             block_end_line=end + 1,
                             symbol=symbol,
-                            symbol_line=i + 1,
+                            symbol_start_line=i + 1,
                         )
                         self.resource.report(result.file_path, "path")
                         return result
@@ -98,7 +100,7 @@ class Editor:
         1. If the new block content is empty, the original block will be deleted.
         2. If the new block content is not empty and end_line < start_line (e.g. set end_line = -1) the new block content will be inserted at start_line.
         3. If the new block content is not empty and end_line >= start_line, the original block from start_line to end_line (both inclusively) will be replaced by the new block content.
-        This function can sometimes be used given a FileBlock upstream. Think carefully if you want to use block_start_line or symbol_line in the FileBlock as your start_line input.
+        This function can sometimes be used given a FileBlock upstream. Think carefully if you want to use block_start_line or symbol_start_line in the FileBlock as your start_line input. Your new_block_content will be placed at the start_line.
 
         Args:
             file_path (str): The file path to write the new block content.
