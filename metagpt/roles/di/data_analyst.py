@@ -25,6 +25,7 @@ from metagpt.utils.common import CodeParser
 class DataAnalyst(DataInterpreter):
     name: str = "David"
     profile: str = "DataAnalyst"
+    goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, git and github operation, etc."
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
     task_result: TaskResult = None
@@ -55,7 +56,7 @@ class DataAnalyst(DataInterpreter):
         self._set_state(0)
 
         # HACK: Init Planner, control it through dynamic thinking; Consider formalizing as a react mode
-        self.planner = Planner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=True)
+        self.planner = Planner(goal="", working_memory=self.rc.working_memory, auto_run=True)
 
         return self
 
@@ -69,6 +70,7 @@ class DataAnalyst(DataInterpreter):
             example = KeywordExpRetriever().retrieve(self.user_requirement)
         else:
             self.working_memory.add_batch(self.rc.news)
+            # TODO: implement experience retrieval in multi-round setting
 
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
         for task in plan_status["tasks"]:
@@ -92,10 +94,19 @@ class DataAnalyst(DataInterpreter):
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         logger.info(f"ready to take on task {self.planner.plan.current_task}")
+
+        # TODO: Consider an appropriate location to insert task experience formally
+        experience = KeywordExpRetriever().retrieve(self.planner.plan.current_task.instruction, exp_type="task")
+        if experience and experience not in [msg.content for msg in self.rc.working_memory.get()]:
+            exp_msg = Message(content=experience, role="assistant")
+            self.rc.working_memory.add(exp_msg)
+
         code, result, is_success = await self._write_and_exec_code()
         self.planner.plan.current_task.is_success = (
             is_success  # mark is_success, determine is_finished later in thinking
         )
+
+        # FIXME: task result is always overwritten by the last act, whereas it can be made of of multiple acts
         self.task_result = TaskResult(code=code, result=result, is_success=is_success)
         return Message(content="Task completed", role="assistant", sent_from=self._setting, cause_by=WriteAnalysisCode)
 

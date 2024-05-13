@@ -9,8 +9,8 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 
 REQ = """
 # Requirement
-Below is a github issue, solve it. Use FileManager to search for the function, understand it, and modify the relevant code.
-Write a new test file test.py with FileManager and use Terminal to python the test file to ensure you have fixed the issue.
+Below is a github issue, solve it. Use Editor to search for the function, understand it, and modify the relevant code.
+Write a new test file test.py with Editor and use Terminal to python the test file to ensure you have fixed the issue.
 When writing test.py, you should import the function from the file you modified and test it with the given input.
 Notice: Don't write all codes in one response, each time, just write code for one step.
 
@@ -24,7 +24,7 @@ resulted in an infinite loop for the react mode.
 
 
 async def main():
-    di = DataInterpreter(tools=["Terminal", "FileManager"], react_mode="react")
+    di = DataInterpreter(tools=["Terminal", "Editor"], react_mode="react")
     await di.run(REQ)
 
 

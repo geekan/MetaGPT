@@ -246,6 +246,8 @@ class ExecuteNbCode(Action):
                 if "!pip" in code:
                     success = False
                     outputs = outputs[-INSTALL_KEEPLEN:]
+                elif "git clone" in code:
+                    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
 
             elif language == "markdown":
                 # add markdown content to markdown cell in a notebook.

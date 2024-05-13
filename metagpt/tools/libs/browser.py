@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from playwright.async_api import async_playwright
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
@@ -5,10 +7,10 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import BrowserReporter
 
 
-@register_tool()
+@register_tool(tags=["web", "browse", "scrape"])
 class Browser:
     """
-    A tool for browsing the web. Don't initialize a new instance of this class if one already exists.
+    A tool for browsing the web and scraping. Don't initialize a new instance of this class if one already exists.
     Note: Combine searching and scrolling together to achieve most effective browsing. DON'T stick to one method.
     """
 
@@ -31,7 +33,7 @@ class Browser:
         self.current_page = page
         self.current_page_url = url
         print("Now on page ", url)
-        print(await self._view())
+        await self._view()
 
     async def open_new_page(self, url: str):
         """open a new page in the browser and view the page"""
@@ -50,6 +52,12 @@ class Browser:
             await self.reporter.async_report(self.current_page, "page")
         else:
             print(f"Page not found: {url}")
+
+    async def _view_page_html(self, keep_len: int = 5000) -> str:
+        """view the HTML content of current page, return the HTML content as a string. When executed, the content will be printed out"""
+        html = await self.current_page.content()
+        html_content = html.strip()[:keep_len]
+        return html_content
 
     async def search_content_all(self, search_term: str) -> list[dict]:
         """search all occurences of search term in the current page and return the search results with their position.
@@ -142,10 +150,12 @@ class Browser:
         await self.current_page.screenshot(path=path)
         print(f"Screenshot saved to: {path}")
 
-    async def _view(self) -> str:
+    async def _view(self, keep_len: int = 5000) -> str:
         """simulate human viewing the current page, return the visible text with links"""
         visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
-        return visible_text_with_links
+        print("The visible text and their links (if any): ", visible_text_with_links[:keep_len])
+        # html_content = await self._view_page_html(keep_len=keep_len)
+        # print("The html content: ", html_content)
 
     async def scroll_current_page(self, offset: int = 500):
         """scroll the current page by offset pixels, negative value means scrolling up, will print out observed content after scrolling"""

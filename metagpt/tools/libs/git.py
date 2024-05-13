@@ -12,55 +12,6 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.git_repository import GitBranch, GitRepository
 
 
-# @register_tool(tags=["git"])
-async def git_clone(url: str, output_dir: str | Path = None) -> Path:
-    """
-    Clones a Git repository from the given URL.
-
-    Args:
-        url (Union[str, Path]): The URL or local path of the Git repository to clone.
-        output_dir (Union[str, Path], optional): The directory where the repository should be cloned.
-            If None, the repository will be cloned into the current working directory. Defaults to None.
-
-    Returns:
-        Path: The path to the cloned repository.
-
-    Example:
-        >>> url = "https://github.com/iorisa/snake-game.git"
-        >>> local_path = await git_clone(url=url)
-        >>> print(local_path)
-        /local/path/to/snake-game
-    """
-    repo = await GitRepository.clone_from(url=url, output_dir=output_dir)
-    return repo.workdir
-
-
-@register_tool(
-    tags=["software development", "git", "Checks out the specific commit/branch/tag of the local Git repository."]
-)
-async def git_checkout(repo_dir: str | Path, commit_id: str):
-    """
-    Checks out a specific commit in a Git repository.
-
-    Args:
-        repo_dir (str or Path): The directory containing the Git repository.
-        commit_id (str): The ID of the commit or the name of branch/tag to check out.
-
-    Raises:
-        ValueError: If the specified Git root is invalid.
-
-    Example:
-        >>> repo_dir = '/TO/GIT/REPO'
-        >>> commit_id = 'main'
-        >>> await git_checkout(repo_dir=repo_dir, commit_id=commit_id)
-        git checkout main
-    """
-    repo = GitRepository(local_path=repo_dir, auto_init=False)
-    if not repo.is_valid:
-        ValueError(f"Invalid git root: {repo_dir}")
-    await repo.checkout(commit_id)
-
-
 @register_tool(tags=["software development", "git", "Commit the changes and push to remote git repository."])
 async def git_push(
     local_path: Union[str, Path],
@@ -106,7 +57,7 @@ async def git_push(
     return branch
 
 
-@register_tool(tags=["software development", "git", "create a git pull/merge request"])
+@register_tool(tags=["software development", "git", "create a git pull request or merge request"])
 async def git_create_pull(
     base: str,
     head: str,

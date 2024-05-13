@@ -238,6 +238,8 @@ class GitRepository:
         :param comments: Comments for the archive commit.
         """
         logger.info(f"Archive: {list(self.changed_files.keys())}")
+        if not self.changed_files:
+            return
         self.add_change(self.changed_files)
         self.commit(comments)
 
@@ -271,7 +273,7 @@ class GitRepository:
 
         base = self.current_branch
         head = base if not new_branch else self.new_branch(new_branch)
-        self.archive(comments)
+        self.archive(comments)  # will skip committing if no changes
         ctx = Context()
         env = ctx.new_environ()
         proxy = ["-c", f"http.proxy={ctx.config.proxy}"] if ctx.config.proxy else []
@@ -288,7 +290,7 @@ class GitRepository:
             raise BadCredentialsException(status=401, message=info)
         info = f"{stdout}\n{stderr}\nexit: {return_code}\n"
         info = info.replace(token, "<TOKEN>")
-        logger.info(info)
+        print(info)
 
         return GitBranch(base=base, head=head, repo_name=self.repo_name)
 
