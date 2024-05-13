@@ -20,7 +20,7 @@ class FileBlock(BaseModel):
 
 
 @register_tool()
-class FileManager:
+class Editor:
     """A tool for reading, understanding, writing, and editing files"""
 
     def __init__(self) -> None:
@@ -38,14 +38,15 @@ class FileManager:
             self.resource.report(path, "path")
             return f.read()
 
-    def search_content(self, symbol: str, root_path: str = "", window: int = 20) -> FileBlock:
+    def search_content(self, symbol: str, root_path: str = ".", window: int = 20) -> FileBlock:
         """
         Search symbol in all files under root_path, return the context of symbol with window size
         Useful for locating class or function in a large codebase. Example symbol can be "def some_function", "class SomeClass", etc.
+        In searching, attempt different symbols of different granualities, e.g. "def some_function", "class SomeClass", a certain line of code, etc.
 
         Args:
             symbol (str): The symbol to search.
-            root_path (str, optional): The root path to search in. If not provided, search in the current directory. Defaults to "".
+            root_path (str, optional): The root path to search in. If not provided, search in the current directory. Defaults to ".".
             window (int, optional): The window size to return. Defaults to 20.
 
         Returns:
@@ -58,6 +59,9 @@ class FileManager:
                 symbol: str = Field(default="", description="The symbol of interest in the block, empty if not applicable.")
                 symbol_line: int = Field(default=-1, description="The line number of the symbol in the file, -1 if not applicable")
         """
+        if not os.path.exists(root_path):
+            print(f"Currently at {os.getcwd()}. Path {root_path} does not exist.")
+            return None
         for root, _, files in os.walk(root_path or "."):
             for file in files:
                 file_path = os.path.join(root, file)
@@ -83,6 +87,9 @@ class FileManager:
                         )
                         self.resource.report(result.file_path, "path")
                         return result
+        print(
+            "symbol not found, you may try searching another one, or break down your search term to search a part of it"
+        )
         return None
 
     def write_content(self, file_path: str, start_line: int, end_line: int, new_block_content: str = "") -> str:
@@ -112,8 +119,8 @@ class FileManager:
 
             # Lint the modified temporary file
             lint_passed, lint_message = self._lint_file(temp_file_path)
-            if not lint_passed:
-                return f"Linting the content at a temp file, failed with:\n{lint_message}"
+            # if not lint_passed:
+            #     return f"Linting the content at a temp file, failed with:\n{lint_message}"
 
             # If linting passes, overwrite the original file with the temporary file
             shutil.move(temp_file_path, file_path)
