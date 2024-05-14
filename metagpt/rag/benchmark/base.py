@@ -121,7 +121,7 @@ class RAGBenchmark:
                     return mrr_sum
 
         return mrr_sum
-        
+
     async def semantic_similarity(self, response: str, reference: str) -> float:
         result = await self.evaluator.aevaluate(
             response=response,
