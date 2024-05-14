@@ -86,14 +86,16 @@ class OpenAILLM(BaseLLM):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+
+
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> bytes:
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages, timeout=self.get_timeout(timeout)), stream=True
         )
         usage = None
         collected_messages = []
         async for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
+            chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""
             finish_reason = (
                 chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], "finish_reason") else None
             )
@@ -101,16 +103,14 @@ class OpenAILLM(BaseLLM):
             collected_messages.append(chunk_message)
             if finish_reason:
                 if hasattr(chunk, "usage"):
-                    # Some services have usage as an attribute of the chunk, such as Fireworks
                     usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
-                    # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
                 elif "openrouter.ai" in self.config.base_url:
-                    # due to it get token cost from api
-                    usage = await get_openrouter_tokens(chunk)
+                    pass
+                break
+        return ''.join(collected_messages).encode('utf-8')
 
-        log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
         if not usage:
             # Some services do not provide the usage attribute, such as OpenAI or OpenLLM
