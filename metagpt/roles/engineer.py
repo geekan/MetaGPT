@@ -208,8 +208,8 @@ class Engineer(Role):
         if not tasks or self.config.max_auto_summarize_code == 0:
             self.n_summarize = 0
             return AIMessage(
-                content="Coding is complete. "
-                "\n".join(
+                content=f"Coding is complete. The source code is at {self.project_repo.workdir.name}/{self.project_repo.srcs.root_path}, containing: "
+                + "\n".join(
                     list(self.project_repo.resources.code_summary.changed_files.keys())
                     + list(self.project_repo.srcs.changed_files.keys())
                 ),

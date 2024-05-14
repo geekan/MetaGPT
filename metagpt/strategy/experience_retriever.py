@@ -15,8 +15,8 @@ class SimpleExpRetriever(ExpRetriever):
 
     EXAMPLE: str = """
     ## example 1
-    User Requirement: Create a cli snake game
-    Explanation: The requirement is about software development. Assign each tasks to a different team member based on their expertise.
+    User Requirement: Create a cli snake game using Python.
+    Explanation: The requirement is about software development. Assign each tasks to a different team member based on their expertise. When publishing message to Product Manager, we copy original user requirement directly to ensure no information loss.
     ```json
     [
         {
@@ -24,7 +24,7 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "task_id": "1",
                 "dependent_task_ids": [],
-                "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI snake game.",
+                "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game.",
                 "assignee": "Alice"
             }
         },
@@ -67,7 +67,7 @@ class SimpleExpRetriever(ExpRetriever):
         {
             "command_name": "publish_message",
             "args": {
-                "content": "User request to create a cli snake game. Please create a product requirement document (PRD) outlining the features, user interface, and user experience of the snake game.",
+                "content": "Create a cli snake game using Python",
                 "send_to": "Alice"
             }
         },
