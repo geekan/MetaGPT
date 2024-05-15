@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from metagpt.config2 import config
 from metagpt.configs.embedding_config import EmbeddingType
+from metagpt.logs import logger
 from metagpt.rag.interface import RAGObject
 
 
@@ -44,7 +45,13 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
     @model_validator(mode="after")
     def check_dimensions(self):
         if self.dimensions == 0:
-            self.dimensions = self._embedding_type_to_dimensions.get(config.embedding.api_type, 1536)
+            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.embedding.api_type, 1536
+            )
+            if not config.embedding.dimensions and config.embedding.api_type not in self._embedding_type_to_dimensions:
+                logger.warning(
+                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
+                )
 
         return self
 
