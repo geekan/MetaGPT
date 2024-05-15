@@ -73,9 +73,9 @@ class DataAnalyst(DataInterpreter):
             # TODO: implement experience retrieval in multi-round setting
 
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
-        for task in plan_status["tasks"]:
-            task.pop("code")
-            task.pop("result")
+        # for task in plan_status["tasks"]:
+        #     task.pop("code")
+        #     task.pop("result")
         prompt = CMD_PROMPT.format(
             plan_status=plan_status,
             example=example,
