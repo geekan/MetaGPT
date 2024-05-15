@@ -243,7 +243,7 @@ async def main():
     """RAG pipeline.
 
     Note:
-    1. If `use_llm_ranker` is True, then will use LLM Reranker to get better result, but it is not always guaranteed that the output will be parseable for reranking,
+    1. If `use_llm_ranker` is True, then it will use LLM Reranker to get better result, but it is not always guaranteed that the output will be parseable for reranking,
        prefer `gpt-4-turbo`, otherwise might encounter `IndexError: list index out of range` or `ValueError: invalid literal for int() with base 10`.
     """
     e = RAGExample(use_llm_ranker=False)
