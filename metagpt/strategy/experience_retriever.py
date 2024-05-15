@@ -238,7 +238,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
-            "instruction": "Use Editor to search the relevant function(s), then diagnose and identify the source of the problem.",
+            "instruction": "Use Editor to search relevant function(s) or open relevant files, then diagnose and identify the source of the problem.",
             "assignee": "David"
         }
     },

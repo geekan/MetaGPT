@@ -69,7 +69,7 @@ async def git_create_pull(
     issue: Optional[Issue] = None,
 ) -> PullRequest:
     """
-    Creates a pull request on a Git repository.
+    Creates a pull request on a Git repository. Use this tool in priority over Browser to create a pull request.
 
     Args:
         base (str): The base branch of the pull request.

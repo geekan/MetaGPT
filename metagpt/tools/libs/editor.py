@@ -4,6 +4,7 @@ import subprocess
 
 from pydantic import BaseModel
 
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import EditorReporter
 
@@ -20,6 +21,7 @@ class Editor:
     """A tool for reading, understanding, writing, and editing files"""
 
     def __init__(self) -> None:
+        print(f"Editor initialized with root path at: {DEFAULT_WORKSPACE_ROOT}")
         self.resource = EditorReporter()
 
     def write(self, path: str, content: str):
@@ -58,7 +60,7 @@ class Editor:
                 block_content: str
         """
         if not os.path.exists(root_path):
-            print(f"Currently at {os.getcwd()}. Path {root_path} does not exist.")
+            print(f"Currently at {os.getcwd()} containing: {os.listdir()}. Path {root_path} does not exist.")
             return None
         not_found_msg = (
             "symbol not found, you may try searching another one, or break down your search term to search a part of it"
