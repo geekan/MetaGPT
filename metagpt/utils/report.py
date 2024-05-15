@@ -135,6 +135,9 @@ class ResourceReporter(BaseModel):
             value = value.model_dump(mode="json")
         elif isinstance(value, Path):
             value = str(value)
+
+        if name == "path":
+            value = os.path.abspath(value)
         data["value"] = value
         data["name"] = name
         role = CURRENT_ROLE.get(None)
