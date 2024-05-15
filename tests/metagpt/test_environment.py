@@ -14,7 +14,6 @@ from metagpt.actions import UserRequirement
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, Role
-from metagpt.schema import Message
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("../data/serdeser_storage")
 
@@ -54,10 +53,10 @@ async def test_publish_and_process_message(env: Environment):
 
     env.add_roles([product_manager, architect])
 
-    env.publish_message(Message(role="User", content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement))
+    env.publish_message(UserMessage(content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement, send_to=product_manager))
     await env.run(k=2)
-    logger.info(f"{env.history=}")
-    assert len(env.history) > 10
+    logger.info(f"{env.history}")
+    assert len(env.history.storage) == 0
 
 
 if __name__ == "__main__":

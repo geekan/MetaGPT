@@ -30,11 +30,19 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
+from metagpt.const import MESSAGE_ROUTE_TO_SELF
 from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
-from metagpt.schema import Message, MessageQueue, SerializationMixin
+from metagpt.schema import (
+    AIMessage,
+    Message,
+    MessageQueue,
+    SerializationMixin,
+    Task,
+    TaskResult,
+)
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
@@ -135,6 +143,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     constraints: str = ""
     desc: str = ""
     is_human: bool = False
+    enable_memory: bool = (
+        True  # Stateless, atomic roles, or roles that use external storage can disable this to save memory.
+    )
 
     role_id: str = ""
     states: list[str] = []
@@ -246,10 +257,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return self
 
     def _init_action(self, action: Action):
-        if not action.private_config:
-            action.set_llm(self.llm, override=True)
-        else:
-            action.set_llm(self.llm, override=False)
+        action.set_context(self.context)
+        override = not action.private_config
+        action.set_llm(self.llm, override=override)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):
@@ -335,11 +345,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.llm.cost_manager = self.context.cost_manager
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
-    @property
-    def name(self):
-        """Get the role name"""
-        return self._setting.name
-
     def _get_prefix(self):
         """Get the role prefix"""
         if self.desc:
@@ -396,22 +401,22 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         response = await self.rc.todo.run(self.rc.history)
         if isinstance(response, (ActionOutput, ActionNode)):
-            msg = Message(
+            msg = AIMessage(
                 content=response.content,
                 instruct_content=response.instruct_content,
-                role=self._setting,
                 cause_by=self.rc.todo,
                 sent_from=self,
             )
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response or "", role=self.profile, cause_by=self.rc.todo, sent_from=self)
-        self.rc.memory.add(msg)
+            msg = AIMessage(content=response or "", cause_by=self.rc.todo, sent_from=self)
+        if self.enable_memory:
+            self.rc.memory.add(msg)
 
         return msg
 
-    async def _observe(self, ignore_memory=False) -> int:
+    async def _observe(self) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
@@ -420,12 +425,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        old_messages = [] if ignore_memory else self.rc.memory.get()
-        self.rc.memory.add_batch(news)
-        # Filter out messages of interest.
+        old_messages = [] if not self.enable_memory else self.rc.memory.get()
+        # Filter in messages of interest.
         self.rc.news = [
             n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
         ]
+        self.rc.memory.add_batch(self.rc.news)  # only save messages of interest into memory
         self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
 
         # Design Rules:
@@ -440,9 +445,19 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not msg:
             return
+        if MESSAGE_ROUTE_TO_SELF in msg.send_to:
+            msg.send_to.add(any_to_str(self))
+            msg.send_to.remove(MESSAGE_ROUTE_TO_SELF)
+        if not msg.sent_from or msg.sent_from == MESSAGE_ROUTE_TO_SELF:
+            msg.sent_from = any_to_str(self)
+        if all(to in {any_to_str(self), self.name} for to in msg.send_to):  # Message to myself
+            self.put_message(msg)
+            return
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
+        if isinstance(msg, AIMessage) and not msg.agent:
+            msg.with_agent(self._setting)
         self.rc.env.publish_message(msg)
 
     def put_message(self, message):
@@ -457,11 +472,11 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
+        rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
-            await self._think()
-            if self.rc.todo is None:
+            has_todo = await self._think()
+            if not has_todo:
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
@@ -472,7 +487,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
         start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
-        rsp = Message(content="No actions taken yet")  # return default message if actions=[]
+        rsp = AIMessage(content="No actions taken yet")  # return default message if actions=[]
         for i in range(start_idx, len(self.states)):
             self._set_state(i)
             rsp = await self._act()
@@ -497,7 +512,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             await self.planner.process_task_result(task_result)
 
         rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
-
+        rsp.role = "assistant"
         self.rc.memory.add(rsp)  # add to persistent memory
 
         return rsp
@@ -527,6 +542,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         else:
             raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
+        if isinstance(rsp, AIMessage):
+            rsp.with_agent(self._setting)
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:

@@ -32,6 +32,7 @@ from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_PLAN_AND_CHANGE_FILE_REPO,
+    MESSAGE_ROUTE_TO_SELF,
     REQUIREMENT_FILENAME,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
@@ -39,6 +40,7 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
+    AIMessage,
     CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
@@ -46,7 +48,12 @@ from metagpt.schema import (
     Documents,
     Message,
 )
-from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
+from metagpt.utils.common import (
+    any_to_name,
+    any_to_str,
+    any_to_str_set,
+    get_project_srcs_path,
+)
 
 IS_PASS_PROMPT = """
 {context}
@@ -87,7 +94,7 @@ class Engineer(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-
+        self.enable_memory = False
         self.set_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
         self.code_todos = []
@@ -124,14 +131,6 @@ class Engineer(Role):
                 dependencies=list(dependencies),
                 content=coding_context.code_doc.content,
             )
-            msg = Message(
-                content=coding_context.model_dump_json(),
-                instruct_content=coding_context,
-                role=self.profile,
-                cause_by=WriteCode,
-            )
-            self.rc.memory.add(msg)
-
             changed_files.add(coding_context.code_doc.filename)
         if not changed_files:
             logger.info("Nothing has changed.")
@@ -153,13 +152,9 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
-        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
-        return Message(
-            content="\n".join(changed_files),
-            role=self.profile,
-            cause_by=WriteCodeReview if self.use_code_review else WriteCode,
-            send_to=self,
-            sent_from=self,
+        await self._act_sp_with_cr(review=self.use_code_review)
+        return AIMessage(
+            content="", cause_by=WriteCodeReview if self.use_code_review else WriteCode, send_to=MESSAGE_ROUTE_TO_SELF
         )
 
     async def _act_summarize(self):
@@ -189,19 +184,19 @@ class Engineer(Role):
 
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:
-            return Message(
-                content="",
-                role=self.profile,
+            return AIMessage(
+                content=f"Coding is complete. The source code is at {self.project_repo.workdir.name}/{self.project_repo.srcs.root_path}, containing: "
+                + "\n".join(
+                    list(self.project_repo.resources.code_summary.changed_files.keys())
+                    + list(self.project_repo.srcs.changed_files.keys())
+                ),
                 cause_by=SummarizeCode,
-                sent_from=self,
                 send_to="Edward",  # The name of QaEngineer
             )
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
         self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return Message(
-            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
-        )
+        return AIMessage(content="", cause_by=SummarizeCode, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
@@ -223,13 +218,7 @@ class Engineer(Role):
             dependencies=dependencies,
         )
 
-        return Message(
-            content=code_plan_and_change,
-            role=self.profile,
-            cause_by=WriteCodePlanAndChange,
-            send_to=self,
-            sent_from=self,
-        )
+        return AIMessage(content="", cause_by=WriteCodePlanAndChange, send_to=MESSAGE_ROUTE_TO_SELF)
 
     async def _is_pass(self, summary) -> (str, str):
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
@@ -240,7 +229,7 @@ class Engineer(Role):
 
     async def _think(self) -> Action | None:
         if not self.src_workspace:
-            self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
+            self.src_workspace = get_project_srcs_path(self.project_repo.workdir)
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
         write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])

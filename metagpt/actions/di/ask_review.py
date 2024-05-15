@@ -5,6 +5,7 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan
+from metagpt.utils.input import get_human_input
 
 
 class ReviewConst:
@@ -50,7 +51,7 @@ class AskReview(Action):
             "Please type your review below:\n"
         )
 
-        rsp = input(prompt)
+        rsp = await get_human_input(prompt)
 
         if rsp.lower() in ReviewConst.EXIT_WORDS:
             exit()

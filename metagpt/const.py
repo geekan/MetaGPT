@@ -82,6 +82,7 @@ MESSAGE_ROUTE_CAUSE_BY = "cause_by"
 MESSAGE_META_ROLE = "role"
 MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
+MESSAGE_ROUTE_TO_SELF = "<self>"  # Add this tag to replace `ActionOutput`
 
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
@@ -104,12 +105,13 @@ TEST_OUTPUTS_FILE_REPO = "test_outputs"
 CODE_SUMMARIES_FILE_REPO = "docs/code_summary"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summary"
 RESOURCES_FILE_REPO = "resources"
-SD_OUTPUT_FILE_REPO = "resources/sd_output"
+SD_OUTPUT_FILE_REPO = DEFAULT_WORKSPACE_ROOT
 GRAPH_REPO_FILE_REPO = "docs/graph_repo"
 VISUAL_GRAPH_REPO_FILE_REPO = "resources/graph_db"
 CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+SD_URL = os.environ.get("SD_URL", "")
 
 DEFAULT_LANGUAGE = "English"
 DEFAULT_MAX_TOKENS = 1500
@@ -136,3 +138,15 @@ AGGREGATION = "Aggregate"
 # Timeout
 USE_CONFIG_TIMEOUT = 0  # Using llm.timeout configuration.
 LLM_API_TIMEOUT = 300
+
+# Assistant alias
+ASSISTANT_ALIAS = "response"
+
+# Markdown
+MARKDOWN_TITLE_PREFIX = "## "
+
+# Reporter
+METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
+
+# Metadata defines
+AGENT = "agent"

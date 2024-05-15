@@ -32,7 +32,7 @@ class ProductManager(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-
+        self.enable_memory = False
         self.set_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
         self.todo_action = any_to_name(PrepareDocuments)
@@ -46,6 +46,3 @@ class ProductManager(Role):
             self.config.git_reinit = False
             self.todo_action = any_to_name(WritePRD)
         return bool(self.rc.todo)
-
-    async def _observe(self, ignore_memory=False) -> int:
-        return await super()._observe(ignore_memory=True)

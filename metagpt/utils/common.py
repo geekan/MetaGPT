@@ -26,7 +26,7 @@ import sys
 import traceback
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
@@ -37,7 +37,7 @@ from PIL import Image
 from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, RetryError, _utils
 
-from metagpt.const import MESSAGE_ROUTE_TO_ALL
+from metagpt.const import MARKDOWN_TITLE_PREFIX, MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
@@ -65,7 +65,7 @@ class OutputParser:
     @classmethod
     def parse_blocks(cls, text: str):
         # 首先根据"##"将文本分割成不同的block
-        blocks = text.split("##")
+        blocks = text.split(MARKDOWN_TITLE_PREFIX)
 
         # 创建一个字典，用于存储每个block的标题和内容
         block_dict = {}
@@ -271,7 +271,7 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, text: str, lang: str = "", block: Optional[str] = None) -> str:
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*?)```"
@@ -287,7 +287,7 @@ class CodeParser:
 
     @classmethod
     def parse_str(cls, block: str, text: str, lang: str = ""):
-        code = cls.parse_code(block, text, lang)
+        code = cls.parse_code(block=block, text=text, lang=lang)
         code = code.split("=")[-1]
         code = code.strip().strip("'").strip('"')
         return code
@@ -295,7 +295,7 @@ class CodeParser:
     @classmethod
     def parse_file_list(cls, block: str, text: str, lang: str = "") -> list[str]:
         # Regular expression pattern to find the tasks list.
-        code = cls.parse_code(block, text, lang)
+        code = cls.parse_code(block=block, text=text, lang=lang)
         # print(code)
         pattern = r"\s*(.*=.*)?(\[.*\])"
 
@@ -560,11 +560,11 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> Callable
     return log_it
 
 
-def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
-    if not Path(json_file).exists():
+def read_json_file(json_file: Union[str, Path], encoding="utf-8") -> Union[List, Dict]:
+    if not json_file or not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
-    with open(json_file, "r", encoding=encoding) as fin:
+    with open(str(json_file), "r", encoding=encoding) as fin:
         try:
             data = json.load(fin)
         except Exception:
@@ -572,12 +572,12 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
-def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4):
+def write_json_file(json_file: Union[str, Path], data: Union[List, Dict], encoding: str = None, indent: int = 4):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
-    with open(json_file, "w", encoding=encoding) as fout:
+    with open(str(json_file), "w", encoding=encoding) as fout:
         json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
 
 
@@ -786,13 +786,15 @@ def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) 
     return skills
 
 
-def encode_image(image_path_or_pil: Union[Path, Image], encoding: str = "utf-8") -> str:
+def encode_image(image_path_or_pil: Union[Path, Image, str], encoding: str = "utf-8") -> str:
     """encode image from file or PIL.Image into base64"""
     if isinstance(image_path_or_pil, Image.Image):
         buffer = BytesIO()
         image_path_or_pil.save(buffer, format="JPEG")
         bytes_data = buffer.getvalue()
     else:
+        if isinstance(image_path_or_pil, str):
+            image_path_or_pil = Path(image_path_or_pil)
         if not image_path_or_pil.exists():
             raise FileNotFoundError(f"{image_path_or_pil} not exists")
         with open(str(image_path_or_pil), "rb") as image_file:
@@ -825,19 +827,78 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
-def get_markdown_codeblock_type(filename: str) -> str:
+async def get_mime_type(filename: str | Path, force_read: bool = False) -> str:
+    guess_mime_type, _ = mimetypes.guess_type(filename.name)
+    if not guess_mime_type:
+        ext_mappings = {".yml": "text/yaml", ".yaml": "text/yaml"}
+        guess_mime_type = ext_mappings.get(filename.suffix)
+    if not force_read and guess_mime_type:
+        return guess_mime_type
+
+    from metagpt.tools.libs.shell import shell_execute  # avoid circular import
+
+    text_set = {
+        "application/json",
+        "application/vnd.chipnuts.karaoke-mmd",
+        "application/javascript",
+        "application/xml",
+        "application/x-sh",
+        "application/sql",
+        "text/yaml",
+    }
+
+    try:
+        stdout, _, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        ix = stdout.rfind(" ")
+        mime_type = stdout[ix:].strip()
+        if mime_type == "text/plain" and guess_mime_type in text_set:
+            return guess_mime_type
+        return mime_type
+    except Exception as e:
+        logger.debug(f"file:{filename}, error:{e}")
+        return "unknown"
+
+
+def get_markdown_codeblock_type(filename: str = None, mime_type: str = None) -> str:
     """Return the markdown code-block type corresponding to the file extension."""
-    mime_type, _ = mimetypes.guess_type(filename)
+    if not filename and not mime_type:
+        raise ValueError("Either filename or mime_type must be valid.")
+
+    if not mime_type:
+        mime_type, _ = mimetypes.guess_type(filename)
     mappings = {
         "text/x-shellscript": "bash",
         "text/x-c++src": "cpp",
         "text/css": "css",
         "text/html": "html",
         "text/x-java": "java",
-        "application/javascript": "javascript",
-        "application/json": "json",
         "text/x-python": "python",
         "text/x-ruby": "ruby",
+        "text/x-c": "cpp",
+        "text/yaml": "yaml",
+        "application/javascript": "javascript",
+        "application/json": "json",
         "application/sql": "sql",
+        "application/vnd.chipnuts.karaoke-mmd": "mermaid",
+        "application/x-sh": "bash",
+        "application/xml": "xml",
     }
     return mappings.get(mime_type, "text")
+
+
+def get_project_srcs_path(workdir: str | Path) -> Path:
+    src_workdir_path = workdir / ".src_workspace"
+    if src_workdir_path.exists():
+        with open(src_workdir_path, "r") as file:
+            src_name = file.read()
+    else:
+        src_name = Path(workdir).name
+    return Path(workdir) / src_name
+
+
+async def init_python_folder(workdir: str | Path):
+    init_filename = Path(workdir) / "__init__.py"
+    if init_filename.exists():
+        return
+    async with aiofiles.open(init_filename, "a"):
+        os.utime(init_filename, None)

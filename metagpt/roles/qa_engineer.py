@@ -37,6 +37,7 @@ class QaEngineer(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.enable_memory = False
 
         # FIXME: a bit hack here, only init one action to circumvent _think() logic,
         #  will overwrite _think() in future updates
@@ -80,13 +81,7 @@ class QaEngineer(Role):
                 additional_python_paths=[str(self.context.src_workspace)],
             )
             self.publish_message(
-                Message(
-                    content=run_code_context.model_dump_json(),
-                    role=self.profile,
-                    cause_by=WriteTest,
-                    sent_from=self,
-                    send_to=self,
-                )
+                AIMessage(content=run_code_context.model_dump_json(), cause_by=WriteTest, send_to=MESSAGE_ROUTE_TO_SELF)
             )
 
         logger.info(f"Done {str(self.project_repo.tests.workdir)} generating.")
@@ -116,11 +111,9 @@ class QaEngineer(Role):
         recipient = parse_recipient(result.summary)
         mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
         self.publish_message(
-            Message(
+            AIMessage(
                 content=run_code_context.model_dump_json(),
-                role=self.profile,
                 cause_by=RunCode,
-                sent_from=self,
                 send_to=mappings.get(recipient, MESSAGE_ROUTE_TO_NONE),
             )
         )
@@ -131,22 +124,15 @@ class QaEngineer(Role):
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
         run_code_context.output = None
         self.publish_message(
-            Message(
-                content=run_code_context.model_dump_json(),
-                role=self.profile,
-                cause_by=DebugError,
-                sent_from=self,
-                send_to=self,
-            )
+            AIMessage(content=run_code_context.model_dump_json(), cause_by=DebugError, send_to=MESSAGE_ROUTE_TO_SELF)
         )
 
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
-            result_msg = Message(
-                content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
-                role=self.profile,
+            result_msg = AIMessage(
+                content=f"Exceeding {self.test_round_allowed} rounds of tests, stop. "
+                + "\n".join(list(self.project_repo.tests.changed_files.keys())),
                 cause_by=WriteTest,
-                sent_from=self.profile,
                 send_to=MESSAGE_ROUTE_TO_NONE,
             )
             return result_msg
@@ -167,15 +153,8 @@ class QaEngineer(Role):
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
-        return Message(
+        return AIMessage(
             content=f"Round {self.test_round} of tests done",
-            role=self.profile,
             cause_by=WriteTest,
-            sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
-
-    async def _observe(self, ignore_memory=False) -> int:
-        # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
-        # content of memory to activate.
-        return await super()._observe(ignore_memory=True)

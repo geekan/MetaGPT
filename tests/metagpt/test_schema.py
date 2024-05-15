@@ -350,5 +350,47 @@ class TestPlan:
         assert plan.current_task_id == "2"
 
 
+@pytest.mark.parametrize(
+    ("content", "key_descriptions"),
+    [
+        (
+            """
+Traceback (most recent call last):
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/main.py", line 38, in <module>
+    Main().main()
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/main.py", line 28, in main
+    self.user_interface.draw()
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/user_interface.py", line 16, in draw
+    if grid[i][j] != 0:
+TypeError: 'Grid' object is not subscriptable
+        """,
+            {
+                "filename": "the string type of the path name of the source code where the bug resides",
+                "line": "the integer type of the line error occurs",
+                "function_name": "the string type of the function name the error occurs in",
+                "code": "the string type of the codes where the error occurs at",
+                "info": "the string type of the error information",
+            },
+        ),
+        (
+            "将代码提交到github上的iorisa/repo1的branch1分支，发起pull request ，合并到master分支。",
+            {
+                "repo_name": "the string type of github repo to create pull",
+                "head": "the string type of github branch to be pushed",
+                "base": "the string type of github branch to merge the changes into",
+            },
+        ),
+    ],
+)
+async def test_parse_resources(context, content: str, key_descriptions):
+    msg = Message(content=content)
+    llm = context.llm_with_cost_manager_from_llm_config(context.config.llm)
+    result = await msg.parse_resources(llm=llm, key_descriptions=key_descriptions)
+    assert result
+    assert result.get("resources")
+    for k in key_descriptions.keys():
+        assert k in result
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

@@ -65,7 +65,7 @@ def generate_repo(
         idea = company.idea
 
     company.invest(investment)
-    company.run_project(idea)
+    company.run_project(idea, send_to=any_to_str(ProductManager))
     asyncio.run(company.run(n_round=n_round))
 
     return ctx.repo

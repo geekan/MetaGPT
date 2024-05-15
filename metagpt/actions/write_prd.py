@@ -33,7 +33,7 @@ from metagpt.const import (
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.schema import BugFixContext, Document, Documents, Message
+from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -65,7 +65,7 @@ class WritePRD(Action):
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
     """
 
-    async def run(self, with_messages, *args, **kwargs) -> ActionOutput | Message:
+    async def run(self, with_messages, *args, **kwargs) -> Message:
         """Run the action."""
         req: Document = await self.repo.requirement
         docs: list[Document] = await self.repo.docs.prd.get_all()
@@ -81,22 +81,27 @@ class WritePRD(Action):
         # if requirement is related to other documents, update them, otherwise create a new one
         if related_docs := await self.get_related_docs(req, docs):
             logger.info(f"Requirement update detected: {req.content}")
-            return await self._handle_requirement_update(req, related_docs)
+            await self._handle_requirement_update(req, related_docs)
         else:
             logger.info(f"New requirement detected: {req.content}")
-            return await self._handle_new_requirement(req)
+            await self._handle_new_requirement(req)
+        return AIMessage(
+            content="PRD is completed. "
+            + "\n".join(
+                list(self.repo.docs.prd.changed_files.keys())
+                + list(self.repo.resources.prd.changed_files.keys())
+                + list(self.repo.resources.competitive_analysis.changed_files.keys())
+            ),
+            cause_by=self,
+        )
 
     async def _handle_bugfix(self, req: Document) -> Message:
         # ... bugfix logic ...
         await self.repo.docs.save(filename=BUGFIX_FILENAME, content=req.content)
         await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
-        bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
-        return Message(
-            content=bug_fix.model_dump_json(),
-            instruct_content=bug_fix,
-            role="",
+        return AIMessage(
+            content=f"A new issue is received: {BUGFIX_FILENAME}",
             cause_by=FixBug,
-            sent_from=self,
             send_to="Alex",  # the name of Engineer
         )
 
@@ -105,7 +110,9 @@ class WritePRD(Action):
         project_name = self.project_name
         context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, exclude=exclude)  # schema=schema
+        node = await WRITE_PRD_NODE.fill(
+            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+        )  # schema=schema
         await self._rename_workspace(node)
         new_prd_doc = await self.repo.docs.prd.save(
             filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()

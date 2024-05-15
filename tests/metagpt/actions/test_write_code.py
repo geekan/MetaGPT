@@ -110,7 +110,7 @@ async def test_write_refined_code(context, git_dir):
 
     # old_workspace contains the legacy code
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
-        filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
+        filename="game.py", content=CodeParser.parse_code(text=REFINED_CODE_INPUT_SAMPLE)
     )
 
     ccontext = CodingContext(

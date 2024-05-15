@@ -21,6 +21,7 @@ import os.path
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
+from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
@@ -37,6 +38,7 @@ from pydantic import (
 )
 
 from metagpt.const import (
+    AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
@@ -47,7 +49,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.utils.common import any_to_str, any_to_str_set, import_class
+from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.serialize import (
     actionoutout_schema_to_mapping,
@@ -185,16 +187,25 @@ class Documents(BaseModel):
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
+class Resource(BaseModel):
+    """Used by `Message`.`parse_resources`"""
+
+    resource_type: str  # the type of resource
+    value: str  # a string type of resource content
+    description: str  # explanation
+
+
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
     id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
-    content: str
+    content: str  # natural language for user or agent
     instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
     cause_by: str = Field(default="", validate_default=True)
     sent_from: str = Field(default="", validate_default=True)
     send_to: set[str] = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
+    metadata: Dict[str, str] = Field(default_factory=dict)  # metadata for `content` and `instruct_content`
 
     @field_validator("id", mode="before")
     @classmethod
@@ -310,14 +321,53 @@ class Message(BaseModel):
             logger.error(f"parse json failed: {val}, error:{err}")
         return None
 
+    async def parse_resources(self, llm: "BaseLLM", key_descriptions: Dict[str, str] = None) -> Dict:
+        """
+        `parse_resources` corresponds to the in-context adaptation capability of the input of the atomic action,
+        which will be migrated to the context builder later.
+
+        Args:
+            llm (BaseLLM): The instance of the BaseLLM class.
+            key_descriptions (Dict[str, str], optional): A dictionary containing descriptions for each key,
+                if provided. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing parsed resources.
+
+        """
+        if not self.content:
+            return {}
+        content = f"## Original Requirement\n```text\n{self.content}\n```\n"
+        return_format = (
+            "Return a markdown JSON object with:\n"
+            '- a "resources" key contain a list of objects. Each object with:\n'
+            '  - a "resource_type" key explain the type of resource;\n'
+            '  - a "value" key containing a string type of resource content;\n'
+            '  - a "description" key explaining why;\n'
+        )
+        key_descriptions = key_descriptions or {}
+        for k, v in key_descriptions.items():
+            return_format += f'- a "{k}" key containing {v};\n'
+        return_format += '- a "reason" key explaining why;\n'
+        instructions = ['Lists all the resources contained in the "Original Requirement".', return_format]
+        rsp = await llm.aask(msg=content, system_msgs=instructions)
+        json_data = CodeParser.parse_code(text=rsp, lang="json")
+        m = json.loads(json_data)
+        m["resources"] = [Resource(**i) for i in m.get("resources", [])]
+        return m
+
+    def add_metadata(self, key: str, value: str):
+        self.metadata[key] = value
+
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="user")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="user", **kwargs)
 
 
 class SystemMessage(Message):
@@ -325,8 +375,9 @@ class SystemMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="system")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="system", **kwargs)
 
 
 class AIMessage(Message):
@@ -334,8 +385,17 @@ class AIMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="assistant")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="assistant", **kwargs)
+
+    def with_agent(self, name: str):
+        self.add_metadata(key=AGENT, value=name)
+        return self
+
+    @property
+    def agent(self) -> str:
+        return self.metadata.get(AGENT, "")
 
 
 class Task(BaseModel):
@@ -347,6 +407,7 @@ class Task(BaseModel):
     result: str = ""
     is_success: bool = False
     is_finished: bool = False
+    assignee: str = ""
 
     def reset(self):
         self.code = ""
@@ -671,10 +732,6 @@ class CodeSummarizeContext(BaseModel):
         return hash((self.design_filename, self.task_filename))
 
 
-class BugFixContext(BaseContext):
-    filename: str = ""
-
-
 class CodePlanAndChangeContext(BaseModel):
     requirement: str = ""
     issue: str = ""
@@ -785,3 +842,26 @@ class UMLClassView(UMLClassMeta):
             method.return_type = i.return_args.type_
             class_view.methods.append(method)
         return class_view
+
+
+class BaseEnum(Enum):
+    """Base class for enums."""
+
+    def __new__(cls, value, desc=None):
+        """
+        Construct an instance of the enum member.
+
+        Args:
+            cls: The class.
+            value: The value of the enum member.
+            desc: The description of the enum member. Defaults to None.
+        """
+        if issubclass(cls, str):
+            obj = str.__new__(cls, value)
+        elif issubclass(cls, int):
+            obj = int.__new__(cls, value)
+        else:
+            obj = object.__new__(cls)
+        obj._value_ = value
+        obj.desc = desc
+        return obj

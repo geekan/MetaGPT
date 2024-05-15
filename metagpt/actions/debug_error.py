@@ -70,6 +70,6 @@ class DebugError(Action):
         prompt = PROMPT_TEMPLATE.format(code=code_doc.content, test_code=test_doc.content, logs=output_detail.stderr)
 
         rsp = await self._aask(prompt)
-        code = CodeParser.parse_code(block="", text=rsp)
+        code = CodeParser.parse_code(text=rsp)
 
         return code
