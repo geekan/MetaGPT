@@ -165,7 +165,7 @@ class Editor:
                 # irrespective of the length difference between the original and new content.
                 lines[start_line_index:end_line_index] = new_content_lines
             else:
-                lines.insert(start_line_index, "\n".join(new_content_lines))
+                lines.insert(start_line_index, "".join(new_content_lines))
         else:
             del lines[start_line_index:end_line_index]
 
