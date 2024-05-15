@@ -35,6 +35,7 @@ TOKEN_COSTS = {
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4-turbo-2024-04-09": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4o": {"prompt": 0.005, "completion": 0.015},
@@ -65,6 +66,7 @@ TOKEN_COSTS = {
     "openai/gpt-3.5-turbo-0125": {"prompt": 0.0005, "completion": 0.0015},
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
     "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
 }
 
 
@@ -159,6 +161,9 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
 
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o": 128000,
+    "gpt-4-turbo-2024-04-09": 128000,
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
     "gpt-4-1106-preview": 128000,
@@ -195,11 +200,14 @@ TOKEN_MAX = {
     "claude-3-opus-20240229": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
+    "yi-large": 16385,
     "microsoft/wizardlm-2-8x22b": 65536,
     "meta-llama/llama-3-70b-instruct": 8192,
     "llama3-70b-8192": 8192,
     "openai/gpt-3.5-turbo-0125": 16385,
     "openai/gpt-4-turbo-preview": 128000,
+    "deepseek-chat": 32768,
+    "deepseek-coder": 16385,
 }
 
 
