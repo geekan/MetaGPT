@@ -211,8 +211,8 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
 
 FIX_ISSUE_EXAMPLE = """
 ## example 1
-User Requirement: Write a fix for this issue: https://github.com/xxx/xxx/issues/xxx, and commit and push your changes.
-Explanation: The requirement is for software development, focusing on fixing an issue in an existing repository. The process is broken down into several steps, each demanding specific actions and tools.
+User Requirement: Write a fix for this issue: https://github.com/xxx/xxx/issues/xxx, and commit, push your changes, and create a PR to the target repo.
+Explanation: The requirement is to fix an issue in an existing repository. The process is broken down into several steps, each demanding specific actions and tools.
 ```json
 [
     {
@@ -256,7 +256,7 @@ Explanation: The requirement is for software development, focusing on fixing an 
         "args": {
             "task_id": "5",
             "dependent_task_ids": ["4"],
-            "instruction": "Commit, push the changes to the repository.",
+            "instruction": "Commit, push the changes to the repository, and create a pull request to the target repository.",
             "assignee": "David"
         }
     },
@@ -266,21 +266,52 @@ Explanation: The requirement is for software development, focusing on fixing an 
 
 
 SEARCH_SYMBOL_EXAMPLE = """
-## Past Experience
-Issue: PaiEasChatEndpoint._call_eas should return bytes type instead of str type
-Explanation: To understand the issue, we first need to know the content of the method in the codebase. Therefore, we search the symbol `def _call_eas` in the cloned repo langchain. 
-
+## Past Experience 1
+Issue: _achat_completion_stream in metagpt/provider/openai_api.py produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType
+Explanation: To understand the issue, we first need to know the content of the method. Since the issue provides the specific file, we should directly search the symbol `def _achat_completion_stream` in that file. Notice in previous steps, we already cd to the cloned project folder, the source code is at `metagpt` under the project folder.
 ```python
 from metagpt.tools.libs.editor import Editor
 
 # Initialize the Editor tool
 editor = Editor()
                                                                                                                                                                                                              
-# Search for the PaiEasChatEndpoint._call_eas method in the codebase to understand the issue
-symbol_to_search = "def _call_eas"
-file_block = editor.search_content(symbol=symbol_to_search, root_path="langchain")
+# Search for the '_achat_completion_stream' function in the 'openai_api.py' file                                                                                                                               
+symbol_to_search = "def _achat_completion_stream"                                                                                                                                                              
+file_block = editor.search_content(symbol=symbol_to_search, root_path="metagpt/provider/openai_api.py")
 
 # Output the file block containing the method to diagnose the problem
 file_block
 ```
+
+## Past Experience 2
+Issue: PaiEasChatEndpoint._call_eas should return bytes type instead of str type
+Explanation: To understand the issue, we first need to know the content of the method. Since no specific file is provided, we can search it in the whole codebase. Therefore, we search the symbol `def _call_eas` in the cloned repo. Notice in previous steps, we already cd to the cloned project folder, the source code is at langchain under the project folder.
+```python
+from metagpt.tools.libs.editor import Editor
+
+editor = Editor()
+                                                                                                                                                                                                             
+# Search for the PaiEasChatEndpoint._call_eas method in the codebase to understand the issue
+symbol_to_search = "def _call_eas"
+file_block = editor.search_content(symbol=symbol_to_search, root_path="langchain")
+
+file_block
+```
+
+## Past Experience 3
+Issue: When I run main.py, a message 'Running on http://127.0.0.1:5000' will appear on the console, but when I click on this link, the front-end web page cannot be displayed correctly.
+Explanation: To understand the issue, we first need to know the content of the file. Since the issue doesn't provide a specific method or class, we will not search_content, but directly open and read the file main.py to diagnose the problem. Notice in previous steps, we already cd to the cloned project folder.
+```python
+from metagpt.tools.libs.editor import Editor
+
+editor = Editor()
+                                                                                                                                                                                                             
+# Open the file to understand the issue
+editor.read(path="./main.py")
+```
+
+## Experience Summary
+- When diagnosing an issue, search for the specific symbol in the corresponding file to understand the problem.
+- If no specific file is provided, search the symbol in the whole codebase to locate the issue.
+- If no specific symbol is provided, directly open and read the file to diagnose the problem.
 """
