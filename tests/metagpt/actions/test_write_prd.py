@@ -15,7 +15,7 @@ from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, aread
 from tests.data.incremental_dev_project.mock import NEW_REQUIREMENT_SAMPLE, PRD_SAMPLE
 from tests.metagpt.actions.test_write_code import setup_inc_workdir
 
@@ -51,7 +51,9 @@ async def test_write_prd_inc(new_filename, context, git_dir):
     # Assert the prd is not None or empty
     assert prd is not None
     assert prd.content != ""
-    assert "Refined Requirements" in prd.content
+    prd_filename = context.repo.docs.prd.workdir / list(context.repo.docs.prd.changed_files.keys())[0]
+    data = await aread(filename=prd_filename)
+    assert "Refined Requirements" in data
 
 
 @pytest.mark.asyncio

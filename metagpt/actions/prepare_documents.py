@@ -47,4 +47,4 @@ class PrepareDocuments(Action):
         doc = await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
         # Send a Message notification to the WritePRD action, instructing it to process requirements using
         # `docs/requirement.txt` and `docs/prd/`.
-        return AIMessage(content="", instruct_content=doc, cause_by=self, send_to=self.send_to)
+        return AIMessage(content="", instruct_content=doc, cause_by=self)

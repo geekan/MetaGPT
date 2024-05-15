@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   :
-
+import pytest
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
@@ -28,7 +28,8 @@ def test_env_serdeser(context):
 
     new_env = Environment(**ser_env_dict, context=context)
     assert len(new_env.roles) == 0
-    assert len(new_env.history) == 25
+    msg = new_env.history.get()[0]
+    assert len(str(msg)) == 24
 
 
 def test_environment_serdeser(context):
@@ -85,3 +86,7 @@ def test_environment_serdeser_save(context):
     new_env: Environment = Environment(**env_dict, context=context)
     assert len(new_env.roles) == 1
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

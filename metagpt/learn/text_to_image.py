@@ -37,8 +37,10 @@ async def text_to_image(text, size_type: str = "512x512", config: Config = metag
         raise ValueError("Missing necessary parameters.")
     base64_data = base64.b64encode(binary_data).decode("utf-8")
 
-    s3 = S3(config.s3)
-    url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
+    url = ""
+    if config.s3:
+        s3 = S3(config.s3)
+        url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
     if url:
         return f"![{text}]({url})"
     return image_declaration + base64_data if base64_data else ""

@@ -15,7 +15,7 @@ from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles import ProductManager
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, aread
 from tests.metagpt.roles.mock import MockMessages
 
 
@@ -38,8 +38,9 @@ async def test_product_manager(new_filename):
         assert rsp.cause_by == any_to_str(WritePRD)
         logger.info(rsp)
         assert len(rsp.content) > 0
-        doc = list(rsp.instruct_content.docs.values())[0]
-        m = json.loads(doc.content)
+        filename = context.repo.docs.prd.workdir / list(context.repo.docs.prd.changed_files.keys())[0]
+        data = await aread(filename=filename)
+        m = json.loads(data)
         assert m["Original Requirements"] == MockMessages.req.content
 
         # nothing to do

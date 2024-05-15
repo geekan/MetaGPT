@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023-8-9, add more text formatting options
 @Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
+import uuid
 from pathlib import Path
 
 import pytest
@@ -28,8 +29,8 @@ async def test_azure_tts(mocker):
     mocker.patch.object(Path, "exists", return_value=True)
 
     # Prerequisites
-    assert config.azure_tts_subscription_key and config.azure_tts_subscription_key != "YOUR_API_KEY"
-    assert config.azure_tts_region
+    config.azure_tts_subscription_key = uuid.uuid4().hex
+    config.azure_tts_region = "us_east"
 
     azure_tts = AzureTTS(subscription_key=config.azure_tts_subscription_key, region=config.azure_tts_region)
     text = """

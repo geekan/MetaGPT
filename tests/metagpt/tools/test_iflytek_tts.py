@@ -5,6 +5,8 @@
 @Author  : mashenquan
 @File    : test_iflytek_tts.py
 """
+import uuid
+
 import pytest
 
 from metagpt.config2 import Config
@@ -24,9 +26,9 @@ async def test_iflytek_tts(mocker):
     mock_reader.return_value.__aenter__.return_value = mock_data
 
     # Prerequisites
-    assert config.iflytek_app_id
-    assert config.iflytek_api_key
-    assert config.iflytek_api_secret
+    config.iflytek_app_id = uuid.uuid4().hex
+    config.iflytek_api_key = uuid.uuid4().hex
+    config.iflytek_api_secret = uuid.uuid4().hex
 
     result = await oas3_iflytek_tts(
         text="你好，hello",

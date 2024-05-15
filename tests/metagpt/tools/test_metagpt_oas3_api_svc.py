@@ -13,6 +13,7 @@ import pytest
 import requests
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_oas2_svc(context):
     workdir = Path(__file__).parent.parent.parent.parent

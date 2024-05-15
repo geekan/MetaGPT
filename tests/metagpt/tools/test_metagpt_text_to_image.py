@@ -24,7 +24,7 @@ async def test_draw(mocker):
     mock_post.return_value.__aenter__.return_value = mock_response
 
     # Prerequisites
-    assert config.metagpt_tti_url
+    config.metagpt_tti_url = "http://mock"
 
     binary_data = await oas3_metagpt_text_to_image("Panda emoji")
     assert binary_data

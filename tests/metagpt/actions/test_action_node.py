@@ -15,6 +15,7 @@ from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode
 from metagpt.environment import Environment
 from metagpt.llm import LLM
+from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
@@ -32,8 +33,10 @@ async def test_debate_two_roles():
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[alex, bob])
 
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
-    assert "Alex" in history
+    history: Memory = await team.run(
+        idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3
+    )
+    assert "Alex" in history.model_dump_json()
 
 
 @pytest.mark.asyncio
@@ -42,8 +45,10 @@ async def test_debate_one_role_in_env():
     alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[alex])
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
-    assert "Alex" in history
+    history: Memory = await team.run(
+        idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3
+    )
+    assert "Alex" in history.model_dump_json()
 
 
 @pytest.mark.asyncio

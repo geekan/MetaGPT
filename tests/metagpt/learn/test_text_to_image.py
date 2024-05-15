@@ -27,7 +27,7 @@ async def test_text_to_image(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock/s3")
 
     config = Config.default()
-    assert config.metagpt_tti_url
+    config.metagpt_tti_url = config.metagpt_tti_url or "http://mock"
 
     data = await text_to_image("Panda emoji", size_type="512x512", config=config)
     assert "base64" in data or "http" in data

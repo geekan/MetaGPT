@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of WerewolfExtEnv
+import pytest
 
 from metagpt.environment.werewolf.const import RoleState, RoleType
 from metagpt.environment.werewolf.werewolf_ext_env import WerewolfExtEnv
@@ -63,3 +64,7 @@ def test_werewolf_ext_env():
 
     player_names = ["Player0", "Player2"]
     assert ext_env.get_players_state(player_names) == dict(zip(player_names, [RoleState.ALIVE, RoleState.KILLED]))
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

@@ -87,7 +87,7 @@ async def test_team_recover(mocker, context):
     new_company = Team(**ser_data)
 
     new_role_c = new_company.env.get_role(role_c.profile)
-    assert new_role_c.rc.memory == role_c.rc.memory
+    assert new_role_c.rc.memory.model_dump_json() == role_c.rc.memory.model_dump_json()
     assert new_role_c.rc.env != role_c.rc.env
     assert type(list(new_company.env.roles.values())[0].actions[0]) == ActionOK
 
@@ -111,7 +111,7 @@ async def test_team_recover_save(mocker, context):
 
     new_company = Team.deserialize(stg_path)
     new_role_c = new_company.env.get_role(role_c.profile)
-    assert new_role_c.rc.memory == role_c.rc.memory
+    assert new_role_c.rc.memory.model_dump_json() == role_c.rc.memory.model_dump_json()
     assert new_role_c.rc.env != role_c.rc.env
     assert new_role_c.recovered != role_c.recovered  # here cause previous ut is `!=`
     assert new_role_c.rc.todo != role_c.rc.todo  # serialize exclude `rc.todo`

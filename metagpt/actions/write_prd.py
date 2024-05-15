@@ -51,10 +51,14 @@ CONTEXT_TEMPLATE = """
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
+```
 {old_prd}
+```
 
 ### New Requirements
+```
 {requirements}
+```
 """
 
 

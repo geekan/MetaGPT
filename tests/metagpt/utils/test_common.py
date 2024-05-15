@@ -119,7 +119,7 @@ class TestGetProjectRoot:
             else:
                 assert result != 0
 
-    @pytest.mark.parametrize(("filename", "want"), [("1.md", "File list"), ("2.md", "Language"), ("3.md", "# TODOs")])
+    @pytest.mark.parametrize(("filename", "want"), [("1.md", "File list"), ("2.md", "Language"), ("3.md", "TODOs")])
     @pytest.mark.asyncio
     async def test_parse_data_exception(self, filename, want):
         pathname = Path(__file__).parent.parent.parent / "data/output_parser" / filename

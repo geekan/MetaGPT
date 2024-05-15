@@ -19,3 +19,7 @@ async def test_product_manager_serdeser(new_filename, context):
     assert len(new_role.actions) == 2
     assert isinstance(new_role.actions[0], Action)
     await new_role.actions[0].run([Message(content="write a cli snake game")])
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

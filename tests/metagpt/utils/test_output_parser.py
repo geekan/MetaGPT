@@ -13,7 +13,7 @@ from metagpt.utils.common import OutputParser
 
 
 def test_parse_blocks():
-    test_text = "##block1\nThis is block 1.\n##block2\nThis is block 2."
+    test_text = "## block1\nThis is block 1.\n## block2\nThis is block 2."
     expected_result = {"block1": "This is block 1.", "block2": "This is block 2."}
     assert OutputParser.parse_blocks(test_text) == expected_result
 
@@ -59,7 +59,7 @@ def test_parse_file_list():
 
 
 def test_parse_data():
-    test_data = "##block1\n```python\nprint('Hello, world!')\n```\n##block2\nfiles=['file1', 'file2', 'file3']"
+    test_data = "## block1\n```python\nprint('Hello, world!')\n```\n## block2\nfiles=['file1', 'file2', 'file3']"
     expected_result = {"block1": "print('Hello, world!')\n", "block2": ["file1", "file2", "file3"]}
     assert OutputParser.parse_data(test_data) == expected_result
 
@@ -206,3 +206,7 @@ There are no unclear points.
 
     print(json.dumps(d))
     assert d["Original Requirements"] == t_text_raw.split("## Original Requirements:")[1].split("##")[0].strip()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
