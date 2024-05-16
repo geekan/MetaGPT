@@ -11,6 +11,7 @@ on:
 jobs:
   pre-commit-check:
     runs-on: ubuntu-latest
+    environment: pre-commit
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v2
