@@ -2,8 +2,9 @@ import os
 import shutil
 import subprocess
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import EditorReporter
 
@@ -13,12 +14,6 @@ class FileBlock(BaseModel):
 
     file_path: str
     block_content: str
-    block_start_line: int
-    block_end_line: int
-    symbol: str = Field(default="", description="The symbol of interest in the block, empty if not applicable.")
-    symbol_start_line: int = Field(
-        default=-1, description="The line number of the symbol in the file, -1 if not applicable"
-    )
 
 
 @register_tool()
@@ -26,6 +21,7 @@ class Editor:
     """A tool for reading, understanding, writing, and editing files"""
 
     def __init__(self) -> None:
+        print(f"Editor initialized with root path at: {DEFAULT_WORKSPACE_ROOT}")
         self.resource = EditorReporter()
 
     def write(self, path: str, content: str):
@@ -34,13 +30,19 @@ class Editor:
             f.write(content)
         self.resource.report(path, "path")
 
-    def read(self, path: str) -> str:
+    def read(self, path: str) -> FileBlock:
         """Read the whole content of a file."""
         with open(path, "r") as f:
             self.resource.report(path, "path")
-            return f.read()
+            lines = f.readlines()
+        lines_with_num = [f"{i + 1:03}|{line}" for i, line in enumerate(lines)]
+        result = FileBlock(
+            file_path=path,
+            block_content="".join(lines_with_num),
+        )
+        return result
 
-    def search_content(self, symbol: str, root_path: str = ".", window: int = 20) -> FileBlock:
+    def search_content(self, symbol: str, root_path: str = ".", window: int = 50) -> FileBlock:
         """
         Search symbol in all files under root_path, return the context of symbol with window size
         Useful for locating class or function in a large codebase. Example symbol can be "def some_function", "class SomeClass", etc.
@@ -48,7 +50,7 @@ class Editor:
 
         Args:
             symbol (str): The symbol to search.
-            root_path (str, optional): The root path to search in. If not provided, search in the current directory. Defaults to ".".
+            root_path (str, optional): The root path to search in, the path can be a folder or a file. If not provided, search in the current directory. Defaults to ".".
             window (int, optional): The window size to return. Defaults to 20.
 
         Returns:
@@ -56,42 +58,50 @@ class Editor:
             class FileBlock(BaseModel):
                 file_path: str
                 block_content: str
-                block_start_line: int
-                block_end_line: int
-                symbol: str = Field(default="", description="The symbol of interest in the block, empty if not applicable.")
-                symbol_start_line: int = Field(default=-1, description="The line number of the symbol in the file, -1 if not applicable")
         """
         if not os.path.exists(root_path):
-            print(f"Currently at {os.getcwd()}. Path {root_path} does not exist.")
+            print(f"Currently at {os.getcwd()} containing: {os.listdir()}. Path {root_path} does not exist.")
             return None
+        not_found_msg = (
+            "symbol not found, you may try searching another one, or break down your search term to search a part of it"
+        )
+        if os.path.isfile(root_path):
+            result = self._search_content_in_file(symbol, root_path, window)
+            if not result:
+                print(not_found_msg)
+            return result
         for root, _, files in os.walk(root_path or "."):
             for file in files:
                 file_path = os.path.join(root, file)
-                if not file.endswith(".py"):
-                    continue
-                with open(file_path, "r", encoding="utf-8") as f:
-                    try:
-                        lines = f.readlines()
-                    except Exception:
-                        continue
-                for i, line in enumerate(lines):
-                    if symbol in line:
-                        start = max(i - window, 0)
-                        end = min(i + window, len(lines) - 1)
-                        block_content = "".join(lines[start : end + 1])
-                        result = FileBlock(
-                            file_path=file_path,
-                            block_content=block_content,
-                            block_start_line=start + 1,
-                            block_end_line=end + 1,
-                            symbol=symbol,
-                            symbol_start_line=i + 1,
-                        )
-                        self.resource.report(result.file_path, "path")
-                        return result
-        print(
-            "symbol not found, you may try searching another one, or break down your search term to search a part of it"
-        )
+                result = self._search_content_in_file(symbol, file_path, window)
+                if result:
+                    # FIXME: This returns the first found result, not all results.
+                    return result
+        print(not_found_msg)
+        return None
+
+    def _search_content_in_file(self, symbol: str, file_path: str, window: int = 50) -> FileBlock:
+        print("search in", file_path)
+        if not file_path.endswith(".py"):
+            return None
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                lines = f.readlines()
+            except Exception:
+                return None
+        for i, line in enumerate(lines):
+            if symbol in line:
+                start = max(i - window, 0)
+                end = min(i + window, len(lines) - 1)
+                for row_num in range(start, end + 1):
+                    lines[row_num] = f"{(row_num + 1):03}|{lines[row_num]}"
+                block_content = "".join(lines[start : end + 1])
+                result = FileBlock(
+                    file_path=file_path,
+                    block_content=block_content,
+                )
+                self.resource.report(result.file_path, "path")
+                return result
         return None
 
     def write_content(self, file_path: str, start_line: int, end_line: int, new_block_content: str = "") -> str:
@@ -100,12 +110,13 @@ class Editor:
         1. If the new block content is empty, the original block will be deleted.
         2. If the new block content is not empty and end_line < start_line (e.g. set end_line = -1) the new block content will be inserted at start_line.
         3. If the new block content is not empty and end_line >= start_line, the original block from start_line to end_line (both inclusively) will be replaced by the new block content.
-        This function can sometimes be used given a FileBlock upstream. Think carefully if you want to use block_start_line or symbol_start_line in the FileBlock as your start_line input. Your new_block_content will be placed at the start_line.
+        This function can sometimes be used given a FileBlock upstream. You should carefully review its row number. Determine the start_line and end_line based on the row number of the FileBlock.
+        The file content from start_line to end_line will be replaced by your new_block_content. DON'T replace more than you intend to.
 
         Args:
             file_path (str): The file path to write the new block content.
-            start_line (int): start line of the original block to be updated.
-            end_line (int): end line of the original block to be updated.
+            start_line (int): start line of the original block to be updated (inclusive).
+            end_line (int): end line of the original block to be updated (inclusive).
             new_block_content (str): The new block content to write.
 
         Returns:
@@ -130,8 +141,6 @@ class Editor:
             new_file_block = FileBlock(
                 file_path=file_path,
                 block_content=new_block_content,
-                block_start_line=start_line,
-                block_end_line=-1 if end_line < start_line else start_line + new_block_content.count("\n"),
             )
             self.resource.report(new_file_block.file_path, "path")
 
@@ -143,6 +152,7 @@ class Editor:
                 os.remove(temp_file_path)
 
     def _write_content(self, file_path: str, start_line: int, end_line: int, new_block_content: str = ""):
+        """start_line and end_line are both 1-based indices and inclusive."""
         with open(file_path, "r") as file:
             lines = file.readlines()
 
@@ -157,7 +167,7 @@ class Editor:
                 # irrespective of the length difference between the original and new content.
                 lines[start_line_index:end_line_index] = new_content_lines
             else:
-                lines.insert(start_line_index, "\n".join(new_content_lines))
+                lines.insert(start_line_index, "".join(new_content_lines))
         else:
             del lines[start_line_index:end_line_index]
 

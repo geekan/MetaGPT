@@ -72,10 +72,20 @@ Write a fix for this issue: https://github.com/langchain-ai/langchain/issues/204
 you can fix it on this repo https://github.com/garylin2099/langchain,
 checkout a branch named test-fix, commit your changes, push, and create a PR to the master branch of https://github.com/iorisa/langchain
 """
+FIX_ISSUE2 = """
+Write a fix for this issue https://github.com/geekan/MetaGPT/issues/1275.
+You can fix it on the v0.8-release branch of this repo https://github.com/garylin2099/MetaGPT,
+during fixing, checkout a branch named test-fix-1275, commit your changes, push, and create a PR to the v0.8-release branch of https://github.com/garylin2099/MetaGPT
+"""
+FIX_ISSUE3 = """
+Write a fix for this issue https://github.com/geekan/MetaGPT/issues/1262.
+You can fix it on this repo https://github.com/garylin2099/MetaGPT,
+during fixing, checkout a branch named test-fix-1262, commit your changes, push, and create a PR to https://github.com/garylin2099/MetaGPT
+"""
 FIX_ISSUE_SIMPLE = """
 Write a fix for this issue: https://github.com/mannaandpoem/simple_calculator/issues/1, 
 you can fix it on this repo https://github.com/garylin2099/simple_calculator,
-checkout a branch named test, commit your changes, push, and create a PR to the original repo.
+checkout a branch named test, commit your changes, push, and create a PR to the master branch of original repo.
 """
 PUSH_PR_REQ = """
 clone https://github.com/garylin2099/simple_calculator, checkout a new branch named test-branch, add an empty file test_file.py to the repo.
