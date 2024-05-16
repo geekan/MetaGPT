@@ -361,8 +361,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
         if len(self.actions) == 1:
             # If there is only one action, then only this one can be performed
+            logger.debug("actions number == 1")
             self._set_state(0)
-
             return True
 
         if self.recovered and self.rc.state >= 0:
@@ -462,10 +462,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             # think
             await self._think()
             if self.rc.todo is None:
+                logger.warning("no todo, skip acting")
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()
+            logger.debug(f"{actions_taken=}")
             actions_taken += 1
         return rsp  # return output from the last action
 

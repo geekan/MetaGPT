@@ -27,6 +27,7 @@ from typing import Optional, Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
+from metagpt.actions.run_code import RunCode
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
 from metagpt.const import (
@@ -140,6 +141,7 @@ class Engineer(Role):
     async def _act(self) -> Message | None:
         """Determines the mode of action based on whether code review is used."""
         if self.rc.todo is None:
+            logger.warning("engineer got no todo to act.")
             return None
         if isinstance(self.rc.todo, WriteCodePlanAndChange):
             self.next_todo_action = any_to_name(WriteCode)
@@ -150,6 +152,7 @@ class Engineer(Role):
         if isinstance(self.rc.todo, SummarizeCode):
             self.next_todo_action = any_to_name(WriteCode)
             return await self._act_summarize()
+        logger.warning(f"engineer act got nothing done: {self.rc.todo=}")
         return None
 
     async def _act_write_code(self):
@@ -242,7 +245,7 @@ class Engineer(Role):
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
+        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode, RunCode])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None

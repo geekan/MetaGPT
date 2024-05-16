@@ -148,6 +148,7 @@ class BaseLLM(ABC):
             message.extend(msg)
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
+        logger.debug(f"llm {rsp=}")
         return rsp
 
     def _extract_assistant_rsp(self, context):
