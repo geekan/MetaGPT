@@ -33,6 +33,7 @@ class HumanProvider(BaseLLM):
         format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
         timeout=USE_CONFIG_TIMEOUT,
+        **kwargs
     ) -> str:
         return self.ask(msg, timeout=self.get_timeout(timeout))
 
