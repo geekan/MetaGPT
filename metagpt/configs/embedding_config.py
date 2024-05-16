@@ -20,11 +20,13 @@ class EmbeddingConfig(YamlModel):
     ---------
     api_type: "openai"
     api_key: "YOU_API_KEY"
+    dimensions: "YOUR_MODEL_DIMENSIONS"
 
     api_type: "azure"
     api_key: "YOU_API_KEY"
     base_url: "YOU_BASE_URL"
     api_version: "YOU_API_VERSION"
+    dimensions: "YOUR_MODEL_DIMENSIONS"
 
     api_type: "gemini"
     api_key: "YOU_API_KEY"
@@ -32,6 +34,7 @@ class EmbeddingConfig(YamlModel):
     api_type: "ollama"
     base_url: "YOU_BASE_URL"
     model: "YOU_MODEL"
+    dimensions: "YOUR_MODEL_DIMENSIONS"
     """
 
     api_type: Optional[EmbeddingType] = None
@@ -41,6 +44,7 @@ class EmbeddingConfig(YamlModel):
 
     model: Optional[str] = None
     embed_batch_size: Optional[int] = None
+    dimensions: Optional[int] = None  # output dimension of embedding model
 
     @field_validator("api_type", mode="before")
     @classmethod

@@ -100,7 +100,7 @@ class OpenAILLM(BaseLLM):
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
             if finish_reason:
-                if hasattr(chunk, "usage"):
+                if hasattr(chunk, "usage") and chunk.usage is not None:
                     # Some services have usage as an attribute of the chunk, such as Fireworks
                     usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
