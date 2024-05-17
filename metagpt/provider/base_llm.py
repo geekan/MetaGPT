@@ -22,7 +22,6 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config2 import config
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
@@ -148,7 +147,7 @@ class BaseLLM(ABC):
         else:
             message.extend(msg)
         if stream is None:
-            stream = config.llm.stream
+            stream = self.config.stream
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp
