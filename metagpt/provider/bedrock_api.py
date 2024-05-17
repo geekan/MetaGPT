@@ -132,7 +132,7 @@ class BedrockLLM(BaseLLM):
         prompt_tokens = int(headers.get("x-amzn-bedrock-input-token-count", 0))
         completion_tokens = int(headers.get("x-amzn-bedrock-output-token-count", 0))
         usage = {
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-            }
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+        }
         return usage

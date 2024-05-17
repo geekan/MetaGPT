@@ -33,7 +33,14 @@ class AnthropicProvider(BaseBedrockProvider):
 
     def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs) -> str:
         system_message, user_messages = self._split_system_user_messages(messages)
-        body = json.dumps({"messages": user_messages, "anthropic_version": "bedrock-2023-05-31", "system": system_message, **generate_kwargs})
+        body = json.dumps(
+            {
+                "messages": user_messages,
+                "anthropic_version": "bedrock-2023-05-31",
+                "system": system_message,
+                **generate_kwargs,
+            }
+        )
         return body
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
