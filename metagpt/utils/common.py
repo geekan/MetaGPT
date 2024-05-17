@@ -219,7 +219,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index: end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -844,7 +844,7 @@ def get_markdown_codeblock_type(filename: str) -> str:
 
 
 def download_model(file_url: str, target_folder: Path) -> Path:
-    file_name = file_url.split('/')[-1]
+    file_name = file_url.split("/")[-1]
     file_path = target_folder.joinpath(f"{file_name}")
     if not file_path.exists():
         file_path.mkdir(parents=True, exist_ok=True)
@@ -852,10 +852,10 @@ def download_model(file_url: str, target_folder: Path) -> Path:
             response = requests.get(file_url, stream=True)
             response.raise_for_status()  # 检查请求是否成功
             # 保存文件
-            with open(file_path, 'wb') as f:
+            with open(file_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
-                logger.info(f'权重文件已下载并保存至 {file_path}')
+                logger.info(f"权重文件已下载并保存至 {file_path}")
         except requests.exceptions.HTTPError as err:
-            logger.info(f'权重文件下载过程中发生错误: {err}')
+            logger.info(f"权重文件下载过程中发生错误: {err}")
     return file_path

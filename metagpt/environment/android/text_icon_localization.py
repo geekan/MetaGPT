@@ -2,21 +2,20 @@
 # https://github.com/X-PLUG/MobileAgent.git
 
 import math
+from pathlib import Path
+
 import clip
 import cv2
+import groundingdino.datasets.transforms as T
 import numpy as np
 import torch
-import subprocess
-import time
-from pathlib import Path
-import groundingdino.datasets.transforms as T
 from groundingdino.models import build_model
 from groundingdino.util.slconfig import SLConfig
 from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
-from PIL import Image, ImageDraw
-
+from PIL import Image
 
 ################################## text_localization using ocr #######################
+
 
 def crop_image(img: any, position: any) -> any:
     def distance(x1, y1, x2, y2):
@@ -271,7 +270,9 @@ def load_model(model_checkpoint_path: Path, device: str) -> any:
     return model
 
 
-def get_grounding_output(model: any, image: any, caption: str, box_threshold: any, text_threshold: any, with_logits: bool = True) -> any:
+def get_grounding_output(
+    model: any, image: any, caption: str, box_threshold: any, text_threshold: any, with_logits: bool = True
+) -> any:
     caption = caption.lower()
     caption = caption.strip()
     if not caption.endswith("."):
@@ -328,7 +329,13 @@ def remove_boxes(boxes_filt: any, size: any, iou_threshold: float = 0.5) -> any:
     return boxes_filt
 
 
-def det(input_image: any, text_prompt: str, groundingdino_model: any, box_threshold:float = 0.05, text_threshold:float = 0.5) -> any:
+def det(
+    input_image: any,
+    text_prompt: str,
+    groundingdino_model: any,
+    box_threshold: float = 0.05,
+    text_threshold: float = 0.5,
+) -> any:
     image = Image.open(input_image)
     size = image.size
 
@@ -359,5 +366,3 @@ def det(input_image: any, text_prompt: str, groundingdino_model: any, box_thresh
         )
 
     return image_data, coordinate
-
-

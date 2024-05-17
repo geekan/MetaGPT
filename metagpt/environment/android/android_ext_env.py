@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 # @Desc   : The Android external environment to integrate with Android apps
 import subprocess
-import clip
 import time
 from pathlib import Path
 from typing import Any, Optional
 
+import clip
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
-
 from PIL import Image
 from pydantic import Field
 
-from metagpt.environment.android.text_icon_localization import *
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
     EnvAction,
@@ -22,16 +21,21 @@ from metagpt.environment.android.env_space import (
     EnvObsType,
     EnvObsValType,
 )
+from metagpt.environment.android.text_icon_localization import (
+    clip_for_icon,
+    crop_for_clip,
+    det,
+    load_model,
+    ocr,
+)
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 from metagpt.logs import logger
 from metagpt.utils.common import download_model
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 
 
 def load_cv_model(device: str = "cpu") -> any:
     ocr_detection = pipeline(Tasks.ocr_detection, model="damo/cv_resnet18_ocr-detection-line-level_damo")
-    ocr_recognition = pipeline(Tasks.ocr_recognition,
-                               model="damo/cv_convnextTiny_ocr-recognition-document_damo")
+    ocr_recognition = pipeline(Tasks.ocr_recognition, model="damo/cv_convnextTiny_ocr-recognition-document_damo")
     file_url = "https://huggingface.co/ShilongLiu/GroundingDINO/blob/main/groundingdino_swint_ogc.pth"
     target_folder = Path(f"{DEFAULT_WORKSPACE_ROOT}/weights")
     file_path = download_model(file_url, target_folder)
@@ -64,10 +68,10 @@ class AndroidExtEnv(ExtEnv):
             self.create_device_path(self.xml_dir)
 
     def reset(
-            self,
-            *,
-            seed: Optional[int] = None,
-            options: Optional[dict[str, Any]] = None,
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict[str, Any]] = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         super().reset(seed=seed, options=options)
 
@@ -284,8 +288,14 @@ class AndroidExtEnv(ExtEnv):
     @mark_as_writeable
     def user_open_app(self, app_name: str) -> str:
         ocr_result = self._ocr_text(app_name)
-        in_coordinate, out_coordinate, x, y, iw, ih = (
-            ocr_result[0], ocr_result[1], ocr_result[2], ocr_result[3], ocr_result[4], ocr_result[5])
+        in_coordinate, _, x, y, iw, ih = (
+            ocr_result[0],
+            ocr_result[1],
+            ocr_result[2],
+            ocr_result[3],
+            ocr_result[4],
+            ocr_result[5],
+        )
         if len(in_coordinate) == 0:
             logger.info(f"No App named {app_name}.")
             return "no app here"
@@ -300,19 +310,30 @@ class AndroidExtEnv(ExtEnv):
     @mark_as_writeable
     def user_click_text(self, text: str) -> str:
         ocr_result = self._ocr_text(text)
-        in_coordinate, out_coordinate, x, y, iw, ih, image = (
-            ocr_result[0], ocr_result[1], ocr_result[2], ocr_result[3], ocr_result[4], ocr_result[5], ocr_result[6])
+        in_coordinate, out_coordinate, x, y, iw, ih, _ = (
+            ocr_result[0],
+            ocr_result[1],
+            ocr_result[2],
+            ocr_result[3],
+            ocr_result[4],
+            ocr_result[5],
+            ocr_result[6],
+        )
         if len(out_coordinate) == 0:
             logger.info(
-                f"Failed to execute action click text ({text}). The text \"{text}\" is not detected in the screenshot.")
+                f'Failed to execute action click text ({text}). The text "{text}" is not detected in the screenshot.'
+            )
         elif len(out_coordinate) == 1:
-            tap_coordinate = [(in_coordinate[0][0] + in_coordinate[0][2]) / 2,
-                              (in_coordinate[0][1] + in_coordinate[0][3]) / 2]
+            tap_coordinate = [
+                (in_coordinate[0][0] + in_coordinate[0][2]) / 2,
+                (in_coordinate[0][1] + in_coordinate[0][3]) / 2,
+            ]
             tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)
         else:
             logger.info(
-                f"Failed to execute action click text ({text}). There are too many text \"{text}\" in the screenshot.")
+                f'Failed to execute action click text ({text}). There are too many text "{text}" in the screenshot.'
+            )
 
     @mark_as_writeable
     def user_stop(self):
@@ -321,7 +342,7 @@ class AndroidExtEnv(ExtEnv):
     @mark_as_writeable
     def user_click_icon(self, icon_shape_color: str) -> str:
         screenshot_path = self.get_screenshot("screenshot", self.screenshot_dir)
-        image= screenshot_path
+        image = screenshot_path
         iw, ih = Image.open(image).size
         x, y = self.device_shape
         if iw > ih:
@@ -329,8 +350,10 @@ class AndroidExtEnv(ExtEnv):
             iw, ih = ih, iw
         in_coordinate, out_coordinate = det(image, "icon", self.groundingdino_model)  # 检测icon
         if len(out_coordinate) == 1:  # only one icon
-            tap_coordinate = [(in_coordinate[0][0] + in_coordinate[0][2]) / 2,
-                              (in_coordinate[0][1] + in_coordinate[0][3]) / 2]
+            tap_coordinate = [
+                (in_coordinate[0][0] + in_coordinate[0][2]) / 2,
+                (in_coordinate[0][1] + in_coordinate[0][3]) / 2,
+            ]
             tap_coordinate = [round(tap_coordinate[0] / iw, 2), round(tap_coordinate[1] / ih, 2)]
             return self.system_tap(tap_coordinate[0] * x, tap_coordinate[1] * y)
 
@@ -343,7 +366,7 @@ class AndroidExtEnv(ExtEnv):
                     hash_table.append(td)
                     crop_image = f"{i}.png"
                     clip_filter.append(temp_file.joinpath(crop_image))
-            clip_model, clip_preprocess = clip.load("ViT-B/32", device=device)
+            clip_model, clip_preprocess = clip.load("ViT-B/32")  # FIXME: device=device
             clip_filter = clip_for_icon(clip_model, clip_preprocess, clip_filter, icon_shape_color)
             final_box = hash_table[clip_filter]
             tap_coordinate = [(final_box[0] + final_box[2]) / 2, (final_box[1] + final_box[3]) / 2]
