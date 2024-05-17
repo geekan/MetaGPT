@@ -210,6 +210,53 @@ TOKEN_MAX = {
     "deepseek-coder": 16385,
 }
 
+# For Amazon Bedrock US region
+# See https://aws.amazon.com/cn/bedrock/pricing/
+
+BEDROCK_TOKEN_COSTS = {
+    "amazon.titan-tg1-large": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-express-v1": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-express-v1:0:8k": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-lite-v1:0:4k": {"prompt": 0.0003, "completion": 0.0004},
+    "amazon.titan-text-lite-v1": {"prompt": 0.0003, "completion": 0.0004},
+    "anthropic.claude-instant-v1": {"prompt": 0.0008, "completion": 0.00024},
+    "anthropic.claude-instant-v1:2:100k": {"prompt": 0.0008, "completion": 0.00024},
+    "anthropic.claude-v1": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:1": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:0:18k": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:1:200k": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-3-sonnet-20240229-v1:0": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-sonnet-20240229-v1:0:28k": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-sonnet-20240229-v1:0:200k": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-haiku-20240307-v1:0": {"prompt": 0.00025, "completion": 0.00125},
+    "anthropic.claude-3-haiku-20240307-v1:0:48k": {"prompt": 0.00025, "completion": 0.00125},
+    "anthropic.claude-3-haiku-20240307-v1:0:200k": {"prompt": 0.00025, "completion": 0.00125},
+    # currently (2024-4-29) only available at US West (Oregon) AWS Region.
+    "anthropic.claude-3-opus-20240229-v1:0": {"prompt": 0.015, "completion": 0.075},
+    "cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.0015},
+    "cohere.command-text-v14:7:4k": {"prompt": 0.0015, "completion": 0.0015},
+    "cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0003},
+    "cohere.command-light-text-v14:7:4k": {"prompt": 0.0003, "completion": 0.0003},
+    "meta.llama2-13b-chat-v1:0:4k": {"prompt": 0.00075, "completion": 0.001},
+    "meta.llama2-13b-chat-v1": {"prompt": 0.00075, "completion": 0.001},
+    "meta.llama2-70b-v1": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-v1:0:4k": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-chat-v1": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-chat-v1:0:4k": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama3-8b-instruct-v1:0": {"prompt": 0.0004, "completion": 0.0006},
+    "meta.llama3-70b-instruct-v1:0": {"prompt": 0.00265, "completion": 0.0035},
+    "mistral.mistral-7b-instruct-v0:2": {"prompt": 0.00015, "completion": 0.0002},
+    "mistral.mixtral-8x7b-instruct-v0:1": {"prompt": 0.00045, "completion": 0.0007},
+    "mistral.mistral-large-2402-v1:0": {"prompt": 0.008, "completion": 0.024},
+    "ai21.j2-grande-instruct": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-jumbo-instruct": {"prompt": 0.0188, "completion": 0.0188},
+    "ai21.j2-mid": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-mid-v1": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-ultra": {"prompt": 0.0188, "completion": 0.0188},
+    "ai21.j2-ultra-v1": {"prompt": 0.0188, "completion": 0.0188},
+}
+
 
 def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
