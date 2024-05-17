@@ -45,7 +45,30 @@ extras_require = {
         "llama-index-postprocessor-flag-embedding-reranker==0.1.2",
         "docx2txt==0.8",
     ],
-    "android_assistant": ["pyshine==0.0.9", "opencv-python==4.6.0.66"],
+    "android_assistant": [
+        "pyshine==0.0.9",
+        "opencv-python==4.6.0.66",
+        "protobuf<3.20,>=3.9.2",
+        "modelscope",
+        "tensorflow==2.9.1; os_name == 'linux'",
+        "tensorflow==2.9.1; os_name == 'win32'",
+        "tensorflow-macos==2.9; os_name == 'darwin'",
+        "keras==2.9.0",
+        "torch",
+        "torchvision",
+        "transformers",
+        "opencv-python",
+        "matplotlib",
+        "pycocotools",
+        "SentencePiece",
+        "tf_slim",
+        "tf_keras",
+        "pyclipper",
+        "shapely",
+        "groundingdino-py",
+        "datasets==2.18.0",
+        "clip-openai"
+    ],
 }
 
 extras_require["test"] = [
@@ -96,4 +119,5 @@ setup(
         ],
     },
     include_package_data=True,
+
 )
