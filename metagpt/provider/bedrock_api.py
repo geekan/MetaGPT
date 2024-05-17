@@ -131,10 +131,8 @@ class BedrockLLM(BaseLLM):
         headers = response.get("ResponseMetadata", {}).get("HTTPHeaders", {})
         prompt_tokens = int(headers.get("x-amzn-bedrock-input-token-count", 0))
         completion_tokens = int(headers.get("x-amzn-bedrock-output-token-count", 0))
-        usage = (
-            {
+        usage = {
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
-            },
-        )
+            }
         return usage

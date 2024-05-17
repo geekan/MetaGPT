@@ -25,4 +25,4 @@ class BaseBedrockProvider(ABC):
 
     def messages_to_prompt(self, messages: list[dict]) -> str:
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
+        return "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
