@@ -132,7 +132,7 @@ class BaseLLM(ABC):
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
-        stream=True,
+        stream=None,
     ) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs)
@@ -146,6 +146,8 @@ class BaseLLM(ABC):
             message.append(self._user_msg(msg, images=images))
         else:
             message.extend(msg)
+        if stream is None:
+            stream = self.config.stream
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp
