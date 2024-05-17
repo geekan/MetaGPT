@@ -59,7 +59,7 @@ extras_require["test"] = [
     "pytest-timeout",
     "connexion[uvicorn]~=3.0.5",
     "azure-cognitiveservices-speech~=1.31.0",
-    "aioboto3~=11.3.0",
+    "aioboto3~=12.4.0",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
     "pylint==3.0.3",
