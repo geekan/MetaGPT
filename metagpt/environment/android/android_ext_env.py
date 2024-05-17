@@ -271,8 +271,6 @@ class AndroidExtEnv(ExtEnv):
         return exit_res
 
     def _ocr_text(self, text: str) -> list:
-        if not self.screenshot_dir.exists():
-            self.screenshot_dir.mkdir(parents=True, exist_ok=True)
         image = self.get_screenshot("screenshot", self.screenshot_dir)
         iw, ih = Image.open(image).size
         x, y = self.device_shape
@@ -322,8 +320,6 @@ class AndroidExtEnv(ExtEnv):
 
     @mark_as_writeable
     def user_click_icon(self, icon_shape_color: str) -> str:
-        if not self.screenshot_dir.exists():
-            self.screenshot_dir.mkdir(parents=True, exist_ok=True)
         screenshot_path = self.get_screenshot("screenshot", self.screenshot_dir)
         image= screenshot_path
         iw, ih = Image.open(image).size
