@@ -56,17 +56,17 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
    15. ~~Implementation: Run code~~ (v0.2.1)
    16. ~~Implementation: Web access~~ (v0.2.1)
 5. Tools
-   17. ~~Support SERPER api~~
-   18. ~~Support Selenium apis~~
-   19. ~~Support Playwright apis~~
-   20. Plugins: Compatibility with plugin system
+   1. ~~Support SERPER api~~
+   2. ~~Support Selenium apis~~
+   3. ~~Support Playwright apis~~
+   4. Plugins: Compatibility with plugin system  
 6. Roles
    1. Perfect the action pool/skill pool for each role
    2. E-commerce seller
    3. ~~Data analyst~~ (v0.7.0)
    4. News observer
    5. ~~Institutional researcher~~ (v0.2.1)
-   6. User
+   6. User  
 7. Evaluation
    1. Support an evaluation on a game dataset (experimentation done with game agents)
    2. Reproduce papers, implement full skill acquisition for a single game role, achieving SOTA results (experimentation done with game agents)
