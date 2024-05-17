@@ -35,8 +35,11 @@ TOKEN_COSTS = {
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4-turbo-2024-04-09": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
@@ -56,11 +59,14 @@ TOKEN_COSTS = {
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
+    "yi-large": {"prompt": 0.0028, "completion": 0.0028},
     "microsoft/wizardlm-2-8x22b": {"prompt": 0.00108, "completion": 0.00108},  # for openrouter, start
     "meta-llama/llama-3-70b-instruct": {"prompt": 0.008, "completion": 0.008},
     "llama3-70b-8192": {"prompt": 0.0059, "completion": 0.0079},
     "openai/gpt-3.5-turbo-0125": {"prompt": 0.0005, "completion": 0.0015},
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
+    "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
 }
 
 
@@ -155,6 +161,9 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
 
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o": 128000,
+    "gpt-4-turbo-2024-04-09": 128000,
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
     "gpt-4-1106-preview": 128000,
@@ -191,11 +200,61 @@ TOKEN_MAX = {
     "claude-3-opus-20240229": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
+    "yi-large": 16385,
     "microsoft/wizardlm-2-8x22b": 65536,
     "meta-llama/llama-3-70b-instruct": 8192,
     "llama3-70b-8192": 8192,
     "openai/gpt-3.5-turbo-0125": 16385,
     "openai/gpt-4-turbo-preview": 128000,
+    "deepseek-chat": 32768,
+    "deepseek-coder": 16385,
+}
+
+# For Amazon Bedrock US region
+# See https://aws.amazon.com/cn/bedrock/pricing/
+
+BEDROCK_TOKEN_COSTS = {
+    "amazon.titan-tg1-large": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-express-v1": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-express-v1:0:8k": {"prompt": 0.0008, "completion": 0.0008},
+    "amazon.titan-text-lite-v1:0:4k": {"prompt": 0.0003, "completion": 0.0004},
+    "amazon.titan-text-lite-v1": {"prompt": 0.0003, "completion": 0.0004},
+    "anthropic.claude-instant-v1": {"prompt": 0.0008, "completion": 0.00024},
+    "anthropic.claude-instant-v1:2:100k": {"prompt": 0.0008, "completion": 0.00024},
+    "anthropic.claude-v1": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:1": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:0:18k": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-v2:1:200k": {"prompt": 0.008, "completion": 0.0024},
+    "anthropic.claude-3-sonnet-20240229-v1:0": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-sonnet-20240229-v1:0:28k": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-sonnet-20240229-v1:0:200k": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-haiku-20240307-v1:0": {"prompt": 0.00025, "completion": 0.00125},
+    "anthropic.claude-3-haiku-20240307-v1:0:48k": {"prompt": 0.00025, "completion": 0.00125},
+    "anthropic.claude-3-haiku-20240307-v1:0:200k": {"prompt": 0.00025, "completion": 0.00125},
+    # currently (2024-4-29) only available at US West (Oregon) AWS Region.
+    "anthropic.claude-3-opus-20240229-v1:0": {"prompt": 0.015, "completion": 0.075},
+    "cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.0015},
+    "cohere.command-text-v14:7:4k": {"prompt": 0.0015, "completion": 0.0015},
+    "cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0003},
+    "cohere.command-light-text-v14:7:4k": {"prompt": 0.0003, "completion": 0.0003},
+    "meta.llama2-13b-chat-v1:0:4k": {"prompt": 0.00075, "completion": 0.001},
+    "meta.llama2-13b-chat-v1": {"prompt": 0.00075, "completion": 0.001},
+    "meta.llama2-70b-v1": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-v1:0:4k": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-chat-v1": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama2-70b-chat-v1:0:4k": {"prompt": 0.00195, "completion": 0.00256},
+    "meta.llama3-8b-instruct-v1:0": {"prompt": 0.0004, "completion": 0.0006},
+    "meta.llama3-70b-instruct-v1:0": {"prompt": 0.00265, "completion": 0.0035},
+    "mistral.mistral-7b-instruct-v0:2": {"prompt": 0.00015, "completion": 0.0002},
+    "mistral.mixtral-8x7b-instruct-v0:1": {"prompt": 0.00045, "completion": 0.0007},
+    "mistral.mistral-large-2402-v1:0": {"prompt": 0.008, "completion": 0.024},
+    "ai21.j2-grande-instruct": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-jumbo-instruct": {"prompt": 0.0188, "completion": 0.0188},
+    "ai21.j2-mid": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-mid-v1": {"prompt": 0.0125, "completion": 0.0125},
+    "ai21.j2-ultra": {"prompt": 0.0188, "completion": 0.0188},
+    "ai21.j2-ultra-v1": {"prompt": 0.0188, "completion": 0.0188},
 }
 
 
@@ -224,6 +283,8 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-turbo",
         "gpt-4-vision-preview",
         "gpt-4-1106-vision-preview",
+        "gpt-4o-2024-05-13",
+        "gpt-4o",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1

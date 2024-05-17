@@ -32,6 +32,7 @@ class LLMType(Enum):
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
+    BEDROCK = "bedrock"
 
     def __missing__(self, key):
         return self.OPENAI
@@ -73,10 +74,14 @@ class LLMConfig(YamlModel):
     frequency_penalty: float = 0.0
     best_of: Optional[int] = None
     n: Optional[int] = None
-    stream: bool = True 
-    logprobs: Optional[bool] = None  # https://cookbook.openai.com/examples/using_logprobs
+    stream: bool = True
+    # https://cookbook.openai.com/examples/using_logprobs
+    logprobs: Optional[bool] = None
     top_logprobs: Optional[int] = None
     timeout: int = 600
+
+    # For Amazon Bedrock
+    region_name: str = None
 
     # For Network
     proxy: Optional[str] = None

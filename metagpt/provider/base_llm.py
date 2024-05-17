@@ -65,7 +65,7 @@ class BaseLLM(ABC):
             # image url or image base64
             url = image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
             # it can with multiple-image inputs
-            content.append({"type": "image_url", "image_url": url})
+            content.append({"type": "image_url", "image_url": {"url": url}})
         return {"role": "user", "content": content}
 
     def _assistant_msg(self, msg: str) -> dict[str, str]:
