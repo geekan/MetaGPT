@@ -39,6 +39,7 @@ class BlockType(str, Enum):
     GALLERY = "Gallery"
     NOTEBOOK = "Notebook"
     DOCS = "Docs"
+    THOUGHT = "Thought"
 
 
 END_MARKER_NAME = "end_marker"
@@ -257,6 +258,16 @@ class TaskReporter(ObjectReporter):
     """Reporter for object resources to Task Block."""
 
     block: Literal[BlockType.TASK] = BlockType.TASK
+
+
+class ThoughtReporter(ObjectReporter):
+    """Reporter for object resources to Task Block."""
+
+    block: Literal[BlockType.THOUGHT] = BlockType.THOUGHT
+
+    async def __aenter__(self):
+        await self.async_report({})
+        return await super().__aenter__()
 
 
 class FileReporter(ResourceReporter):

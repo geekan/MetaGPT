@@ -47,6 +47,7 @@ from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+from metagpt.utils.report import ThoughtReporter
 
 if TYPE_CHECKING:
     from metagpt.environment import Environment  # noqa: F401
@@ -381,8 +382,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             n_states=len(self.states) - 1,
             previous_state=self.rc.state,
         )
-
-        next_state = await self.llm.aask(prompt)
+        async with ThoughtReporter():
+            next_state = await self.llm.aask(prompt)
         next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
 
