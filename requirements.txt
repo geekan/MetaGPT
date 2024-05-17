@@ -42,7 +42,7 @@ semantic-kernel==0.4.3.dev0
 wrapt==1.15.0
 #aiohttp_jinja2
 # azure-cognitiveservices-speech~=1.31.0 # Used by metagpt/tools/azure_tts.py
-#aioboto3~=11.3.0  # Used by metagpt/utils/s3.py
+#aioboto3~=12.4.0  # Used by metagpt/utils/s3.py
 aioredis~=2.0.1 # Used by metagpt/utils/redis.py
 websocket-client==1.6.2
 aiofiles==23.2.1
@@ -70,4 +70,4 @@ qianfan==0.3.2
 dashscope==1.14.1
 rank-bm25==0.2.2  # for tool recommendation
 gymnasium==0.29.1
-boto3==1.34.92
+boto3~=1.34.69
