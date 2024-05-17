@@ -1,0 +1,10 @@
+llm:  
+  api_type: 'bedrock' 
+  access_key: 'YOUR_API_KEY'
+  secret_key: 'YOUR_API_SECRET'
+
+  region_name: "us-east-1" 
+  model: "meta.llama2-70b-chat-v1"
+  # model: "anthropic.claude-3-sonnet-20240229-v1:0"
+  # model: "mistral.mixtral-8x7b-instruct-v0:1"
+  # model: "meta.llama2-13b-chat-v1"
