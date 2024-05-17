@@ -55,29 +55,30 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
    14. Implementation: AI training
    15. ~~Implementation: Run code~~ (v0.2.1)
    16. ~~Implementation: Web access~~ (v0.2.1)
-5. Plugins: Compatibility with plugin system
-6. Tools
-   1. ~~Support SERPER api~~
-   2. ~~Support Selenium apis~~
-   3. ~~Support Playwright apis~~
-7. Roles
+5. Tools
+   17. ~~Support SERPER api~~
+   18. ~~Support Selenium apis~~
+   19. ~~Support Playwright apis~~
+   20. Plugins: Compatibility with plugin system
+6. Roles
    1. Perfect the action pool/skill pool for each role
    2. E-commerce seller
    3. ~~Data analyst~~ (v0.7.0)
    4. News observer
    5. ~~Institutional researcher~~ (v0.2.1)
-8. Evaluation
+   6. User
+7. Evaluation
    1. Support an evaluation on a game dataset (experimentation done with game agents)
    2. Reproduce papers, implement full skill acquisition for a single game role, achieving SOTA results (experimentation done with game agents)
    3. Support an evaluation on a math dataset (expected v0.8.0)
    4. Reproduce papers, achieving SOTA results for current mathematical problem solving process (expected v0.8.0)
-9. LLM
-   1. Support Claude underlying API
+8. LLM
+   1. ~~Support Claude underlying API~~
    2. ~~Support Azure asynchronous API~~
-   3. Support streaming version of all APIs
+   3. ~~Support streaming version of all APIs~~
    4. ~~Make gpt-3.5-turbo available (HARD)~~
-10. Other
-    1. ~~Clean up existing unused code~~
-    2. ~~Unify all code styles and establish contribution standards~~
-    3. ~~Multi-language support~~
-    4. ~~Multi-programming-language support~~
+9. Other
+   1. ~~Clean up existing unused code~~
+   2. ~~Unify all code styles and establish contribution standards~~
+   3. ~~Multi-language support~~
+   4. ~~Multi-programming-language support~~
