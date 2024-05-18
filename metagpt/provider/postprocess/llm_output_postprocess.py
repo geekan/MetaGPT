@@ -13,7 +13,7 @@ def llm_output_postprocess(
     """
     default use BasePostProcessPlugin if there is not matched plugin.
     """
-    # TODO choose different model's plugin according to the model_name
+    # TODO choose different model's plugin according to the model
     postprocess_plugin = BasePostProcessPlugin()
 
     result = postprocess_plugin.run(output=output, schema=schema, req_key=req_key)

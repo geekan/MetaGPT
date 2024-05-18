@@ -34,8 +34,8 @@ from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
-    count_message_tokens,
-    count_string_tokens,
+    count_input_tokens,
+    count_output_tokens,
     get_max_completion_tokens,
     get_openrouter_tokens,
 )
@@ -252,8 +252,8 @@ class OpenAILLM(BaseLLM):
             return usage
 
         try:
-            usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
-            usage.completion_tokens = count_string_tokens(rsp, self.pricing_plan)
+            usage.prompt_tokens = count_input_tokens(messages, self.pricing_plan)
+            usage.completion_tokens = count_output_tokens(rsp, self.pricing_plan)
         except Exception as e:
             logger.warning(f"usage calculation failed: {e}")
 

@@ -14,6 +14,7 @@ import tiktoken
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletionChunk
 
+from metagpt.logs import logger
 from metagpt.utils.ahttp_client import apost
 
 TOKEN_COSTS = {
@@ -258,12 +259,12 @@ BEDROCK_TOKEN_COSTS = {
 }
 
 
-def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
+def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        print("Warning: model not found. Using cl100k_base encoding.")
+        logger.info(f"Warning: model {model} not found in tiktoken. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     if model in {
         "gpt-3.5-turbo-0613",
@@ -292,11 +293,11 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif "gpt-3.5-turbo" == model:
-        print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125.")
-        return count_message_tokens(messages, model="gpt-3.5-turbo-0125")
+        logger.info("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125.")
+        return count_input_tokens(messages, model="gpt-3.5-turbo-0125")
     elif "gpt-4" == model:
-        print("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
-        return count_message_tokens(messages, model="gpt-4-0613")
+        logger.info("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
+        return count_input_tokens(messages, model="gpt-4-0613")
     elif "open-llm-model" == model:
         """
         For self-hosted open_llm api, they include lots of different models. The message tokens calculation is
@@ -327,21 +328,21 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     return num_tokens
 
 
-def count_string_tokens(string: str, model_name: str) -> int:
+def count_output_tokens(string: str, model: str) -> int:
     """
     Returns the number of tokens in a text string.
 
     Args:
         string (str): The text string.
-        model_name (str): The name of the encoding to use. (e.g., "gpt-3.5-turbo")
+        model (str): The name of the encoding to use. (e.g., "gpt-3.5-turbo")
 
     Returns:
         int: The number of tokens in the text string.
     """
     try:
-        encoding = tiktoken.encoding_for_model(model_name)
+        encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        print("Warning: model not found. Using cl100k_base encoding.")
+        logger.info(f"Warning: model {model} not found in tiktoken. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     return len(encoding.encode(string))
 
@@ -358,7 +359,7 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     """
     if model not in TOKEN_MAX:
         return default
-    return TOKEN_MAX[model] - count_message_tokens(messages) - 1
+    return TOKEN_MAX[model] - count_input_tokens(messages) - 1
 
 
 async def get_openrouter_tokens(chunk: ChatCompletionChunk) -> CompletionUsage:
