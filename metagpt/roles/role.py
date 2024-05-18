@@ -45,7 +45,6 @@ from metagpt.schema import (
 )
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
-from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 if TYPE_CHECKING:
@@ -195,29 +194,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if value:
             value.context = self.context
         self.rc.todo = value
-
-    @property
-    def git_repo(self):
-        """Git repo"""
-        return self.context.git_repo
-
-    @git_repo.setter
-    def git_repo(self, value):
-        self.context.git_repo = value
-
-    @property
-    def src_workspace(self):
-        """Source workspace under git repo"""
-        return self.context.src_workspace
-
-    @src_workspace.setter
-    def src_workspace(self, value):
-        self.context.src_workspace = value
-
-    @property
-    def project_repo(self) -> ProjectRepo:
-        project_repo = ProjectRepo(self.context.git_repo)
-        return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
 
     @property
     def prompt_schema(self):

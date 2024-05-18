@@ -15,6 +15,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -37,6 +40,7 @@ from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter, GalleryReporter
 
 CONTEXT_TEMPLATE = """
@@ -66,10 +70,30 @@ class WritePRD(Action):
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
     """
 
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
+
     async def run(self, with_messages, *args, **kwargs) -> Message:
         """Run the action."""
-        req: Document = await self.repo.requirement
-        docs: list[Document] = await self.repo.docs.prd.get_all()
+        self.input_args = with_messages[-1].instruct_content
+        if not self.input_args:
+            self.repo = ProjectRepo(self.config.project_path)
+            await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[-1].content)
+            self.input_args = AIMessage.create_instruct_value(
+                kvs={
+                    "project_path": self.config.project_path,
+                    "requirements_filename": str(self.repo.docs.workdir / REQUIREMENT_FILENAME),
+                    "prd_filenames": [str(self.repo.docs.prd.workdir / i) for i in self.repo.docs.prd.all_files],
+                },
+                class_name="PrepareDocumentsOutput",
+            )
+        else:
+            self.repo = ProjectRepo(self.input_args.project_path)
+        req = await Document.load(filename=self.input_args.requirements_filename)
+        docs: list[Document] = [
+            await Document.load(filename=i, project_path=self.repo.workdir) for i in self.input_args.prd_filenames
+        ]
+
         if not req:
             raise FileNotFoundError("No requirement document found.")
 
@@ -82,10 +106,14 @@ class WritePRD(Action):
         # if requirement is related to other documents, update them, otherwise create a new one
         if related_docs := await self.get_related_docs(req, docs):
             logger.info(f"Requirement update detected: {req.content}")
-            await self._handle_requirement_update(req, related_docs)
+            await self._handle_requirement_update(req=req, related_docs=related_docs)
         else:
             logger.info(f"New requirement detected: {req.content}")
             await self._handle_new_requirement(req)
+        kvs = self.input_args.model_dump()
+        kvs["changed_prd_filenames"] = [
+            str(self.repo.docs.prd.workdir / i) for i in list(self.repo.docs.prd.changed_files.keys())
+        ]
         return AIMessage(
             content="PRD is completed. "
             + "\n".join(
@@ -93,6 +121,7 @@ class WritePRD(Action):
                 + list(self.repo.resources.prd.changed_files.keys())
                 + list(self.repo.resources.competitive_analysis.changed_files.keys())
             ),
+            instruct_content=AIMessage.create_instruct_value(kvs=kvs, class_name="WritePRDOutput"),
             cause_by=self,
         )
 
@@ -103,6 +132,14 @@ class WritePRD(Action):
         return AIMessage(
             content=f"A new issue is received: {BUGFIX_FILENAME}",
             cause_by=FixBug,
+            instruct_content=AIMessage.create_instruct_value(
+                {
+                    "project_path": str(self.repo.workdir),
+                    "issue_filename": str(self.repo.docs.workdir / BUGFIX_FILENAME),
+                    "requirements_filename": str(self.repo.docs.workdir / REQUIREMENT_FILENAME),
+                },
+                class_name="IssueDetail",
+            ),
             send_to="Alex",  # the name of Engineer
         )
 
@@ -128,7 +165,7 @@ class WritePRD(Action):
     async def _handle_requirement_update(self, req: Document, related_docs: list[Document]) -> ActionOutput:
         # ... requirement update logic ...
         for doc in related_docs:
-            await self._update_prd(req, doc)
+            await self._update_prd(req=req, prd_doc=doc)
         return Documents.from_iterable(documents=related_docs).to_action_output()
 
     async def _is_bugfix(self, context: str) -> bool:
@@ -159,7 +196,7 @@ class WritePRD(Action):
     async def _update_prd(self, req: Document, prd_doc: Document) -> Document:
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "prd"}, "meta")
-            new_prd_doc: Document = await self._merge(req, prd_doc)
+            new_prd_doc: Document = await self._merge(req=req, related_doc=prd_doc)
             await self.repo.docs.prd.save_doc(doc=new_prd_doc)
             await self._save_competitive_analysis(new_prd_doc)
             md = await self.repo.resources.prd.save_pdf(doc=new_prd_doc)

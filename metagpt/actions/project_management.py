@@ -11,13 +11,17 @@
 """
 
 import json
+from pathlib import Path
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
@@ -32,10 +36,14 @@ NEW_REQ_TEMPLATE = """
 class WriteTasks(Action):
     name: str = "CreateTasks"
     i_context: Optional[str] = None
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     async def run(self, with_messages):
-        changed_system_designs = self.repo.docs.system_design.changed_files
-        changed_tasks = self.repo.docs.task.changed_files
+        self.input_args = with_messages[0].instruct_content
+        self.repo = ProjectRepo(self.input_args.project_path)
+        changed_system_designs = self.input_args.changed_system_design_filenames
+        changed_tasks = [str(self.repo.docs.task.workdir / i) for i in list(self.repo.docs.task.changed_files.keys())]
         change_files = Documents()
         # Rewrite the system designs that have undergone changes based on the git head diff under
         # `docs/system_designs/`.
@@ -54,6 +62,11 @@ class WriteTasks(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
+        kvs = self.input_args.model_dump()
+        kvs["changed_task_filenames"] = [
+            str(self.repo.docs.task.workdir / i) for i in list(self.repo.docs.task.changed_files.keys())
+        ]
+        kvs["python_package_dependency_filename"] = str(self.repo.workdir / PACKAGE_REQUIREMENTS_FILENAME)
         return AIMessage(
             content="WBS is completed. "
             + "\n".join(
@@ -61,12 +74,14 @@ class WriteTasks(Action):
                 + list(self.repo.docs.task.changed_files.keys())
                 + list(self.repo.resources.api_spec_and_task.changed_files.keys())
             ),
+            instruct_content=AIMessage.create_instruct_value(kvs=kvs, class_name="WriteTaskOutput"),
             cause_by=self,
         )
 
     async def _update_tasks(self, filename):
-        system_design_doc = await self.repo.docs.system_design.get(filename)
-        task_doc = await self.repo.docs.task.get(filename)
+        root_relative_path = Path(filename).relative_to(self.repo.workdir)
+        system_design_doc = await Document.load(filename=filename, project_path=self.repo.workdir)
+        task_doc = await self.repo.docs.task.get(root_relative_path.name)
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "task"}, "meta")
             if task_doc:
@@ -75,7 +90,7 @@ class WriteTasks(Action):
             else:
                 rsp = await self._run_new_tasks(context=system_design_doc.content)
                 task_doc = await self.repo.docs.task.save(
-                    filename=filename,
+                    filename=system_design_doc.filename,
                     content=rsp.instruct_content.model_dump_json(),
                     dependencies={system_design_doc.root_relative_path},
                 )

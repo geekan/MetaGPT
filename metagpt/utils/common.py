@@ -899,3 +899,44 @@ async def init_python_folder(workdir: str | Path):
         return
     async with aiofiles.open(init_filename, "a"):
         os.utime(init_filename, None)
+
+
+def get_markdown_code_block_type(filename: str) -> str:
+    if not filename:
+        return ""
+    ext = Path(filename).suffix
+    types = {
+        ".py": "python",
+        ".js": "javascript",
+        ".java": "java",
+        ".cpp": "cpp",
+        ".c": "c",
+        ".html": "html",
+        ".css": "css",
+        ".xml": "xml",
+        ".json": "json",
+        ".yaml": "yaml",
+        ".md": "markdown",
+        ".sql": "sql",
+        ".rb": "ruby",
+        ".php": "php",
+        ".sh": "bash",
+        ".swift": "swift",
+        ".go": "go",
+        ".rs": "rust",
+        ".pl": "perl",
+        ".asm": "assembly",
+        ".r": "r",
+        ".scss": "scss",
+        ".sass": "sass",
+        ".lua": "lua",
+        ".ts": "typescript",
+        ".tsx": "tsx",
+        ".jsx": "jsx",
+        ".yml": "yaml",
+        ".ini": "ini",
+        ".toml": "toml",
+        ".svg": "xml",  # SVG can often be treated as XML
+        # Add more file extensions and corresponding code block types as needed
+    }
+    return types.get(ext, "")

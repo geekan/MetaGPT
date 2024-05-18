@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from typing import Optional
 
+from pydantic import BaseModel, Field
+
 from metagpt.actions import Action
 from metagpt.actions.design_api_an import (
     DATA_STRUCTURES_AND_INTERFACES,
@@ -26,6 +28,7 @@ from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter, GalleryReporter
 
 NEW_REQ_TEMPLATE = """
@@ -45,21 +48,25 @@ class WriteDesign(Action):
         "data structures, library tables, processes, and paths. Please provide your design, feedback "
         "clearly and in detail."
     )
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     async def run(self, with_messages: Message, schema: str = None):
-        # Use `git status` to identify which PRD documents have been modified in the `docs/prd` directory.
-        changed_prds = self.repo.docs.prd.changed_files
-        # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
-        # changes.
-        changed_system_designs = self.repo.docs.system_design.changed_files
+        self.input_args = with_messages[0].instruct_content
+        self.repo = ProjectRepo(self.input_args.project_path)
+        changed_prds = self.input_args.changed_prd_filenames
+        changed_system_designs = [
+            str(self.repo.docs.system_design.workdir / i)
+            for i in list(self.repo.docs.system_design.changed_files.keys())
+        ]
 
         # For those PRDs and design documents that have undergone changes, regenerate the design content.
         changed_files = Documents()
-        for filename in changed_prds.keys():
+        for filename in changed_prds:
             doc = await self._update_system_design(filename=filename)
             changed_files.docs[filename] = doc
 
-        for filename in changed_system_designs.keys():
+        for filename in changed_system_designs:
             if filename in changed_files.docs:
                 continue
             doc = await self._update_system_design(filename=filename)
@@ -68,6 +75,11 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
+        kvs = self.input_args.model_dump()
+        kvs["changed_system_design_filenames"] = [
+            str(self.repo.docs.system_design.workdir / i)
+            for i in list(self.repo.docs.system_design.changed_files.keys())
+        ]
         return AIMessage(
             content="Designing is complete. "
             + "\n".join(
@@ -75,6 +87,7 @@ class WriteDesign(Action):
                 + list(self.repo.resources.data_api_design.changed_files.keys())
                 + list(self.repo.resources.seq_flow.changed_files.keys())
             ),
+            instruct_content=AIMessage.create_instruct_value(kvs=kvs, class_name="WriteDesignOutput"),
             cause_by=self,
         )
 
@@ -89,14 +102,15 @@ class WriteDesign(Action):
         return system_design_doc
 
     async def _update_system_design(self, filename) -> Document:
-        prd = await self.repo.docs.prd.get(filename)
-        old_system_design_doc = await self.repo.docs.system_design.get(filename)
+        root_relative_path = Path(filename).relative_to(self.repo.workdir)
+        prd = await Document.load(filename=filename, project_path=self.repo.workdir)
+        old_system_design_doc = await self.repo.docs.system_design.get(root_relative_path.name)
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "design"}, "meta")
             if not old_system_design_doc:
                 system_design = await self._new_system_design(context=prd.content)
                 doc = await self.repo.docs.system_design.save(
-                    filename=filename,
+                    filename=prd.filename,
                     content=system_design.instruct_content.model_dump_json(),
                     dependencies={prd.root_relative_path},
                 )
