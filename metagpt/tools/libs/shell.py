@@ -48,6 +48,6 @@ async def shell_execute(
         This function uses `subprocess.Popen` for executing shell commands asynchronously.
     """
     cwd = str(cwd) if cwd else None
-    shell = True if isinstance(command, str) else False
+    shell = isinstance(command, str)
     result = subprocess.run(command, cwd=cwd, capture_output=True, text=True, env=env, timeout=timeout, shell=shell)
     return result.stdout, result.stderr, result.returncode
