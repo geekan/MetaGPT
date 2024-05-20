@@ -49,12 +49,30 @@ s3:
   secure: false
   bucket: "test"
 
-
-azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
-azure_tts_region: "eastus"
-
-iflytek_api_id: "YOUR_APP_ID"
-iflytek_api_key: "YOUR_API_KEY"
-iflytek_api_secret: "YOUR_API_SECRET"
-
-metagpt_tti_url: "YOUR_MODEL_URL"
+vault:
+  metagpt_tti:
+    values:
+      url: "YOUR_URL"
+    descriptions:
+      url: "MetaGPT text to image REST API"
+  sd_tti:
+    values:
+      url: "YOUR_URL"
+    descriptions:
+      url: "SD Engine URL"
+  iflytek_tts:
+    values:
+      api_id: "YOUR_APP_ID"
+      api_key: "YOUR_API_KEY"
+      api_secret: "YOUR_API_SECRET"
+    descriptions:
+      api_id: "IFlyTek text to speech API ID"
+      api_key: "IFlyTek text to speech API Key"
+      api_secret: "IFlyTek text to speech API Secret"
+  azure_tts:
+    values:
+      subscription_key: "YOUR_SUBSCRIPTION_KEY"
+      region: "eastus"
+    descriptions:
+      subscription_key: "Azure text to speech subscription key"
+      region: "Azure text to speech service region"
