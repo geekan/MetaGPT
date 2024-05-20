@@ -31,6 +31,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PrivateAttr,
+    create_model,
     field_serializer,
     field_validator,
     model_serializer,
@@ -358,6 +359,22 @@ class Message(BaseModel):
 
     def add_metadata(self, key: str, value: str):
         self.metadata[key] = value
+
+    @staticmethod
+    def create_instruct_value(kvs: Dict[str, Any], class_name: str = "") -> BaseModel:
+        """
+        Dynamically creates a Pydantic BaseModel subclass based on a given dictionary.
+
+        Parameters:
+        - data: A dictionary from which to create the BaseModel subclass.
+
+        Returns:
+        - A Pydantic BaseModel subclass instance populated with the given data.
+        """
+        if not class_name:
+            class_name = "DM" + uuid.uuid4().hex[0:8]
+        dynamic_class = create_model(class_name, **{key: (value.__class__, ...) for key, value in kvs.items()})
+        return dynamic_class.model_validate(kvs)
 
 
 class UserMessage(Message):
