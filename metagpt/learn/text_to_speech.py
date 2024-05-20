@@ -8,10 +8,9 @@
 """
 import metagpt.config2
 from metagpt.config2 import Config
-from metagpt.const import BASE64_FORMAT
 from metagpt.tools.azure_tts import oas3_azsure_tts
 from metagpt.tools.iflytek_tts import oas3_iflytek_tts
-from metagpt.utils.s3 import S3
+from metagpt.utils.s3 import s3_cache
 
 
 async def text_to_speech(
@@ -44,10 +43,7 @@ async def text_to_speech(
     if subscription_key and region:
         audio_declaration = "data:audio/wav;base64,"
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
-        url = ""
-        if config.s3:
-            s3 = S3(config.s3)
-            url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT)
+        url = s3_cache(config=config, base64_data=base64_data, file_ext=".wav")
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
@@ -60,10 +56,7 @@ async def text_to_speech(
         base64_data = await oas3_iflytek_tts(
             text=text, app_id=iflytek_app_id, api_key=iflytek_api_key, api_secret=iflytek_api_secret
         )
-        url = ""
-        if config.s3:
-            s3 = S3(config.s3)
-            url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT)
+        url = s3_cache(config=config, base64_data=base64_data, file_ext=".mp3")
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data

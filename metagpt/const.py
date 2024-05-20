@@ -111,7 +111,6 @@ VISUAL_GRAPH_REPO_FILE_REPO = "resources/graph_db"
 CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
-SD_URL = os.environ.get("SD_URL", "")
 
 DEFAULT_LANGUAGE = "English"
 DEFAULT_MAX_TOKENS = 1500
@@ -145,8 +144,6 @@ ASSISTANT_ALIAS = "response"
 # Markdown
 MARKDOWN_TITLE_PREFIX = "## "
 
-# Reporter
-METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
 
 # Metadata defines
 AGENT = "agent"

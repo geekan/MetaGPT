@@ -8,7 +8,7 @@ from typing import Optional
 import aioboto3
 import aiofiles
 
-from metagpt.config2 import S3Config
+from metagpt.config2 import Config, S3Config
 from metagpt.const import BASE64_FORMAT
 from metagpt.logs import logger
 
@@ -152,3 +152,10 @@ class S3:
             logger.exception(f"{e}, stack:{traceback.format_exc()}")
             pathname.unlink(missing_ok=True)
             return None
+
+
+async def s3_cache(config: Config, base64_data: str, file_ext: str) -> str:
+    if not config.s3:
+        return ""
+    s3 = S3(config.s3)
+    return await s3.cache(data=base64_data, file_ext=file_ext, format=BASE64_FORMAT)

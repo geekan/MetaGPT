@@ -10,11 +10,10 @@ import base64
 
 import metagpt.config2
 from metagpt.config2 import Config
-from metagpt.const import BASE64_FORMAT
 from metagpt.llm import LLM
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
-from metagpt.utils.s3 import S3
+from metagpt.utils.s3 import s3_cache
 
 
 async def text_to_image(text, size_type: str = "512x512", config: Config = metagpt.config2.config):
@@ -37,10 +36,7 @@ async def text_to_image(text, size_type: str = "512x512", config: Config = metag
         raise ValueError("Missing necessary parameters.")
     base64_data = base64.b64encode(binary_data).decode("utf-8")
 
-    url = ""
-    if config.s3:
-        s3 = S3(config.s3)
-        url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
+    url = s3_cache(config=config, base64_data=base64_data, file_ext=".png")
     if url:
         return f"![{text}]({url})"
     return image_declaration + base64_data if base64_data else ""
