@@ -9,6 +9,7 @@ import hashlib
 import io
 import json
 from os.path import join
+from typing import Dict
 
 import requests
 from aiohttp import ClientSession
@@ -76,17 +77,17 @@ class SDEngine:
 
     def construct_payload(
         self,
-        prompt: object,
-        negtive_prompt: object = default_negative_prompt,
-        width: object = 512,
-        height: object = 512,
-        sd_model: object = "galaxytimemachinesGTM_photoV20",
-    ) -> object:
+        prompt: str,
+        negative_prompt: str = default_negative_prompt,
+        width: int = 512,
+        height: int = 512,
+        sd_model: str = "galaxytimemachinesGTM_photoV20",
+    ) -> Dict:
         """Modify and set the API parameters for image generation.
 
         Args:
             prompt (str): Text input for image generation.
-            negtive_prompt (str, optional): Text input for negative prompts. Defaults to None.
+            negative_prompt (str, optional): Text input for negative prompts. Defaults to None.
             width (int, optional): Width of the generated image in pixels. Defaults to 512.
             height (int, optional): Height of the generated image in pixels. Defaults to 512.
             sd_model (str, optional): The model to use for image generation. Defaults to "galaxytimemachinesGTM_photoV20".
@@ -95,14 +96,14 @@ class SDEngine:
             dict: Updated parameters for the stable diffusion API.
         """
         self.payload["prompt"] = prompt
-        self.payload["negative_prompt"] = negtive_prompt
+        self.payload["negative_prompt"] = negative_prompt
         self.payload["width"] = width
         self.payload["height"] = height
         self.payload["override_settings"]["sd_model_checkpoint"] = sd_model
         logger.info(f"call sd payload is {self.payload}")
         return self.payload
 
-    def save(self, imgs, save_name=""):
+    def save(self, imgs: str, save_name=""):
         """Save generated images to the output directory.
 
         Args:
