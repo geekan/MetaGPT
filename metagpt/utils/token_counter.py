@@ -72,9 +72,9 @@ TOKEN_COSTS = {
     "doubao-lite-4k-240515": {"prompt": 0.000042, "completion": 0.000084},
     "doubao-lite-32k-240515": {"prompt": 0.000042, "completion": 0.000084},
     "doubao-lite-128k-240515": {"prompt": 0.00011, "completion": 0.00013},
-    "doubao-pro-4k-240515":{"prompt":0.00011,"completion":0.00028},
-    "doubao-pro-32k-240515":{"prompt":0.00011,"completion":0.00028},
-    "doubao-pro-128k-240515":{"prompt":0.0007,"completion":0.0012},
+    "doubao-pro-4k-240515": {"prompt": 0.00011, "completion": 0.00028},
+    "doubao-pro-32k-240515": {"prompt": 0.00011, "completion": 0.00028},
+    "doubao-pro-128k-240515": {"prompt": 0.0007, "completion": 0.0012},
 }
 
 
@@ -216,6 +216,12 @@ TOKEN_MAX = {
     "openai/gpt-4-turbo-preview": 128000,
     "deepseek-chat": 32768,
     "deepseek-coder": 16385,
+    "doubao-lite-4k-240515": 4000,
+    "doubao-lite-32k-240515": 32000,
+    "doubao-lite-128k-240515": 128000,
+    "doubao-pro-4k-240515": 4000,
+    "doubao-pro-32k-240515": 32000,
+    "doubao-pro-128k-240515": 128000,
 }
 
 # For Amazon Bedrock US region
