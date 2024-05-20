@@ -1,0 +1,8 @@
+# Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
+# Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
+# Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
+llm:
+  api_type: "ark"  # or azure / ollama / groq etc.
+  model: ""  # your model endpoint like ep-xxx
+  base_url: "https://ark.cn-beijing.volces.com/api/v3"  # or forward url / other llm url
+  api_key: "" # your api-key like ey……

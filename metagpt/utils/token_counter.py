@@ -68,6 +68,13 @@ TOKEN_COSTS = {
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
     "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
     "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
+    # For ark model
+    "doubao-lite-4k-240515": {"prompt": 0.000042, "completion": 0.000084},
+    "doubao-lite-32k-240515": {"prompt": 0.000042, "completion": 0.000084},
+    "doubao-lite-128k-240515": {"prompt": 0.00011, "completion": 0.00013},
+    "doubao-pro-4k-240515":{"prompt":0.00011,"completion":0.00028},
+    "doubao-pro-32k-240515":{"prompt":0.00011,"completion":0.00028},
+    "doubao-pro-128k-240515":{"prompt":0.0007,"completion":0.0012},
 }
 
 
