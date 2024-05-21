@@ -270,11 +270,11 @@ class Engineer(Role):
         design_doc = None
         code_plan_and_change_doc = await self._get_any_code_plan_and_change() if await self._is_fixbug() else None
         for i in dependencies:
-            if str(i.parent) == TASK_FILE_REPO:
+            if str(i.parent.as_posix()) == TASK_FILE_REPO:
                 task_doc = await self.project_repo.docs.task.get(i.name)
-            elif str(i.parent) == SYSTEM_DESIGN_FILE_REPO:
+            elif str(i.parent.as_posix()) == SYSTEM_DESIGN_FILE_REPO:
                 design_doc = await self.project_repo.docs.system_design.get(i.name)
-            elif str(i.parent) == CODE_PLAN_AND_CHANGE_FILE_REPO:
+            elif str(i.parent.as_posix()) == CODE_PLAN_AND_CHANGE_FILE_REPO:
                 code_plan_and_change_doc = await self.project_repo.docs.code_plan_and_change.get(i.name)
         if not task_doc or not design_doc:
             logger.error(f'Detected source code "{filename}" from an unknown origin.')
