@@ -128,11 +128,15 @@ DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/t
 Different model has different detail page. Attention, some model are free for a limited time.
 """
 DASHSCOPE_TOKEN_COSTS = {
-    "qwen-turbo": {"prompt": 0.0011, "completion": 0.0011},
-    "qwen-plus": {"prompt": 0.0028, "completion": 0.0028},
-    "qwen-max": {"prompt": 0.0, "completion": 0.0},
-    "qwen-max-1201": {"prompt": 0.0, "completion": 0.0},
-    "qwen-max-longcontext": {"prompt": 0.0, "completion": 0.0},
+    "qwen-turbo": {"prompt": 0.00028, "completion": 0.00083},
+    "qwen-long": {"prompt": 0.00007, "completion": 0.00028},
+    "qwen-plus": {"prompt": 0.00055, "completion": 0.00166},
+    "qwen-max": {"prompt": 0.0055, "completion": 0.0166},
+    "qwen-max-0428": {"prompt": 0.0055, "completion": 0.0166},
+    "qwen-max-0403": {"prompt": 0.0055, "completion": 0.0166},
+    "qwen-max-0107": {"prompt": 0.0055, "completion": 0.0166},
+    "qwen-max-1201": {"prompt": 0.0166, "completion": 0.0166},
+    "qwen-max-longcontext": {"prompt": 0.0055, "completion": 0.0166},
     "llama2-7b-chat-v2": {"prompt": 0.0, "completion": 0.0},
     "llama2-13b-chat-v2": {"prompt": 0.0, "completion": 0.0},
     "qwen-72b-chat": {"prompt": 0.0, "completion": 0.0},
