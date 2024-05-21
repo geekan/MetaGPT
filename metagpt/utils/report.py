@@ -56,23 +56,23 @@ class ResourceReporter(BaseModel):
     callback_url: str = Field(METAGPT_REPORTER_DEFAULT_URL, description="The URL to which the report should be sent")
     _llm_task: Optional[asyncio.Task] = PrivateAttr(None)
 
-    def report(self, value: Any, name: str):
+    def report(self, value: Any, name: str, extra: Optional[dict] = None):
         """Synchronously report resource observation data.
 
         Args:
             value: The data to report.
             name: The type name of the data.
         """
-        return self._report(value, name)
+        return self._report(value, name, extra)
 
-    async def async_report(self, value: Any, name: str):
+    async def async_report(self, value: Any, name: str, extra: Optional[dict] = None):
         """Asynchronously report resource observation data.
 
         Args:
             value: The data to report.
             name: The type name of the data.
         """
-        return await self._async_report(value, name)
+        return await self._async_report(value, name, extra)
 
     @classmethod
     def set_report_fn(cls, fn: Callable):
@@ -101,20 +101,20 @@ class ResourceReporter(BaseModel):
         """
         cls._async_report = fn
 
-    def _report(self, value: Any, name: str):
+    def _report(self, value: Any, name: str, extra: Optional[dict] = None):
         if not self.callback_url:
             return
 
-        data = self._format_data(value, name)
+        data = self._format_data(value, name, extra)
         resp = requests.post(self.callback_url, json=data)
         resp.raise_for_status()
         return resp.text
 
-    async def _async_report(self, value: Any, name: str):
+    async def _async_report(self, value: Any, name: str, extra: Optional[dict] = None):
         if not self.callback_url:
             return
 
-        data = self._format_data(value, name)
+        data = self._format_data(value, name, extra)
         url = self.callback_url
         _result = urlparse(url)
         sessiion_kwargs = {}
@@ -130,7 +130,7 @@ class ResourceReporter(BaseModel):
                 resp.raise_for_status()
                 return await resp.text()
 
-    def _format_data(self, value, name):
+    def _format_data(self, value, name, extra):
         data = self.model_dump(mode="json", exclude=("callback_url", "llm_stream"))
         if isinstance(value, BaseModel):
             value = value.model_dump(mode="json")
@@ -147,6 +147,8 @@ class ResourceReporter(BaseModel):
         else:
             role_name = os.environ.get("METAGPT_ROLE")
         data["role"] = role_name
+        if extra:
+            data["extra"] = extra
         return data
 
     def __enter__(self):
@@ -277,13 +279,23 @@ class FileReporter(ResourceReporter):
     if the file can be partially output for display first, use streaming callback.
     """
 
-    def report(self, value: Union[Path, dict, Any], name: Literal["path", "meta", "content"] = "path"):
+    def report(
+        self,
+        value: Union[Path, dict, Any],
+        name: Literal["path", "meta", "content"] = "path",
+        extra: Optional[dict] = None,
+    ):
         """Report file resource synchronously."""
-        return super().report(value, name)
+        return super().report(value, name, extra)
 
-    async def async_report(self, value: Path, name: Literal["path", "meta", "content", "document"] = "path"):
+    async def async_report(
+        self,
+        value: Union[Path, dict, Any],
+        name: Literal["path", "meta", "content"] = "path",
+        extra: Optional[dict] = None,
+    ):
         """Report file resource asynchronously."""
-        return await super().async_report(value, name)
+        return await super().async_report(value, name, extra)
 
 
 class NotebookReporter(FileReporter):
