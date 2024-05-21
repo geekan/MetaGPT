@@ -26,7 +26,7 @@ from typing import List, Optional, Set
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import UserRequirement, WriteCode, WriteCodeReview, WriteTasks
+from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
@@ -103,18 +103,7 @@ class Engineer(Role):
         super().__init__(**kwargs)
         self.enable_memory = False
         self.set_actions([WriteCode])
-        self._watch(
-            [
-                UserRequirement,
-                PrepareDocuments,
-                WriteTasks,
-                SummarizeCode,
-                WriteCode,
-                WriteCodeReview,
-                FixBug,
-                WriteCodePlanAndChange,
-            ]
-        )
+        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
         self.code_todos = []
         self.summarize_todos = []
         self.next_todo_action = any_to_name(WriteCode)
@@ -275,19 +264,7 @@ class Engineer(Role):
             return False
         msg = self.rc.news[0]
         input_args = msg.instruct_content
-        if msg.cause_by == any_to_str(UserRequirement):
-            self.rc.todo = PrepareDocuments(
-                key_descriptions={
-                    "project_path": 'the project path if exists in "Original Requirement"',
-                    "src_filename": 'the file name of the source code file explicitly requested for modification if exists in "Original Requirement"',
-                },
-                context=self.context,
-                send_to=any_to_str(self),
-            )
-            self.repo = ProjectRepo(input_args.project_path)
-            self.input_args = input_args
-            return bool(self.rc.todo)
-        elif msg.cause_by in {any_to_str(WriteTasks), any_to_str(FixBug)}:
+        if msg.cause_by in {any_to_str(WriteTasks), any_to_str(FixBug)}:
             self.input_args = input_args
             self.repo = ProjectRepo(input_args.project_path)
             if self.repo.src_relative_path is None:

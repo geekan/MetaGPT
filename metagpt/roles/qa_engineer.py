@@ -55,12 +55,8 @@ class QaEngineer(Role):
 
         # FIXME: a bit hack here, only init one action to circumvent _think() logic,
         #  will overwrite _think() in future updates
-        self.set_actions(
-            [
-                WriteTest,
-            ]
-        )
-        self._watch([UserRequirement, PrepareDocuments, SummarizeCode, WriteTest, RunCode, DebugError])
+        self.set_actions([WriteTest])
+        self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
 
     async def _write_test(self, message: Message) -> None:
