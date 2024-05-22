@@ -10,7 +10,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice, ChoiceDelta
 
 from metagpt.provider.ark_api import ArkLLM
-from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.mock_llm_config import mock_llm_config_ark
 from tests.metagpt.provider.req_resp_const import (
     get_openai_chat_completion,
     llm_general_chat_funcs_test,
@@ -75,7 +75,7 @@ async def mock_ark_acompletions_create(
 async def test_ark_acompletion(mocker):
     mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_ark_acompletions_create)
 
-    llm = ArkLLM(mock_llm_config)
+    llm = ArkLLM(mock_llm_config_ark)
 
     resp = await llm.acompletion(messages)
     assert resp.choices[0].finish_reason == "stop"
