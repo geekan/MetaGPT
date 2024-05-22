@@ -44,7 +44,7 @@ wrapt==1.15.0
 # azure-cognitiveservices-speech~=1.31.0 # Used by metagpt/tools/azure_tts.py
 #aioboto3~=12.4.0  # Used by metagpt/utils/s3.py
 aioredis~=2.0.1 # Used by metagpt/utils/redis.py
-websocket-client==1.6.2
+websocket-client~=1.6.2
 aiofiles==23.2.1
 gitpython==3.1.40
 zhipuai==2.0.1
