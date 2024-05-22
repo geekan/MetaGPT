@@ -61,7 +61,6 @@ class SparkLLM(BaseLLM):
             return {}
 
     async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        messages = convert_to_messages(messages)
         response = await self.acreate(messages, stream=False)
         usage = self.get_usage(response)
         self._update_costs(usage)
@@ -89,6 +88,7 @@ class SparkLLM(BaseLLM):
         return "\n".join([i.content for i in context if "AIMessage" in any_to_str(i)])
 
     async def acreate(self, messages: list[dict], stream: bool = True):
+        messages = convert_to_messages(messages)
         if stream:
             return self.client.astream(messages)
         else:
