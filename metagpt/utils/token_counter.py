@@ -261,9 +261,9 @@ BEDROCK_TOKEN_COSTS = {
 # https://xinghuo.xfyun.cn/sparkapi?scr=price
 SPARK_TOKENS = {
     "general": {"prompt": 0.0, "completion": 0.0},  # Spark-Lite
-    "generalV2": {"prompt": 0.0188, "completion": 0.0188},  # Spark V2.0
-    "generalV3": {"prompt": 0.0035, "completion": 0.0035},  # Spark Pro
-    "generalV3.5": {"prompt": 0.0035, "completion": 0.0035},  # Spark3.5 Max
+    "generalv2": {"prompt": 0.0188, "completion": 0.0188},  # Spark V2.0
+    "generalv3": {"prompt": 0.0035, "completion": 0.0035},  # Spark Pro
+    "generalv3.5": {"prompt": 0.0035, "completion": 0.0035},  # Spark3.5 Max
 }
 
 
