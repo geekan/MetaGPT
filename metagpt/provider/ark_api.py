@@ -20,7 +20,7 @@ class ArkLLM(OpenAILLM):
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages, timeout=self.get_timeout(timeout)),
             stream=True,
-            extra_body={"stream_options": {"include_usage": True}}
+            extra_body={"stream_options": {"include_usage": True}}  # 只有增加这个参数才会在流式时最后返回usage
         )
         usage = None
         collected_messages = []
@@ -29,7 +29,7 @@ class ArkLLM(OpenAILLM):
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
             if chunk.usage:
-                # the usage of ark when streaming is in the last chunk while others are null
+                # 火山方舟的流式调用会在最后一个chunk中返回usage,最后一个chunk的choices为[]
                 usage = CompletionUsage(**chunk.usage)
 
         log_llm_stream("\n")
