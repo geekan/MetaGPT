@@ -258,6 +258,14 @@ BEDROCK_TOKEN_COSTS = {
     "ai21.j2-ultra-v1": {"prompt": 0.0188, "completion": 0.0188},
 }
 
+# https://xinghuo.xfyun.cn/sparkapi?scr=price
+SPARK_TOKENS = {
+    "general": {"prompt": 0.0, "completion": 0.0},  # Spark-Lite
+    "generalV2": {"prompt": 0.0188, "completion": 0.0188},  # Spark V2.0
+    "generalV3": {"prompt": 0.0035, "completion": 0.0035},  # Spark Pro
+    "generalV3.5": {"prompt": 0.0035, "completion": 0.0035},  # Spark3.5 Max
+}
+
 
 def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""

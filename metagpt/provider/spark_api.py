@@ -10,7 +10,10 @@ from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 
-# from sparkai.schema import LLMResult, HumanMessage, AIMessage 由于其使用Pydantic V1,导入会报错
+# from sparkai.schema import LLMResult, HumanMessage, AIMessage  # 由于其使用Pydantic V1,导入会报错
+from metagpt.utils.common import any_to_str
+from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.token_counter import SPARK_TOKENS
 
 
 @register_provider(LLMType.SPARK)
@@ -21,6 +24,8 @@ class SparkLLM(BaseLLM):
 
     def __init__(self, config: LLMConfig):
         self.config = config
+        self.cost_manager = CostManager(token_costs=SPARK_TOKENS)
+        self.model = self.config.domain
         self._init_client()
 
     def _init_client(self):
@@ -60,7 +65,7 @@ class SparkLLM(BaseLLM):
         return response
 
     async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        return self._achat_completion(messages, timeout)
+        return await self._achat_completion(messages, timeout)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         response = self.client.astream(messages)
@@ -76,3 +81,6 @@ class SparkLLM(BaseLLM):
         self._update_costs(usage)
         full_content = "".join(collected_content)
         return full_content
+
+    def _extract_assistant_rsp(self, context):
+        return "\n".join([i.content for i in context if "AIMessage" in any_to_str(i)])
