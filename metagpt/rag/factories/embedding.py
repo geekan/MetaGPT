@@ -85,7 +85,8 @@ class RAGEmbeddingFactory(GenericFactory):
         )
 
         self._try_set_model_and_batch_size(params)
-
+        if "model" in params:
+            params["model_name"] = params.pop("model")
         return OllamaEmbedding(**params)
 
     def _try_set_model_and_batch_size(self, params: dict):
