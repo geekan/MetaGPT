@@ -15,15 +15,15 @@ from tests.metagpt.ext.write_report.write_evaluator_refine import (
     RefineReport,
     WriteAnalysisReport,
 )
-from tests.metagpt.ext.write_report.write_report_planner import WritePlanner
+from tests.metagpt.ext.write_report.write_report_planner import WriteReportPlanner
 
 
-class RewriteReport(Role):
+class ReportRewriter(Role):
     name: str = "wangs"
     profile: str = "事故调查报告"
     auto_run: bool = True
     use_plan: bool = True
-    planner: WritePlanner = Field(default_factory=WritePlanner)
+    planner: WriteReportPlanner = Field(default_factory=WriteReportPlanner)
     evaluator: EvaluatorReport = Field(default_factory=EvaluatorReport, exclude=True)
     refine: RefineReport = Field(default_factory=RefineReport, exclude=True)
 
@@ -40,7 +40,7 @@ class RewriteReport(Role):
     def set_plan_and_tool(self):
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
         # update user_definite planner
-        self.planner = WritePlanner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=self.auto_run)
+        self.planner = WriteReportPlanner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=self.auto_run)
         # Whether to adopt the sop paradigm predefined by humans(是否采用人类预先定义的 sop 范式)
         self.planner.human_design_sop = self.human_design_sop
         self.use_plan = (

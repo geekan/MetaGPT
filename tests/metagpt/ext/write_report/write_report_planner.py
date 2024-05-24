@@ -19,8 +19,6 @@ from metagpt.strategy.planner import Planner
 from metagpt.utils.common import CodeParser, remove_comments
 
 PLAN_STATUS = """
-您的目标是构建一个完整、连贯的事故报告, 请确保您的文字精确、逻辑清晰，并保持专业和客观的写作风格。
-
 当前任务：{current_task}
 
 已生成的章节段落：
@@ -58,7 +56,7 @@ class WriteReportPlan(WritePlan):
         return rsp
 
 
-class WritePlanner(Planner):
+class WriteReportPlanner(Planner):
     human_design_sop: bool = False
 
     async def update_plan(self, goal: str = "", max_tasks: int = 7, max_retries: int = 3):
