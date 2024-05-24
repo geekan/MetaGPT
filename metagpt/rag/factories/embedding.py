@@ -89,9 +89,9 @@ class RAGEmbeddingFactory(GenericFactory):
         return OllamaEmbedding(**params)
 
     def _try_set_model_and_batch_size(self, params: dict):
-        """Set the model and embed_batch_size only when they are specified."""
+        """Set the model_name and embed_batch_size only when they are specified."""
         if config.embedding.model:
-            params["model"] = config.embedding.model
+            params["model_name"] = config.embedding.model
 
         if config.embedding.embed_batch_size:
             params["embed_batch_size"] = config.embedding.embed_batch_size
