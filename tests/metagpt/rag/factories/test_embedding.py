@@ -66,7 +66,7 @@ class TestRAGEmbeddingFactory:
 
     @pytest.mark.parametrize(
         "model, embed_batch_size, expected_params",
-        [("test_model", 100, {"model": "test_model", "embed_batch_size": 100}), (None, None, {})],
+        [("test_model", 100, {"model_name": "test_model", "embed_batch_size": 100}), (None, None, {})],
     )
     def test_try_set_model_and_batch_size(self, mock_config, model, embed_batch_size, expected_params):
         # Mock
