@@ -396,7 +396,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-        return True if next_state >= 0 else False
+        return next_state >= 0
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
