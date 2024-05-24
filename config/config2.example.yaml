@@ -35,7 +35,7 @@ browser:
 
 mermaid:
   engine: "pyppeteer"
-  path: "/Applications/Google Chrome.app"
+  pyppeteer_path: "/Applications/Google Chrome.app"
 
 redis:
   host: "YOUR_HOST"
