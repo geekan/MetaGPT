@@ -58,7 +58,7 @@ Your previous stage: {previous_state}
 Now choose one of the following stages you need to go to in the next step:
 {states}
 
-Just answer a number between 0-{n_states}, choose the most suitable stage according to the understanding of the conversation.
+Just answer a number between -1 and {n_states}, choose the most suitable stage according to the understanding of the conversation.
 Please note that the answer only needs a number, no need to add any other text.
 If you think you have completed your goal and don't need to go to any of the stages, return -1.
 Do not answer anything else, and do not add any other information in your answer.
@@ -276,7 +276,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                 i = action
             self._init_action(i)
             self.actions.append(i)
-            self.states.append(f"{len(self.actions) - 1}. {action}")
+            self.states.append(f"{len(self.actions) - 1}. {action} : {action.desc}")
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
@@ -396,7 +396,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-        return True
+        return True if next_state >= 0 else False
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
