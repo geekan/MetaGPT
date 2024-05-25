@@ -9,10 +9,10 @@ from typing import List
 
 from metagpt.actions.action_node import ActionNode
 
-REQUIRED_PYTHON_PACKAGES = ActionNode(
-    key="Required Python packages",
+REQUIRED_PACKAGES = ActionNode(
+    key="Required packages",
     expected_type=List[str],
-    instruction="Provide required Python packages in requirements.txt format.",
+    instruction="Provide required packages in requirements.txt format.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
 
@@ -97,7 +97,7 @@ ANYTHING_UNCLEAR_PM = ActionNode(
 )
 
 NODES = [
-    REQUIRED_PYTHON_PACKAGES,
+    REQUIRED_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
     LOGIC_ANALYSIS,
     TASK_LIST,
@@ -107,7 +107,7 @@ NODES = [
 ]
 
 REFINED_NODES = [
-    REQUIRED_PYTHON_PACKAGES,
+    REQUIRED_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
     REFINED_LOGIC_ANALYSIS,
     REFINED_TASK_LIST,
