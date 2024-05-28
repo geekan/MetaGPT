@@ -102,7 +102,10 @@ class OpenAILLM(BaseLLM):
             if finish_reason:
                 if hasattr(chunk, "usage") and chunk.usage is not None:
                     # Some services have usage as an attribute of the chunk, such as Fireworks
-                    usage = CompletionUsage(**chunk.usage)
+                    if isinstance(chunk.usage, CompletionUsage):
+                        usage = chunk.usage
+                    else:
+                        usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
