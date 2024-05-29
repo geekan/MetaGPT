@@ -39,14 +39,13 @@ from metagpt.tools.swe_agent_commands.swe_agent_utils import (
 )
 from metagpt.utils.common import CodeParser, find_exist_repo_path_and_cp
 
-SWE_CMD_DIR = f"{METAGPT_ROOT}/metagpt/tools/swe_agent_commands"
+# Path to the bash script that sets up the default environment for the SWEAgent
+SWE_SETUP_PATH = METAGPT_ROOT / "metagpt" / "tools" / "swe_agent_commands" / "setup_default.sh"
 TEST_REPO_DIR = METAGPT_ROOT / "benchmark" / "swe_bench" / "data" / "test_repo"
-SWE_CMD_WORK_DIR = f"{DEFAULT_WORKSPACE_ROOT}/swe_agent_workdir"
-Path(SWE_CMD_WORK_DIR).mkdir(parents=True, exist_ok=True)
-SWE_RESULT_DIR = f"{SWE_CMD_WORK_DIR}/result"
-Path(SWE_RESULT_DIR).mkdir(parents=True, exist_ok=True)
+SWE_CMD_WORK_DIR = DEFAULT_WORKSPACE_ROOT / "swe_agent_workdir"
 
-MAX_TOKEN = 128000
+TEST_REPO_DIR.mkdir(parents=True, exist_ok=True)
+SWE_CMD_WORK_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class TrajectoryNode:
@@ -69,6 +68,7 @@ class SWEAgent(DataInterpreter):
 
     max_react_loop: int = 20  # used for react mode
     react_mode: Literal["plan_and_act", "react"] = "react"
+    user_requirement: str = ""
 
     # The terminal to run the bash commands
     terminal: Terminal = None
@@ -78,43 +78,37 @@ class SWEAgent(DataInterpreter):
     use_memory_window: bool = False
     memory_window: int = 4
     cur_file: str = ""
-    # Path to the bash script that sets up the default environment for the SWEAgent
-    swe_setup_path: str = SWE_CMD_DIR + "/setup_default.sh"
     # Fetch the base commit and issue description from the dataset
     fetch_from_dataset: Optional[bool] = False
     # git_push_and_create_pr_tag are used to determine if to push the changes to the repo and create a pull request
     git_push_and_create_pr_tag: Optional[bool] = False
+    # The issue description
+    issue: str = ""
     # Whether to only locate the issue without fixing it in the repo
     only_locate_issue: Optional[bool] = False
-    # The issue description from the GitHub issue link
-    issue: str = ""
-    # The hints to provide to the user
-    hints_text: str = ""
     # Path to the repository where the code is located
-    repo_path: str = SWE_CMD_WORK_DIR + "/temp"
-    # repo_info includes the base commit, issue description and repo identifier
+    repo_path: Path = SWE_CMD_WORK_DIR / "temp"
+    # repo_info includes the base commit, issue description, repo identifier and hints text
     repo_info: dict = {}
     # The instance_id of the SWE-bench dataset
     instance_ids: list[str] = []
     cur_instance_id: str = ""
     # Trajectory of the agent
     trajectory: list[TrajectoryNode] = []
-    user_requirement: str = ""
-    env_name: str = ""
-    dataset: DataFrame = None
     dataset_path: str = ""
+    dataset: DataFrame = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.terminal = Terminal()
         # Source the setup script to set up the default environment
-        self.terminal.run_command(f'source "{self.swe_setup_path}"')
+        self.terminal.run_command(f'source {SWE_SETUP_PATH.as_posix()}')
         # Test swe_agent_commands
         # logger.info(self.terminal.run_command("open role.py"))
         self.llm.system_prompt = SWE_AGENT_SYSTEM_TEMPLATE.format(WINDOW=self.bash_window_size)
         self.trajectory.append(TrajectoryNode(thought="", action="", observation=f"SYSTEM:\n{self.llm.system_prompt}"))
 
-        self.swe_result_dir = f"{SWE_CMD_WORK_DIR}/result_{self.config.llm.model}"
+        self.swe_result_dir = SWE_CMD_WORK_DIR / f"result_{self.config.llm.model}"
         if self.fetch_from_dataset:
             logger.info(f"loading {self.dataset_path} dataset")
             dataset = load_dataset(self.dataset_path)
@@ -133,16 +127,18 @@ class SWEAgent(DataInterpreter):
         rsp = AIMessage(content="No actions taken yet")  # will be overwritten after Role _act
         submit_flag = True
         while actions_taken < self.rc.max_react_loop or self.instance_ids:
-            # Check if we need to reset the environment for the next instance
-            if self._should_reset_env(submit_flag, actions_taken):
-                actions_taken = await self._handle_env_reset(actions_taken)
+            # Determine if we need to reset the environment for the next instance
+            if submit_flag or actions_taken >= self.rc.max_react_loop:
+                if actions_taken >= self.rc.max_react_loop:
+                    # Reset the actions taken and save the trajectory and predictions if the max_react_loop is reached
+                    actions_taken = await self._reset_taken_after_max_actions()
 
                 # Check if there are any instances left to process
                 if not self.instance_ids:
                     logger.error("All instances have been processed.")
                     break
 
-                # Reset the environment for the next instance
+                # if there are any, reset the environment for the next instance
                 self._initialize_next_instance()
 
                 submit_flag = False
@@ -167,24 +163,13 @@ class SWEAgent(DataInterpreter):
 
         return rsp
 
-    def _should_reset_env(self, submit_flag, actions_taken):
-        # Determine if the environment needs to be reset
-        return submit_flag or actions_taken >= self.rc.max_react_loop
-
-    async def _handle_env_reset(self, actions_taken):
-        # Handle environment reset and save trajectory and predictions if necessary
-        if actions_taken >= self.rc.max_react_loop:
-            os.makedirs(self.swe_result_dir, exist_ok=True)
-            await self.save_traj_and_preds()
-            self._reset_instance_variables()
-            actions_taken = 0
-        return actions_taken
-
-    def _reset_instance_variables(self):
-        # Reset instance variables for the next loop iteration
+    async def _reset_taken_after_max_actions(self):
+        await self.save_traj_and_preds()
         self.cur_instance_id = ""
         self.working_memory.clear()
         self.trajectory.clear()
+        actions_taken = 0
+        return actions_taken
 
     def _initialize_next_instance(self):
         # Initialize the next instance from the dataset
@@ -193,18 +178,22 @@ class SWEAgent(DataInterpreter):
         logger.info(f"Resetting the virtual environment for the current instance: {self.cur_instance_id}")
         self._reset_env(instance)
 
+        self.terminal.run_command(f"cd {self.repo_path}")
+        self.working_memory.add(Message(content=f"cd {self.repo_path}", role="user"))
+        self.trajectory.append(TrajectoryNode(thought="", action="", observation=self.user_requirement))
+
     async def save_traj_and_preds(self):
         if self.repo_info[self.cur_instance_id]["exit_status"] != "submitted":
             logger.info("Submitting the changes to the repository.")
             await self.submit()
-        self.save_trajectory(f"{self.swe_result_dir}/{self.cur_instance_id}.traj")
-        self.save_predictions(self.swe_result_dir)
+        self.save_trajectory()
+        self.save_predictions()
 
     async def _think(self) -> bool:
         """Useful in 'react' mode."""
         context = self.working_memory.get()
         if not context:
-            self._initialize_working_memory()
+            self._set_state(0)
             return True
 
         if not self.rc.todo or not self.cur_instance_id:
@@ -218,15 +207,8 @@ class SWEAgent(DataInterpreter):
             need_action = await self._handle_only_locate_issue(context)
         else:
             self._set_state(0)
-        # TODO: Remove reproduced examples from the self.user_requirement after the reproduction
-        return need_action
 
-    def _initialize_working_memory(self):
-        # Initialize the working memory with the repository path
-        self.terminal.run_command(f"cd {self.repo_path}")
-        self.working_memory.add(Message(content=f"cd {self.repo_path}", role="user"))
-        self.trajectory.append(TrajectoryNode(thought="", action="", observation=self.user_requirement))
-        self._set_state(0)
+        return need_action
 
     async def _handle_only_locate_issue(self, context):
         # Handle the logic for only locating the issue
@@ -300,7 +282,8 @@ class SWEAgent(DataInterpreter):
 
         return observation
 
-    def save_trajectory(self, traj_path: str = "trajectory.traj"):
+    def save_trajectory(self):
+        traj_path = self.swe_result_dir / f"{self.cur_instance_id}.traj"
         trajectory_actions = "\n->\n".join([node.action for node in self.trajectory])
         logger.info(f"Actions of trajectory:\n{trajectory_actions}")
 
@@ -315,10 +298,10 @@ class SWEAgent(DataInterpreter):
         with open(traj_path, "w") as f:
             json.dump(log_dict, f, indent=2)
 
-        logger.info(f"Saved trajectory of {self.cur_instance_id} to {traj_path}")
+        logger.info(f"Saved trajectory of {self.cur_instance_id} to {str(traj_path)}")
 
-    def save_predictions(self, result_dir: str):
-        output_file = f"{result_dir}/all_preds.jsonl"
+    def save_predictions(self):
+        output_file = self.swe_result_dir / "all_preds.jsonl"
         datum = {
             "model_name_or_path": self.config.llm.model,
             "instance_id": self.cur_instance_id,
@@ -366,21 +349,24 @@ class SWEAgent(DataInterpreter):
             # Add the patch and exit status to the repo_info
             self.repo_info[self.cur_instance_id]["submission"] = diff_output
 
-            # Change to the repository path and add all files to staging
-            add_output = self.terminal.run_command("git add .")
-            logger.info(f"Add output: {add_output}")
-
-            # Commit the changes with a specific message
-            commit_message = "Fix the bug in the code"
-            commit_command = f'git commit -m "{commit_message}"'
-            commit_output = self.terminal.run_command(commit_command)
-            logger.info(f"Commit output: {commit_output}")
-
             if self.git_push_and_create_pr_tag:
+                commit_message = "Fix the bug in the code"
+                # Handle the commit and push changes to the repository
+                self._handle_commit(commit_message)
                 # Create and switch to a new branch
                 await self._handle_push_and_create_pr(commit_message)
         except Exception as e:
             logger.error(f"Error during submission: {e}")
+
+    def _handle_commit(self, commit_message):
+        # Change to the repository path and add all files to staging
+        add_output = self.terminal.run_command("git add .")
+        logger.info(f"Add output: {add_output}")
+
+        # Commit the changes with a specific message
+        commit_command = f'git commit -m "{commit_message}"'
+        commit_output = self.terminal.run_command(commit_command)
+        logger.info(f"Commit output: {commit_output}")
 
     async def _handle_push_and_create_pr(self, commit_message):
         """Handle pushing changes and creating a pull request."""
@@ -397,13 +383,10 @@ class SWEAgent(DataInterpreter):
         logger.info(f"Pushed to branch: {branch.head}")
 
         # Create a pull request using git_create_pull
-        base_branch = branch.base
-        head_branch = branch.head
-        base_repo_name = branch.repo_name
         pull_request = await git_create_pull(
-            base=base_branch,
-            head=head_branch,
-            base_repo_name=base_repo_name,
+            base=branch.base,
+            head=branch.head,
+            base_repo_name=branch.repo_name,
             access_token=access_token,
             title="Fix the bug in the code",
             body="This pull request fixes the bug in the code.",
@@ -423,11 +406,11 @@ class SWEAgent(DataInterpreter):
                 base_commit=self.repo_info[self.cur_instance_id]["base_commit"],
             )
             self.issue = self.repo_info[self.cur_instance_id]["issue_description"]
-            self.hints_text = self.repo_info[self.cur_instance_id]["hints_text"]
+
             self.user_requirement = INSTANCE_TEMPLATE.format(
                 user_requirement=self.user_requirement,
                 issue=self.issue,
-                hints_text=self.hints_text,
+                hints_text=self.repo_info[self.cur_instance_id]["hints_text"],
             )
         # Only locate the issue without fixing it
         elif self.only_locate_issue:
@@ -440,7 +423,7 @@ class SWEAgent(DataInterpreter):
             self.user_requirement = INSTANCE_TEMPLATE.format(
                 user_requirement=self.user_requirement,
                 issue=self.issue,
-                hints_text=self.hints_text,
+                hints_text=self.repo_info[self.cur_instance_id]["hints_text"],
             )
         logger.info(f"User Requirement:\n{self.user_requirement}")
 
@@ -459,21 +442,22 @@ class SWEAgent(DataInterpreter):
                 issue_number = int(issue_url.split("/")[-1])
                 self.issue = get_github_issue_description(owner, repo_name, issue_number)
 
-        os.makedirs(self.repo_path, exist_ok=True)
         self.terminal.run_command(f"cd {self.repo_path}")
 
     def clone_and_checkout_repo(self, repo_identifier: str = "", base_commit: str = "") -> None:
         if base_commit:
-            self.repo_path = os.path.join(TEST_REPO_DIR.as_posix(), self.repo_info[self.cur_instance_id]["env_name"])
+            # self.repo_path = os.path.join(TEST_REPO_DIR.as_posix(), self.repo_info[self.cur_instance_id]["env_name"])
+            self.repo_path = TEST_REPO_DIR / self.repo_info[self.cur_instance_id]["env_name"]
         else:
-            self.repo_path = os.path.join(TEST_REPO_DIR.as_posix(), repo_identifier.split("/")[-1])
+            # self.repo_path = os.path.join(TEST_REPO_DIR.as_posix(), repo_identifier.split("/")[-1])
+            self.repo_path = TEST_REPO_DIR / repo_identifier.split("/")[-1]
 
         clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {self.repo_path}"
         checkout_command = f"cd {self.repo_path} && git checkout -f {base_commit}" if base_commit else ""
 
-        if not Path(self.repo_path).exists() or (not any(Path(self.repo_path).rglob("*.py"))):
+        if not self.repo_path.exists() or (not any(self.repo_path.rglob("*.py"))):
             # re-use an existed same repo_name repo
-            new_dest_path = find_exist_repo_path_and_cp(Path(self.repo_path))
+            new_dest_path = find_exist_repo_path_and_cp(self.repo_path)
             if not new_dest_path:
                 clone_result = self.terminal.run_command(clone_command)
                 logger.info(clone_result)
@@ -485,7 +469,7 @@ class SWEAgent(DataInterpreter):
     def _reset_env(self, instance: dict) -> None:
         """Reset the environment."""
         # self.env_name = ENV_INFO_DATA.get(self.cur_instance_id, "")
-        self.env_name = self.repo_info[self.cur_instance_id]["env_name"]
+        env_name = self.repo_info[self.cur_instance_id]["env_name"]
 
         # repo_name = instance["repo"].split("/")[-1]
         repo_name = self.repo_info[self.cur_instance_id]["repo"].split("/")[-1]
@@ -495,7 +479,7 @@ class SWEAgent(DataInterpreter):
 
         # Create the environment manager
         env_manager = EnvManager(
-            env_name=self.env_name, repo_path=self.repo_path, instance=instance, repo_name=repo_name
+            env_name=env_name, repo_path=str(self.repo_path), instance=instance, repo_name=repo_name
         )
         env_manager.create_env()
 

@@ -77,12 +77,12 @@ def filter_and_get_repo_info(
         hints_text = instance["hints_text"]
         repo = instance["repo"]
 
-        # ENV_INFO_DATA differs from env_name, it should be two __ separated strings
-        # env_name = ENV_INFO_DATA.get(instance_id, "")
-        # if not env_name:
-        repo_prefix = repo.replace("/", "__")
-        version = instance["version"]
-        env_name = f"{repo_prefix}__{version}"
+        # FIXME: ENV_INFO_DATA differs from env_name, it should be two __ separated strings
+        env_name = ENV_INFO_DATA.get(instance_id, "")
+        if not env_name:
+            repo_prefix = repo.replace("/", "__")
+            version = instance["version"]
+            env_name = f"{repo_prefix}__{version}"
 
         # Record the information of the repository for the current instance ID
         repo_info[instance_id] = {

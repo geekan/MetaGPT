@@ -118,10 +118,10 @@ Your command ran successfully and did not produce any output.
 
 OUTPUT_FORMAT = """
 ```json
-{{
+{
     "thought": str = "Thought on current situation, reflect on how you should proceed to fulfill the user requirement",
     "bash_command": str = "The next bash command you want to run"
-}}
+}
 ```
 """
 
