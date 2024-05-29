@@ -21,6 +21,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import sys
 import traceback
 from io import BytesIO
@@ -30,6 +31,7 @@ from urllib.parse import quote, unquote
 
 import aiofiles
 import loguru
+import regex
 import requests
 from PIL import Image
 from pydantic_core import to_jsonable_python
@@ -834,3 +836,30 @@ See FAQ 5.8
 """
     )
     raise retry_state.outcome.exception()
+
+
+def find_exist_repo_path_and_cp(repo_path: Path) -> Union[Path, None]:
+    """find an first existed repo path with same repo name, no need to clone different version with same repo"""
+    repo_path = Path(repo_path)
+    if repo_path.exists() and any(Path(destination_path).rglob("*.py")):
+        return repo_path
+
+    new_repo_path = None
+    repo_root_path = repo_path.parent
+    for subfolder in repo_root_path.iterdir():
+        if not subfolder.is_dir():
+            continue
+
+        version = regex.findall("[0-9]+\.[0-9]+", subfolder.name)
+        subfolder.name.split("_")
+        repo_fmt_name = (
+            subfolder.name if not version else "_".join(subfolder.name.split("_")[:-1])
+        )  # with `version` suffix
+        if repo_fmt_name in str(repo_path):
+            # find an existed same repo_name repo
+            shutil.rmtree(str(repo_path), ignore_errors=True)
+            shutil.copytree(str(subfolder), str(repo_path))
+            logger.info(f"copy repo from existed {subfolder} to {repo_path}")
+            new_repo_path = repo_path
+            break
+    return new_repo_path

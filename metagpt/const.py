@@ -132,3 +132,6 @@ IGNORED_MESSAGE_ID = "0"
 GENERALIZATION = "Generalize"
 COMPOSITION = "Composite"
 AGGREGATION = "Aggregate"
+
+# Reporter
+METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")

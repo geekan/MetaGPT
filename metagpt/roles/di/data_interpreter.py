@@ -42,7 +42,7 @@ class DataInterpreter(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     react_mode: Literal["plan_and_act", "react"] = "plan_and_act"
-    max_react_loop: int = 10  # used for react mode
+    max_react_loop: int = 1  # used for react mode
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "Interpreter":
@@ -72,6 +72,7 @@ class DataInterpreter(Role):
             return True
 
         prompt = REACT_THINK_PROMPT.format(user_requirement=user_requirement, context=context)
+        prompt = prompt + "\n No need to worry about any test cases or test code modification"
         rsp = await self.llm.aask(prompt)
         rsp_dict = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.working_memory.add(Message(content=rsp_dict["thoughts"], role="assistant"))
