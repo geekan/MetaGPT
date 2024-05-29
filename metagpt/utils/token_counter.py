@@ -68,6 +68,15 @@ TOKEN_COSTS = {
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
     "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
     "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
+    # For ark model https://www.volcengine.com/docs/82379/1099320
+    "doubao-lite-4k-240515": {"prompt": 0.000042, "completion": 0.000084},
+    "doubao-lite-32k-240515": {"prompt": 0.000042, "completion": 0.000084},
+    "doubao-lite-128k-240515": {"prompt": 0.00011, "completion": 0.00013},
+    "doubao-pro-4k-240515": {"prompt": 0.00011, "completion": 0.00028},
+    "doubao-pro-32k-240515": {"prompt": 0.00011, "completion": 0.00028},
+    "doubao-pro-128k-240515": {"prompt": 0.0007, "completion": 0.0012},
+    "llama3-70b-llama3-70b-instruct": {"prompt": 0.0, "completion": 0.0},
+    "llama3-8b-llama3-8b-instruct": {"prompt": 0.0, "completion": 0.0},
 }
 
 
@@ -213,6 +222,12 @@ TOKEN_MAX = {
     "openai/gpt-4-turbo-preview": 128000,
     "deepseek-chat": 32768,
     "deepseek-coder": 16385,
+    "doubao-lite-4k-240515": 4000,
+    "doubao-lite-32k-240515": 32000,
+    "doubao-lite-128k-240515": 128000,
+    "doubao-pro-4k-240515": 4000,
+    "doubao-pro-32k-240515": 32000,
+    "doubao-pro-128k-240515": 128000,
 }
 
 # For Amazon Bedrock US region
@@ -260,6 +275,14 @@ BEDROCK_TOKEN_COSTS = {
     "ai21.j2-mid-v1": {"prompt": 0.0125, "completion": 0.0125},
     "ai21.j2-ultra": {"prompt": 0.0188, "completion": 0.0188},
     "ai21.j2-ultra-v1": {"prompt": 0.0188, "completion": 0.0188},
+}
+
+# https://xinghuo.xfyun.cn/sparkapi?scr=price
+SPARK_TOKENS = {
+    "general": {"prompt": 0.0, "completion": 0.0},  # Spark-Lite
+    "generalv2": {"prompt": 0.0188, "completion": 0.0188},  # Spark V2.0
+    "generalv3": {"prompt": 0.0035, "completion": 0.0035},  # Spark Pro
+    "generalv3.5": {"prompt": 0.0035, "completion": 0.0035},  # Spark3.5 Max
 }
 
 

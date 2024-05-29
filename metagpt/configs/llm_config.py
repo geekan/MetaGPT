@@ -33,6 +33,7 @@ class LLMType(Enum):
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
+    ARK = "ark"
 
     def __missing__(self, key):
         return self.OPENAI

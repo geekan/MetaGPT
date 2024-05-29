@@ -69,3 +69,5 @@ mock_llm_config_bedrock = LLMConfig(
     secret_key="123abc",
     max_token=10000,
 )
+
+mock_llm_config_ark = LLMConfig(api_type="ark", api_key="eyxxx", base_url="xxx", model="ep-xxx")
