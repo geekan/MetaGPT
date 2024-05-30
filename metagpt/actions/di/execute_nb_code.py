@@ -65,7 +65,7 @@ class ExecuteNbCode(Action):
     """execute notebook code block, return result to llm, and display it."""
 
     nb: NotebookNode
-    nb_client: NotebookClient = None
+    nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
     timeout: int = 600
@@ -78,11 +78,15 @@ class ExecuteNbCode(Action):
             interaction=("ipython" if self.is_ipython() else "terminal"),
         )
         self.reporter = NotebookReporter()
+        self.set_nb_client()
+
+    def set_nb_client(self):
         self.nb_client = RealtimeOutputNotebookClient(
-            nb,
-            timeout=timeout,
+            self.nb,
+            timeout=self.timeout,
             resources={"metadata": {"path": DEFAULT_WORKSPACE_ROOT}},
             notebook_reporter=self.reporter,
+            coalesce_streams=True,
         )
 
     async def build(self):
@@ -118,7 +122,7 @@ class ExecuteNbCode(Action):
         # sleep 1s to wait for the kernel to be cleaned up completely
         await asyncio.sleep(1)
         await self.build()
-        self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
+        self.set_nb_client()
 
     def add_code_cell(self, code: str):
         self.nb.cells.append(new_code_cell(source=code))
