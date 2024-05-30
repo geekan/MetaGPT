@@ -20,6 +20,7 @@ from metagpt.strategy.thinking_command import (
 )
 from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import ThoughtReporter
 
 
 class DataAnalyst(DataInterpreter):
@@ -82,8 +83,8 @@ class DataAnalyst(DataInterpreter):
             available_commands=prepare_command_prompt(self.available_commands),
         )
         context = self.llm.format_msg(self.working_memory.get() + [Message(content=prompt, role="user")])
-
-        rsp = await self.llm.aask(context)
+        async with ThoughtReporter():
+            rsp = await self.llm.aask(context)
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 

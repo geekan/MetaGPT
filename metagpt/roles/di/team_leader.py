@@ -20,6 +20,7 @@ from metagpt.strategy.thinking_command import (
     run_commands,
 )
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import ThoughtReporter
 
 
 class TeamLeader(Role):
@@ -69,7 +70,8 @@ class TeamLeader(Role):
         )
         context = self.llm.format_msg(self.get_memories(k=10) + [Message(content=prompt, role="user")])
 
-        rsp = await self.llm.aask(context, system_msgs=[SYSTEM_PROMPT])
+        async with ThoughtReporter():
+            rsp = await self.llm.aask(context, system_msgs=[SYSTEM_PROMPT])
         self.commands = json.loads(CodeParser.parse_code(text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))
 
