@@ -14,8 +14,9 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +38,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, aread, awrite, to_markdown_code_block
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.project_repo import ProjectRepo
@@ -73,8 +74,75 @@ class WritePRD(Action):
     repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
     input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
-    async def run(self, with_messages, *args, **kwargs) -> Message:
-        """Run the action."""
+    async def run(
+        self,
+        with_messages: List[Message] = None,
+        *,
+        user_requirement: str = "",
+        output_path: str = "",
+        exists_prd_filename: str = "",
+        extra_info: str = "",
+        **kwargs,
+    ) -> AIMessage:
+        """
+        Write a Product Requirement Document.
+
+        Args:
+            user_requirement (str): A string detailing the user's requirements.
+            output_path (str, optional): The file path where the output document should be saved. Defaults to "".
+            exists_prd_filename (str, optional): The file path of an existing Product Requirement Document to use as a reference. Defaults to "".
+            extra_info (str, optional): Additional information to include in the document. Defaults to "".
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            AIMessage: The resulting message after generating the Product Requirement Document.
+
+        Example:
+            # Write a new PRD(Product Requirement Document)
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info)
+            >>> print(result.content)
+            The PRD is about balabala...
+
+            # Modify a exists PRD(Product Requirement Document)
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> exists_prd_filename = "/path/to/exists/prd_filename"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, exists_prd_filename=exists_prd_filename)
+            >>> print(result.content)
+            The PRD is about balabala...
+
+            # Write and save a new PRD(Product Requirement Document) to the directory.
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> output_path = "/path/to/prd/directory/"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_path=output_path)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+            # Modify a exists PRD(Product Requirement Document) and save to the directory.
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> exists_prd_filename = "/path/to/exists/prd_filename"
+            >>> output_path = "/path/to/prd/directory/"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, exists_prd_filename=exists_prd_filename, output_path=output_path)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+        """
+        if not with_messages:
+            return await self._execute_api(
+                user_requirement=user_requirement,
+                output_path=output_path,
+                exists_prd_filename=exists_prd_filename,
+                extra_info=extra_info,
+            )
+
         self.input_args = with_messages[-1].instruct_content
         if not self.input_args:
             self.repo = ProjectRepo(self.config.project_path)
@@ -110,6 +178,7 @@ class WritePRD(Action):
         else:
             logger.info(f"New requirement detected: {req.content}")
             await self._handle_new_requirement(req)
+
         kvs = self.input_args.model_dump()
         kvs["changed_prd_filenames"] = [
             str(self.repo.docs.prd.workdir / i) for i in list(self.repo.docs.prd.changed_files.keys())
@@ -143,16 +212,20 @@ class WritePRD(Action):
             send_to="Alex",  # the name of Engineer
         )
 
+    async def _new_prd(self, requirement: str) -> ActionNode:
+        project_name = self.project_name
+        context = CONTEXT_TEMPLATE.format(requirements=requirement, project_name=project_name)
+        exclude = [PROJECT_NAME.key] if project_name else []
+        node = await WRITE_PRD_NODE.fill(
+            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+        )  # schema=schema
+        return node
+
     async def _handle_new_requirement(self, req: Document) -> ActionOutput:
         """handle new requirement"""
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "prd"}, "meta")
-            project_name = self.project_name
-            context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
-            exclude = [PROJECT_NAME.key] if project_name else []
-            node = await WRITE_PRD_NODE.fill(
-                context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
-            )  # schema=schema
+            node = await self._new_prd(req.content)
             await self._rename_workspace(node)
             new_prd_doc = await self.repo.docs.prd.save(
                 filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
@@ -223,4 +296,28 @@ class WritePRD(Action):
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             if ws_name:
                 self.project_name = ws_name
-        self.repo.git_repo.rename_root(self.project_name)
+        if self.repo:
+            self.repo.git_repo.rename_root(self.project_name)
+
+    async def _execute_api(
+        self, user_requirement: str, output_path: str, exists_prd_filename: str, extra_info: str
+    ) -> AIMessage:
+        content = to_markdown_code_block(val=user_requirement)
+        if extra_info:
+            content += to_markdown_code_block(val=extra_info)
+
+        req = Document(content=content)
+        if not exists_prd_filename:
+            node = await self._new_prd(requirement=req.content)
+            new_prd = Document(content=node.instruct_content.model_dump_json())
+        else:
+            content = await aread(filename=exists_prd_filename)
+            old_prd = Document(content=content)
+            new_prd = await self._merge(req=req, related_doc=old_prd)
+
+        if not output_path:
+            return AIMessage(content=new_prd.content)
+
+        output_filename = Path(output_path) / f"{uuid.uuid4().hex}.json"
+        await awrite(filename=output_filename, data=new_prd.content)
+        return AIMessage(content=f'PRD filename: "{str(output_filename)}"')

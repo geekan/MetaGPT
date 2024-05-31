@@ -667,6 +667,8 @@ def role_raise_decorator(func):
 @handle_exception
 async def aread(filename: str | Path, encoding="utf-8") -> str:
     """Read file asynchronously."""
+    if not filename or not Path(filename).exists():
+        return ""
     try:
         async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
             content = await reader.read()
@@ -940,3 +942,8 @@ def get_markdown_code_block_type(filename: str) -> str:
         # Add more file extensions and corresponding code block types as needed
     }
     return types.get(ext, "")
+
+
+def to_markdown_code_block(val: str, type_: str = "") -> str:
+    val = val.replace("```", "\\`\\`\\`")
+    return f"\n```{type_}\n{val}\n```\n"
