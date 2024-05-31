@@ -185,7 +185,7 @@ class Environment(ExtEnv):
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
         for role, addrs in self.member_addrs.items():
-            if is_send_to(message, addrs):
+            if is_send_to(message, addrs) and role.is_watch(message.cause_by):
                 role.put_message(message)
                 found = True
         if not found:
