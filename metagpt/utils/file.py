@@ -9,6 +9,7 @@
 from pathlib import Path
 
 import aiofiles
+from fsspec.implementations.memory import MemoryFileSystem as _MemoryFileSystem
 
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
@@ -68,3 +69,10 @@ class File:
             content = b"".join(chunks)
             logger.debug(f"Successfully read file, the path of file: {file_path}")
             return content
+
+
+class MemoryFileSystem(_MemoryFileSystem):
+
+    @classmethod
+    def _strip_protocol(cls, path):
+        return super()._strip_protocol(str(path))

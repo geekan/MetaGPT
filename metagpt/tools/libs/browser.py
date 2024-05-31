@@ -1,9 +1,12 @@
 from __future__ import annotations
+import contextlib
 
 from playwright.async_api import async_playwright
-
+from metagpt.utils.file import MemoryFileSystem
+from uuid import uuid4
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.parse_html import simplify_html
 from metagpt.utils.report import BrowserReporter
 
 
@@ -35,15 +38,48 @@ class Browser:
         print("Now on page ", url)
         await self._view()
 
-    async def open_new_page(self, url: str):
+    async def open_new_page(self, url: str, timeout: float = 30000):
         """open a new page in the browser and view the page"""
         async with self.reporter as reporter:
             page = await self.browser.new_page()
             await reporter.async_report(url, "url")
-            await page.goto(url)
+            await page.goto(url, timeout=timeout)
             self.pages[url] = page
             await self._set_current_page(page, url)
             await reporter.async_report(page, "page")
+
+    async def view_page_element_to_scrape(self, requirement: str, keep_links: bool = False) -> None:
+        """view the HTML content of current page to understand the structure. When executed, the content will be printed out
+
+        Args:
+            requirement (str): Providing a clear and detailed requirement helps in focusing the inspection on the desired elements.
+            keep_links (bool): Whether to keep the hyperlinks in the HTML content. Set to True if links are required
+        """
+        html = await self.current_page.content()
+        html = simplify_html(html, url=self.current_page.url, keep_links=keep_links)
+        mem_fs = MemoryFileSystem()
+        filename = f"{uuid4().hex}.html"
+        with mem_fs.open(filename, "w") as f:
+            f.write(html)
+
+        # Since RAG is an optional optimization, if it fails, the simplified HTML can be used as a fallback.
+        with contextlib.suppress(Exception):
+
+            from metagpt.rag.engines import SimpleEngine  # avoid circular import
+
+            # TODO make `from_docs` asynchronous
+            engine = SimpleEngine.from_docs(input_files=[filename], fs=mem_fs)
+            nodes = await engine.aretrieve(requirement)
+            html = "\n".join(i.text for i in nodes)
+
+        mem_fs.rm_file(filename)
+        print(html)
+
+    async def get_page_content(self) -> str:
+        """Get the HTML content of current page."""
+        html = await self.current_page.content()
+        html_content = html.strip()
+        return html_content
 
     async def switch_page(self, url: str):
         """switch to an opened page in the browser and view the page"""
@@ -152,8 +188,8 @@ class Browser:
 
     async def _view(self, keep_len: int = 5000) -> str:
         """simulate human viewing the current page, return the visible text with links"""
-        visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
-        print("The visible text and their links (if any): ", visible_text_with_links[:keep_len])
+        # visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
+        # print("The visible text and their links (if any): ", visible_text_with_links[:keep_len])
         # html_content = await self._view_page_html(keep_len=keep_len)
         # print("The html content: ", html_content)
 

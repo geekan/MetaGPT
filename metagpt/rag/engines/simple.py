@@ -4,6 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
+from fsspec import AbstractFileSystem
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
@@ -83,6 +84,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        fs: Optional[AbstractFileSystem] = None,
     ) -> "SimpleEngine":
         """From docs.
 
@@ -100,7 +102,7 @@ class SimpleEngine(RetrieverQueryEngine):
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
+        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files, fs=fs).load_data()
         cls._fix_document_metadata(documents)
 
         index = VectorStoreIndex.from_documents(
