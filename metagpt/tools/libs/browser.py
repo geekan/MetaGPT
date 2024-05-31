@@ -62,6 +62,7 @@ class Browser:
         with mem_fs.open(filename, "w") as f:
             f.write(html)
 
+        # Since RAG is an optional optimization, if it fails, the simplified HTML can be used as a fallback.
         with contextlib.suppress(Exception):
 
             from metagpt.rag.engines import SimpleEngine  # avoid circular import
