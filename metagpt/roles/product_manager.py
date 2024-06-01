@@ -10,7 +10,7 @@
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.roles.role import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.utils.common import any_to_name, any_to_str
 from metagpt.utils.git_repository import GitRepository
 
@@ -35,6 +35,7 @@ class ProductManager(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.enable_memory = False
+        self.rc.react_mode = RoleReactMode.BY_ORDER
         self.set_actions([PrepareDocuments(send_to=any_to_str(self)), WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
         self.todo_action = any_to_name(WritePRD)

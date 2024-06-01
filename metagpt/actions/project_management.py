@@ -8,6 +8,7 @@
         1. Divide the context into three components: legacy code, unit test code, and console log.
         2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
+@Modified By: mashenquan, 2024/5/31. Implement Chapter 3 of RFC 236.
 """
 
 import json
@@ -21,6 +22,7 @@ from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import aread, to_markdown_code_block
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter
@@ -34,6 +36,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
+@register_tool(tags=["software development", "write a project schedule given a project system design file"])
 class WriteTasks(Action):
     name: str = "CreateTasks"
     i_context: Optional[str] = None
@@ -73,7 +76,7 @@ class WriteTasks(Action):
         if not with_messages:
             return await self._execute_api(user_requirement=user_requirement, design_filename=design_filename)
 
-        self.input_args = with_messages[0].instruct_content
+        self.input_args = with_messages[-1].instruct_content
         self.repo = ProjectRepo(self.input_args.project_path)
         changed_system_designs = self.input_args.changed_system_design_filenames
         changed_tasks = [str(self.repo.docs.task.workdir / i) for i in list(self.repo.docs.task.changed_files.keys())]
@@ -82,7 +85,7 @@ class WriteTasks(Action):
         # `docs/system_designs/`.
         for filename in changed_system_designs:
             task_doc = await self._update_tasks(filename=filename)
-            change_files.docs[filename] = task_doc
+            change_files.docs[str(self.repo.docs.task.workdir / task_doc.filename)] = task_doc
 
         # Rewrite the task files that have undergone changes based on the git head diff under `docs/tasks/`.
         for filename in changed_tasks:

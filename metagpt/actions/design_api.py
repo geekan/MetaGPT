@@ -8,6 +8,7 @@
             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
             2. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration functionality.
 @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
+@Modified By: mashenquan, 2024/5/31. Implement Chapter 3 of RFC 236.
 """
 import json
 import uuid
@@ -28,6 +29,7 @@ from metagpt.actions.design_api_an import (
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import aread, awrite, to_markdown_code_block
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.project_repo import ProjectRepo
@@ -42,6 +44,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
+@register_tool(tags=["software development", "write system design"])
 class WriteDesign(Action):
     name: str = ""
     i_context: Optional[str] = None
@@ -163,7 +166,7 @@ class WriteDesign(Action):
                 output_path=output_path,
             )
 
-        self.input_args = with_messages[0].instruct_content
+        self.input_args = with_messages[-1].instruct_content
         self.repo = ProjectRepo(self.input_args.project_path)
         changed_prds = self.input_args.changed_prd_filenames
         changed_system_designs = [
@@ -283,7 +286,12 @@ class WriteDesign(Action):
             )
 
         if not output_path:
-            return AIMessage(content=design.instruct_content.model_dump_json())
+            return AIMessage(content=design.content)
         output_filename = Path(output_path) / f"{uuid.uuid4().hex}.json"
         await awrite(filename=output_filename, data=design.content)
-        return AIMessage(content=f'System Design filename: "{str(output_filename)}"')
+        kvs = {"changed_system_design_filenames": [output_filename]}
+
+        return AIMessage(
+            content=f'System Design filename: "{str(output_filename)}"',
+            instruct_content=AIMessage.create_instruct_value(kvs=kvs),
+        )

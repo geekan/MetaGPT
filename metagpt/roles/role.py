@@ -386,8 +386,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             msg = response
         else:
             msg = AIMessage(content=response or "", cause_by=self.rc.todo, sent_from=self)
-        if self.enable_memory:
-            self.rc.memory.add(msg)
+        self.rc.memory.add(msg)
 
         return msg
 

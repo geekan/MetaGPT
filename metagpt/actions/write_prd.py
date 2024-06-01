@@ -9,6 +9,7 @@
             2. According to the design in Section 2.2.3.5.2 of RFC 135, add incremental iteration functionality.
             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
 @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
+@Modified By: mashenquan, 2024/5/31. Implement Chapter 3 of RFC 236.
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, aread, awrite, to_markdown_code_block
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -64,6 +66,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
+@register_tool(tags=["software development", "write product requirement documents"])
 class WritePRD(Action):
     """WritePRD deal with the following situations:
     1. Bugfix: If the requirement is a bugfix, the bugfix document will be generated.
@@ -145,11 +148,11 @@ class WritePRD(Action):
 
         self.input_args = with_messages[-1].instruct_content
         if not self.input_args:
-            self.repo = ProjectRepo(self.config.project_path)
+            self.repo = ProjectRepo(self.context.kwargs.project_path)
             await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[-1].content)
             self.input_args = AIMessage.create_instruct_value(
                 kvs={
-                    "project_path": self.config.project_path,
+                    "project_path": self.context.kwargs.project_path,
                     "requirements_filename": str(self.repo.docs.workdir / REQUIREMENT_FILENAME),
                     "prd_filenames": [str(self.repo.docs.prd.workdir / i) for i in self.repo.docs.prd.all_files],
                 },
@@ -183,6 +186,9 @@ class WritePRD(Action):
         kvs["changed_prd_filenames"] = [
             str(self.repo.docs.prd.workdir / i) for i in list(self.repo.docs.prd.changed_files.keys())
         ]
+        kvs["project_path"] = str(self.repo.workdir)
+        kvs["requirements_filename"] = str(self.repo.docs.workdir / REQUIREMENT_FILENAME)
+        self.context.kwargs.project_path = str(self.repo.workdir)
         return AIMessage(
             content="PRD is completed. "
             + "\n".join(
@@ -302,7 +308,7 @@ class WritePRD(Action):
     async def _execute_api(
         self, user_requirement: str, output_path: str, exists_prd_filename: str, extra_info: str
     ) -> AIMessage:
-        content = to_markdown_code_block(val=user_requirement)
+        content = to_markdown_code_block(val=user_requirement, type_="text")
         if extra_info:
             content += to_markdown_code_block(val=extra_info)
 
@@ -320,4 +326,5 @@ class WritePRD(Action):
 
         output_filename = Path(output_path) / f"{uuid.uuid4().hex}.json"
         await awrite(filename=output_filename, data=new_prd.content)
-        return AIMessage(content=f'PRD filename: "{str(output_filename)}"')
+        kvs = AIMessage.create_instruct_value({"changed_prd_filenames": [str(output_filename)]})
+        return AIMessage(content=f'PRD filename: "{str(output_filename)}"', instruct_content=kvs)

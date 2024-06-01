@@ -94,7 +94,7 @@ class QaEngineer(Role):
                 code_filename=context.code_doc.filename,
                 test_filename=context.test_doc.filename,
                 working_directory=str(self.repo.workdir),
-                additional_python_paths=[str(self.context.src_workspace)],
+                additional_python_paths=[str(self.repo.srcs.workdir)],
             )
             self.publish_message(
                 AIMessage(content=run_code_context.model_dump_json(), cause_by=WriteTest, send_to=MESSAGE_ROUTE_TO_SELF)

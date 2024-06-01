@@ -46,8 +46,8 @@ class PrepareDocuments(Action):
             path = Path(self.config.project_path)
         if path.exists() and not self.config.inc:
             shutil.rmtree(path)
-        self.config.project_path = path
-        self.context.set_repo_dir(path)
+        self.context.kwargs.project_path = path
+        self.context.kwargs.inc = self.config.inc
         return ProjectRepo(path)
 
     async def run(self, with_messages, **kwargs):
