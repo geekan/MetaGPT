@@ -9,7 +9,6 @@ from github.Issue import Issue
 from github.PullRequest import PullRequest
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.git_repository import GitBranch, GitRepository
 
 
 @register_tool(tags=["software development", "git", "Commit the changes and push to remote git repository."])
@@ -18,7 +17,7 @@ async def git_push(
     access_token: str,
     comments: str = "Commit",
     new_branch: str = "",
-) -> GitBranch:
+) -> "GitBranch":
     """
     Pushes changes from a local Git repository to its remote counterpart.
 
@@ -49,6 +48,8 @@ async def git_push(
         base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
 
     """
+    from metagpt.utils.git_repository import GitRepository
+
     if not GitRepository.is_git_dir(local_path):
         raise ValueError("Invalid local git repository")
 

@@ -646,7 +646,7 @@ def role_raise_decorator(func):
             raise Exception(format_trackback_info(limit=None))
         except Exception as e:
             if self.latest_observed_msg:
-                logger.warning(
+                logger.exception(
                     "There is a exception in role's execution, in order to resume, "
                     "we delete the newest role communication message in the role's memory."
                 )
