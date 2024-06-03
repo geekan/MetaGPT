@@ -21,6 +21,7 @@ from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.utils.yaml_model import YamlModel
+from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 
 
 class CLIParams(BaseModel):
@@ -66,6 +67,9 @@ class Config(CLIParams, YamlModel):
     workspace: WorkspaceConfig = WorkspaceConfig()
     enable_longterm_memory: bool = False
     code_review_k_times: int = 2
+
+    # Experience Pool Parameters
+    experience_pool: Optional[ExperiencePoolConfig] = None
 
     # Will be removed in the future
     metagpt_tti_url: str = ""
