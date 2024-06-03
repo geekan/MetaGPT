@@ -5,11 +5,11 @@ class Task(BaseModel):
     dependent_task_ids: list[str] = []
     instruction: str = ""
     task_type: str = ""
-    assignee: str = "David"
+    assignee: str = ""
 
 # Available Commands
 {available_commands}
-Special Command: Use {{"command_name": "Common.pass"}} to do nothing and {{"command_name": "Common.end"}} to indicate completion of all requirements and the end of actions.
+Special Command: Use {{"command_name": "pass"}} to do nothing and {{"command_name": "end"}} to indicate completion of all requirements and the end of actions.
 
 # Current Plan
 {plan_status}
@@ -35,8 +35,8 @@ Pay close attention to the Example provided, you can reuse the example for your 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 
-# Your commands in a json array, in the following output format, always output ONE and ONLY ONE json array, if there is nothing to do, use the pass command:
-Some text indicating your thoughts, such as how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands.
+# Your commands in a json array, in the following output format. If there is nothing to do, use the pass or end command:
+Some text indicating your thoughts, such as how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 ```json
 [
     {{
