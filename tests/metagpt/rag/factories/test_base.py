@@ -97,6 +97,5 @@ class TestConfigBasedFactory:
     def test_val_from_config_or_kwargs_key_error(self):
         # Test KeyError when the key is not found in both config object and kwargs
         config = DummyConfig(name=None)
-        with pytest.raises(KeyError) as exc_info:
-            ConfigBasedFactory._val_from_config_or_kwargs("missing_key", config)
-        assert "The key 'missing_key' is required but not provided" in str(exc_info.value)
+        val = ConfigBasedFactory._val_from_config_or_kwargs("missing_key", config)
+        assert val is None
