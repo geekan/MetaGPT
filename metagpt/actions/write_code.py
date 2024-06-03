@@ -153,7 +153,7 @@ class WriteCode(Action):
                 root_path = self.context.src_workspace if self.context.src_workspace else ""
                 coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
             coding_context.code_doc.content = code
-            await reporter.async_report(self.repo.workdir / coding_context.code_doc.root_relative_path, "path")
+            await reporter.async_report(coding_context.code_doc, "document")
         return coding_context
 
     @staticmethod

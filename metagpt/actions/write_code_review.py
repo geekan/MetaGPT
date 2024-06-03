@@ -17,6 +17,7 @@ from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import EditorReporter
 
 PROMPT_TEMPLATE = """
 # System
@@ -128,16 +129,21 @@ class WriteCodeReview(Action):
     i_context: CodingContext = Field(default_factory=CodingContext)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
+    async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, doc):
+        filename = doc.filename
         cr_rsp = await self._aask(context_prompt + cr_prompt)
         result = CodeParser.parse_block("Code Review Result", cr_rsp)
         if "LGTM" in result:
             return result, None
 
         # if LBTM, rewrite code
-        rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
-        code_rsp = await self._aask(rewrite_prompt)
-        code = CodeParser.parse_code(text=code_rsp)
+        async with EditorReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "code", "filename": filename, "src_path": doc.root_relative_path}, "meta")
+            rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
+            code_rsp = await self._aask(rewrite_prompt)
+            code = CodeParser.parse_code(text=code_rsp)
+            doc.content = code
+            await reporter.async_report(doc, "document")
         return result, code
 
     async def run(self, *args, **kwargs) -> CodingContext:
@@ -182,7 +188,7 @@ class WriteCodeReview(Action):
                 f"len(self.i_context.code_doc.content)={len2}"
             )
             result, rewrited_code = await self.write_code_review_and_rewrite(
-                context_prompt, cr_prompt, self.i_context.code_doc.filename
+                context_prompt, cr_prompt, self.i_context.code_doc
             )
             if "LBTM" in result:
                 iterative_code = rewrited_code
