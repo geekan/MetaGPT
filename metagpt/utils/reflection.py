@@ -1,4 +1,5 @@
 """class tools, including method inspection, class attributes, inheritance relationships, etc."""
+import inspect
 
 
 def check_methods(C, *methods):
@@ -16,3 +17,11 @@ def check_methods(C, *methods):
         else:
             return NotImplemented
     return True
+
+
+def get_func_full_name(func, *args) -> str:
+    if inspect.ismethod(func) or (inspect.isfunction(func) and "self" in inspect.signature(func).parameters):
+        cls_name = args[0].__class__.__name__
+        return f"{func.__module__}.{cls_name}.{func.__name__}"
+    
+    return f"{func.__module__}.{func.__name__}"
