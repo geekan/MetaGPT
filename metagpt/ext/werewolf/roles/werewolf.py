@@ -13,4 +13,4 @@ class Werewolf(BasePlayer):
         await super()._think()
         if isinstance(self.rc.todo, Speak):
             self.rc.todo = Impersonate()
-        return self.rc.todo is not None
+        return True
