@@ -74,9 +74,9 @@ s3:
   secure: false
   bucket: "test"
 
-experience_pool:
-  enable_read: false
-  enable_write: false
+exp_pool:
+  enable_read: true
+  enable_write: true
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

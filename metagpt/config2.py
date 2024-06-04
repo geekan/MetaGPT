@@ -13,6 +13,7 @@ from pydantic import BaseModel, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
 from metagpt.configs.embedding_config import EmbeddingConfig
+from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
 from metagpt.configs.redis_config import RedisConfig
@@ -22,7 +23,6 @@ from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.utils.yaml_model import YamlModel
-from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 
 
 class CLIParams(BaseModel):
@@ -73,7 +73,7 @@ class Config(CLIParams, YamlModel):
     code_review_k_times: int = 2
 
     # Experience Pool Parameters
-    experience_pool: Optional[ExperiencePoolConfig] = None
+    exp_pool: ExperiencePoolConfig = ExperiencePoolConfig()
 
     # Will be removed in the future
     metagpt_tti_url: str = ""
