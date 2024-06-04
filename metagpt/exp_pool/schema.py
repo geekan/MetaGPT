@@ -1,7 +1,7 @@
 """Experience schema."""
 
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from llama_index.core.schema import TextNode
 from pydantic import BaseModel, Field
@@ -38,13 +38,14 @@ class Trajectory(BaseModel):
     plan: str = Field(default="", description="The plan.")
     action: str = Field(default="", description="Action for the plan.")
     observation: str = Field(default="", description="Output of the action.")
+    reward: int = Field(default=0, description="Measure the action.")
 
 
 class Experience(BaseModel):
     """Experience."""
 
     req: str = Field(..., description="")
-    resp: str = Field(..., description="The type is string/json/code.")
+    resp: Any = Field(..., description="The type is string/json/code.")
     metric: Optional[Metric] = Field(default=None, description="Metric.")
     exp_type: ExperienceType = Field(default=ExperienceType.SUCCESS, description="The type of experience.")
     entry_type: EntryType = Field(default=EntryType.AUTOMATIC, description="Type of entry: Manual or Automatic.")
