@@ -171,6 +171,7 @@ class Moderator(BasePlayer):
         else:
             # 上一轮消息是游戏角色的发言，解析角色的发言
             self.rc.todo = ParseSpeak()
+        return True
 
     def _init_fields_from_obj(self, obs: dict[str, Union[int, str, list[str]]]):
         self.game_setup = obs.get("game_setup", "")

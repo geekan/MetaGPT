@@ -26,3 +26,4 @@ class Witch(BasePlayer):
                 self.rc.todo = Poison()
             else:
                 raise ValueError("Moderator's instructions must include save or poison keyword")
+        return True

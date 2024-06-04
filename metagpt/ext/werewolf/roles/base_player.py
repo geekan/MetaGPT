@@ -86,6 +86,7 @@ class BasePlayer(Role):
             # FIXME: hard code to split, restricted为"Moderator"或"Moderator, 角色profile"
             # Moderator加密发给自己的，意味着要执行角色的特殊动作
             self.rc.todo = self.special_actions[0]()
+        return True
 
     async def _act(self):
         # todo为_think时确定的，有两种情况，Speak或Protect
