@@ -83,7 +83,7 @@ class WritePRD(Action):
         *,
         user_requirement: str = "",
         output_path: str = "",
-        exists_prd_filename: str = "",
+        legacy_prd_filename: str = "",
         extra_info: str = "",
         **kwargs,
     ) -> AIMessage:
@@ -93,7 +93,7 @@ class WritePRD(Action):
         Args:
             user_requirement (str): A string detailing the user's requirements.
             output_path (str, optional): The file path where the output document should be saved. Defaults to "".
-            exists_prd_filename (str, optional): The file path of an existing Product Requirement Document to use as a reference. Defaults to "".
+            legacy_prd_filename (str, optional): The file path of the legacy Product Requirement Document to use as a reference. Defaults to "".
             extra_info (str, optional): Additional information to include in the document. Defaults to "".
             **kwargs: Additional keyword arguments.
 
@@ -112,9 +112,9 @@ class WritePRD(Action):
             # Modify a exists PRD(Product Requirement Document)
             >>> user_requirement = "YOUR REQUIREMENTS"
             >>> extra_info = "YOUR EXTRA INFO"
-            >>> exists_prd_filename = "/path/to/exists/prd_filename"
+            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, exists_prd_filename=exists_prd_filename)
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename)
             >>> print(result.content)
             The PRD is about balabala...
 
@@ -130,10 +130,10 @@ class WritePRD(Action):
             # Modify a exists PRD(Product Requirement Document) and save to the directory.
             >>> user_requirement = "YOUR REQUIREMENTS"
             >>> extra_info = "YOUR EXTRA INFO"
-            >>> exists_prd_filename = "/path/to/exists/prd_filename"
+            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
             >>> output_path = "/path/to/prd/directory/"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, exists_prd_filename=exists_prd_filename, output_path=output_path)
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_path=output_path)
             >>> print(result.content)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
@@ -142,7 +142,7 @@ class WritePRD(Action):
             return await self._execute_api(
                 user_requirement=user_requirement,
                 output_path=output_path,
-                exists_prd_filename=exists_prd_filename,
+                legacy_prd_filename=legacy_prd_filename,
                 extra_info=extra_info,
             )
 
@@ -306,18 +306,18 @@ class WritePRD(Action):
             self.repo.git_repo.rename_root(self.project_name)
 
     async def _execute_api(
-        self, user_requirement: str, output_path: str, exists_prd_filename: str, extra_info: str
+        self, user_requirement: str, output_path: str, legacy_prd_filename: str, extra_info: str
     ) -> AIMessage:
         content = to_markdown_code_block(val=user_requirement, type_="text")
         if extra_info:
             content += to_markdown_code_block(val=extra_info)
 
         req = Document(content=content)
-        if not exists_prd_filename:
+        if not legacy_prd_filename:
             node = await self._new_prd(requirement=req.content)
             new_prd = Document(content=node.instruct_content.model_dump_json())
         else:
-            content = await aread(filename=exists_prd_filename)
+            content = await aread(filename=legacy_prd_filename)
             old_prd = Document(content=content)
             new_prd = await self._merge(req=req, related_doc=old_prd)
 

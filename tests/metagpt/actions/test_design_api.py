@@ -55,7 +55,7 @@ async def test_design(context):
 
 
 @pytest.mark.parametrize(
-    ("user_requirement", "prd_filename", "exists_design_filename"),
+    ("user_requirement", "prd_filename", "legacy_design_filename"),
     [
         ("我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。", None, None),
         ("write 2048 game", str(METAGPT_ROOT / "tests/data/prd.json"), None),
@@ -67,10 +67,10 @@ async def test_design(context):
     ],
 )
 @pytest.mark.asyncio
-async def test_design_api(context, user_requirement, prd_filename, exists_design_filename):
+async def test_design_api(context, user_requirement, prd_filename, legacy_design_filename):
     action = WriteDesign()
     result = await action.run(
-        user_requirement=user_requirement, prd_filename=prd_filename, exists_design_filename=exists_design_filename
+        user_requirement=user_requirement, prd_filename=prd_filename, legacy_design_filename=legacy_design_filename
     )
     assert isinstance(result, AIMessage)
     assert result.content
@@ -79,7 +79,7 @@ async def test_design_api(context, user_requirement, prd_filename, exists_design
 
 
 @pytest.mark.parametrize(
-    ("user_requirement", "prd_filename", "exists_design_filename"),
+    ("user_requirement", "prd_filename", "legacy_design_filename"),
     [
         ("我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。", None, None),
         ("write 2048 game", str(METAGPT_ROOT / "tests/data/prd.json"), None),
@@ -91,12 +91,12 @@ async def test_design_api(context, user_requirement, prd_filename, exists_design
     ],
 )
 @pytest.mark.asyncio
-async def test_design_api_dir(context, user_requirement, prd_filename, exists_design_filename):
+async def test_design_api_dir(context, user_requirement, prd_filename, legacy_design_filename):
     action = WriteDesign()
     result = await action.run(
         user_requirement=user_requirement,
         prd_filename=prd_filename,
-        exists_design_filename=exists_design_filename,
+        legacy_design_filename=legacy_design_filename,
         output_path=context.config.project_path,
     )
     assert isinstance(result, AIMessage)

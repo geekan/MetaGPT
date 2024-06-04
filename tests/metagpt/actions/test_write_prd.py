@@ -91,7 +91,7 @@ async def test_write_prd_api(context):
 
     legacy_prd_filename = result.instruct_content.changed_prd_filenames[-1]
 
-    result = await action.run(user_requirement="Add moving enemy.", exists_prd_filename=legacy_prd_filename)
+    result = await action.run(user_requirement="Add moving enemy.", legacy_prd_filename=legacy_prd_filename)
     assert isinstance(result, AIMessage)
     assert result.content
     m = json.loads(result.content)
@@ -100,7 +100,7 @@ async def test_write_prd_api(context):
     result = await action.run(
         user_requirement="Add moving enemy.",
         output_path=str(context.config.project_path),
-        exists_prd_filename=legacy_prd_filename,
+        legacy_prd_filename=legacy_prd_filename,
     )
     assert isinstance(result, AIMessage)
     assert result.content
