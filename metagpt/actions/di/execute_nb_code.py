@@ -82,7 +82,9 @@ class ExecuteNbCode(Action):
         # sleep 1s to wait for the kernel to be cleaned up completely
         await asyncio.sleep(1)
         await self.build()
-        self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
+        # self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
+        # reset NotebookClient from a new NotebookNode
+        self.nb_client = NotebookClient(nbformat.v4.new_notebook(), timeout=self.timeout)
 
     def add_code_cell(self, code: str):
         self.nb.cells.append(new_code_cell(source=code))
