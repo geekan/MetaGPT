@@ -23,5 +23,5 @@ def get_func_full_name(func, *args) -> str:
     if inspect.ismethod(func) or (inspect.isfunction(func) and "self" in inspect.signature(func).parameters):
         cls_name = args[0].__class__.__name__
         return f"{func.__module__}.{cls_name}.{func.__name__}"
-    
+
     return f"{func.__module__}.{func.__name__}"
