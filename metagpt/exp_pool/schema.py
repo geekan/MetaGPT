@@ -32,6 +32,14 @@ class Metric(BaseModel):
     score: int = Field(default=1, description="Score, a value between 1 and 10.")
 
 
+class Trajectory(BaseModel):
+    """Experience Trajectory."""
+
+    plan: str = Field(default="", description="The plan.")
+    action: str = Field(default="", description="Action for the plan.")
+    observation: str = Field(default="", description="Output of the action.")
+
+
 class Experience(BaseModel):
     """Experience."""
 
@@ -41,6 +49,7 @@ class Experience(BaseModel):
     exp_type: ExperienceType = Field(default=ExperienceType.SUCCESS, description="The type of experience.")
     entry_type: EntryType = Field(default=EntryType.AUTOMATIC, description="Type of entry: Manual or Automatic.")
     tag: str = Field(default="", description="Tagging experience.")
+    traj: Optional[Trajectory] = Field(default=None, description="Trajectory.")
 
     def rag_key(self):
         return self.req
