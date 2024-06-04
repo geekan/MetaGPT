@@ -10,6 +10,13 @@ class ExpRetriever(BaseModel):
         raise NotImplementedError
 
 
+class DummyExpRetriever(ExpRetriever):
+    """A dummy experience retriever that returns empty string."""
+
+    def retrieve(self, context: str = "") -> str:
+        return ""
+
+
 class SimpleExpRetriever(ExpRetriever):
     """A simple experience retriever that returns manually crafted examples."""
 
@@ -20,7 +27,7 @@ class SimpleExpRetriever(ExpRetriever):
     ```json
     [
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "1",
                 "dependent_task_ids": [],
@@ -29,7 +36,7 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "2",
                 "dependent_task_ids": ["1"],
@@ -38,7 +45,7 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "3",
                 "dependent_task_ids": ["2"],
@@ -47,7 +54,7 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "4",
                 "dependent_task_ids": ["3"],
@@ -56,7 +63,7 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "5",
                 "dependent_task_ids": ["4"],
@@ -65,14 +72,14 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "publish_message",
+            "command_name": "TeamLeader.publish_message",
             "args": {
                 "content": "Create a cli snake game using Python",
                 "send_to": "Alice"
             }
         },
         {
-            "command_name": "reply_to_human",
+            "command_name": "RoleZero.reply_to_human",
             "args": {
                 "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
             }
@@ -86,7 +93,7 @@ class SimpleExpRetriever(ExpRetriever):
     ```json
     [
         {
-            "command_name": "append_task",
+            "command_name": "Plan.append_task",
             "args": {
                 "task_id": "1",
                 "dependent_task_ids": [],
@@ -95,14 +102,14 @@ class SimpleExpRetriever(ExpRetriever):
             }
         },
         {
-            "command_name": "publish_message",
+            "command_name": "TeamLeader.publish_message",
             "args": {
                 "content": "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy.",
                 "send_to": "David"
             }
         },
         {
-            "command_name": "reply_to_human",
+            "command_name": "RoleZero.reply_to_human",
             "args": {
                 "content": "I have assigned the task to David. He will break down the task further by himself and starts solving it.",
             }
@@ -116,22 +123,22 @@ class SimpleExpRetriever(ExpRetriever):
         ...,
         {'role': 'assistant', 'content': 'from Alice(Product Manager) to {'Bob'}: {'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a cli snake game","Project Name":"snake_game","Product Goals":["Develop an intuitive and addictive snake game",...], ...}}}}},
     ]
-    Explanation: You received a message from Alice, the Product Manager, that she has completed the PRD, use finish_current_task to mark her task as finished and moves the plan to the next task. Based on plan status, next task is for Bob (Architect), publish a message asking him to start. The message content should contain important path info.
+    Explanation: You received a message from Alice, the Product Manager, that she has completed the PRD, use Plan.finish_current_task to mark her task as finished and moves the plan to the next task. Based on plan status, next task is for Bob (Architect), publish a message asking him to start. The message content should contain important path info.
     ```json
     [
         {
-            "command_name": "finish_current_task",
+            "command_name": "Plan.finish_current_task",
             "args": {}
         },
         {
-            "command_name": "publish_message",
+            "command_name": "TeamLeader.publish_message",
                 "args": {
                     "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at 'docs/prd/20240424153821.json'. Include the choice of programming language, libraries, and data flow, etc.",
                     "send_to": "Bob"
                 }
         },
         {
-            "command_name": "reply_to_human",
+            "command_name": "RoleZero.reply_to_human",
             "args": {
                 "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
             }
@@ -145,7 +152,7 @@ class SimpleExpRetriever(ExpRetriever):
     ```json
     [
         {
-            "command_name": "reply_to_human",
+            "command_name": "RoleZero.reply_to_human",
             "args": {
                 "content": "The team is currently working on ... We have completed ...",
             }
@@ -180,7 +187,7 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
 ```json
 [
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
@@ -189,7 +196,7 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
@@ -198,7 +205,7 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
@@ -216,7 +223,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
 ```json
 [
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
@@ -225,7 +232,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
@@ -234,7 +241,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
@@ -243,7 +250,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
@@ -252,7 +259,7 @@ Explanation: The requirement is to fix an issue in an existing repository. The p
         }
     },
     {
-        "command_name": "append_task",
+        "command_name": "Plan.append_task",
         "args": {
             "task_id": "5",
             "dependent_task_ids": ["4"],

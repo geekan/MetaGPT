@@ -4,34 +4,32 @@ import asyncio
 
 from pydantic import model_validator
 
+from metagpt.prompts.di.engineer2 import ENGINEER2_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.editor import Editor
 from test3 import design_doc_2048, design_doc_snake, task_doc_2048, task_doc_snake
 
 
-def dummy_func(**kwargs):
-    pass
-
-
 class Engineer2(RoleZero):
     name: str = "Alex"
     profile: str = "Engineer"
-    goal: str = ""
-    tools: str = ["Plan", "Editor:write,read,write_content", "MGXEnv:ask_human,reply_to_human"]
+    goal: str = "Take on game, app, and web development"
+    tools: str = ["Plan", "Editor:write,read,write_content", "RoleZero"]
+    instruction: str = ENGINEER2_INSTRUCTION
 
     editor: Editor = Editor()
 
     @model_validator(mode="after")
-    def set_tool_execution_map(self) -> "RoleZero":
-        self.tool_execute_map = {
+    def set_tool_execution(self) -> "RoleZero":
+        self.tool_execution_map = {
             "Plan.append_task": self.planner.plan.append_task,
             "Plan.reset_task": self.planner.plan.reset_task,
             "Plan.replace_task": self.planner.plan.replace_task,
             "Editor.write": self.editor.write,
             "Editor.write_content": self.editor.write_content,
             "Editor.read": self.editor.read,
-            "MGXEnv.ask_human": dummy_func,
-            "MGXEnv.reply_to_human": dummy_func,
+            "RoleZero.ask_human": self.ask_human,
+            "RoleZero.reply_to_human": self.reply_to_human,
         }
         return self
 
@@ -70,6 +68,7 @@ Found this issue, TypeError: generate_new_position() missing 1 required position
 Write code review for the codes (food.py, game.py, main.py, snake.py, ui.py) under under /Users/gary/Files/temp/workspace/snake_game_bugs/src.
 Then correct any issues you find. You can review all code in one time, and solve issues in one time.
 """
+CASUAL_CHAT = """what's your name?"""
 
 if __name__ == "__main__":
     engineer2 = Engineer2()

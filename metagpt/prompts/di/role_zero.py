@@ -1,3 +1,14 @@
+ROLE_INSTRUCTION = """
+Based on the context, write a plan or modify an existing plan to achieve the goal. A plan consists of one to 3 tasks.
+If plan is created, you should track the progress and update the plan accordingly, such as Plan.finish_current_task, Plan.append_task, Plan.reset_task, Plan.replace_task, etc.
+When presented a current task, tackle the task using the available commands.
+Pay close attention to new user message, review the conversation history, use RoleZero.reply_to_human to respond to new user requirement.
+Note:
+1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use RoleZero.ask_human to ask for help.
+2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task.
+3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
+"""
+
 CMD_PROMPT = """
 # Data Structure
 class Task(BaseModel):
@@ -20,18 +31,10 @@ Special Command: Use {{"command_name": "pass"}} to do nothing and {{"command_nam
 # Example
 {example}
 
-# Instructions
-Based on the context, write a plan or modify an existing plan to achieve the goal. A plan consists of one to 3 tasks.
-If plan is created, you should track the progress and update the plan accordingly, such as Plan.finish_current_task, Plan.append_task, Plan.reset_task, Plan.replace_task, etc.
-When presented a current task, tackle the task using the available commands.
-Pay close attention to new user message, review the conversation history, use MGXEnv.reply_to_human to respond to new user requirement.
-Note:
-1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use MGXEnv.ask_human to ask for help.
-2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task.
-3. Each time you finish a task, use MGXEnv.reply_to_human to report your progress.
-4. Each time you write a code in your response, write with the Editor directly without preparing a repetitive code block beforehand.
-Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
+# Instruction
+{instruction}
 
+Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 

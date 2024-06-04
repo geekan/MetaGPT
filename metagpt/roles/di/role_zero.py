@@ -9,22 +9,28 @@ from pydantic import model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT
+from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.strategy.experience_retriever import KeywordExpRetriever
+from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
 from metagpt.strategy.planner import Planner
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
 
 
+@register_tool(include_functions=["ask_human", "reply_to_human"])
 class RoleZero(Role):
+    """A role serving as the basis for other MGX roles."""
+
     name: str = "Zero"
     profile: str = "RoleZero"
     goal: str = ""
-    system_msg: str = ""
+    system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
+    instruction: str = ROLE_INSTRUCTION
 
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
@@ -37,6 +43,9 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, callable] = {}
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
+
+    experience_retriever: ExpRetriever = DummyExpRetriever()
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -56,30 +65,23 @@ class RoleZero(Role):
         return self
 
     @model_validator(mode="after")
-    def set_tool_execution_map(self) -> "RoleZero":
+    def set_tool_execution(self) -> "RoleZero":
         raise NotImplementedError
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
+        ### 0. Preparation ###
         if not self.rc.todo and not self.rc.news:
             return False
-
         self._set_state(0)
-        example = ""
         if not self.planner.plan.goal:
             self.user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = self.user_requirement
-            example = KeywordExpRetriever().retrieve(self.user_requirement)
-        else:
-            self.rc.memory.add_batch(self.rc.news)
-            # TODO: implement experience retrieval in multi-round setting
-            # if self.planner.plan.current_task:
-            #     experience = KeywordExpRetriever().retrieve(self.planner.plan.current_task.instruction, exp_type="task")
-            #     if experience and experience not in [msg.content for msg in self.rc.memory.get()]:
-            #         exp_msg = Message(content=experience, role="assistant")
-            #         self.rc.memory.add(exp_msg)
-            #     example = KeywordExpRetriever().retrieve(self.planner.plan.current_task.instruction, exp_type="task")
 
+        ### 1. Experience ###
+        example = self._retrieve_experience()
+
+        ### 2. Plan Status ###
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
         for task in plan_status["tasks"]:
             task.pop("code")
@@ -92,20 +94,21 @@ class RoleZero(Role):
             else ""
         )
 
+        ### 3. Tool/Command Info ###
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
+
+        ### Make Decision ###
         prompt = self.cmd_prompt.format(
             plan_status=plan_status,
             current_task=current_task,
             example=example,
             available_commands=tool_info,
+            instruction=self.instruction.strip(),
         )
         context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [Message(content=prompt, role="user")])
-
         print(*context, sep="\n" + "*" * 5 + "\n")
-
-        self.command_rsp = await self.llm.aask(context)
-
+        self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
         self.rc.memory.add(Message(content=self.command_rsp, role="assistant"))
 
         return True
@@ -121,7 +124,12 @@ class RoleZero(Role):
             return error_msg
         outputs = await self._run_commands(commands)
         self.rc.memory.add(Message(content=outputs, role="user"))
-        return Message(content="Task completed", role="assistant", sent_from=self._setting, cause_by=RunCommand)
+        return Message(
+            content=f"Complete run with outputs: {outputs}",
+            role="assistant",
+            sent_from=self._setting,
+            cause_by=RunCommand,
+        )
 
     async def _react(self) -> Message:
         actions_taken = 0
@@ -146,8 +154,8 @@ class RoleZero(Role):
             if await self._run_special_command(cmd):
                 continue
             # run command as specified by tool_execute_map
-            if cmd["command_name"] in self.tool_execute_map:
-                tool_obj = self.tool_execute_map[cmd["command_name"]]
+            if cmd["command_name"] in self.tool_execution_map:
+                tool_obj = self.tool_execution_map[cmd["command_name"]]
                 output = f"Command {cmd['command_name']} executed"
                 try:
                     if inspect.iscoroutinefunction(tool_obj):
@@ -171,7 +179,7 @@ class RoleZero(Role):
 
     async def _run_special_command(self, cmd) -> bool:
         """command requiring special check or parsing"""
-        is_special_cmd = cmd["command_name"] in ["Plan.finish_current_task", "Common.end"]
+        is_special_cmd = cmd["command_name"] in self.special_tool_commands
 
         if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
             # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
@@ -182,3 +190,24 @@ class RoleZero(Role):
             self._set_state(-1)
 
         return is_special_cmd
+
+    def _retrieve_experience(self) -> str:
+        """Default implementation of experience retrieval. Can be overwritten in subclasses."""
+        context = [str(msg) for msg in self.rc.memory.get(self.memory_k)]
+        context = "\n\n".join(context)
+        example = self.experience_retriever.retrieve(context=context)
+        return example
+
+    async def ask_human(self, question: str) -> str:
+        """Use this when you fail the current task or if you are unsure of the situation encountered. Your response should contain a brief summary of your situation, ended with a clear and concise question."""
+        # NOTE: Can be overwritten in remote setting
+        if not isinstance(self.rc.env, MGXEnv):
+            return "Not in MGXEnv, command will not be executed."
+        return await self.rc.env.get_human_input(question, sent_from=self)
+
+    async def reply_to_human(self, content: str) -> str:
+        """Reply to human user with the content provided. Use this when you have a clear answer or solution to the user's question."""
+        # NOTE: Can be overwritten in remote setting
+        if not isinstance(self.rc.env, MGXEnv):
+            return "Not in MGXEnv, command will not be executed."
+        return await self.rc.env.reply_to_human(content, sent_from=self)
