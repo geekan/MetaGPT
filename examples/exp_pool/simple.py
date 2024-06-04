@@ -10,8 +10,9 @@ from metagpt.logs import logger
 async def main():
     req = "Simple task."
     resp = "Simple echo."
+    exp = Experience(req=req, resp=resp, entry_type=EntryType.MANUAL)
 
-    exp_manager.create_exp(Experience(req=req, resp=resp, entry_type=EntryType.MANUAL))
+    exp_manager.create_exp(exp)
     logger.info(f"New experience created for the request `{req}`.")
 
     exps = await exp_manager.query_exps(req)
