@@ -9,13 +9,14 @@ from pydantic import model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
-from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
 from metagpt.strategy.planner import Planner
+from metagpt.tools.libs.browser import Browser
+from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
@@ -43,6 +44,10 @@ class RoleZero(Role):
     tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
+    # Equipped with three basic tools by default for optional use
+    editor: Editor = Editor()
+    browser: Browser = Browser()
+    # terminal: Terminal = Terminal()  # FIXME: TypeError: cannot pickle '_thread.lock' object
 
     # Experience
     experience_retriever: ExpRetriever = DummyExpRetriever()
@@ -64,7 +69,6 @@ class RoleZero(Role):
         if self.tools and not self.tool_recommender:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools, force=True)
         self.set_actions([RunCommand])
-        self._set_state(0)
 
         # HACK: Init Planner, control it through dynamic thinking; Consider formalizing as a react mode
         self.planner = Planner(goal="", working_memory=self.rc.working_memory, auto_run=True)
@@ -73,7 +77,23 @@ class RoleZero(Role):
 
     @model_validator(mode="after")
     def set_tool_execution(self) -> "RoleZero":
-        raise NotImplementedError
+        # default map
+        self.tool_execution_map = {
+            "Plan.append_task": self.planner.plan.append_task,
+            "Plan.reset_task": self.planner.plan.reset_task,
+            "Plan.replace_task": self.planner.plan.replace_task,
+            "Editor.write": self.editor.write,
+            "Editor.write_content": self.editor.write_content,
+            "Editor.read": self.editor.read,
+            "RoleZero.ask_human": self.ask_human,
+            "RoleZero.reply_to_human": self.reply_to_human,
+        }
+        # can be updated by subclass
+        self._update_tool_execution()
+        return self
+
+    def _update_tool_execution(self):
+        pass
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
@@ -82,9 +102,9 @@ class RoleZero(Role):
             return await super()._think()
 
         ### 0. Preparation ###
-        if not self.rc.todo and not self.rc.news:
+        if not self.rc.todo:
             return False
-        self._set_state(0)
+
         if not self.planner.plan.goal:
             self.user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = self.user_requirement
@@ -118,7 +138,7 @@ class RoleZero(Role):
             instruction=self.instruction.strip(),
         )
         context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
-        print(*context, sep="\n" + "*" * 5 + "\n")
+        # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter():
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
@@ -146,11 +166,15 @@ class RoleZero(Role):
         )
 
     async def _react(self) -> Message:
+        # NOTE: Diff 1: Each time landing here means observing news, set todo to allow news processing in _think
+        self._set_state(0)
+
         actions_taken = 0
         rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
-            # NOTE: difference here, keep observing within react
+            # NOTE: Diff 2: Keep observing within _react, news will go into memory, allowing adapting to new info
             await self._observe()
+
             # think
             has_todo = await self._think()
             if not has_todo:
@@ -215,6 +239,8 @@ class RoleZero(Role):
     async def ask_human(self, question: str) -> str:
         """Use this when you fail the current task or if you are unsure of the situation encountered. Your response should contain a brief summary of your situation, ended with a clear and concise question."""
         # NOTE: Can be overwritten in remote setting
+        from metagpt.environment.mgx.mgx_env import MGXEnv  # avoid circular import
+
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.get_human_input(question, sent_from=self)
@@ -222,6 +248,8 @@ class RoleZero(Role):
     async def reply_to_human(self, content: str) -> str:
         """Reply to human user with the content provided. Use this when you have a clear answer or solution to the user's question."""
         # NOTE: Can be overwritten in remote setting
+        from metagpt.environment.mgx.mgx_env import MGXEnv  # avoid circular import
+
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
