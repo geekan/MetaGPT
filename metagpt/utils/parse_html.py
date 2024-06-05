@@ -4,10 +4,9 @@ from __future__ import annotations
 from typing import Generator, Optional
 from urllib.parse import urljoin, urlparse
 
+import htmlmin
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, PrivateAttr
-
-import htmlmin
 
 
 class WebPage(BaseModel):

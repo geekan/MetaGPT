@@ -6,12 +6,13 @@
 @File    : test_write_prd.py
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, replace `handle` with `run`.
 """
-import json
+import uuid
+from pathlib import Path
 
 import pytest
 
 from metagpt.actions import UserRequirement, WritePRD
-from metagpt.const import REQUIREMENT_FILENAME
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import RoleReactMode
@@ -80,10 +81,12 @@ async def test_write_prd_api(context):
     result = await action.run(user_requirement="write a snake game.")
     assert isinstance(result, AIMessage)
     assert result.content
-    m = json.loads(result.content)
-    assert m
+    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
 
-    result = await action.run(user_requirement="write a snake game.", output_path=str(context.config.project_path))
+    result = await action.run(
+        user_requirement="write a snake game.",
+        output_pathname=str(Path(context.config.project_path) / f"{uuid.uuid4().hex}.json"),
+    )
     assert isinstance(result, AIMessage)
     assert result.content
     assert result.instruct_content
@@ -94,12 +97,11 @@ async def test_write_prd_api(context):
     result = await action.run(user_requirement="Add moving enemy.", legacy_prd_filename=legacy_prd_filename)
     assert isinstance(result, AIMessage)
     assert result.content
-    m = json.loads(result.content)
-    assert m
+    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
 
     result = await action.run(
         user_requirement="Add moving enemy.",
-        output_path=str(context.config.project_path),
+        output_pathname=str(Path(context.config.project_path) / f"{uuid.uuid4().hex}.json"),
         legacy_prd_filename=legacy_prd_filename,
     )
     assert isinstance(result, AIMessage)

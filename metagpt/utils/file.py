@@ -72,7 +72,6 @@ class File:
 
 
 class MemoryFileSystem(_MemoryFileSystem):
-
     @classmethod
     def _strip_protocol(cls, path):
         return super()._strip_protocol(str(path))

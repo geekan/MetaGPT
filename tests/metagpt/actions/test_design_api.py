@@ -6,12 +6,12 @@
 @File    : test_design_api.py
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
-import json
+from pathlib import Path
 
 import pytest
 
 from metagpt.actions.design_api import WriteDesign
-from metagpt.const import METAGPT_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Message
 from metagpt.utils.project_repo import ProjectRepo
@@ -74,8 +74,7 @@ async def test_design_api(context, user_requirement, prd_filename, legacy_design
     )
     assert isinstance(result, AIMessage)
     assert result.content
-    m = json.loads(result.content)
-    assert m
+    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
 
 
 @pytest.mark.parametrize(
@@ -97,7 +96,7 @@ async def test_design_api_dir(context, user_requirement, prd_filename, legacy_de
         user_requirement=user_requirement,
         prd_filename=prd_filename,
         legacy_design_filename=legacy_design_filename,
-        output_path=context.config.project_path,
+        output_pathname=str(Path(context.config.project_path) / "1.txt"),
     )
     assert isinstance(result, AIMessage)
     assert result.content

@@ -945,5 +945,7 @@ def get_markdown_code_block_type(filename: str) -> str:
 
 
 def to_markdown_code_block(val: str, type_: str = "") -> str:
+    if not val:
+        return val or ""
     val = val.replace("```", "\\`\\`\\`")
     return f"\n```{type_}\n{val}\n```\n"

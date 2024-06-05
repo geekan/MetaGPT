@@ -35,6 +35,7 @@ from metagpt.actions.write_prd_an import (
 from metagpt.const import (
     BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
+    DEFAULT_WORKSPACE_ROOT,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
@@ -82,7 +83,7 @@ class WritePRD(Action):
         with_messages: List[Message] = None,
         *,
         user_requirement: str = "",
-        output_path: str = "",
+        output_pathname: str = "",
         legacy_prd_filename: str = "",
         extra_info: str = "",
         **kwargs,
@@ -92,7 +93,7 @@ class WritePRD(Action):
 
         Args:
             user_requirement (str): A string detailing the user's requirements.
-            output_path (str, optional): The file path where the output document should be saved. Defaults to "".
+            output_pathname (str, optional): The path name of file that the output document should be saved to. Defaults to "".
             legacy_prd_filename (str, optional): The file path of the legacy Product Requirement Document to use as a reference. Defaults to "".
             extra_info (str, optional): Additional information to include in the document. Defaults to "".
             **kwargs: Additional keyword arguments.
@@ -107,7 +108,7 @@ class WritePRD(Action):
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info)
             >>> print(result.content)
-            The PRD is about balabala...
+            PRD filename: "/path/to/prd/directory/213434ad.json"
 
             # Modify a exists PRD(Product Requirement Document)
             >>> user_requirement = "YOUR REQUIREMENTS"
@@ -116,24 +117,24 @@ class WritePRD(Action):
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename)
             >>> print(result.content)
-            The PRD is about balabala...
+            PRD filename: "/path/to/prd/directory/213434ad.json"
 
-            # Write and save a new PRD(Product Requirement Document) to the directory.
+            # Write and save a new PRD(Product Requirement Document) to the path name.
             >>> user_requirement = "YOUR REQUIREMENTS"
             >>> extra_info = "YOUR EXTRA INFO"
-            >>> output_path = "/path/to/prd/directory/"
+            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_path=output_path)
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
             >>> print(result.content)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
-            # Modify a exists PRD(Product Requirement Document) and save to the directory.
+            # Modify a exists PRD(Product Requirement Document) and save to the path name.
             >>> user_requirement = "YOUR REQUIREMENTS"
             >>> extra_info = "YOUR EXTRA INFO"
             >>> legacy_prd_filename = "/path/to/exists/prd_filename"
-            >>> output_path = "/path/to/prd/directory/"
+            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_path=output_path)
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_pathname=output_pathname)
             >>> print(result.content)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
@@ -141,7 +142,7 @@ class WritePRD(Action):
         if not with_messages:
             return await self._execute_api(
                 user_requirement=user_requirement,
-                output_path=output_path,
+                output_pathname=output_pathname,
                 legacy_prd_filename=legacy_prd_filename,
                 extra_info=extra_info,
             )
@@ -306,12 +307,12 @@ class WritePRD(Action):
             self.repo.git_repo.rename_root(self.project_name)
 
     async def _execute_api(
-        self, user_requirement: str, output_path: str, legacy_prd_filename: str, extra_info: str
+        self, user_requirement: str, output_pathname: str, legacy_prd_filename: str, extra_info: str
     ) -> AIMessage:
-        content = to_markdown_code_block(val=user_requirement, type_="text")
-        if extra_info:
-            content += to_markdown_code_block(val=extra_info)
-
+        content = "#### User Requirements\n{user_requirement}\n#### Extra Info\n{extra_info}\n".format(
+            user_requirement=to_markdown_code_block(val=user_requirement),
+            extra_info=to_markdown_code_block(val=extra_info),
+        )
         req = Document(content=content)
         if not legacy_prd_filename:
             node = await self._new_prd(requirement=req.content)
@@ -321,10 +322,10 @@ class WritePRD(Action):
             old_prd = Document(content=content)
             new_prd = await self._merge(req=req, related_doc=old_prd)
 
-        if not output_path:
-            return AIMessage(content=new_prd.content)
-
-        output_filename = Path(output_path) / f"{uuid.uuid4().hex}.json"
-        await awrite(filename=output_filename, data=new_prd.content)
-        kvs = AIMessage.create_instruct_value({"changed_prd_filenames": [str(output_filename)]})
-        return AIMessage(content=f'PRD filename: "{str(output_filename)}"', instruct_content=kvs)
+        if not output_pathname:
+            output_path = DEFAULT_WORKSPACE_ROOT
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+        await awrite(filename=output_pathname, data=new_prd.content)
+        kvs = AIMessage.create_instruct_value({"changed_prd_filenames": [str(output_pathname)]})
+        return AIMessage(content=f'PRD filename: "{str(output_pathname)}"', instruct_content=kvs)

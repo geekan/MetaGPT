@@ -26,7 +26,11 @@ from metagpt.actions.design_api_an import (
     REFINED_DESIGN_NODE,
     REFINED_PROGRAM_CALL_FLOW,
 )
-from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
+from metagpt.const import (
+    DATA_API_DESIGN_FILE_REPO,
+    DEFAULT_WORKSPACE_ROOT,
+    SEQ_FLOW_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
@@ -64,7 +68,7 @@ class WriteDesign(Action):
         prd_filename: str = "",
         legacy_design_filename: str = "",
         extra_info: str = "",
-        output_path: str = "",
+        output_pathname: str = "",
         **kwargs,
     ) -> AIMessage:
         """
@@ -75,7 +79,7 @@ class WriteDesign(Action):
             prd_filename (str, optional): The filename of the Product Requirement Document (PRD).
             legacy_design_filename (str, optional): The filename of the legacy design document.
             extra_info (str, optional): Additional information to be included in the system design.
-            output_path (str, optional): The output path where the system design should be saved.
+            output_pathname (str, optional): The output path name of file that the system design should be saved to.
 
         Returns:
             AIMessage: An AIMessage object containing the system design.
@@ -87,7 +91,7 @@ class WriteDesign(Action):
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info)
             >>> print(result.content)
-            The design is balabala...
+            System Design filename: "/path/to/design/filename"
 
             # Modify an exists system design.
             >>> user_requirement = "Your user requirements"
@@ -96,7 +100,7 @@ class WriteDesign(Action):
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename)
             >>> print(result.content)
-            The design is balabala...
+            System Design filename: "/path/to/design/filename"
 
             # Write a new system design with the given PRD(Product Requirement Document).
             >>> user_requirement = "Your user requirements"
@@ -105,7 +109,7 @@ class WriteDesign(Action):
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename)
             >>> print(result.content)
-            The design is balabala...
+            System Design filename: "/path/to/design/filename"
 
             # Modify an exists system design with the given PRD(Product Requirement Document).
             >>> user_requirement = "Your user requirements"
@@ -115,45 +119,45 @@ class WriteDesign(Action):
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, prd_filename=prd_filename)
             >>> print(result.content)
-            The design is balabala...
+            TSystem Design filename: "/path/to/design/filename"
 
-            # Write a new system design and save to the directory.
+            # Write a new system design and save to the path name.
             >>> user_requirement = "Your user requirements"
             >>> extra_info = "Your extra information"
-            >>> output_path = "/path/to/save/"
+            >>> output_pathname = "/path/to/design/filename"
             >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, output_path=output_path)
+            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
             >>> print(result.content)
             System Design filename: "/path/to/design/filename"
 
-            # Modify an exists system design and save to the directory.
+            # Modify an exists system design and save to the path name.
             >>> user_requirement = "Your user requirements"
             >>> extra_info = "Your extra information"
             >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> output_path = "/path/to/save/"
+            >>> output_pathname = "/path/to/design/filename"
             >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename)
+            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, output_pathname=output_pathname)
             >>> print(result.content)
             System Design filename: "/path/to/design/filename"
 
-            # Write a new system design with the given PRD(Product Requirement Document) and save to the directory.
+            # Write a new system design with the given PRD(Product Requirement Document) and save to the path name.
             >>> user_requirement = "Your user requirements"
             >>> extra_info = "Your extra information"
             >>> prd_filename = "/path/to/prd/filename"
-            >>> output_path = "/path/to/save/"
+            >>> output_pathname = "/path/to/design/filename"
             >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename)
+            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename, output_pathname=output_pathname)
             >>> print(result.content)
             System Design filename: "/path/to/design/filename"
 
-            # Modify an exists system design with the given PRD(Product Requirement Document) and save to the directory.
+            # Modify an exists system design with the given PRD(Product Requirement Document) and save to the path name.
             >>> user_requirement = "Your user requirements"
             >>> extra_info = "Your extra information"
             >>> prd_filename = "/path/to/prd/filename"
             >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> output_path = "/path/to/save/"
+            >>> output_pathname = "/path/to/design/filename"
             >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, prd_filename=prd_filename)
+            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, prd_filename=prd_filename, output_pathname=output_pathname)
             >>> print(result.content)
             System Design filename: "/path/to/design/filename"
         """
@@ -163,7 +167,7 @@ class WriteDesign(Action):
                 prd_filename=prd_filename,
                 legacy_design_filename=legacy_design_filename,
                 extra_info=extra_info,
-                output_path=output_path,
+                output_pathname=output_pathname,
             )
 
         self.input_args = with_messages[-1].instruct_content
@@ -268,14 +272,16 @@ class WriteDesign(Action):
         prd_filename: str = "",
         legacy_design_filename: str = "",
         extra_info: str = "",
-        output_path: str = "",
+        output_pathname: str = "",
     ) -> AIMessage:
-        context = to_markdown_code_block(user_requirement)
-        if extra_info:
-            context = to_markdown_code_block(extra_info)
+        prd_content = ""
         if prd_filename:
             prd_content = await aread(filename=prd_filename)
-            context += to_markdown_code_block(prd_content)
+        context = "### User Requirements\n{user_requirement}\n### Extra_info\n{extra_info}\n### PRD\n{prd}\n".format(
+            user_requirement=to_markdown_code_block(user_requirement),
+            extra_info=to_markdown_code_block(extra_info),
+            prd=to_markdown_code_block(prd_content),
+        )
         if not legacy_design_filename:
             node = await self._new_system_design(context=context)
             design = Document(content=node.instruct_content.model_dump_json())
@@ -285,13 +291,14 @@ class WriteDesign(Action):
                 prd_doc=Document(content=context), system_design_doc=Document(content=old_design_content)
             )
 
-        if not output_path:
-            return AIMessage(content=design.content)
-        output_filename = Path(output_path) / f"{uuid.uuid4().hex}.json"
-        await awrite(filename=output_filename, data=design.content)
-        kvs = {"changed_system_design_filenames": [output_filename]}
+        if not output_pathname:
+            output_path = DEFAULT_WORKSPACE_ROOT
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+        await awrite(filename=output_pathname, data=design.content)
+        kvs = {"changed_system_design_filenames": [output_pathname]}
 
         return AIMessage(
-            content=f'System Design filename: "{str(output_filename)}"',
+            content=f'System Design filename: "{str(output_pathname)}"',
             instruct_content=AIMessage.create_instruct_value(kvs=kvs),
         )
