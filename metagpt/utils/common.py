@@ -667,6 +667,8 @@ def role_raise_decorator(func):
 @handle_exception
 async def aread(filename: str | Path, encoding="utf-8") -> str:
     """Read file asynchronously."""
+    if not filename or not Path(filename).exists():
+        return ""
     try:
         async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
             content = await reader.read()
@@ -899,3 +901,51 @@ async def init_python_folder(workdir: str | Path):
         return
     async with aiofiles.open(init_filename, "a"):
         os.utime(init_filename, None)
+
+
+def get_markdown_code_block_type(filename: str) -> str:
+    if not filename:
+        return ""
+    ext = Path(filename).suffix
+    types = {
+        ".py": "python",
+        ".js": "javascript",
+        ".java": "java",
+        ".cpp": "cpp",
+        ".c": "c",
+        ".html": "html",
+        ".css": "css",
+        ".xml": "xml",
+        ".json": "json",
+        ".yaml": "yaml",
+        ".md": "markdown",
+        ".sql": "sql",
+        ".rb": "ruby",
+        ".php": "php",
+        ".sh": "bash",
+        ".swift": "swift",
+        ".go": "go",
+        ".rs": "rust",
+        ".pl": "perl",
+        ".asm": "assembly",
+        ".r": "r",
+        ".scss": "scss",
+        ".sass": "sass",
+        ".lua": "lua",
+        ".ts": "typescript",
+        ".tsx": "tsx",
+        ".jsx": "jsx",
+        ".yml": "yaml",
+        ".ini": "ini",
+        ".toml": "toml",
+        ".svg": "xml",  # SVG can often be treated as XML
+        # Add more file extensions and corresponding code block types as needed
+    }
+    return types.get(ext, "")
+
+
+def to_markdown_code_block(val: str, type_: str = "") -> str:
+    if not val:
+        return val or ""
+    val = val.replace("```", "\\`\\`\\`")
+    return f"\n```{type_}\n{val}\n```\n"

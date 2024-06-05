@@ -22,7 +22,6 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
-from metagpt.utils.project_repo import ProjectRepo
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
@@ -35,12 +34,6 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
-
-    @property
-    def repo(self) -> ProjectRepo:
-        if not self.context.repo:
-            self.context.repo = ProjectRepo(self.context.git_repo)
-        return self.context.repo
 
     @property
     def prompt_schema(self):

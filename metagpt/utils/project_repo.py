@@ -140,10 +140,11 @@ class ProjectRepo(FileRepository):
         return bool(code_files)
 
     def with_src_path(self, path: str | Path) -> ProjectRepo:
-        try:
-            self._srcs_path = Path(path).relative_to(self.workdir)
-        except ValueError:
-            self._srcs_path = Path(path)
+        path = Path(path)
+        if path.is_relative_to(self.workdir):
+            self._srcs_path = path.relative_to(self.workdir)
+        else:
+            self._srcs_path = path
         return self
 
     @property
