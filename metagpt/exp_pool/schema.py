@@ -9,6 +9,13 @@ from pydantic import BaseModel, Field
 MAX_SCORE = 10
 
 
+class QueryType(str, Enum):
+    """Type of query experiences."""
+
+    EXACT = "exact"
+    SEMANTIC = "semantic"
+
+
 class ExperienceType(str, Enum):
     """Experience Type."""
 
@@ -24,12 +31,19 @@ class EntryType(Enum):
     MANUAL = "Manual"
 
 
+class Score(BaseModel):
+    """Score in Metric."""
+
+    val: int = Field(default=1, description="Value of the score, Between 1 and 10, higher is better.")
+    reason: str = Field(default="", description="Reason for the value.")
+
+
 class Metric(BaseModel):
     """Experience Metric."""
 
     time_cost: float = Field(default=0.000, description="Time cost, the unit is milliseconds.")
     money_cost: float = Field(default=0.000, description="Money cost, the unit is US dollars.")
-    score: int = Field(default=1, description="Score, a value between 1 and 10.")
+    score: Score = Field(default=None, description="Score, with value and reason.")
 
 
 class Trajectory(BaseModel):

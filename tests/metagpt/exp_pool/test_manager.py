@@ -4,7 +4,7 @@ from metagpt.config2 import Config
 from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.exp_pool.manager import ExperienceManager
-from metagpt.exp_pool.schema import MAX_SCORE, Experience, Metric
+from metagpt.exp_pool.schema import MAX_SCORE, Experience, Metric, Score
 from metagpt.rag.engines import SimpleEngine
 
 
@@ -62,15 +62,15 @@ class TestExperienceManager:
 
     def test_extract_one_perfect_exp(self, mock_experience_manager):
         experiences = [
-            Experience(req="req", resp="resp", metric=Metric(score=MAX_SCORE)),
+            Experience(req="req", resp="resp", metric=Metric(score=Score(val=MAX_SCORE))),
             Experience(req="req", resp="resp"),
         ]
         perfect_exp: Experience = mock_experience_manager.extract_one_perfect_exp(experiences)
         assert perfect_exp is not None
-        assert perfect_exp.metric.score == MAX_SCORE
+        assert perfect_exp.metric.score.val == MAX_SCORE
 
     def test_is_perfect_exp(self):
-        exp = Experience(req="req", resp="resp", metric=Metric(score=MAX_SCORE))
+        exp = Experience(req="req", resp="resp", metric=Metric(score=Score(val=MAX_SCORE)))
         assert ExperienceManager.is_perfect_exp(exp) == True
 
         exp = Experience(req="req", resp="resp")
