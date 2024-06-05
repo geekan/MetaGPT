@@ -23,8 +23,9 @@ from metagpt.utils.common import CodeParser
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
 class RoleZero(Role):
-    """A role serving as the basis for other MGX roles."""
+    """A role who can think and act dynamically"""
 
+    # Basic Info
     name: str = "Zero"
     profile: str = "RoleZero"
     goal: str = ""
@@ -32,20 +33,25 @@ class RoleZero(Role):
     cmd_prompt: str = CMD_PROMPT
     instruction: str = ROLE_INSTRUCTION
 
+    # React Mode
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
 
-    user_requirement: str = ""
-    command_rsp: str = ""  # the raw string containing the commands
-    commands: list[dict] = []  # commands to be executed
-    memory_k: int = 20  # number of memories (messages) to use as historical context
-
+    # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
 
+    # Experience
     experience_retriever: ExpRetriever = DummyExpRetriever()
+
+    # Others
+    user_requirement: str = ""
+    command_rsp: str = ""  # the raw string containing the commands
+    commands: list[dict] = []  # commands to be executed
+    memory_k: int = 20  # number of memories (messages) to use as historical context
+    use_fixed_sop: bool = False
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -70,6 +76,10 @@ class RoleZero(Role):
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
+        # Compatibility
+        if self.use_fixed_sop:
+            return await super()._think()
+
         ### 0. Preparation ###
         if not self.rc.todo and not self.rc.news:
             return False
@@ -98,7 +108,7 @@ class RoleZero(Role):
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
-        ### Make Decision ###
+        ### Make Decision Dynamically ###
         prompt = self.cmd_prompt.format(
             plan_status=plan_status,
             current_task=current_task,
@@ -114,6 +124,9 @@ class RoleZero(Role):
         return True
 
     async def _act(self) -> Message:
+        if self.use_fixed_sop:
+            return await super()._act()
+
         try:
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=self.command_rsp))
         except Exception as e:

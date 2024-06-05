@@ -22,6 +22,7 @@ class TeamLeader(RoleZero):
     max_react_loop: int = 1  # TeamLeader only reacts once each time
 
     tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
+
     experience_retriever: ExpRetriever = SimpleExpRetriever()
 
     @model_validator(mode="after")
