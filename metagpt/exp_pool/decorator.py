@@ -22,18 +22,21 @@ def exp_cache(_func: Optional[Callable[..., ReturnType]] = None):
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         @functools.wraps(func)
         async def get_or_create(args: Any, kwargs: Any, is_async: bool) -> ReturnType:
-            """Attempts to retrieve a cached experience or creates one if not found."""
+            """Attempts to retrieve a perfect experience or creates an experience if not found."""
 
+            # 1. Get exps.
             req = f"{func.__name__}_{args}_{kwargs}"
             exps = await exp_manager.query_exps(req)
             if perfect_exp := exp_manager.extract_one_perfect_exp(exps):
                 return perfect_exp
 
+            # 2. Exec func. TODO: pass exps to func
             if is_async:
                 result = await func(*args, **kwargs)
             else:
                 result = func(*args, **kwargs)
 
+            # 3. Create an exp.
             exp_manager.create_exp(Experience(req=req, resp=result))
 
             return result
