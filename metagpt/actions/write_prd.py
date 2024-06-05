@@ -9,12 +9,17 @@
             2. According to the design in Section 2.2.3.5.2 of RFC 135, add incremental iteration functionality.
             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
 @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
+@Modified By: mashenquan, 2024/5/31. Implement Chapter 3 of RFC 236.
 """
 
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -30,13 +35,16 @@ from metagpt.actions.write_prd_an import (
 from metagpt.const import (
     BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
+    DEFAULT_WORKSPACE_ROOT,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
-from metagpt.utils.common import CodeParser
+from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import CodeParser, aread, awrite, to_markdown_code_block
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter, GalleryReporter
 
 CONTEXT_TEMPLATE = """
@@ -59,6 +67,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
+@register_tool(tags=["software development", "write product requirement documents"])
 class WritePRD(Action):
     """WritePRD deal with the following situations:
     1. Bugfix: If the requirement is a bugfix, the bugfix document will be generated.
@@ -66,10 +75,97 @@ class WritePRD(Action):
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
     """
 
-    async def run(self, with_messages, *args, **kwargs) -> Message:
-        """Run the action."""
-        req: Document = await self.repo.requirement
-        docs: list[Document] = await self.repo.docs.prd.get_all()
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
+
+    async def run(
+        self,
+        with_messages: List[Message] = None,
+        *,
+        user_requirement: str = "",
+        output_pathname: str = "",
+        legacy_prd_filename: str = "",
+        extra_info: str = "",
+        **kwargs,
+    ) -> AIMessage:
+        """
+        Write a Product Requirement Document.
+
+        Args:
+            user_requirement (str): A string detailing the user's requirements.
+            output_pathname (str, optional): The path name of file that the output document should be saved to. Defaults to "".
+            legacy_prd_filename (str, optional): The file path of the legacy Product Requirement Document to use as a reference. Defaults to "".
+            extra_info (str, optional): Additional information to include in the document. Defaults to "".
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            AIMessage: The resulting message after generating the Product Requirement Document.
+
+        Example:
+            # Write a new PRD(Product Requirement Document)
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+            # Modify a exists PRD(Product Requirement Document)
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+            # Write and save a new PRD(Product Requirement Document) to the path name.
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+            # Modify a exists PRD(Product Requirement Document) and save to the path name.
+            >>> user_requirement = "YOUR REQUIREMENTS"
+            >>> extra_info = "YOUR EXTRA INFO"
+            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
+            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
+            >>> write_prd = WritePRD()
+            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_pathname=output_pathname)
+            >>> print(result.content)
+            PRD filename: "/path/to/prd/directory/213434ad.json"
+
+        """
+        if not with_messages:
+            return await self._execute_api(
+                user_requirement=user_requirement,
+                output_pathname=output_pathname,
+                legacy_prd_filename=legacy_prd_filename,
+                extra_info=extra_info,
+            )
+
+        self.input_args = with_messages[-1].instruct_content
+        if not self.input_args:
+            self.repo = ProjectRepo(self.context.kwargs.project_path)
+            await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[-1].content)
+            self.input_args = AIMessage.create_instruct_value(
+                kvs={
+                    "project_path": self.context.kwargs.project_path,
+                    "requirements_filename": str(self.repo.docs.workdir / REQUIREMENT_FILENAME),
+                    "prd_filenames": [str(self.repo.docs.prd.workdir / i) for i in self.repo.docs.prd.all_files],
+                },
+                class_name="PrepareDocumentsOutput",
+            )
+        else:
+            self.repo = ProjectRepo(self.input_args.project_path)
+        req = await Document.load(filename=self.input_args.requirements_filename)
+        docs: list[Document] = [
+            await Document.load(filename=i, project_path=self.repo.workdir) for i in self.input_args.prd_filenames
+        ]
+
         if not req:
             raise FileNotFoundError("No requirement document found.")
 
@@ -82,10 +178,18 @@ class WritePRD(Action):
         # if requirement is related to other documents, update them, otherwise create a new one
         if related_docs := await self.get_related_docs(req, docs):
             logger.info(f"Requirement update detected: {req.content}")
-            await self._handle_requirement_update(req, related_docs)
+            await self._handle_requirement_update(req=req, related_docs=related_docs)
         else:
             logger.info(f"New requirement detected: {req.content}")
             await self._handle_new_requirement(req)
+
+        kvs = self.input_args.model_dump()
+        kvs["changed_prd_filenames"] = [
+            str(self.repo.docs.prd.workdir / i) for i in list(self.repo.docs.prd.changed_files.keys())
+        ]
+        kvs["project_path"] = str(self.repo.workdir)
+        kvs["requirements_filename"] = str(self.repo.docs.workdir / REQUIREMENT_FILENAME)
+        self.context.kwargs.project_path = str(self.repo.workdir)
         return AIMessage(
             content="PRD is completed. "
             + "\n".join(
@@ -93,6 +197,7 @@ class WritePRD(Action):
                 + list(self.repo.resources.prd.changed_files.keys())
                 + list(self.repo.resources.competitive_analysis.changed_files.keys())
             ),
+            instruct_content=AIMessage.create_instruct_value(kvs=kvs, class_name="WritePRDOutput"),
             cause_by=self,
         )
 
@@ -103,19 +208,31 @@ class WritePRD(Action):
         return AIMessage(
             content=f"A new issue is received: {BUGFIX_FILENAME}",
             cause_by=FixBug,
+            instruct_content=AIMessage.create_instruct_value(
+                {
+                    "project_path": str(self.repo.workdir),
+                    "issue_filename": str(self.repo.docs.workdir / BUGFIX_FILENAME),
+                    "requirements_filename": str(self.repo.docs.workdir / REQUIREMENT_FILENAME),
+                },
+                class_name="IssueDetail",
+            ),
             send_to="Alex",  # the name of Engineer
         )
+
+    async def _new_prd(self, requirement: str) -> ActionNode:
+        project_name = self.project_name
+        context = CONTEXT_TEMPLATE.format(requirements=requirement, project_name=project_name)
+        exclude = [PROJECT_NAME.key] if project_name else []
+        node = await WRITE_PRD_NODE.fill(
+            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+        )  # schema=schema
+        return node
 
     async def _handle_new_requirement(self, req: Document) -> ActionOutput:
         """handle new requirement"""
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "prd"}, "meta")
-            project_name = self.project_name
-            context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
-            exclude = [PROJECT_NAME.key] if project_name else []
-            node = await WRITE_PRD_NODE.fill(
-                context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
-            )  # schema=schema
+            node = await self._new_prd(req.content)
             await self._rename_workspace(node)
             new_prd_doc = await self.repo.docs.prd.save(
                 filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
@@ -128,7 +245,7 @@ class WritePRD(Action):
     async def _handle_requirement_update(self, req: Document, related_docs: list[Document]) -> ActionOutput:
         # ... requirement update logic ...
         for doc in related_docs:
-            await self._update_prd(req, doc)
+            await self._update_prd(req=req, prd_doc=doc)
         return Documents.from_iterable(documents=related_docs).to_action_output()
 
     async def _is_bugfix(self, context: str) -> bool:
@@ -159,7 +276,7 @@ class WritePRD(Action):
     async def _update_prd(self, req: Document, prd_doc: Document) -> Document:
         async with DocsReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "prd"}, "meta")
-            new_prd_doc: Document = await self._merge(req, prd_doc)
+            new_prd_doc: Document = await self._merge(req=req, related_doc=prd_doc)
             await self.repo.docs.prd.save_doc(doc=new_prd_doc)
             await self._save_competitive_analysis(new_prd_doc)
             md = await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
@@ -186,4 +303,29 @@ class WritePRD(Action):
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             if ws_name:
                 self.project_name = ws_name
-        self.repo.git_repo.rename_root(self.project_name)
+        if self.repo:
+            self.repo.git_repo.rename_root(self.project_name)
+
+    async def _execute_api(
+        self, user_requirement: str, output_pathname: str, legacy_prd_filename: str, extra_info: str
+    ) -> AIMessage:
+        content = "#### User Requirements\n{user_requirement}\n#### Extra Info\n{extra_info}\n".format(
+            user_requirement=to_markdown_code_block(val=user_requirement),
+            extra_info=to_markdown_code_block(val=extra_info),
+        )
+        req = Document(content=content)
+        if not legacy_prd_filename:
+            node = await self._new_prd(requirement=req.content)
+            new_prd = Document(content=node.instruct_content.model_dump_json())
+        else:
+            content = await aread(filename=legacy_prd_filename)
+            old_prd = Document(content=content)
+            new_prd = await self._merge(req=req, related_doc=old_prd)
+
+        if not output_pathname:
+            output_path = DEFAULT_WORKSPACE_ROOT
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+        await awrite(filename=output_pathname, data=new_prd.content)
+        kvs = AIMessage.create_instruct_value({"changed_prd_filenames": [str(output_pathname)]})
+        return AIMessage(content=f'PRD filename: "{str(output_pathname)}"', instruct_content=kvs)

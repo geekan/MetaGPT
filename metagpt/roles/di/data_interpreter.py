@@ -15,6 +15,7 @@ from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.task_type import TaskType
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import ThoughtReporter
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -73,7 +74,8 @@ class DataInterpreter(Role):
             return True
 
         prompt = REACT_THINK_PROMPT.format(user_requirement=self.user_requirement, context=context)
-        rsp = await self.llm.aask(prompt)
+        async with ThoughtReporter():
+            rsp = await self.llm.aask(prompt)
         rsp_dict = json.loads(CodeParser.parse_code(text=rsp))
         self.working_memory.add(Message(content=rsp_dict["thoughts"], role="assistant"))
         need_action = rsp_dict["state"]

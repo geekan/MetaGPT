@@ -103,7 +103,7 @@ class Editor:
                     file_path=file_path,
                     block_content=block_content,
                 )
-                self.resource.report(result.file_path, "path")
+                self.resource.report(result.file_path, "path", extra={"type": "search", "line": i, "symbol": symbol})
                 return result
         return None
 

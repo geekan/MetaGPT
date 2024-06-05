@@ -1,6 +1,8 @@
 import faiss
 import pytest
 from llama_index.core import VectorStoreIndex
+from llama_index.core.embeddings import MockEmbedding
+from llama_index.core.schema import TextNode
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 
@@ -43,6 +45,14 @@ class TestRetrieverFactory:
     def mock_es_vector_store(self, mocker):
         return mocker.MagicMock(spec=ElasticsearchStore)
 
+    @pytest.fixture
+    def mock_nodes(self, mocker):
+        return [TextNode(text="msg")]
+
+    @pytest.fixture
+    def mock_embedding(self):
+        return MockEmbedding(embed_dim=1)
+
     def test_get_retriever_with_faiss_config(self, mock_faiss_index, mocker, mock_vector_store_index):
         mock_config = FAISSRetrieverConfig(dimensions=128)
         mocker.patch("faiss.IndexFlatL2", return_value=mock_faiss_index)
@@ -52,42 +62,40 @@ class TestRetrieverFactory:
 
         assert isinstance(retriever, FAISSRetriever)
 
-    def test_get_retriever_with_bm25_config(self, mocker, mock_vector_store_index):
+    def test_get_retriever_with_bm25_config(self, mocker, mock_nodes):
         mock_config = BM25RetrieverConfig()
         mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
-        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=mock_vector_store_index)
 
-        retriever = self.retriever_factory.get_retriever(configs=[mock_config])
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=mock_nodes)
 
         assert isinstance(retriever, DynamicBM25Retriever)
 
-    def test_get_retriever_with_multiple_configs_returns_hybrid(self, mocker, mock_vector_store_index):
-        mock_faiss_config = FAISSRetrieverConfig(dimensions=128)
+    def test_get_retriever_with_multiple_configs_returns_hybrid(self, mocker, mock_nodes, mock_embedding):
+        mock_faiss_config = FAISSRetrieverConfig(dimensions=1)
         mock_bm25_config = BM25RetrieverConfig()
         mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
-        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=mock_vector_store_index)
 
-        retriever = self.retriever_factory.get_retriever(configs=[mock_faiss_config, mock_bm25_config])
+        retriever = self.retriever_factory.get_retriever(
+            configs=[mock_faiss_config, mock_bm25_config], nodes=mock_nodes, embed_model=mock_embedding
+        )
 
         assert isinstance(retriever, SimpleHybridRetriever)
 
-    def test_get_retriever_with_chroma_config(self, mocker, mock_vector_store_index, mock_chroma_vector_store):
+    def test_get_retriever_with_chroma_config(self, mocker, mock_chroma_vector_store, mock_embedding):
         mock_config = ChromaRetrieverConfig(persist_path="/path/to/chroma", collection_name="test_collection")
         mock_chromadb = mocker.patch("metagpt.rag.factories.retriever.chromadb.PersistentClient")
         mock_chromadb.get_or_create_collection.return_value = mocker.MagicMock()
         mocker.patch("metagpt.rag.factories.retriever.ChromaVectorStore", return_value=mock_chroma_vector_store)
-        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=mock_vector_store_index)
 
-        retriever = self.retriever_factory.get_retriever(configs=[mock_config])
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
 
         assert isinstance(retriever, ChromaRetriever)
 
-    def test_get_retriever_with_es_config(self, mocker, mock_vector_store_index, mock_es_vector_store):
+    def test_get_retriever_with_es_config(self, mocker, mock_es_vector_store, mock_embedding):
         mock_config = ElasticsearchRetrieverConfig(store_config=ElasticsearchStoreConfig())
         mocker.patch("metagpt.rag.factories.retriever.ElasticsearchStore", return_value=mock_es_vector_store)
-        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=mock_vector_store_index)
 
-        retriever = self.retriever_factory.get_retriever(configs=[mock_config])
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
 
         assert isinstance(retriever, ElasticsearchRetriever)
 
@@ -111,3 +119,19 @@ class TestRetrieverFactory:
         extracted_index = self.retriever_factory._extract_index(index=mock_vector_store_index)
 
         assert extracted_index == mock_vector_store_index
+
+    def test_get_or_build_when_get(self, mocker):
+        want = "existing_index"
+        mocker.patch.object(self.retriever_factory, "_extract_index", return_value=want)
+
+        got = self.retriever_factory._build_es_index(None)
+
+        assert got == want
+
+    def test_get_or_build_when_build(self, mocker):
+        want = "call_build_es_index"
+        mocker.patch.object(self.retriever_factory, "_build_es_index", return_value=want)
+
+        got = self.retriever_factory._build_es_index(None)
+
+        assert got == want

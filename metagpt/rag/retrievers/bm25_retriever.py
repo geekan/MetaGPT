@@ -40,8 +40,10 @@ class DynamicBM25Retriever(BM25Retriever):
         self._corpus = [self._tokenizer(node.get_content()) for node in self._nodes]
         self.bm25 = BM25Okapi(self._corpus)
 
-        self._index.insert_nodes(nodes, **kwargs)
+        if self._index:
+            self._index.insert_nodes(nodes, **kwargs)
 
     def persist(self, persist_dir: str, **kwargs) -> None:
         """Support persist."""
-        self._index.storage_context.persist(persist_dir)
+        if self._index:
+            self._index.storage_context.persist(persist_dir)
