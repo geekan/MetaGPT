@@ -4,56 +4,134 @@ import asyncio
 import functools
 from typing import Any, Callable, Optional, TypeVar
 
-from metagpt.exp_pool.manager import exp_manager
-from metagpt.exp_pool.schema import Experience
+from pydantic import BaseModel, ConfigDict
+
+from metagpt.exp_pool.manager import ExperienceManager, exp_manager
+from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
+from metagpt.exp_pool.scorers import ExperienceScorer, SimpleScorer
 from metagpt.utils.async_helper import NestAsyncio
 
 ReturnType = TypeVar("ReturnType")
 
 
-def exp_cache(_func: Optional[Callable[..., ReturnType]] = None):
-    """Decorator to check for a perfect experience and returns it if exists.
-
-    Otherwise, it executes the function, save the result as a new experience, and returns the result.
+def exp_cache(
+    _func: Optional[Callable[..., ReturnType]] = None,
+    query_type: QueryType = QueryType.SEMANTIC,
+    scorer: Optional[ExperienceScorer] = None,
+    manager: Optional[ExperienceManager] = None,
+    pass_exps_to_func: bool = False,
+):
+    """Decorator to get a perfect experience, otherwise, it executes the function, and create a new experience.
 
     This can be applied to both synchronous and asynchronous functions.
+
+    Args:
+        _func: Just to make the decorator more flexible, for example, it can be used directly with @exp_cache by default, without the need for @exp_cache().
+        query_type: The type of query to be used when fetching experiences.
+        scorer: Evaluate experience. Default SimpleScorer.
+        manager: How to fetch, evaluate and save experience, etc. Default exp_manager.
+        pass_exps_to_func: To control whether imperfect experiences are passed to the function, if True, the func must have a parameter named 'exps'.
     """
 
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         @functools.wraps(func)
-        async def get_or_create(args: Any, kwargs: Any, is_async: bool) -> ReturnType:
-            """Attempts to retrieve a perfect experience or creates an experience if not found."""
+        async def get_or_create(args: Any, kwargs: Any) -> ReturnType:
+            handler = ExpCacheHandler(
+                func=func,
+                args=args,
+                kwargs=kwargs,
+                exp_manager=manager or exp_manager,
+                exp_scorer=scorer or SimpleScorer(),
+                pass_exps=pass_exps_to_func,
+            )
 
-            # 1. Get exps.
-            req = f"{func.__name__}_{args}_{kwargs}"
-            exps = await exp_manager.query_exps(req)
-            if perfect_exp := exp_manager.extract_one_perfect_exp(exps):
-                return perfect_exp
+            await handler.fetch_experiences(query_type)
+            if exp := handler.get_one_perfect_experience():
+                return exp
 
-            # 2. Exec func. TODO: pass exps to func
-            if is_async:
-                result = await func(*args, **kwargs)
-            else:
-                result = func(*args, **kwargs)
+            await handler.execute_function()
+            await handler.evaluate_experience()
+            handler.save_experience()
 
-            # 3. Create an exp.
-            exp_manager.create_exp(Experience(req=req, resp=result))
+            return handler._result
 
-            return result
+        return ExpCacheHandler.choose_wrapper(func, get_or_create)
 
-        def sync_wrapper(*args: Any, **kwargs: Any) -> ReturnType:
+    return decorator(_func) if _func else decorator
+
+
+class ExpCacheHandler(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    func: Callable
+    args: Any
+    kwargs: Any
+    exp_manager: ExperienceManager
+    exp_scorer: ExperienceScorer
+    pass_exps: bool
+
+    _exps: list[Experience] = None
+    _result: Any = None
+    _score: Score = None
+
+    async def fetch_experiences(self, query_type: QueryType):
+        """Fetch a potentially perfect existing experience."""
+
+        req = self.generate_req_identifier()
+        self._exps = await self.exp_manager.query_exps(req, query_type=query_type)
+
+    def get_one_perfect_experience(self) -> Optional[Experience]:
+        return self.exp_manager.extract_one_perfect_exp(self._exps)
+
+    async def execute_function(self):
+        """Execute the function, and save the result."""
+        self._result = await self._execute_function()
+
+    async def evaluate_experience(self):
+        """Evaluate the experience, and save the score."""
+
+        self._score = await self.exp_scorer.evaluate(self.func, self._result, self.args, self.kwargs)
+
+    def save_experience(self):
+        """Save the new experience."""
+
+        req = self.generate_req_identifier()
+        exp = Experience(req=req, resp=self._result, metric=Metric(score=self._score))
+
+        self.exp_manager.create_exp(exp)
+
+    def generate_req_identifier(self):
+        """Generate a unique request identifier based on the function and its arguments."""
+
+        return f"{self.func.__name__}_{self.args}_{self.kwargs}"
+
+    @staticmethod
+    def choose_wrapper(func, wrapped_func):
+        """Choose how to run wrapped_func based on whether the function is asynchronous."""
+
+        async def async_wrapper(*args, **kwargs):
+            return await wrapped_func(args, kwargs)
+
+        def sync_wrapper(*args, **kwargs):
             NestAsyncio.apply_once()
-            return asyncio.get_event_loop().run_until_complete(get_or_create(args, kwargs, is_async=False))
+            return asyncio.get_event_loop().run_until_complete(wrapped_func(args, kwargs))
 
-        async def async_wrapper(*args: Any, **kwargs: Any) -> ReturnType:
-            return await get_or_create(args, kwargs, is_async=True)
+        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
 
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
+    async def _execute_function(self):
+        if self.pass_exps:
+            return await self._execute_function_with_exps()
 
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
+        return await self._execute_function_without_exps()
+
+    async def _execute_function_without_exps(self):
+        if asyncio.iscoroutinefunction(self.func):
+            return await self.func(*self.args, **self.kwargs)
+
+        return self.func(*self.args, **self.kwargs)
+
+    async def _execute_function_with_exps(self):
+        if asyncio.iscoroutinefunction(self.func):
+            return await self.func(*self.args, **self.kwargs, exps=self._exps)
+
+        return self.func(*self.args, **self.kwargs, exps=self._exps)

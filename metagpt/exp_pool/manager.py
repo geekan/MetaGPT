@@ -5,7 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from metagpt.config2 import Config, config
-from metagpt.exp_pool.schema import MAX_SCORE, Experience
+from metagpt.exp_pool.schema import MAX_SCORE, Experience, QueryType
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
 
@@ -45,12 +45,13 @@ class ExperienceManager(BaseModel):
 
         self.storage.add_objs([exp])
 
-    async def query_exps(self, req: str, tag: str = "") -> list[Experience]:
+    async def query_exps(self, req: str, tag: str = "", query_type: QueryType = QueryType.SEMANTIC) -> list[Experience]:
         """Retrieves and filters experiences.
 
         Args:
             req (str): The query string to retrieve experiences.
             tag (str): Optional tag to filter the experiences by.
+            query_type (QueryType): Default semantic to vector matching. exact to same matching.
 
         Returns:
             list[Experience]: A list of experiences that match the args.
@@ -64,6 +65,9 @@ class ExperienceManager(BaseModel):
         # TODO: filter by metadata
         if tag:
             exps = [exp for exp in exps if exp.tag == tag]
+
+        if query_type == QueryType.EXACT:
+            exps = [exp for exp in exps if exp.req == req]
 
         return exps
 
@@ -96,7 +100,7 @@ class ExperienceManager(BaseModel):
             return False
 
         # TODO: need more metrics
-        if exp.metric and exp.metric.score == MAX_SCORE:
+        if exp.metric and exp.metric.score.val == MAX_SCORE:
             return True
 
         return False

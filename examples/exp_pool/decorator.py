@@ -7,8 +7,9 @@ from metagpt.exp_pool import exp_cache, exp_manager
 from metagpt.logs import logger
 
 
-@exp_cache
-async def produce(req):
+@exp_cache(pass_exps_to_func=True)
+async def produce(req, exps=None):
+    logger.info(f"Previous experiences: {exps}")
     return f"{req} {uuid.uuid4().hex}"
 
 
