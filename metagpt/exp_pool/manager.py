@@ -8,6 +8,7 @@ from metagpt.config2 import Config, config
 from metagpt.exp_pool.schema import MAX_SCORE, Experience, QueryType
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+from metagpt.utils.exceptions import handle_exception
 
 
 class ExperienceManager(BaseModel):
@@ -34,6 +35,7 @@ class ExperienceManager(BaseModel):
             )
         return self
 
+    @handle_exception
     def create_exp(self, exp: Experience):
         """Adds an experience to the storage if writing is enabled.
 
@@ -45,6 +47,7 @@ class ExperienceManager(BaseModel):
 
         self.storage.add_objs([exp])
 
+    @handle_exception(default_return=[])
     async def query_exps(self, req: str, tag: str = "", query_type: QueryType = QueryType.SEMANTIC) -> list[Experience]:
         """Retrieves and filters experiences.
 

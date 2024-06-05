@@ -10,6 +10,7 @@ from metagpt.exp_pool.manager import ExperienceManager, exp_manager
 from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
 from metagpt.exp_pool.scorers import ExperienceScorer, SimpleScorer
 from metagpt.utils.async_helper import NestAsyncio
+from metagpt.utils.exceptions import handle_exception
 
 ReturnType = TypeVar("ReturnType")
 
@@ -50,8 +51,7 @@ def exp_cache(
                 return exp
 
             await handler.execute_function()
-            await handler.evaluate_experience()
-            handler.save_experience()
+            await handler.process_experience()
 
             return handler._result
 
@@ -86,6 +86,16 @@ class ExpCacheHandler(BaseModel):
     async def execute_function(self):
         """Execute the function, and save the result."""
         self._result = await self._execute_function()
+
+    @handle_exception
+    async def process_experience(self):
+        """Process experience.
+
+        Evaluates and saves experience.
+        Use `handle_exception` to ensure robustness, do not stop subsequent operations.
+        """
+        await self.evaluate_experience()
+        self.save_experience()
 
     async def evaluate_experience(self):
         """Evaluate the experience, and save the score."""
