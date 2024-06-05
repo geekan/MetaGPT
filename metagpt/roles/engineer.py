@@ -434,6 +434,10 @@ class Engineer(Role):
             if filename.suffix != ".py":
                 continue
             workdir = self.src_workspace / filename.parent
+            if not workdir.exists():
+                workdir = self.project_repo.workdir / filename.parent
+            if not workdir.exists():
+                return
             await init_python_folder(workdir)
 
     async def _is_fixbug(self) -> bool:
