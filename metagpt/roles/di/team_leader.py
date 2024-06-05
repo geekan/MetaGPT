@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from pydantic import model_validator
 
+from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     SYSTEM_PROMPT,
     TL_INSTRUCTION,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import Message
+from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import ExpRetriever, SimpleExpRetriever
 from metagpt.tools.tool_registry import register_tool
 
@@ -49,7 +50,7 @@ class TeamLeader(RoleZero):
         self.set_instruction()
         return await super()._think()
 
-    def publish_message(self, msg, send_to="no one"):
+    def publish_message(self, msg: Message, send_to="no one"):
         """Overwrite Role.publish_message, send to no one if called within Role.run, send to the specified role if called dynamically."""
         if not msg:
             return
@@ -64,8 +65,11 @@ class TeamLeader(RoleZero):
         Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work.
         DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.
         """
-        self.publish_message(Message(content=content), send_to=send_to)
+        # Specify the outer send_to to overwrite the default "no one" value. Use UserMessage because message from self is like a user request for others.
+        self.publish_message(
+            UserMessage(content=content, sent_from=self.name, send_to=send_to, cause_by=RunCommand), send_to=send_to
+        )
 
     def finish_current_task(self):
         self.planner.plan.finish_current_task()
-        self.rc.memory.add(Message(content=FINISH_CURRENT_TASK_CMD, role="assistant"))
+        self.rc.memory.add(AIMessage(content=FINISH_CURRENT_TASK_CMD))

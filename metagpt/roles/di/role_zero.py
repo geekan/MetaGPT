@@ -13,7 +13,7 @@ from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
 from metagpt.roles import Role
-from metagpt.schema import Message
+from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
 from metagpt.strategy.planner import Planner
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
@@ -117,11 +117,11 @@ class RoleZero(Role):
             available_commands=tool_info,
             instruction=self.instruction.strip(),
         )
-        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [Message(content=prompt, role="user")])
+        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
         print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter():
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
-        self.rc.memory.add(Message(content=self.command_rsp, role="assistant"))
+        self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
 
@@ -134,21 +134,20 @@ class RoleZero(Role):
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)
-            error_msg = Message(content=str(e), role="user")
+            error_msg = UserMessage(content=str(e))
             self.rc.memory.add(error_msg)
             return error_msg
         outputs = await self._run_commands(commands)
-        self.rc.memory.add(Message(content=outputs, role="user"))
-        return Message(
+        self.rc.memory.add(UserMessage(content=outputs))
+        return AIMessage(
             content=f"Complete run with outputs: {outputs}",
-            role="assistant",
-            sent_from=self._setting,
+            sent_from=self.name,
             cause_by=RunCommand,
         )
 
     async def _react(self) -> Message:
         actions_taken = 0
-        rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
+        rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # NOTE: difference here, keep observing within react
             await self._observe()
