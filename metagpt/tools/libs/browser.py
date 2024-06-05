@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import contextlib
+from uuid import uuid4
 
 from playwright.async_api import async_playwright
-from metagpt.utils.file import MemoryFileSystem
-from uuid import uuid4
+
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.file import MemoryFileSystem
 from metagpt.utils.parse_html import simplify_html
 from metagpt.utils.report import BrowserReporter
 
@@ -64,7 +66,6 @@ class Browser:
 
         # Since RAG is an optional optimization, if it fails, the simplified HTML can be used as a fallback.
         with contextlib.suppress(Exception):
-
             from metagpt.rag.engines import SimpleEngine  # avoid circular import
 
             # TODO make `from_docs` asynchronous

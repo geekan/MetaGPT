@@ -31,6 +31,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PrivateAttr,
+    create_model,
     field_serializer,
     field_validator,
     model_serializer,
@@ -43,13 +44,18 @@ from metagpt.const import (
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
-    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, import_class
+from metagpt.utils.common import (
+    CodeParser,
+    any_to_str,
+    any_to_str_set,
+    aread,
+    import_class,
+)
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.report import TaskReporter
 from metagpt.utils.serialize import (
@@ -156,6 +162,30 @@ class Document(BaseModel):
 
     def __repr__(self):
         return self.content
+
+    @classmethod
+    async def load(
+        cls, filename: Union[str, Path], project_path: Optional[Union[str, Path]] = None
+    ) -> Optional["Document"]:
+        """
+        Load a document from a file.
+
+        Args:
+            filename (Union[str, Path]): The path to the file to load.
+            project_path (Optional[Union[str, Path]], optional): The path to the project. Defaults to None.
+
+        Returns:
+            Optional[Document]: The loaded document, or None if the file does not exist.
+
+        """
+        if not filename or not Path(filename).exists():
+            return None
+        content = await aread(filename=filename)
+        doc = cls(content=content, filename=str(filename))
+        if project_path and Path(filename).is_relative_to(project_path):
+            doc.root_path = Path(filename).relative_to(project_path).parent
+            doc.filename = Path(filename).name
+        return doc
 
 
 class Documents(BaseModel):
@@ -359,6 +389,22 @@ class Message(BaseModel):
 
     def add_metadata(self, key: str, value: str):
         self.metadata[key] = value
+
+    @staticmethod
+    def create_instruct_value(kvs: Dict[str, Any], class_name: str = "") -> BaseModel:
+        """
+        Dynamically creates a Pydantic BaseModel subclass based on a given dictionary.
+
+        Parameters:
+        - data: A dictionary from which to create the BaseModel subclass.
+
+        Returns:
+        - A Pydantic BaseModel subclass instance populated with the given data.
+        """
+        if not class_name:
+            class_name = "DM" + uuid.uuid4().hex[0:8]
+        dynamic_class = create_model(class_name, **{key: (value.__class__, ...) for key, value in kvs.items()})
+        return dynamic_class.model_validate(kvs)
 
 
 class UserMessage(Message):
@@ -761,22 +807,6 @@ class CodePlanAndChangeContext(BaseModel):
     prd_filename: str = ""
     design_filename: str = ""
     task_filename: str = ""
-
-    @staticmethod
-    def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
-        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""), issue=kwargs.get("issue", ""))
-        for filename in filenames:
-            filename = Path(filename)
-            if filename.is_relative_to(PRDS_FILE_REPO):
-                ctx.prd_filename = filename.name
-                continue
-            if filename.is_relative_to(SYSTEM_DESIGN_FILE_REPO):
-                ctx.design_filename = filename.name
-                continue
-            if filename.is_relative_to(TASK_FILE_REPO):
-                ctx.task_filename = filename.name
-                continue
-        return ctx
 
 
 # mermaid class view

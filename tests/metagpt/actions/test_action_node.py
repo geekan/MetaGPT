@@ -303,5 +303,4 @@ def test_action_node_from_pydantic_and_print_everything():
 
 
 if __name__ == "__main__":
-    test_create_model_class()
-    test_create_model_class_with_mapping()
+    pytest.main([__file__, "-s"])

@@ -7,16 +7,17 @@
 @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
         WriteCode object, rather than passing them in when calling the run function.
 """
+from typing import Optional
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
-from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.logs import logger
-from metagpt.schema import CodingContext
+from metagpt.schema import CodingContext, Document
 from metagpt.utils.common import CodeParser
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import EditorReporter
 
 PROMPT_TEMPLATE = """
@@ -127,6 +128,8 @@ or
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
     i_context: CodingContext = Field(default_factory=CodingContext)
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, doc):
@@ -138,7 +141,9 @@ class WriteCodeReview(Action):
 
         # if LBTM, rewrite code
         async with EditorReporter(enable_llm_stream=True) as reporter:
-            await reporter.async_report({"type": "code", "filename": filename, "src_path": doc.root_relative_path}, "meta")
+            await reporter.async_report(
+                {"type": "code", "filename": filename, "src_path": doc.root_relative_path}, "meta"
+            )
             rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
             code_rsp = await self._aask(rewrite_prompt)
             code = CodeParser.parse_code(text=code_rsp)
@@ -156,7 +161,7 @@ class WriteCodeReview(Action):
             code_context = await WriteCode.get_codes(
                 self.i_context.task_doc,
                 exclude=self.i_context.filename,
-                project_repo=self.repo.with_src_path(self.context.src_workspace),
+                project_repo=self.repo,
                 use_inc=self.config.inc,
             )
 
@@ -166,7 +171,7 @@ class WriteCodeReview(Action):
                 "## Code Files\n" + code_context + "\n",
             ]
             if self.config.inc:
-                requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
+                requirement_doc = await Document.load(filename=self.input_args.requirements_filename)
                 insert_ctx_list = [
                     "## User New Requirements\n" + str(requirement_doc) + "\n",
                     "## Code Plan And Change\n" + str(self.i_context.code_plan_and_change_doc) + "\n",

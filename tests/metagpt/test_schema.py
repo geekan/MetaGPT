@@ -392,5 +392,11 @@ async def test_parse_resources(context, content: str, key_descriptions):
         assert k in result
 
 
+@pytest.mark.parametrize(("name", "value"), [("c1", {"age": 10, "name": "Alice"}), ("", {"path": __file__})])
+def test_create_instruct_value(name, value):
+    obj = Message.create_instruct_value(kvs=value, class_name=name)
+    assert obj.model_dump() == value
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

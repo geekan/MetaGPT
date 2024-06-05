@@ -22,6 +22,7 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
+from metagpt.utils.git_repository import GitRepository
 
 if TYPE_CHECKING:
     from metagpt.roles.role import Role  # noqa: F401
@@ -243,8 +244,9 @@ class Environment(ExtEnv):
         self.member_addrs[obj] = addresses
 
     def archive(self, auto_archive=True):
-        if auto_archive and self.context.git_repo:
-            self.context.git_repo.archive()
+        if auto_archive and self.context.kwargs.get("project_path"):
+            git_repo = GitRepository(self.context.kwargs.project_path)
+            git_repo.archive()
 
     @classmethod
     def model_rebuild(cls, **kwargs):

@@ -68,7 +68,7 @@ def generate_repo(
     company.run_project(idea, send_to=any_to_str(ProductManager))
     asyncio.run(company.run(n_round=n_round))
 
-    return ctx.repo
+    return ctx.kwargs.get("project_path")
 
 
 @app.command("", help="Start a new project.")

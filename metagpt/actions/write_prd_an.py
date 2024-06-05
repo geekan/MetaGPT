@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : write_prd_an.py
 """
-from typing import List
+from typing import List, Union
 
 from metagpt.actions.action_node import ActionNode
 
@@ -132,7 +132,7 @@ REQUIREMENT_ANALYSIS = ActionNode(
 
 REFINED_REQUIREMENT_ANALYSIS = ActionNode(
     key="Refined Requirement Analysis",
-    expected_type=List[str],
+    expected_type=Union[List[str], str],
     instruction="Review and refine the existing requirement analysis into a string list to align with the evolving needs of the project "
     "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
     "required for the refined project scope.",

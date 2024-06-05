@@ -156,6 +156,8 @@ class GitRepository:
         :param local_path: The local path to check.
         :return: True if the directory is a Git repository, False otherwise.
         """
+        if not local_path:
+            return False
         git_dir = Path(local_path) / ".git"
         if git_dir.exists() and is_git_dir(git_dir):
             return True
