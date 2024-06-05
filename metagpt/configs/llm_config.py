@@ -12,7 +12,7 @@ from pydantic import field_validator
 
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.utils.yaml_model import YamlModel
-
+from metagpt.const import METAGPT_ROOT, CONFIG_ROOT
 
 class LLMType(Enum):
     OPENAI = "openai"
@@ -94,7 +94,15 @@ class LLMConfig(YamlModel):
     @classmethod
     def check_llm_key(cls, v):
         if v in ["", None, "YOUR_API_KEY"]:
-            raise ValueError("Please set your API key in config2.yaml")
+            repo_config_path=(METAGPT_ROOT / "config/config2.yaml")
+            root_config_path=(CONFIG_ROOT / "config2.yaml")
+            if root_config_path.exists():
+                 raise ValueError(
+                    f"Please set your API key in {root_config_path}. If you also set your config in {repo_config_path}, \nthe former will overwrite the latter. This may cause unexpected result.\n")
+            elif repo_config_path.exists():
+                raise ValueError(f"Please set your API key in {repo_config_path}")
+            else:
+                raise ValueError(f"Please set your API key in config2.yaml")
         return v
 
     @field_validator("timeout")
