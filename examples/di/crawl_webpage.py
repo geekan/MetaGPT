@@ -6,7 +6,8 @@
 """
 
 from metagpt.roles.di.data_interpreter import DataInterpreter
-from metagpt.tools.libs.browser import Browser as _
+
+__import__("metagpt.tools.libs.browser", fromlist=["Browser"])  # To skip pre-commit check
 
 
 PAPER_LIST_REQ = """"

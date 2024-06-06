@@ -896,6 +896,11 @@ def get_project_srcs_path(workdir: str | Path) -> Path:
 
 
 async def init_python_folder(workdir: str | Path):
+    if not workdir:
+        return
+    workdir = Path(workdir)
+    if not workdir.exists():
+        return
     init_filename = Path(workdir) / "__init__.py"
     if init_filename.exists():
         return

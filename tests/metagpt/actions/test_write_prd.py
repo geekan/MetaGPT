@@ -16,7 +16,7 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import RoleReactMode
-from metagpt.schema import AIMessage, Message
+from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
 from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import NEW_REQUIREMENT_SAMPLE
@@ -79,35 +79,34 @@ async def test_fix_debug(new_filename, context, git_dir):
 async def test_write_prd_api(context):
     action = WritePRD()
     result = await action.run(user_requirement="write a snake game.")
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
+    assert isinstance(result, str)
+    assert result
+    assert str(DEFAULT_WORKSPACE_ROOT) in result
 
     result = await action.run(
         user_requirement="write a snake game.",
         output_pathname=str(Path(context.config.project_path) / f"{uuid.uuid4().hex}.json"),
     )
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert result.instruct_content
-    assert str(context.config.project_path) in result.content
+    assert isinstance(result, str)
+    assert result
+    assert str(context.config.project_path) in result
 
-    legacy_prd_filename = result.instruct_content.changed_prd_filenames[-1]
+    ix = result.find(":")
+    legacy_prd_filename = result[ix + 1 :].replace('"', "").strip()
 
     result = await action.run(user_requirement="Add moving enemy.", legacy_prd_filename=legacy_prd_filename)
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
+    assert isinstance(result, str)
+    assert result
+    assert str(DEFAULT_WORKSPACE_ROOT) in result
 
     result = await action.run(
         user_requirement="Add moving enemy.",
         output_pathname=str(Path(context.config.project_path) / f"{uuid.uuid4().hex}.json"),
         legacy_prd_filename=legacy_prd_filename,
     )
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert result.instruct_content
-    assert str(context.config.project_path) in result.content
+    assert isinstance(result, str)
+    assert result
+    assert str(context.config.project_path) in result
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -45,7 +45,7 @@ class WriteTasks(Action):
 
     async def run(
         self, with_messages: List[Message] = None, *, user_requirement: str = "", design_filename: str = "", **kwargs
-    ) -> AIMessage:
+    ) -> Union[AIMessage, str]:
         """
         Write a project schedule given a project system design file.
 
@@ -62,7 +62,7 @@ class WriteTasks(Action):
             >>> design_filename = "/path/to/design/filename"
             >>> action = WriteTasks()
             >>> result = await action.run(design_filename=design_filename)
-            >>> print(result.content)
+            >>> print(result)
             The project schedule is balabala...
 
             # Write a new project schedule with the user requirement.
@@ -70,7 +70,7 @@ class WriteTasks(Action):
             >>> user_requirement = "Your user requirements"
             >>> action = WriteTasks()
             >>> result = await action.run(design_filename=design_filename, user_requirement=user_requirement)
-            >>> print(result.content)
+            >>> print(result)
             The project schedule is balabala...
         """
         if not with_messages:
@@ -158,10 +158,10 @@ class WriteTasks(Action):
             packages.add(pkg)
         await self.repo.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
 
-    async def _execute_api(self, user_requirement: str = "", design_filename: str = ""):
+    async def _execute_api(self, user_requirement: str = "", design_filename: str = "") -> str:
         context = to_markdown_code_block(user_requirement)
         if not design_filename:
             content = await aread(filename=design_filename)
             context += to_markdown_code_block(content)
         node = await self._run_new_tasks(context)
-        return AIMessage(content=node.instruct_content.model_dump_json())
+        return node.instruct_content.model_dump_json()
