@@ -72,9 +72,9 @@ async def test_design_api(context, user_requirement, prd_filename, legacy_design
     result = await action.run(
         user_requirement=user_requirement, prd_filename=prd_filename, legacy_design_filename=legacy_design_filename
     )
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert str(DEFAULT_WORKSPACE_ROOT) in result.content
+    assert isinstance(result, str)
+    assert result
+    assert str(DEFAULT_WORKSPACE_ROOT) in result
 
 
 @pytest.mark.parametrize(
@@ -98,11 +98,9 @@ async def test_design_api_dir(context, user_requirement, prd_filename, legacy_de
         legacy_design_filename=legacy_design_filename,
         output_pathname=str(Path(context.config.project_path) / "1.txt"),
     )
-    assert isinstance(result, AIMessage)
-    assert result.content
-    assert str(context.config.project_path) in result.content
-    assert result.instruct_content
-    assert result.instruct_content.changed_system_design_filenames
+    assert isinstance(result, str)
+    assert result
+    assert str(context.config.project_path) in result
 
 
 if __name__ == "__main__":

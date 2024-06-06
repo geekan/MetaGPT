@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import uuid
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -87,7 +87,7 @@ class WritePRD(Action):
         legacy_prd_filename: str = "",
         extra_info: str = "",
         **kwargs,
-    ) -> AIMessage:
+    ) -> Union[AIMessage, str]:
         """
         Write a Product Requirement Document.
 
@@ -99,7 +99,7 @@ class WritePRD(Action):
             **kwargs: Additional keyword arguments.
 
         Returns:
-            AIMessage: The resulting message after generating the Product Requirement Document.
+            str: The resulting message after generating the Product Requirement Document.
 
         Example:
             # Write a new PRD(Product Requirement Document)
@@ -107,7 +107,7 @@ class WritePRD(Action):
             >>> extra_info = "YOUR EXTRA INFO"
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info)
-            >>> print(result.content)
+            >>> print(result)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
             # Modify a exists PRD(Product Requirement Document)
@@ -116,7 +116,7 @@ class WritePRD(Action):
             >>> legacy_prd_filename = "/path/to/exists/prd_filename"
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename)
-            >>> print(result.content)
+            >>> print(result)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
             # Write and save a new PRD(Product Requirement Document) to the path name.
@@ -125,7 +125,7 @@ class WritePRD(Action):
             >>> output_pathname = "/path/to/prd/directory/213434ad.json"
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
-            >>> print(result.content)
+            >>> print(result)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
             # Modify a exists PRD(Product Requirement Document) and save to the path name.
@@ -135,7 +135,7 @@ class WritePRD(Action):
             >>> output_pathname = "/path/to/prd/directory/213434ad.json"
             >>> write_prd = WritePRD()
             >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_pathname=output_pathname)
-            >>> print(result.content)
+            >>> print(result)
             PRD filename: "/path/to/prd/directory/213434ad.json"
 
         """
@@ -201,7 +201,7 @@ class WritePRD(Action):
             cause_by=self,
         )
 
-    async def _handle_bugfix(self, req: Document) -> Message:
+    async def _handle_bugfix(self, req: Document) -> AIMessage:
         # ... bugfix logic ...
         await self.repo.docs.save(filename=BUGFIX_FILENAME, content=req.content)
         await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
@@ -283,12 +283,12 @@ class WritePRD(Action):
             await reporter.async_report(self.repo.workdir / md.root_relative_path, "path")
         return new_prd_doc
 
-    async def _save_competitive_analysis(self, prd_doc: Document):
+    async def _save_competitive_analysis(self, prd_doc: Document, output_filename: Path = None):
         m = json.loads(prd_doc.content)
         quadrant_chart = m.get(COMPETITIVE_QUADRANT_CHART.key)
         if not quadrant_chart:
             return
-        pathname = self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
+        pathname = output_filename or self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, quadrant_chart, pathname)
         image_path = pathname.parent / f"{pathname.name}.png"
@@ -308,7 +308,7 @@ class WritePRD(Action):
 
     async def _execute_api(
         self, user_requirement: str, output_pathname: str, legacy_prd_filename: str, extra_info: str
-    ) -> AIMessage:
+    ) -> str:
         content = "#### User Requirements\n{user_requirement}\n#### Extra Info\n{extra_info}\n".format(
             user_requirement=to_markdown_code_block(val=user_requirement),
             extra_info=to_markdown_code_block(val=extra_info),
@@ -326,6 +326,8 @@ class WritePRD(Action):
             output_path = DEFAULT_WORKSPACE_ROOT
             output_path.mkdir(parents=True, exist_ok=True)
             output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+        output_pathname = Path(output_pathname)
         await awrite(filename=output_pathname, data=new_prd.content)
-        kvs = AIMessage.create_instruct_value({"changed_prd_filenames": [str(output_pathname)]})
-        return AIMessage(content=f'PRD filename: "{str(output_pathname)}"', instruct_content=kvs)
+        competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
+        await self._save_competitive_analysis(prd_doc=new_prd, output_filename=Path(competitive_analysis_filename))
+        return f'PRD filename: "{str(output_pathname)}"'
