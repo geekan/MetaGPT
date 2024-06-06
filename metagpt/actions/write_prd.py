@@ -41,7 +41,13 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, aread, awrite, to_markdown_code_block
+from metagpt.utils.common import (
+    CodeParser,
+    aread,
+    awrite,
+    save_json_to_markdown,
+    to_markdown_code_block,
+)
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.project_repo import ProjectRepo
@@ -330,4 +336,5 @@ class WritePRD(Action):
         await awrite(filename=output_pathname, data=new_prd.content)
         competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
         await self._save_competitive_analysis(prd_doc=new_prd, output_filename=Path(competitive_analysis_filename))
+        await save_json_to_markdown(content=new_prd.content, output_filename=output_pathname.with_suffix(".md"))
         return f'PRD filename: "{str(output_pathname)}"'
