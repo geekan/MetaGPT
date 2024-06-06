@@ -48,7 +48,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
-@register_tool(tags=["software development", "write system design"])
+@register_tool(include_functions=["run"])
 class WriteDesign(Action):
     name: str = ""
     i_context: Optional[str] = None

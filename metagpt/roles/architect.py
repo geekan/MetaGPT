@@ -5,13 +5,12 @@
 @Author  : alexanderwu
 @File    : architect.py
 """
-
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
-from metagpt.roles.role import Role
+from metagpt.roles.di.role_zero import RoleZero
 
 
-class Architect(Role):
+class Architect(RoleZero):
     """
     Represents an Architect role in a software development process.
 
@@ -30,11 +29,26 @@ class Architect(Role):
         "libraries. Use same language as user requirement"
     )
 
+    instruction: str = """Use WriteDesign tool to write a system design document"""
+    max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
+    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WriteDesign"]
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+
+        # NOTE: The following init setting will only be effective when self.use_fixed_sop is changed to True
         self.enable_memory = False
         # Initialize actions specific to the Architect role
         self.set_actions([WriteDesign])
 
         # Set events or actions the Architect should watch or be aware of
         self._watch({WritePRD})
+
+    def _update_tool_execution(self):
+        wd = WriteDesign()
+        self.tool_execution_map.update(
+            {
+                "WriteDesign.run": wd.run,
+                "WriteDesign": wd.run,  # alias
+            }
+        )

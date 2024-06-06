@@ -25,8 +25,11 @@ class Editor:
         self.resource = EditorReporter()
 
     def write(self, path: str, content: str):
-        """Write the whole content to a file."""
-        with open(path, "w") as f:
+        """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""
+        directory = os.path.dirname(path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         self.resource.report(path, "path")
 
@@ -117,7 +120,7 @@ class Editor:
             file_path (str): The file path to write the new block content.
             start_line (int): start line of the original block to be updated (inclusive).
             end_line (int): end line of the original block to be updated (inclusive).
-            new_block_content (str): The new block content to write.
+            new_block_content (str): The new block content to write. Don't include row number in the content.
 
         Returns:
             str: A message indicating the status of the write operation.
@@ -161,7 +164,9 @@ class Editor:
 
         if new_block_content:
             # Split the new_block_content by newline and ensure each line ends with a newline character
-            new_content_lines = [line + "\n" for line in new_block_content.split("\n")]
+            new_content_lines = new_block_content.splitlines(
+                keepends=True
+            )  # FIXME: This will split \n within a line, such as ab\ncd
             if end_line >= start_line:
                 # This replaces the block between start_line and end_line with new_block_content
                 # irrespective of the length difference between the original and new content.

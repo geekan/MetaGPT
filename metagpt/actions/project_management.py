@@ -36,7 +36,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
-@register_tool(tags=["software development", "write a project schedule given a project system design file"])
+@register_tool(include_functions=["run"])
 class WriteTasks(Action):
     name: str = "CreateTasks"
     i_context: Optional[str] = None

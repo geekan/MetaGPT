@@ -67,7 +67,7 @@ NEW_REQ_TEMPLATE = """
 """
 
 
-@register_tool(tags=["software development", "write product requirement documents"])
+@register_tool(include_functions=["run"])
 class WritePRD(Action):
     """WritePRD deal with the following situations:
     1. Bugfix: If the requirement is a bugfix, the bugfix document will be generated.

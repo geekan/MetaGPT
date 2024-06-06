@@ -49,6 +49,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import (
     CodeParser,
     any_to_str,
@@ -476,7 +477,17 @@ class TaskResult(BaseModel):
     is_success: bool
 
 
+@register_tool(
+    include_functions=[
+        "append_task",
+        "reset_task",
+        "replace_task",
+        "finish_current_task",
+    ]
+)
 class Plan(BaseModel):
+    """Plan is a sequence of tasks towards a goal."""
+
     goal: str
     context: str = ""
     tasks: list[Task] = []
@@ -549,13 +560,10 @@ class Plan(BaseModel):
 
     def reset_task(self, task_id: str):
         """
-        Clear code and result of the task based on task_id, and set the task as unfinished.
+        Reset a task based on task_id, i.e. set Task.is_finished=False and request redo. This also resets all tasks depending on it.
 
         Args:
             task_id (str): The ID of the task to be reset.
-
-        Returns:
-            None
         """
         if task_id in self.task_map:
             task = self.task_map[task_id]
@@ -568,7 +576,7 @@ class Plan(BaseModel):
 
         self._update_current_task()
 
-    def replace_task(self, new_task: Task):
+    def _replace_task(self, new_task: Task):
         """
         Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
 
@@ -593,7 +601,7 @@ class Plan(BaseModel):
 
         self._update_current_task()
 
-    def append_task(self, new_task: Task):
+    def _append_task(self, new_task: Task):
         """
         Append a new task to the end of existing task sequences
 
@@ -660,6 +668,23 @@ class Plan(BaseModel):
             list[Task]: list of finished tasks
         """
         return [task for task in self.tasks if task.is_finished]
+
+    def append_task(self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str):
+        """Append a new task with task_id (number) to the end of existing task sequences. If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list."""
+        new_task = Task(
+            task_id=task_id, dependent_task_ids=dependent_task_ids, instruction=instruction, assignee=assignee
+        )
+        return self._append_task(new_task)
+
+    def replace_task(self, task_id: str, new_dependent_task_ids: list[str], new_instruction: str, new_assignee: str):
+        """Replace an existing task (can be current task) based on task_id, and reset all tasks depending on it."""
+        new_task = Task(
+            task_id=task_id,
+            dependent_task_ids=new_dependent_task_ids,
+            instruction=new_instruction,
+            assignee=new_assignee,
+        )
+        return self._replace_task(new_task)
 
 
 class MessageQueue(BaseModel):
