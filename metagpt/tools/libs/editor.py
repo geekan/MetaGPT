@@ -27,7 +27,7 @@ class Editor:
     def write(self, path: str, content: str):
         """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""
         directory = os.path.dirname(path)
-        if not os.path.exists(directory):
+        if directory and not os.path.exists(directory):
             os.makedirs(directory)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)

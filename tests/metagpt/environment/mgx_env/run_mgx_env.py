@@ -5,19 +5,25 @@ import threading
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
 from metagpt.roles.di.data_analyst import DataAnalyst
+from metagpt.roles.di.engineer2 import Engineer2
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import Message
 
 
-async def main(requirement="", enable_human_input=False):
-    env = MGXEnv()
+async def main(requirement="", enable_human_input=False, use_fixed_sop=False):
+    if use_fixed_sop:
+        engineer = Engineer(n_borg=5, use_code_review=False)
+    else:
+        engineer = Engineer2()
+
+    env = MGXEnv(allow_bypass_team_leader=use_fixed_sop)
     env.add_roles(
         [
             TeamLeader(),
-            ProductManager(),
-            Architect(),
-            ProjectManager(),
-            Engineer(n_borg=5, use_code_review=False),
+            ProductManager(use_fixed_sop=use_fixed_sop),
+            Architect(use_fixed_sop=use_fixed_sop),
+            ProjectManager(use_fixed_sop=use_fixed_sop),
+            engineer,
             # QaEngineer(),
             DataAnalyst(tools=["<all>"]),
         ]
@@ -52,8 +58,10 @@ def send_human_input(env):
 
 
 GAME_REQ = "create a 2048 game"
+WEB_GAME_REQ = "Write a 2048 game using JavaScript without using any frameworks, user can play with keyboard."
+WEB_GAME_REQ_DEPLOY = "Write a 2048 game using JavaScript without using any frameworks, user can play with keyboard. When finished, deploy the game to public at port 8090."
 SIMPLE_REQ = "print statistic summary of sklearn iris dataset"
-WINE_REQ = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy."
+WINE_REQ = "Run data analysis on sklearn Wine recognition dataset, and train a model to predict wine class (20% as validation), and show validation accuracy."
 PAPER_LIST_REQ = """
 Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
 and save it to a csv file. paper title must include `multiagent` or `large language model`. *notice: print key variables*
@@ -67,7 +75,7 @@ data_path = "data/titanic"
 train_path = f"{data_path}/split_train.csv"
 eval_path = f"{data_path}/split_eval.csv"
 TITANIC_REQ = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{train_path}', eval data path: '{eval_path}'."
-FIX_ISSUE = """
+FIX_ISSUE1 = """
 Write a fix for this issue: https://github.com/langchain-ai/langchain/issues/20453, 
 you can fix it on this repo https://github.com/garylin2099/langchain,
 checkout a branch named test-fix, commit your changes, push, and create a PR to the master branch of https://github.com/iorisa/langchain
@@ -98,4 +106,4 @@ if __name__ == "__main__":
     os.environ["access_token"] = "ghp_xxx"
     # NOTE: Change the requirement to the one you want to test
     #       Set enable_human_input to True if you want to simulate sending messages in chatbox
-    asyncio.run(main(requirement=FIX_ISSUE, enable_human_input=False))
+    asyncio.run(main(requirement=GAME_REQ, enable_human_input=False, use_fixed_sop=False))
