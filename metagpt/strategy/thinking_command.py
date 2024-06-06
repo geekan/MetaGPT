@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.memory import Memory
 from metagpt.roles import Role
-from metagpt.schema import Message, Task
+from metagpt.schema import Message
 
 
 class CommandDef(BaseModel):
@@ -92,17 +92,11 @@ async def run_env_command(role: Role, cmd: list[dict], role_memory: Memory = Non
 
 def run_plan_command(role: Role, cmd: list[dict]):
     if cmd["command_name"] == Command.APPEND_TASK.cmd_name:
-        role.planner.plan.append_task(Task(**cmd["args"]))
+        role.planner.plan.append_task(**cmd["args"])
     elif cmd["command_name"] == Command.RESET_TASK.cmd_name:
         role.planner.plan.reset_task(**cmd["args"])
     elif cmd["command_name"] == Command.REPLACE_TASK.cmd_name:
-        new_task = Task(
-            task_id=cmd["args"]["task_id"],
-            dependent_task_ids=cmd["args"]["new_dependent_task_ids"],
-            instruction=cmd["args"]["new_instruction"],
-            assignee=cmd["args"]["new_assignee"],
-        )
-        role.planner.plan.replace_task(new_task)
+        role.planner.plan.replace_task(**cmd["args"])
     elif cmd["command_name"] == Command.FINISH_CURRENT_TASK.cmd_name:
         if role.planner.plan.is_plan_finished():
             return
