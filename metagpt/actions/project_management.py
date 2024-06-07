@@ -19,11 +19,16 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
-from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import aread, to_markdown_code_block
+from metagpt.utils.common import (
+    aread,
+    awrite,
+    save_json_to_markdown,
+    to_markdown_code_block,
+)
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter
 
@@ -44,7 +49,13 @@ class WriteTasks(Action):
     input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     async def run(
-        self, with_messages: List[Message] = None, *, user_requirement: str = "", design_filename: str = "", **kwargs
+        self,
+        with_messages: List[Message] = None,
+        *,
+        user_requirement: str = "",
+        design_filename: str = "",
+        output_pathname: str = "",
+        **kwargs,
     ) -> Union[AIMessage, str]:
         """
         Write a project schedule given a project system design file.
@@ -52,29 +63,33 @@ class WriteTasks(Action):
         Args:
             user_requirement (str, optional): A string specifying the user's requirements. Defaults to an empty string.
             design_filename (str): The filename of the project system design file. Defaults to an empty string.
+            output_pathname (str, optional): The output path name of file that the project schedule should be saved to.
             **kwargs: Additional keyword arguments.
 
         Returns:
-            AIMessage: The generated project schedule.
+            str: Path to the generated project schedule.
 
         Example:
-            # Write a new project schedule.
-            >>> design_filename = "/path/to/design/filename"
+            # Write a project schedule with a given system design.
+            >>> design_filename = "/absolute/path/to/snake_game/docs/system_design.json"
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/project_schedule.json"
             >>> action = WriteTasks()
-            >>> result = await action.run(design_filename=design_filename)
+            >>> result = await action.run(design_filename=design_filename, output_pathname=output_pathname)
             >>> print(result)
-            The project schedule is balabala...
+            The project schedule is at /absolute/path/to/snake_game/docs/project_schedule.json
 
-            # Write a new project schedule with the user requirement.
-            >>> design_filename = "/path/to/design/filename"
-            >>> user_requirement = "Your user requirements"
+            # Write a project schedule with a user requirement.
+            >>> user_requirement = "Write project schedule for a snake game following these requirements: ..."
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/project_schedule.json"
             >>> action = WriteTasks()
-            >>> result = await action.run(design_filename=design_filename, user_requirement=user_requirement)
+            >>> result = await action.run(user_requirement=user_requirement, output_pathname=output_pathname)
             >>> print(result)
-            The project schedule is balabala...
+            The project schedule is at /absolute/path/to/snake_game/docs/project_schedule.json
         """
         if not with_messages:
-            return await self._execute_api(user_requirement=user_requirement, design_filename=design_filename)
+            return await self._execute_api(
+                user_requirement=user_requirement, design_filename=design_filename, output_pathname=output_pathname
+            )
 
         self.input_args = with_messages[-1].instruct_content
         self.repo = ProjectRepo(self.input_args.project_path)
@@ -158,10 +173,23 @@ class WriteTasks(Action):
             packages.add(pkg)
         await self.repo.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
 
-    async def _execute_api(self, user_requirement: str = "", design_filename: str = "") -> str:
+    async def _execute_api(
+        self, user_requirement: str = "", design_filename: str = "", output_pathname: str = ""
+    ) -> str:
         context = to_markdown_code_block(user_requirement)
-        if not design_filename:
+        if design_filename:
             content = await aread(filename=design_filename)
             context += to_markdown_code_block(content)
         node = await self._run_new_tasks(context)
-        return node.instruct_content.model_dump_json()
+        file_content = node.instruct_content.model_dump_json()
+
+        if not output_pathname:
+            output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
+            output_pathname.mkdir(parents=True, exist_ok=True)
+        elif not Path(output_pathname).is_absolute():
+            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+        output_pathname = Path(output_pathname)
+        await awrite(filename=output_pathname, data=file_content)
+        await save_json_to_markdown(content=file_content, output_filename=output_pathname.with_suffix(".md"))
+
+        return f'Project Schedule filename: "{str(output_pathname)}"'
