@@ -14,7 +14,7 @@ from metagpt.utils.exceptions import handle_exception
 class ExperienceManager(BaseModel):
     """ExperienceManager manages the lifecycle of experiences, including CRUD and optimization.
 
-    Attributes:
+    Args:
         config (Config): Configuration for managing experiences.
         storage (SimpleEngine): Engine to handle the storage and retrieval of experiences.
     """
