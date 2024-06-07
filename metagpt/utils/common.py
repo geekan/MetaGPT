@@ -40,6 +40,7 @@ from tenacity import RetryCallState, RetryError, _utils
 from metagpt.const import MARKDOWN_TITLE_PREFIX, MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.json_to_markdown import json_to_markdown
 
 
 def check_cmd_exists(command) -> int:
@@ -950,7 +951,65 @@ def get_markdown_code_block_type(filename: str) -> str:
 
 
 def to_markdown_code_block(val: str, type_: str = "") -> str:
+    """
+    Convert a string to a Markdown code block.
+
+    This function takes a string and wraps it in a Markdown code block.
+    If a type is provided, it adds it as a language identifier for syntax highlighting.
+
+    Args:
+        val (str): The string to be converted to a Markdown code block.
+        type_ (str, optional): The language identifier for syntax highlighting.
+            Defaults to an empty string.
+
+    Returns:
+        str: The input string wrapped in a Markdown code block.
+            If the input string is empty, it returns an empty string.
+
+    Examples:
+        >>> to_markdown_code_block("print('Hello, World!')", "python")
+        \n```python\nprint('Hello, World!')\n```\n
+
+        >>> to_markdown_code_block("Some text")
+        \n```\nSome text\n```\n
+    """
     if not val:
         return val or ""
     val = val.replace("```", "\\`\\`\\`")
     return f"\n```{type_}\n{val}\n```\n"
+
+
+async def save_json_to_markdown(content: str, output_filename: str | Path):
+    """
+    Saves the provided JSON content as a Markdown file.
+
+    This function takes a JSON string, converts it to Markdown format,
+    and writes it to the specified output file.
+
+    Args:
+        content (str): The JSON content to be converted.
+        output_filename (str or Path): The path where the output Markdown file will be saved.
+
+    Returns:
+        None
+
+    Raises:
+        None: Any exceptions are logged and the function returns without raising them.
+
+    Examples:
+        >>> await save_json_to_markdown('{"key": "value"}', Path("/path/to/output.md"))
+        This will save the Markdown converted JSON to the specified file.
+
+    Notes:
+        - This function handles `json.JSONDecodeError` specifically for JSON parsing errors.
+        - Any other exceptions during the process are also logged and handled gracefully.
+    """
+    try:
+        m = json.loads(content)
+    except json.JSONDecodeError as e:
+        logger.warning(f"Failed to decode JSON content: {e}")
+        return
+    except Exception as e:
+        logger.warning(f"An unexpected error occurred: {e}")
+        return
+    await awrite(filename=output_filename, data=json_to_markdown(m))

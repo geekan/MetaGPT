@@ -34,7 +34,12 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import aread, awrite, to_markdown_code_block
+from metagpt.utils.common import (
+    aread,
+    awrite,
+    save_json_to_markdown,
+    to_markdown_code_block,
+)
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.report import DocsReporter, GalleryReporter
@@ -305,4 +310,5 @@ class WriteDesign(Action):
         await self._save_data_api_design(design_doc=design, output_filename=output_filename)
         output_filename = output_pathname.parent / f"{output_pathname.stem}-sequence-diagram"
         await self._save_seq_flow(design_doc=design, output_filename=output_filename)
+        await save_json_to_markdown(content=design.content, output_filename=output_pathname.with_suffix(".md"))
         return f'System Design filename: "{str(output_pathname)}"'
