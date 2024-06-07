@@ -1,4 +1,5 @@
-"""Evalate by llm."""
+"""Simple Scorer."""
+
 import inspect
 import json
 from typing import Any, Callable
@@ -57,8 +58,17 @@ class SimpleScorer(ExperienceScorer):
     llm: BaseLLM = Field(default_factory=LLM)
 
     async def evaluate(self, func: Callable, result: Any, args: tuple = None, kwargs: dict = None) -> Score:
-        """Evaluate the quality of content."""
+        """Evaluates the quality of content by LLM.
 
+        Args:
+            func: The function to evaluate.
+            result: The result produced by the function.
+            args: The positional arguments used when calling the function, if any.
+            kwargs: The keyword arguments used when calling the function, if any.
+
+        Returns:
+            A Score object containing the evaluation results.
+        """
         prompt = SIMPLE_SCORER_TEMPLATE.format(
             func_name=func.__name__,
             func_doc=func.__doc__,
