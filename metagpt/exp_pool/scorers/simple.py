@@ -10,7 +10,7 @@ from metagpt.exp_pool.schema import Score
 from metagpt.exp_pool.scorers.base import ExperienceScorer
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.utils.common import parse_json_code_block
+from metagpt.utils.common import CodeParser
 
 SIMPLE_SCORER_TEMPLATE = """
 Role: You're an expert score evaluator. You specialize in assessing the output of the given function, based on its intended requirement and produced result.
@@ -78,6 +78,6 @@ class SimpleScorer(ExperienceScorer):
             func_result=result,
         )
         resp = await self.llm.aask(prompt)
-        resp_json = json.loads(parse_json_code_block(resp)[0])
+        resp_json = json.loads(CodeParser.parse_code(resp, lang="json"))
 
         return Score(**resp_json)
