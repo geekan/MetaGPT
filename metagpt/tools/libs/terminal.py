@@ -20,7 +20,6 @@ class Terminal:
         self.shell_command = ["bash"]  # FIXME: should consider windows support later
         self.command_terminator = "\n"
 
-        env = dict(os.environ)
         # Start a persistent shell process
         self.process = subprocess.Popen(
             self.shell_command,
@@ -28,8 +27,7 @@ class Terminal:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            executable="/bin/bash",
-            env=env
+            executable="/bin/bash"
         )
         self.stdout_queue = Queue()
         self.observer = TerminalReporter()
