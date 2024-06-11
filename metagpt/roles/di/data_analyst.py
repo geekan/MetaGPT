@@ -54,7 +54,6 @@ class DataAnalyst(DataInterpreter):
         if self.tools and not self.tool_recommender:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools)
         self.set_actions([WriteAnalysisCode])
-        self._set_state(0)
 
         # HACK: Init Planner, control it through dynamic thinking; Consider formalizing as a react mode
         self.planner = Planner(goal="", working_memory=self.rc.working_memory, auto_run=True)
@@ -112,11 +111,15 @@ class DataAnalyst(DataInterpreter):
         return Message(content="Task completed", role="assistant", sent_from=self._setting, cause_by=WriteAnalysisCode)
 
     async def _react(self) -> Message:
+        # NOTE: Diff 1: Each time landing here means observing news, set todo to allow news processing in _think
+        self._set_state(0)
+
         actions_taken = 0
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
-            # NOTE: difference here, keep observing within react
+            # NOTE: Diff 2: Keep observing within _react, news will go into memory, allowing adapting to new info
             await self._observe()
+
             # think
             has_todo = await self._think()
             if not has_todo:

@@ -195,7 +195,7 @@ class RoleZero(Role):
                     outputs.append(output)
                 except Exception as e:
                     tb = traceback.format_exc()
-                    logger.exception(e + tb)
+                    logger.exception(str(e) + tb)
                     outputs.append(output + f": {tb}")
                     break  # Stop executing if any command fails
             else:
