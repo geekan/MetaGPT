@@ -1,12 +1,26 @@
 import asyncio
+import inspect
 
 import pytest
 
-from metagpt.exp_pool.decorator import ExpCacheHandler
+from metagpt.exp_pool.decorator import ExpCacheHandler, exp_cache
 from metagpt.exp_pool.manager import ExperienceManager
 from metagpt.exp_pool.schema import Experience, QueryType, Score
 from metagpt.exp_pool.scorers import SimpleScorer
 from metagpt.rag.engines import SimpleEngine
+
+
+def for_test_function(a, b, c=None):
+    return a + b if c is None else a + b + c
+
+
+class ForTestClass:
+    def for_test_method(self, x, y):
+        return x * y
+
+    @classmethod
+    def for_test_class_method(cls, x, y):
+        return x**y
 
 
 class TestExpCache:
@@ -46,7 +60,7 @@ class TestExpCache:
         perfect_exp = Experience(req="req", resp="resp")
         mock_exp_manager.extract_one_perfect_exp.return_value = perfect_exp
 
-        # Execute
+        # Exec
         exp_cache_handler._exps = [perfect_exp]  # Simulate fetched experiences
         result = exp_cache_handler.get_one_perfect_experience()
 
@@ -60,7 +74,7 @@ class TestExpCache:
         mock_exp_manager.extract_one_perfect_exp.return_value = None
         mock_func.return_value = "Computed result"
 
-        # Execute
+        # Exec
         await exp_cache_handler.execute_function()
 
         # Assert
@@ -73,7 +87,7 @@ class TestExpCache:
         mock_scorer.evaluate.return_value = Score(value=100)
         exp_cache_handler._result = "Computed result"
 
-        # Execute
+        # Exec
         await exp_cache_handler.evaluate_experience()
         exp_cache_handler.save_experience()
 
@@ -84,12 +98,12 @@ class TestExpCache:
     @pytest.mark.asyncio
     async def test_async_function_execution_with_exps(self, exp_cache_handler, mock_exp_manager, mock_func):
         # Setup
-        exp_cache_handler.pass_exps = True
+        exp_cache_handler.pass_exps_to_func = True
         mock_func.return_value = "Async result with exps"
         mock_exp_manager.extract_one_perfect_exp.return_value = None
         exp_cache_handler._exps = [Experience(req="req", resp="resp")]
 
-        # Execute
+        # Exec
         await exp_cache_handler.execute_function()
 
         # Assert
@@ -99,11 +113,11 @@ class TestExpCache:
     def test_sync_function_execution_with_exps(self, mocker, exp_cache_handler, mock_exp_manager, mock_func):
         # Setup
         exp_cache_handler.func = mocker.Mock(return_value="Sync result with exps")
-        exp_cache_handler.pass_exps = True
+        exp_cache_handler.pass_exps_to_func = True
         mock_exp_manager.extract_one_perfect_exp.return_value = None
         exp_cache_handler._exps = [Experience(req="req", resp="resp")]
 
-        # Execute
+        # Exec
         asyncio.get_event_loop().run_until_complete(exp_cache_handler.execute_function())
 
         # Assert
@@ -114,7 +128,7 @@ class TestExpCache:
         # Setup
         mock_func = mocker.AsyncMock()
 
-        # Execute
+        # Exec
         wrapper = ExpCacheHandler.choose_wrapper(mock_func, exp_cache_handler.execute_function)
 
         # Assert
@@ -124,22 +138,80 @@ class TestExpCache:
         # Setup
         sync_func = mocker.Mock()
 
-        # Execute
+        # Exec
         wrapper = ExpCacheHandler.choose_wrapper(sync_func, exp_cache_handler.execute_function)
 
         # Assert
         assert not asyncio.iscoroutinefunction(wrapper), "Wrapper should be synchronous"
 
-    @pytest.mark.asyncio
-    async def test_generate_req_identifier(self, exp_cache_handler):
-        # Setup
-        exp_cache_handler.func = lambda x: x
-        exp_cache_handler.args = (42,)
-        exp_cache_handler.kwargs = {"y": 3.14}
+    @pytest.mark.parametrize(
+        "func, args, kwargs, expected",
+        [
+            (for_test_function, (1, 2), {"c": 3}, 'for_test_function@[1~2]@{"c"!3}'),
+            (ForTestClass().for_test_method, (4, 5), {}, "ForTestClass.for_test_method@[4~5]@{}"),
+            (ForTestClass.for_test_class_method, (6, 7), {}, "ForTestClass.for_test_class_method@[6~7]@{}"),
+            (for_test_function, (), {}, "for_test_function@[]@{}"),
+            (
+                for_test_function,
+                ("hello", [1, 2]),
+                {"key": "value"},
+                'for_test_function@["hello"~[1~2]]@{"key"!"value"}',
+            ),
+        ],
+    )
+    def test_generate_req_identifier(self, func, args, kwargs, expected):
+        req_identifier = ExpCacheHandler.generate_req_identifier(func, *args, **kwargs)
+        assert req_identifier == expected
 
-        # Execute
-        req_id = exp_cache_handler.generate_req_identifier()
+    @pytest.mark.asyncio
+    async def test_exp_cache_with_perfect_experience(self, mocker, mock_exp_manager):
+        # Mock perfect experience
+        perfect_exp = Experience(req="test_req", resp="perfect_response")
+        mock_exp_manager.query_exps = mocker.AsyncMock(return_value=[perfect_exp])
+        mock_exp_manager.extract_one_perfect_exp = mocker.MagicMock(return_value=perfect_exp)
+        async_mock_func = mocker.AsyncMock()
+
+        # Setup
+        decorated_func = exp_cache(async_mock_func, manager=mock_exp_manager)
+
+        # Exec
+        result: Experience = await decorated_func()
 
         # Assert
-        expected_id = "<lambda>_(42,)_{'y': 3.14}"
-        assert req_id == expected_id, "Request identifier should match the expected format"
+        assert result.resp == "perfect_response", "Should return the perfect experience response"
+        async_mock_func.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_exp_cache_without_perfect_experience(self, mocker, mock_exp_manager):
+        # Mock
+        mock_exp_manager.query_exps = mocker.AsyncMock(return_value=[])
+        mock_exp_manager.extract_one_perfect_exp = mocker.MagicMock(return_value=None)
+        async_mock_func = mocker.AsyncMock(return_value="computed_response")
+        async_mock_func.__signature__ = inspect.signature(for_test_function)
+
+        # Setup
+        decorated_func = exp_cache(async_mock_func, manager=mock_exp_manager)
+
+        # Exec
+        result = await decorated_func()
+
+        # Assert
+        assert result == "computed_response", "Should execute and return the function's response"
+        async_mock_func.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_exp_cache_saves_new_experience(self, mocker, mock_exp_manager, mock_scorer):
+        # Mock
+        mock_exp_manager.query_exps = mocker.AsyncMock(return_value=[])
+        mock_exp_manager.extract_one_perfect_exp = mocker.MagicMock(return_value=None)
+        async_mock_func = mocker.AsyncMock(return_value="computed_response")
+        mock_scorer.evaluate = mocker.AsyncMock(return_value=Score(value=100))
+
+        # Setup
+        decorated_func = exp_cache(async_mock_func, manager=mock_exp_manager, scorer=mock_scorer)
+
+        # Exec
+        await decorated_func()
+
+        # Assert
+        mock_exp_manager.create_exp.assert_called_once()

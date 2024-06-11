@@ -1,29 +1,35 @@
-from metagpt.utils.reflection import get_func_or_method_name
+from metagpt.utils.reflection import get_class_name
 
 
-def simple_function():
-    pass
-
-
-class SampleClass:
-    def method(self):
+class SimpleFunction:
+    def function(self):
         pass
 
 
-class TestFunctionOrMethodName:
-    def test_simple_function(self):
-        assert get_func_or_method_name(simple_function) == "simple_function"
+class SampleClass:
+    @classmethod
+    def class_method(cls):
+        pass
 
-    def test_class_method_without_args(self):
-        sample_instance = SampleClass()
-        assert get_func_or_method_name(sample_instance.method) == "SampleClass.method"
+    def instance_method(self):
+        pass
 
-    def test_class_method_with_args(self):
-        sample_instance = SampleClass()
-        assert get_func_or_method_name(SampleClass.method, sample_instance) == "SampleClass.method"
 
-    def test_function_with_no_args(self):
-        assert get_func_or_method_name(simple_function) == "simple_function"
+def standalone_function():
+    pass
 
-    def test_method_without_instance(self):
-        assert get_func_or_method_name(SampleClass.method) == "method"
+
+class TestGetClassName:
+    def test_instance_method(self):
+        instance = SampleClass()
+        assert get_class_name(instance.instance_method) == "SampleClass"
+
+    def test_class_method(self):
+        assert get_class_name(SampleClass.class_method) == "SampleClass"
+
+    def test_standalone_function(self):
+        assert get_class_name(standalone_function) == ""
+
+    def test_function_within_simple_class(self):
+        instance = SimpleFunction()
+        assert get_class_name(instance.function) == "SimpleFunction"

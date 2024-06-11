@@ -2,9 +2,11 @@
 
 import asyncio
 import functools
+import inspect
+import json
 from typing import Any, Callable, Optional, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from metagpt.exp_pool.manager import ExperienceManager, exp_manager
 from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
@@ -42,8 +44,8 @@ def exp_cache(
                 func=func,
                 args=args,
                 kwargs=kwargs,
-                exp_manager=manager or exp_manager,
-                exp_scorer=scorer or SimpleScorer(),
+                exp_manager=manager,
+                exp_scorer=scorer,
                 pass_exps_to_func=pass_exps_to_func,
             )
 
@@ -67,8 +69,8 @@ class ExpCacheHandler(BaseModel):
     func: Callable
     args: Any
     kwargs: Any
-    exp_manager: ExperienceManager
-    exp_scorer: ExperienceScorer
+    exp_manager: Optional[ExperienceManager] = None
+    exp_scorer: Optional[ExperienceScorer] = None
     pass_exps_to_func: bool = False
 
     _exps: list[Experience] = None
@@ -76,11 +78,22 @@ class ExpCacheHandler(BaseModel):
     _score: Score = None
     _req: str = None
 
+    @model_validator(mode="after")
+    def initialize(self):
+        if self.exp_manager is None:
+            self.exp_manager = exp_manager
+
+        if self.exp_scorer is None:
+            self.exp_scorer = SimpleScorer()
+
+        self._req = self.generate_req_identifier(self.func, *self.args, **self.kwargs)
+
+        return self
+
     async def fetch_experiences(self, query_type: QueryType):
         """Fetch a potentially perfect existing experience."""
 
-        req = self._get_req_identifier()
-        self._exps = await self.exp_manager.query_exps(req, query_type=query_type)
+        self._exps = await self.exp_manager.query_exps(self._req, query_type=query_type)
 
     def get_one_perfect_experience(self) -> Optional[Experience]:
         return self.exp_manager.extract_one_perfect_exp(self._exps)
@@ -107,26 +120,29 @@ class ExpCacheHandler(BaseModel):
     def save_experience(self):
         """Save the new experience."""
 
-        req = self._get_req_identifier()
-        exp = Experience(req=req, resp=self._result, metric=Metric(score=self._score))
+        exp = Experience(req=self._req, resp=self._result, metric=Metric(score=self._score))
 
         self.exp_manager.create_exp(exp)
 
-    def _get_req_identifier(self):
-        """Generate a unique request identifier based on the function and its arguments.
+    @classmethod
+    def generate_req_identifier(cls, func, *args, **kwargs) -> str:
+        """Generate a unique request identifier for any given function and its arguments.
 
-        Result Example:
-        - "write_prd-('2048',)-{}"
-        - "WritePRD.run-('2048',)-{}"
+        Serializing args and kwargs into JSON strings and replacing ',' with '~' and ':' with '!'.
+
+        Return Example:
+            SimpleClass.test_method@[1~2]@{"c"!3}
         """
-        if not self._req:
-            cls_name = get_class_name(self.func, *self.args)
-            func_name = f"{cls_name}.{self.func.__name__}" if cls_name else self.func.__name__
-            args = self.args[1:] if cls_name and len(self.args) >= 1 else self.args
+        cls_name = get_class_name(func)
+        func_name = f"{cls_name}.{func.__name__}" if cls_name else func.__name__
 
-            self._req = f"{func_name}-{args}-{self.kwargs}"
+        if cls_name and args and inspect.isfunction(func):
+            args = args[1:]
 
-        return self._req
+        args = cls._serialize_and_replace(args)
+        kwargs = cls._serialize_and_replace(kwargs)
+
+        return f"{func_name}@{args}@{kwargs}"
 
     @staticmethod
     def choose_wrapper(func, wrapped_func):
@@ -140,6 +156,11 @@ class ExpCacheHandler(BaseModel):
             return asyncio.get_event_loop().run_until_complete(wrapped_func(args, kwargs))
 
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
+    @classmethod
+    def _serialize_and_replace(cls, data):
+        json_str = json.dumps(data)
+        return json_str.replace(", ", "~").replace(": ", "!")
 
     async def _execute_function(self):
         if self.pass_exps_to_func:
