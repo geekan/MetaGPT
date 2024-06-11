@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from metagpt.config2 import Config, config
 from metagpt.exp_pool.schema import MAX_SCORE, Experience, QueryType
 from metagpt.rag.engines import SimpleEngine
-from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+from metagpt.rag.schema import ChromaRetrieverConfig
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -31,7 +31,6 @@ class ExperienceManager(BaseModel):
                 retriever_configs=[
                     ChromaRetrieverConfig(collection_name="experience_pool", persist_path=".chroma_exp_data")
                 ],
-                ranker_configs=[LLMRankerConfig()],
             )
         return self
 

@@ -11,6 +11,7 @@ from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
 from metagpt.exp_pool.scorers import ExperienceScorer, SimpleScorer
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.reflection import get_class_name
 
 ReturnType = TypeVar("ReturnType")
 
@@ -43,7 +44,7 @@ def exp_cache(
                 kwargs=kwargs,
                 exp_manager=manager or exp_manager,
                 exp_scorer=scorer or SimpleScorer(),
-                pass_exps=pass_exps_to_func,
+                pass_exps_to_func=pass_exps_to_func,
             )
 
             await handler.fetch_experiences(query_type)
@@ -68,16 +69,17 @@ class ExpCacheHandler(BaseModel):
     kwargs: Any
     exp_manager: ExperienceManager
     exp_scorer: ExperienceScorer
-    pass_exps: bool
+    pass_exps_to_func: bool = False
 
     _exps: list[Experience] = None
     _result: Any = None
     _score: Score = None
+    _req: str = None
 
     async def fetch_experiences(self, query_type: QueryType):
         """Fetch a potentially perfect existing experience."""
 
-        req = self.generate_req_identifier()
+        req = self._get_req_identifier()
         self._exps = await self.exp_manager.query_exps(req, query_type=query_type)
 
     def get_one_perfect_experience(self) -> Optional[Experience]:
@@ -105,15 +107,26 @@ class ExpCacheHandler(BaseModel):
     def save_experience(self):
         """Save the new experience."""
 
-        req = self.generate_req_identifier()
+        req = self._get_req_identifier()
         exp = Experience(req=req, resp=self._result, metric=Metric(score=self._score))
 
         self.exp_manager.create_exp(exp)
 
-    def generate_req_identifier(self):
-        """Generate a unique request identifier based on the function and its arguments."""
+    def _get_req_identifier(self):
+        """Generate a unique request identifier based on the function and its arguments.
 
-        return f"{self.func.__name__}_{self.args}_{self.kwargs}"
+        Result Example:
+        - "write_prd-('2048',)-{}"
+        - "WritePRD.run-('2048',)-{}"
+        """
+        if not self._req:
+            cls_name = get_class_name(self.func, *self.args)
+            func_name = f"{cls_name}.{self.func.__name__}" if cls_name else self.func.__name__
+            args = self.args[1:] if cls_name and len(self.args) >= 1 else self.args
+
+            self._req = f"{func_name}-{args}-{self.kwargs}"
+
+        return self._req
 
     @staticmethod
     def choose_wrapper(func, wrapped_func):
@@ -129,7 +142,7 @@ class ExpCacheHandler(BaseModel):
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
 
     async def _execute_function(self):
-        if self.pass_exps:
+        if self.pass_exps_to_func:
             return await self._execute_function_with_exps()
 
         return await self._execute_function_without_exps()
