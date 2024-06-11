@@ -1,3 +1,4 @@
+import os
 import subprocess
 import threading
 from queue import Queue
@@ -19,6 +20,7 @@ class Terminal:
         self.shell_command = ["bash"]  # FIXME: should consider windows support later
         self.command_terminator = "\n"
 
+        env = dict(os.environ)
         # Start a persistent shell process
         self.process = subprocess.Popen(
             self.shell_command,
@@ -27,6 +29,7 @@ class Terminal:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             executable="/bin/bash",
+            env=env
         )
         self.stdout_queue = Queue()
         self.observer = TerminalReporter()
