@@ -91,11 +91,12 @@ class ExpCacheHandler(BaseModel):
         return self
 
     async def fetch_experiences(self, query_type: QueryType):
-        """Fetch a potentially perfect existing experience."""
+        """Fetch experiences by query_type."""
 
         self._exps = await self.exp_manager.query_exps(self._req, query_type=query_type)
 
     def get_one_perfect_experience(self) -> Optional[Experience]:
+        """Get a potentially perfect experience."""
         return self.exp_manager.extract_one_perfect_exp(self._exps)
 
     async def execute_function(self):
