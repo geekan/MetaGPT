@@ -1,7 +1,7 @@
 import asyncio
 import json
 from functools import partial
-from typing import Literal
+from typing import List, Literal
 
 import boto3
 from botocore.eventstream import EventStream
@@ -128,7 +128,7 @@ class BedrockLLM(BaseLLM):
         response_body = json.loads(response["body"].read())
         return response_body
 
-    async def _get_stream_response_body(self, stream_response) -> str:
+    async def _get_stream_response_body(self, stream_response) -> List[str]:
         def collect_content() -> str:
             collected_content = []
             for event in stream_response["body"]:
