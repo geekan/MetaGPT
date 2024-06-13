@@ -82,7 +82,7 @@ class DataAnalyst(DataInterpreter):
             available_commands=prepare_command_prompt(self.available_commands),
         )
         context = self.llm.format_msg(self.working_memory.get() + [Message(content=prompt, role="user")])
-        async with ThoughtReporter():
+        async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(context)
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.rc.memory.add(Message(content=rsp, role="assistant"))

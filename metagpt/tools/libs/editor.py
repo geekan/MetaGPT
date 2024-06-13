@@ -35,7 +35,7 @@ class Editor:
             os.makedirs(directory)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
-        self.resource.report(path, "path")
+        # self.resource.report(path, "path")
 
     def read(self, path: str) -> FileBlock:
         """Read the whole content of a file."""
