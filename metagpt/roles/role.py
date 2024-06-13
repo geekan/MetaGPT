@@ -374,7 +374,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             if self.rc.max_react_loop != len(self.actions):
                 self.rc.max_react_loop = len(self.actions)
             self._set_state(self.rc.state + 1)
-            return self.rc.state >= 0 and self.rc.state < len(self.actions)
+            return (self.rc.state + 1) >= 0 and (self.rc.state + 1) < len(self.actions)
 
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
