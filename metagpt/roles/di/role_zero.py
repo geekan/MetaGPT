@@ -175,7 +175,7 @@ class RoleZero(Role):
             actions_taken += 1
         return rsp  # return output from the last action
 
-    async def _run_commands(self, commands) -> list:
+    async def _run_commands(self, commands) -> str:
         outputs = []
         for cmd in commands:
             # handle special command first

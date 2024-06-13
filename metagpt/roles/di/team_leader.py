@@ -18,7 +18,8 @@ class TeamLeader(RoleZero):
     profile: str = "Team Leader"
     system_msg: list[str] = [SYSTEM_PROMPT]
 
-    max_react_loop: int = 1  # TeamLeader only reacts once each time
+    # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
+    max_react_loop: int = 3
 
     tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
 
