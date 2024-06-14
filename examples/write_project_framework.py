@@ -5,9 +5,6 @@
 @Author  : mashenquan
 @File    : write_project_framework.py
 @Desc    : The implementation of RFC243. https://deepwisdom.feishu.cn/wiki/QobGwPkImijoyukBUKHcrYetnBb
-
-Usage Example:
-
 """
 import asyncio
 import json
@@ -64,7 +61,7 @@ async def _write_trd(
                     user_requirements=r,
                     use_case_actors=use_case_actors,
                     available_external_interfaces=available_external_interfaces,
-                    legacy_trd=trd,
+                    previous_version_trd=trd,
                     evaluation_conclusion=evaluation_conclusion,
                     interaction_events=interaction_events,
                 )

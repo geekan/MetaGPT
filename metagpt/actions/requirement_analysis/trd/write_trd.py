@@ -10,17 +10,23 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
 from metagpt.logs import logger
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import general_after_log, to_markdown_code_block
 
 
+@register_tool(include_functions=["run"])
 class WriteTRD(Action):
+    """WriteTRD deal with the following situations:
+    1. Given some new user requirements, write out a new TRD(Technical Requirements Document).
+    2. Given some incremental user requirements, update the legacy TRD.
+    """
+
     async def run(
         self,
         *,
         user_requirements: str = "",
         use_case_actors: str,
         available_external_interfaces: str,
-        legacy_trd: str = "",
         evaluation_conclusion: str = "",
         interaction_events: str = "",
         legacy_user_requirements: str = "",
@@ -30,6 +36,64 @@ class WriteTRD(Action):
         previous_version_trd: str = "",
         incremental_user_requirements_interaction_events: str = "",
     ) -> str:
+        """
+        Handles the writing or updating of a Technical Requirements Document (TRD) based on user requirements.
+
+        Args:
+            user_requirements (str, optional): New user requirements for creating a new TRD. This value must be not empty if a new TRD is wanted.
+            use_case_actors (str): Description of the actors involved in the use case.
+            available_external_interfaces (str): List of available external interfaces.
+            evaluation_conclusion (str, optional): Conclusion of the evaluation of the requirements. Defaults to an empty string.
+            interaction_events (str, optional): Events related to user interactions. Defaults to an empty string.
+            legacy_user_requirements (str, optional): Existing user requirements if updating. Defaults to an empty string.
+            legacy_user_requirements_trd (str, optional): The TRD associated with the existing user requirements. Defaults to an empty string.
+            legacy_user_requirements_interaction_events (str, optional): Interaction events related to the existing user requirements. Defaults to an empty string.
+            incremental_user_requirements (str, optional): New incremental user requirements for updating the TRD. Defaults to an empty string.
+            previous_version_trd (str, optional): The previous version of the TRD if updating incrementally. Defaults to an empty string.
+            incremental_user_requirements_interaction_events (str, optional): Interaction events related to the incremental user requirements. Defaults to an empty string.
+
+        Returns:
+            str: The newly created or updated TRD.
+
+        Example:
+            >>> # Given a new user requirements, write out a new TRD.
+            >>> user_requirements = "Write a 'snake game' TRD."
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> available_external_interfaces = "The available external interfaces returned by `CompressExternalInterfaces.run` are ..."
+            >>> previous_version_trd = "TRD ..." # The last version of the TRD written out if there is.
+            >>> evaluation_conclusion = "Conclusion ..." # The conclusion returned by `EvaluateTRD.run` if there is.
+            >>> interaction_events = "Interaction ..." # The interaction events returned by `DetectInteraction.run`.
+            >>> write_trd = WriteTRD(context=context)
+            >>> new_version_trd = await write_trd.run(
+            >>>     user_requirements=user_requirements,
+            >>>     use_case_actors=use_case_actors,
+            >>>     available_external_interfaces=available_external_interfaces,
+            >>>     previous_version_trd=previous_version_trd,
+            >>>     evaluation_conclusion=evaluation_conclusion,
+            >>>     interaction_events=interaction_events,
+            >>> )
+            >>> print(new_version_trd)
+            ## Technical Requirements Document\n ...
+
+            >>> # Given an incremental requirements, update the legacy TRD.
+            >>> legacy_user_requirements = ["User requirements 1. ...", "User requirements 2. ...", ...]
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> available_external_interfaces = "The available external interfaces returned by `CompressExternalInterfaces.run` are ..."
+            >>> legacy_user_requirements_trd = "## Technical Requirements Document\\n ..." # The TRD before integrating more user requirements.
+            >>> legacy_user_requirements_interaction_events = ["The interaction events list of user requirements 1 ...", "The interaction events list of user requiremnts 2 ...", ...]
+            >>> incremental_user_requirements
+            >>> new_version_trd = await write_trd.run(
+            >>>     legacy_user_requirements=str(legacy_user_requirements),
+            >>>     use_case_actors=use_case_actors,
+            >>>     available_external_interfaces=available_external_interfaces,
+            >>>     legacy_user_requirements_trd=legacy_user_requirements_trd,
+            >>>     legacy_user_requirements_interaction_events=str(legacy_user_requirements_interaction_events),
+            >>>     incremental_user_requirements=r,
+                    previous_version_trd=trd,
+                    evaluation_conclusion=evaluation_conclusion,
+                    incremental_user_requirements_interaction_events=interaction_events,
+                )
+        """
         if incremental_user_requirements:
             return await self._write_incremental_trd(
                 use_case_actors=use_case_actors,
@@ -46,7 +110,7 @@ class WriteTRD(Action):
             use_case_actors=use_case_actors,
             original_user_requirement=user_requirements,
             available_external_interfaces=available_external_interfaces,
-            legacy_trd=legacy_trd,
+            legacy_trd=previous_version_trd,
             evaluation_conclusion=evaluation_conclusion,
             interaction_events=interaction_events,
         )
