@@ -43,6 +43,9 @@ PROMPT = """
 ## TRD Design
 {trd}
 
+## External Interaction Events
+{legacy_user_requirements_interaction_events}
+
 ## Interaction Events
 {legacy_user_requirements_interaction_events}
 {incremental_user_requirements_interaction_events}
@@ -52,9 +55,11 @@ PROMPT = """
 You are a tool to evaluate the TRD design.
 "Actor, System, External System" provides the possible participants in interaction events;
 "User Requirements" provides the original requirements description, any parts not mentioned in this description will be handled by other modules, so do not fabricate requirements;
+"External Interaction Events" is provided by an external module for your use, its content is also referred to "Interaction Events" section; The content in "External Interaction Events" can be determined to be problem-free;
+"External Interaction Events" provides some identified interaction events and the interacting participants based on the part of the content of the "User Requirements";
 "Interaction Events" provides some identified interaction events and the interacting participants based on the content of the "User Requirements";
 "TRD Design" provides a comprehensive design of the implementation steps for the original requirements, incorporating the interaction events from "Interaction Events" and adding additional steps to connect the complete upstream and downstream data flows;
-To integrate the complete upstream and downstream data flows, "TRD Design" allows for the inclusion of steps not present in the original requirements description, provided these steps do not contradict the content explicitly described in the "User Requirements";
+In order to integrate the full upstream and downstream data flow, the "TRD Design" allows for the inclusion of steps that do not appear in the original requirements description, but do not conflict with those explicitly described in the "User Requirements";
 Which interactions from "Interaction Events" correspond to which steps in "TRD Design"? Please provide reasons.
 Which aspects of "TRD Design" and "Interaction Events" do not align with the descriptions in "User Requirements"? Please provide detailed descriptions and reasons.
 If the descriptions in "User Requirements" are divided into multiple steps in "TRD Design" and "Interaction Events," it can be considered compliant with the descriptions in "User Requirements" as long as it does not conflict with them;
