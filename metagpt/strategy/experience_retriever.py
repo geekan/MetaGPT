@@ -83,6 +83,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -113,6 +116,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "I have assigned the task to David. He will break down the task further by himself and starts solving it.",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -142,6 +148,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -156,6 +165,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "The team is currently working on ... We have completed ...",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -213,6 +225,7 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
             "assignee": "David"
         }
     },
+]
 """
 
 
