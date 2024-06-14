@@ -28,32 +28,28 @@ class WriteTRD(Action):
         use_case_actors: str,
         available_external_interfaces: str,
         evaluation_conclusion: str = "",
-        interaction_events: str = "",
+        interaction_events: str,
+        previous_version_trd: str = "",
         legacy_user_requirements: str = "",
         legacy_user_requirements_trd: str = "",
         legacy_user_requirements_interaction_events: str = "",
-        incremental_user_requirements: str = "",
-        previous_version_trd: str = "",
-        incremental_user_requirements_interaction_events: str = "",
     ) -> str:
         """
         Handles the writing or updating of a Technical Requirements Document (TRD) based on user requirements.
 
         Args:
-            user_requirements (str, optional): New user requirements for creating a new TRD. This value must be not empty if a new TRD is wanted.
+            user_requirements (str): The new/incremental user requirements.
             use_case_actors (str): Description of the actors involved in the use case.
             available_external_interfaces (str): List of available external interfaces.
-            evaluation_conclusion (str, optional): Conclusion of the evaluation of the requirements. Defaults to an empty string.
-            interaction_events (str, optional): Events related to user interactions. Defaults to an empty string.
-            legacy_user_requirements (str, optional): Existing user requirements if updating. Defaults to an empty string.
-            legacy_user_requirements_trd (str, optional): The TRD associated with the existing user requirements. Defaults to an empty string.
-            legacy_user_requirements_interaction_events (str, optional): Interaction events related to the existing user requirements. Defaults to an empty string.
-            incremental_user_requirements (str, optional): New incremental user requirements for updating the TRD. Defaults to an empty string.
-            previous_version_trd (str, optional): The previous version of the TRD if updating incrementally. Defaults to an empty string.
-            incremental_user_requirements_interaction_events (str, optional): Interaction events related to the incremental user requirements. Defaults to an empty string.
+            evaluation_conclusion (str, optional): The conclusion of the evaluation of the TRD written by you. Defaults to an empty string.
+            interaction_events (str): The interaction events related to the user requirements that you are handling.
+            previous_version_trd (str, optional): The previous version of the TRD written by you, for updating.
+            legacy_user_requirements (str, optional): Existing user requirements handled by an external object for your use. Defaults to an empty string.
+            legacy_user_requirements_trd (str, optional): The TRD associated with the existing user requirements handled by an external object for your use. Defaults to an empty string.
+            legacy_user_requirements_interaction_events (str, optional): Interaction events related to the existing user requirements handled by an external object for your use. Defaults to an empty string.
 
         Returns:
-            str: The newly created or updated TRD.
+            str: The newly created or updated TRD written by you.
 
         Example:
             >>> # Given a new user requirements, write out a new TRD.
@@ -63,48 +59,53 @@ class WriteTRD(Action):
             >>> previous_version_trd = "TRD ..." # The last version of the TRD written out if there is.
             >>> evaluation_conclusion = "Conclusion ..." # The conclusion returned by `EvaluateTRD.run` if there is.
             >>> interaction_events = "Interaction ..." # The interaction events returned by `DetectInteraction.run`.
-            >>> write_trd = WriteTRD(context=context)
+            >>> write_trd = WriteTRD()
             >>> new_version_trd = await write_trd.run(
             >>>     user_requirements=user_requirements,
             >>>     use_case_actors=use_case_actors,
             >>>     available_external_interfaces=available_external_interfaces,
-            >>>     previous_version_trd=previous_version_trd,
             >>>     evaluation_conclusion=evaluation_conclusion,
             >>>     interaction_events=interaction_events,
+            >>>     previous_version_trd=previous_version_trd,
             >>> )
             >>> print(new_version_trd)
             ## Technical Requirements Document\n ...
 
             >>> # Given an incremental requirements, update the legacy TRD.
             >>> legacy_user_requirements = ["User requirements 1. ...", "User requirements 2. ...", ...]
-            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
-            >>> available_external_interfaces = "The available external interfaces returned by `CompressExternalInterfaces.run` are ..."
             >>> legacy_user_requirements_trd = "## Technical Requirements Document\\n ..." # The TRD before integrating more user requirements.
             >>> legacy_user_requirements_interaction_events = ["The interaction events list of user requirements 1 ...", "The interaction events list of user requiremnts 2 ...", ...]
-            >>> incremental_user_requirements
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> available_external_interfaces = "The available external interfaces returned by `CompressExternalInterfaces.run` are ..."
+            >>> increment_requirements = "The incremental user requirements are ..."
+            >>> evaluation_conclusion = "Conclusion ..." # The conclusion returned by `EvaluateTRD.run` if there is.
+            >>> previous_version_trd = "TRD ..." # The last version of the TRD written out if there is.
+            >>> write_trd = WriteTRD()
             >>> new_version_trd = await write_trd.run(
-            >>>     legacy_user_requirements=str(legacy_user_requirements),
+            >>>     user_requirements=increment_requirements,
             >>>     use_case_actors=use_case_actors,
             >>>     available_external_interfaces=available_external_interfaces,
+            >>>     evaluation_conclusion=evaluation_conclusion,
+            >>>     interaction_events=interaction_events,
+            >>>     previous_version_trd=previous_version_trd,
+            >>>     legacy_user_requirements=str(legacy_user_requirements),
             >>>     legacy_user_requirements_trd=legacy_user_requirements_trd,
             >>>     legacy_user_requirements_interaction_events=str(legacy_user_requirements_interaction_events),
-            >>>     incremental_user_requirements=r,
-                    previous_version_trd=trd,
-                    evaluation_conclusion=evaluation_conclusion,
-                    incremental_user_requirements_interaction_events=interaction_events,
-                )
+            >>> )
+            >>> print(new_version_trd)
+            ## Technical Requirements Document\n ...
         """
-        if incremental_user_requirements:
+        if legacy_user_requirements:
             return await self._write_incremental_trd(
                 use_case_actors=use_case_actors,
                 legacy_user_requirements=legacy_user_requirements,
                 available_external_interfaces=available_external_interfaces,
                 legacy_user_requirements_trd=legacy_user_requirements_trd,
                 legacy_user_requirements_interaction_events=legacy_user_requirements_interaction_events,
-                incremental_user_requirements=incremental_user_requirements,
+                incremental_user_requirements=user_requirements,
                 previous_version_trd=previous_version_trd,
                 evaluation_conclusion=evaluation_conclusion,
-                incremental_user_requirements_interaction_events=incremental_user_requirements_interaction_events,
+                incremental_user_requirements_interaction_events=interaction_events,
             )
         return await self._write_new_trd(
             use_case_actors=use_case_actors,

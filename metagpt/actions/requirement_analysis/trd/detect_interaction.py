@@ -10,10 +10,16 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
 from metagpt.logs import logger
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import general_after_log, to_markdown_code_block
 
 
+@register_tool(include_functions=["run"])
 class DetectInteraction(Action):
+    """DetectInteraction deal with the following situations:
+    1. Given a natural text of user requirements, it identifies the interaction events and the participants of those interactions from the original text.
+    """
+
     @retry(
         wait=wait_random_exponential(min=1, max=20),
         stop=stop_after_attempt(6),
@@ -27,6 +33,33 @@ class DetectInteraction(Action):
         legacy_interaction_events: str,
         evaluation_conclusion: str,
     ) -> str:
+        """
+        Identifies interaction events and participants from the user requirements.
+
+        Args:
+            user_requirements (str): A natural language text detailing the user's requirements.
+            use_case_actors (str): A description of the actors involved in the use case.
+            legacy_interaction_events (str): The previous version of the interaction events identified by you.
+            evaluation_conclusion (str): The external evaluation conclusions regarding the interactions events identified by you.
+
+        Returns:
+            str: A string summarizing the identified interaction events and their participants.
+
+        Example:
+            >>> detect_interaction = DetectInteraction()
+            >>> user_requirements = "User requirements 1. ..."
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> previous_version_interaction_events = "['interaction ...', ...]"
+            >>> evaluation_conclusion = "Issues: ..."
+            >>> interaction_events = await detect_interaction.run(
+            >>>    user_requirements=user_requirements,
+            >>>    use_case_actors=use_case_actors,
+            >>>    legacy_interaction_events=previous_version_interaction_events,
+            >>>    evaluation_conclusion=evaluation_conclusion,
+            >>> )
+            >>> print(interaction_events)
+            "['interaction ...', ...]"
+        """
         msg = PROMPT.format(
             use_case_actors=use_case_actors,
             original_user_requirements=to_markdown_code_block(val=user_requirements),

@@ -61,32 +61,29 @@ async def _write_trd(
                     user_requirements=r,
                     use_case_actors=use_case_actors,
                     available_external_interfaces=available_external_interfaces,
-                    previous_version_trd=trd,
                     evaluation_conclusion=evaluation_conclusion,
                     interaction_events=interaction_events,
-                )
-                evaluation = await evaluate_trd.run(
-                    user_requirements=r, use_case_actors=use_case_actors, trd=trd, interaction_events=interaction_events
+                    previous_version_trd=trd,
                 )
             else:
                 trd = await write_trd.run(
-                    legacy_user_requirements="\n".join(legacy_user_requirements),
-                    use_case_actors=use_case_actors,
-                    available_external_interfaces=available_external_interfaces,
-                    legacy_user_requirements_trd=legacy_user_requirements_trd,
-                    legacy_user_requirements_interaction_events="\n".join(legacy_user_requirements_interaction_events),
-                    incremental_user_requirements=r,
-                    previous_version_trd=trd,
-                    evaluation_conclusion=evaluation_conclusion,
-                    incremental_user_requirements_interaction_events=interaction_events,
-                )
-                evaluation = await evaluate_trd.run(
                     user_requirements=r,
                     use_case_actors=use_case_actors,
-                    trd=trd,
+                    available_external_interfaces=available_external_interfaces,
+                    evaluation_conclusion=evaluation_conclusion,
+                    interaction_events=interaction_events,
+                    previous_version_trd=trd,
+                    legacy_user_requirements="\n".join(legacy_user_requirements),
+                    legacy_user_requirements_trd=legacy_user_requirements_trd,
                     legacy_user_requirements_interaction_events="\n".join(legacy_user_requirements_interaction_events),
-                    incremental_user_requirements_interaction_events=interaction_events,
                 )
+            evaluation = await evaluate_trd.run(
+                user_requirements=r,
+                use_case_actors=use_case_actors,
+                trd=trd,
+                interaction_events=interaction_events,
+                legacy_user_requirements_interaction_events="\n".join(legacy_user_requirements_interaction_events),
+            )
             is_pass = evaluation.is_pass
             evaluation_conclusion = evaluation.conclusion
         legacy_user_requirements.append(r)

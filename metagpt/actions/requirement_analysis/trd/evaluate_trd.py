@@ -8,26 +8,66 @@
 """
 
 from metagpt.actions.requirement_analysis import EvaluateAction, EvaluationData
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import to_markdown_code_block
 
 
+@register_tool(include_functions=["run"])
 class EvaluateTRD(EvaluateAction):
+    """EvaluateTRD deal with the following situations:
+    1. Given a TRD, evaluates the quality and returns a conclusion.
+    """
+
     async def run(
         self,
         *,
         user_requirements: str,
         use_case_actors: str,
         trd: str,
-        interaction_events: str = "",
+        interaction_events: str,
         legacy_user_requirements_interaction_events: str = "",
-        incremental_user_requirements_interaction_events: str = "",
     ) -> EvaluationData:
+        """
+        Evaluates the given TRD based on user requirements, use case actors, interaction events, and optionally external legacy interaction events.
+
+        Args:
+            user_requirements (str): The requirements provided by the user.
+            use_case_actors (str): The actors involved in the use case.
+            trd (str): The TRD (Technical Requirements Document) to be evaluated.
+            interaction_events (str): The interaction events related to the user requirements and the TRD.
+            legacy_user_requirements_interaction_events (str, optional): External legacy interaction events tied to the user requirements. Defaults to an empty string.
+
+        Returns:
+            EvaluationData: The conclusion of the TRD evaluation.
+
+        Example:
+            >>> evaluate_trd = EvaluateTRD()
+            >>> user_requirements = "User requirements 1. ..."
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> trd = "## TRD\\n..."
+            >>> interaction_events = "['interaction ...', ...]"
+            >>> evaluation_conclusion = "Issues: ..."
+            >>> legacy_user_requirements_interaction_events = ["user requirements 1. ...", ...]
+            >>> evaluation = await evaluate_trd.run(
+            >>>    user_requirements=user_requirements,
+            >>>    use_case_actors=use_case_actors,
+            >>>    trd=trd,
+            >>>    interaction_events=interaction_events,
+            >>>    legacy_user_requirements_interaction_events=str(legacy_user_requirements_interaction_events),
+            >>> )
+            >>> is_pass = evaluation.is_pass
+            >>> print(is_pass)
+            True
+            >>> evaluation_conclusion = evaluation.conclusion
+            >>> print(evaluation_conclusion)
+            ## Conclustion\n balabalabala...
+
+        """
         prompt = PROMPT.format(
             use_case_actors=use_case_actors,
             user_requirements=to_markdown_code_block(val=user_requirements),
             trd=to_markdown_code_block(val=trd),
             legacy_user_requirements_interaction_events=legacy_user_requirements_interaction_events,
-            incremental_user_requirements_interaction_events=incremental_user_requirements_interaction_events,
             interaction_events=interaction_events,
         )
         return await self._vote(prompt)
@@ -48,7 +88,6 @@ PROMPT = """
 
 ## Interaction Events
 {legacy_user_requirements_interaction_events}
-{incremental_user_requirements_interaction_events}
 {interaction_events}
 
 ---
