@@ -162,7 +162,7 @@ class SimpleExpRetriever(ExpRetriever):
     """
 
     def retrieve(self, context: str = "") -> str:
-        return self.EXAMPLE
+        return ""  # byRFC243 self.EXAMPLE
 
 
 class KeywordExpRetriever(ExpRetriever):

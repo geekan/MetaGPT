@@ -40,6 +40,16 @@ class EnvBuilder(BaseModel):
         env = Environment(context=self.context)
         team_leader = TeamLeader()
         architect = Architect()
+        architect.tools.extend(
+            [
+                "CompressExternalInterfaces",
+                "DetectInteraction",
+                "EvaluateTRD",
+                "WriteTRD",
+                "WriteFramework",
+                "EvaluateFramework",
+            ]
+        )
 
         # Prepare context
         use_case_actors = "".join([f"- {v}: {k}\n" for k, v in self.actors.items()])
@@ -98,12 +108,10 @@ async def develop(
     msg = """
 根据"User Requirements"中的用户需求，写TRD
 ## User Requirements
-```json
 {user_requirements}
-```
     """
     env.publish_message(
-        UserMessage(content=msg.format(user_requirements=f"{user_requirements}"), send_to=any_to_str(TeamLeader))
+        UserMessage(content=msg.format(user_requirements="\n".join(user_requirements)), send_to=any_to_str(TeamLeader))
     )
 
     while not env.is_idle:
