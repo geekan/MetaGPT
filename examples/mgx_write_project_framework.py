@@ -24,6 +24,7 @@ from metagpt.logs import logger
 from metagpt.roles import Architect
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import AIMessage, UserMessage
+from metagpt.strategy.experience_retriever import TRDToolExpRetriever
 from metagpt.utils.common import aread, to_markdown_code_block
 
 app = typer.Typer(add_completion=False)
@@ -40,7 +41,7 @@ class EnvBuilder(BaseModel):
     def build(self) -> Environment:
         env = MGXEnv(context=self.context)
         team_leader = TeamLeader()
-        architect = Architect()
+        architect = Architect(experience_retriever=TRDToolExpRetriever())
 
         # Prepare context
         use_case_actors = "".join([f"- {v}: {k}\n" for k, v in self.actors.items()])

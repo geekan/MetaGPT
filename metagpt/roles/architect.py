@@ -18,6 +18,11 @@ from metagpt.actions.requirement_analysis.trd import (
     WriteTRD,
 )
 from metagpt.roles.di.role_zero import RoleZero
+from metagpt.tools.libs.software_development import (
+    extract_external_interfaces,
+    write_framework,
+    write_trd,
+)
 from metagpt.utils.common import tool2name
 
 
@@ -42,16 +47,24 @@ class Architect(RoleZero):
 
     instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use WriteTRD tool to write a TRD if a TRD is required;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
+    # tools: list[str] = [
+    #     "Editor:write,read,write_content",
+    #     "RoleZero",
+    #     "WriteDesign",
+    #     "CompressExternalInterfaces",
+    #     "DetectInteraction",
+    #     "EvaluateTRD",
+    #     "WriteTRD",
+    #     "WriteFramework",
+    #     "EvaluateFramework",
+    # ]
     tools: list[str] = [
         "Editor:write,read,write_content",
         "RoleZero",
         "WriteDesign",
-        "CompressExternalInterfaces",
-        "DetectInteraction",
-        "EvaluateTRD",
-        "WriteTRD",
-        "WriteFramework",
-        "EvaluateFramework",
+        extract_external_interfaces.__name__,
+        write_trd.__name__,
+        write_framework.__name__,
     ]
 
     def __init__(self, **kwargs) -> None:
