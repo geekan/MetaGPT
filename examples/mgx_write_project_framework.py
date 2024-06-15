@@ -19,11 +19,12 @@ from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.context import Context
 from metagpt.environment import Environment
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.roles import Architect
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import AIMessage, UserMessage
-from metagpt.utils.common import any_to_str, aread, to_markdown_code_block
+from metagpt.utils.common import aread, to_markdown_code_block
 
 app = typer.Typer(add_completion=False)
 
@@ -37,19 +38,9 @@ class EnvBuilder(BaseModel):
     output_dir: Path
 
     def build(self) -> Environment:
-        env = Environment(context=self.context)
+        env = MGXEnv(context=self.context)
         team_leader = TeamLeader()
         architect = Architect()
-        architect.tools.extend(
-            [
-                "CompressExternalInterfaces",
-                "DetectInteraction",
-                "EvaluateTRD",
-                "WriteTRD",
-                "WriteFramework",
-                "EvaluateFramework",
-            ]
-        )
 
         # Prepare context
         use_case_actors = "".join([f"- {v}: {k}\n" for k, v in self.actors.items()])
@@ -111,7 +102,8 @@ async def develop(
 {user_requirements}
     """
     env.publish_message(
-        UserMessage(content=msg.format(user_requirements="\n".join(user_requirements)), send_to=any_to_str(TeamLeader))
+        UserMessage(content=msg.format(user_requirements="\n".join(user_requirements)), send_to="Bob"),
+        user_defined_recipient="Bob",
     )
 
     while not env.is_idle:

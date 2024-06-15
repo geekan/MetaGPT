@@ -8,10 +8,16 @@
 """
 
 from metagpt.actions.requirement_analysis import EvaluateAction, EvaluationData
+from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import to_markdown_code_block
 
 
+@register_tool(include_functions=["run"])
 class EvaluateFramework(EvaluateAction):
+    """WriteFramework deal with the following situations:
+    1. Given a TRD and the software framework based on the TRD, evaluate the quality of the software framework.
+    """
+
     async def run(
         self,
         *,
@@ -21,6 +27,40 @@ class EvaluateFramework(EvaluateAction):
         legacy_output: str,
         additional_technical_requirements: str,
     ) -> EvaluationData:
+        """
+        Run the evaluation of the software framework based on the provided TRD and related parameters.
+
+        Args:
+            use_case_actors (str): A description of the actors involved in the use case.
+            trd (str): The Technical Requirements Document (TRD) that outlines the requirements for the software framework.
+            acknowledge (str): External acknowledgments or acknowledgments information related to the framework.
+            legacy_output (str): The previous versions of software framework returned by `WriteFramework`.
+            additional_technical_requirements (str): Additional technical requirements that need to be considered during evaluation.
+
+        Returns:
+            EvaluationData: An object containing the results of the evaluation.
+
+        Example:
+            >>> evaluate_framework = EvaluateFramework()
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> trd = "## TRD\\n..."
+            >>> acknowledge = "## Interfaces\\n..."
+            >>> framework = '{"path":"balabala", "filename":"...", ...'
+            >>> constraint = "Using Java language, ..."
+            >>> evaluation = await evaluate_framework.run(
+            >>>     use_case_actors=use_case_actors,
+            >>>     trd=trd,
+            >>>     acknowledge=acknowledge,
+            >>>     legacy_output=framework,
+            >>>     additional_technical_requirements=constraint,
+            >>> )
+            >>> is_pass = evaluation.is_pass
+            >>> print(is_pass)
+            True
+            >>> evaluation_conclusion = evaluation.conclusion
+            >>> print(evaluation_conclusion)
+            Balabala...
+        """
         prompt = PROMPT.format(
             use_case_actors=use_case_actors,
             trd=to_markdown_code_block(val=trd),

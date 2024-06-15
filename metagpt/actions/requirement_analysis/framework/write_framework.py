@@ -12,10 +12,16 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
 from metagpt.logs import logger
-from metagpt.utils.common import CodeParser, general_after_log, to_markdown_code_block
+from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import general_after_log, to_markdown_code_block
 
 
+@register_tool(include_functions=["run"])
 class WriteFramework(Action):
+    """WriteFramework deal with the following situations:
+    1. Given a TRD, write out the software framework.
+    """
+
     async def run(
         self,
         *,
@@ -26,6 +32,40 @@ class WriteFramework(Action):
         evaluation_conclusion: str,
         additional_technical_requirements: str,
     ) -> str:
+        """
+        Run the action to generate a software framework based on the provided TRD and related information.
+
+        Args:
+            use_case_actors (str): Description of the use case actors involved.
+            trd (str): Technical Requirements Document detailing the requirements.
+            acknowledge (str): External acknowledgements or acknowledgements required.
+            legacy_output (str): Previous version of the software framework returned by `WriteFramework.run`.
+            evaluation_conclusion (str): Conclusion from the evaluation of the requirements.
+            additional_technical_requirements (str): Any additional technical requirements.
+
+        Returns:
+            str: The generated software framework as a string.
+
+        Example:
+            >>> write_framework = WriteFramework()
+            >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
+            >>> trd = "## TRD\\n..."
+            >>> acknowledge = "## Interfaces\\n..."
+            >>> legacy_output = '{"path":"balabala", "filename":"...", ...'
+            >>> evaluation_conclusion = "Balabala..."
+            >>> constraint = "Using Java language, ..."
+            >>> framework = await write_framework.run(
+            >>>    use_case_actors=use_case_actors,
+            >>>    trd=trd,
+            >>>    acknowledge=acknowledge,
+            >>>    legacy_output=framework,
+            >>>    evaluation_conclusion=evaluation_conclusion,
+            >>>    additional_technical_requirements=constraint,
+            >>> )
+            >>> print(framework)
+            {"path":"balabala", "filename":"...", ...
+
+        """
         prompt = PROMPT.format(
             use_case_actors=use_case_actors,
             trd=to_markdown_code_block(val=trd),
@@ -43,7 +83,13 @@ class WriteFramework(Action):
     )
     async def _write(self, prompt: str) -> str:
         rsp = await self.llm.aask(prompt)
-        json_data = CodeParser.parse_code(text=rsp, lang="json")
+        # Do not use `CodeParser` here.
+        tags = ["```json", "```"]
+        bix = rsp.find(tags[0])
+        eix = rsp.rfind(tags[1])
+        if bix >= 0:
+            rsp = rsp[bix : eix + len(tags[1])]
+        json_data = rsp.removeprefix("```json").removesuffix("```")
         json.loads(json_data)  # validate
         return json_data
 
@@ -76,13 +122,12 @@ The descriptions of the interfaces used in the "TRD" can be found in the "Acknow
 Develop source code based on the content of the "TRD";
 - The `README.md` file should include:
   - The folder structure diagram of the entire project;
+  - Class diagram and sequence diagram in PlantUML format;
   - Correspondence between classes, interfaces, and functions with the content in the "TRD" section；
   - Prerequisites if necessary;
   - Installation if necessary;
   - Configuration if necessary;
   - Usage if necessary;
-- The `CLASS.md` file should include class diagram in PlantUML format;
-- The `SEQUENCE.md` file should include sequence diagram in PlantUML format;
   
 Return a markdown JSON object list, each object containing:
 - a "path" key with a value specifying its path;

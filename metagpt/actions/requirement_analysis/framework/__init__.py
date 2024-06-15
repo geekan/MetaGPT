@@ -17,7 +17,7 @@ from metagpt.actions.requirement_analysis.framework.evaluate_framework import Ev
 from metagpt.actions.requirement_analysis.framework.write_framework import WriteFramework
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, awrite
+from metagpt.utils.common import awrite
 
 
 @register_tool(tags=["software framework"])
@@ -25,7 +25,7 @@ async def save_framework(dir_data: str, output_dir: Optional[Union[str, Path]] =
     output_dir = Path(output_dir) if output_dir else DEFAULT_WORKSPACE_ROOT / uuid.uuid4().hex
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    json_data = CodeParser.parse_code(text=dir_data, lang="json")
+    json_data = dir_data.removeprefix("```json").removesuffix("```")
     items = json.loads(json_data)
 
     class Data(BaseModel):
@@ -36,6 +36,8 @@ async def save_framework(dir_data: str, output_dir: Optional[Union[str, Path]] =
     files = []
     for i in items:
         v = Data.model_validate(i)
+        if v.path and v.path[0] == "/":
+            v.path = "." + v.path
         pathname = output_dir / v.path
         pathname.mkdir(parents=True, exist_ok=True)
         pathname = pathname / v.filename

@@ -14,7 +14,174 @@ class DummyExpRetriever(ExpRetriever):
     """A dummy experience retriever that returns empty string."""
 
     def retrieve(self, context: str = "") -> str:
-        return ""
+        return self.EXAMPLE
+
+    EXAMPLE: str = """
+    ## example 1
+    User Requirement: Given some user requirements, write a TRD, and implement the TRD within a software framework.
+    Explanation: 
+        Given a complete requirement, 要写TRD需要follow如下步骤：
+        1. 调用`CompressExternalInterfaces.run`，从acknowledgement中抽取external interfaces的信息；
+        2. 按顺序执行如下步骤：
+          2.1. 执行`DetectInteraction.run`;
+          2.2. 执行`WriteTRD.run`;
+          2.3. 执行`EvaluateTRD.run`;
+          2.4. 检查`EvaluateTRD.run`的结果：
+            2.4.1. 如果`EvaluateTRD.run`的结果被判定为pass，则执行步骤3；
+            2.4.2. 如果`EvaluateTRD.run`的结果被判定为deny,则继续执行步骤2；
+        3. 按顺序执行如下步骤：
+          3.1. 执行`WriteFramework.run`;
+          3.2. 执行`EvaluateFramework.run`;
+          3.3. 检查`EvaluateFramework.run`的结果：
+            3.3.1. 如果`EvaluateFramework.run`的结果被判定为pass，则执行步骤4；
+            3.3.2. 如果`EvaluateFramework.run`的结果被判定为deny,则继续执行步骤3；
+            3.3.3. 如果已经重复执行步骤3超过9次，则执行步骤4；
+        4. 执行`save_framework`,将`WriteFramework.run`的结果保存下来；
+    ```json
+    [
+        {
+            "command_name": "CompressExternalInterfaces.run",
+            "args": {
+                "task_id": "1",
+                "dependent_task_ids": [],
+                "instruction": "Execute `DetectInteraction.run` to extract external interfaces information from acknowledgement.",
+                "acknowledge": "## Interfaces\n balabala..."
+            }
+        },
+        {
+            "command_name": "DetectInteraction.run",
+            "args": {
+                "task_id": "2",
+                "dependent_task_ids": ["1"],
+                "instruction": "Execute `DetectInteraction.run` to extract external interfaces information from acknowledgement.",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+            }
+        },
+        {
+            "command_name": "WriteTRD.run",
+            "args": {
+                "task_id": "3",
+                "dependent_task_ids": ["2"],
+                "instruction": "Execute `WriteTRD.run` to write TRD",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "available_external_interfaces": "<compressed_external_interfaces_output> returned by `CompressExternalInterfaces.run`",
+                "interaction_events": "<detected_interaction_events_output> returned by `DetectInteraction.run`"
+            }
+        },
+        {
+            "command_name": "EvaluateTRD.run",
+            "args": {
+                "task_id": "4",
+                "dependent_task_ids": ["3"],
+                "instruction": "Execute `EvaluateTRD.run` to evaluate the TRD",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "available_external_interfaces": "<compressed_external_interfaces_output> returned by `CompressExternalInterfaces.run`",
+                "interaction_events": "<detected_interaction_events_output>",
+                "trd": "<trd> returned by `EvaluateTRD.run`"
+            }
+        },
+        {
+            "command_name": "DetectInteraction.run",
+            "args": {
+                "task_id": "5",
+                "dependent_task_ids": ["4"],
+                "instruction": "Execute `DetectInteraction.run` to extract external interfaces information from acknowledgement.",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "evaluation_conclusion": "<evaluation_conclusion> returned by `EvaluateTRD.run`"
+            }
+        },
+        {
+            "command_name": "WriteTRD.run",
+            "args": {
+                "task_id": "6",
+                "dependent_task_ids": ["5"],
+                "instruction": "Execute `WriteTRD.run` to write TRD",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "available_external_interfaces": "<compressed_external_interfaces_output> returned by `CompressExternalInterfaces.run`",
+                "interaction_events": "<detected_interaction_events_output> returned by `DetectInteraction.run`",
+                "previous_version_trd": "<trd> returned by `WriteTRD.run`"
+            }
+        },
+        {
+            "command_name": "EvaluateTRD.run",
+            "args": {
+                "task_id": "7",
+                "dependent_task_ids": ["6"],
+                "instruction": "Execute `EvaluateTRD.run` to evaluate the TRD",
+                "user_requirements": "This is user requirement balabala...",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "available_external_interfaces": "<compressed_external_interfaces_output> returned by `CompressExternalInterfaces.run`",
+                "interaction_events": "<detected_interaction_events_output> returned by `DetectInteraction.run`",
+                "trd": "<trd> returned by `WriteTRD.run`",
+            }
+        },
+        {
+            "command_name": "WriteFramework.run",
+            "args": {
+                "task_id": "8",
+                "dependent_task_ids": ["7"],
+                "instruction": "Execute `WriteFramework.run` to write a software framework according to the TRD",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "trd": "<trd> returned by `WriteTRD.run`",
+                "acknowledge": "## Interfaces\n balabala...",
+                "additional_technical_requirements": "These are additional technical requirements, balabala...",
+            }
+        },
+        {
+            "command_name": "EvaluateFramework.run",
+            "args": {
+                "task_id": "9",
+                "dependent_task_ids": ["8"],
+                "instruction": "Execute `EvaluateFramework.run` to evaluate the software framework returned by `WriteFramework.run`",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "trd": "<trd> returned by `WriteTRD.run`",
+                "acknowledge": "## Interfaces\n balabala...",
+                "legacy_output": "<framework> returned by `WriteFramework.run`",
+                "additional_technical_requirements": "These are additional technical requirements, balabala...",
+            }
+        },
+        {
+            "command_name": "WriteFramework.run",
+            "args": {
+                "task_id": "10",
+                "dependent_task_ids": ["9"],
+                "instruction": "Execute `WriteFramework.run` to write a software framework according to the TRD",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "trd": "<trd> returned by `WriteTRD.run`",
+                "acknowledge": "## Interfaces\n balabala...",
+                "additional_technical_requirements": "These are additional technical requirements, balabala...",
+            }
+        },
+        {
+            "command_name": "EvaluateFramework.run",
+            "args": {
+                "task_id": "11",
+                "dependent_task_ids": ["10"],
+                "instruction": "Execute `EvaluateFramework.run` to evaluate the software framework returned by `WriteFramework.run`",
+                "use_case_actors": "These are actors involved in the use case, balabala...",
+                "trd": "<trd> returned by `WriteTRD.run`",
+                "acknowledge": "## Interfaces\n balabala...",
+                "legacy_output": "<framework> returned by `WriteFramework.run`",
+                "additional_technical_requirements": "These are additional technical requirements, balabala...",
+            }
+        },
+        {
+            "command_name": "save_framework",
+            "args": {
+                "task_id": "12",
+                "dependent_task_ids": ["11"],
+                "instruction": "Execute `save_framework` to save the software framework returned by `WriteFramework.run`",
+                "dir_data": "<framework> returned by `WriteFramework.run`",
+            }
+        }
+    ]
+    ```
+    """
 
 
 class SimpleExpRetriever(ExpRetriever):
@@ -83,6 +250,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -113,6 +283,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "I have assigned the task to David. He will break down the task further by himself and starts solving it.",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -142,6 +315,9 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
@@ -156,13 +332,16 @@ class SimpleExpRetriever(ExpRetriever):
             "args": {
                 "content": "The team is currently working on ... We have completed ...",
             }
+        },
+        {
+            "command_name": "end"
         }
     ]
     ```
     """
 
     def retrieve(self, context: str = "") -> str:
-        return ""  # byRFC243 self.EXAMPLE
+        return self.EXAMPLE
 
 
 class KeywordExpRetriever(ExpRetriever):
@@ -213,6 +392,7 @@ Explanation: Launching a service requires Terminal tool with daemon mode, write 
             "assignee": "David"
         }
     },
+]
 """
 
 

@@ -49,7 +49,7 @@ async def _write_trd(
         evaluation_conclusion = ""
         interaction_events = ""
         trd = ""
-        while not is_pass:
+        while not is_pass and (context.cost_manager.total_cost < context.cost_manager.max_budget):
             interaction_events = await detect_interaction.run(
                 user_requirements=r,
                 use_case_actors=use_case_actors,
@@ -99,7 +99,7 @@ async def _write_framework(context: Context, use_case_actors: str, trd: str, ack
     is_pass = False
     framework = ""
     evaluation_conclusion = ""
-    while not is_pass:
+    while not is_pass and (context.cost_manager.total_cost < context.cost_manager.max_budget):
         try:
             framework = await write_framework.run(
                 use_case_actors=use_case_actors,
@@ -175,6 +175,7 @@ def startup(
     llm_config: str = typer.Option(default="", help="Low-cost LLM config"),
     constraint_filename: str = typer.Option(default="", help="What technical dependency constraints are."),
     output_dir: str = typer.Option(default="", help="Output directory."),
+    investment: float = typer.Option(default=15.0, help="Dollar amount to invest in the AI company."),
 ):
     if llm_config and Path(llm_config).exists():
         config = Config.from_yaml_file(Path(llm_config))
@@ -182,6 +183,7 @@ def startup(
         logger.info("GPT 4 turbo is recommended")
         config = Config.default()
     ctx = Context(config=config)
+    ctx.cost_manager.max_budget = investment
 
     asyncio.run(
         develop(ctx, user_requirement_filename, actors_filename, acknowledge_filename, constraint_filename, output_dir)

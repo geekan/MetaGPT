@@ -189,8 +189,8 @@ class Browser:
 
     async def _view(self, keep_len: int = 5000) -> str:
         """simulate human viewing the current page, return the visible text with links"""
-        # visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
-        # print("The visible text and their links (if any): ", visible_text_with_links[:keep_len])
+        visible_text_with_links = await self.current_page.evaluate(VIEW_CONTENT_JS)
+        print("The visible text and their links (if any): ", visible_text_with_links[:keep_len])
         # html_content = await self._view_page_html(keep_len=keep_len)
         # print("The html content: ", html_content)
 
