@@ -59,7 +59,6 @@ async def import_git_repo(url: str) -> Path:
     return ctx.repo.workdir
 
 
-@register_tool(tags=["system design", "Extracts and compresses the information about external system interfaces"])
 async def extract_external_interfaces(acknowledge: str) -> str:
     """
     Extracts and compresses information about external system interfaces from a given acknowledgement text.
@@ -84,7 +83,7 @@ async def extract_external_interfaces(acknowledge: str) -> str:
 async def write_trd(
     use_case_actors: str,
     user_requirements: str,
-    external_interfaces: str,
+    acknowledge: str,
     investment: float = 10,
     context: Optional[Context] = None,
 ) -> (str, str):
@@ -94,7 +93,7 @@ async def write_trd(
     Args:
         user_requirements (str): The new/incremental user requirements.
         use_case_actors (str): Description of the actors involved in the use case.
-        external_interfaces (str): List of available external interfaces.
+        acknowledge (str): A natural text of acknowledgement containing details about external system interfaces.
         investment (float): Budget. Automatically stops optimizing TRD when the budget is overdrawn.
         context (Context, optional): The context configuration. Default is None.
     Returns:
@@ -104,7 +103,7 @@ async def write_trd(
         >>> # Given a new user requirements, write out a new TRD.
         >>> user_requirements = "Write a 'snake game' TRD."
         >>> use_case_actors = "- Actor: game player;\\n- System: snake game; \\n- External System: game center;"
-        >>> external_interfaces = "The available external interfaces returned by `CompressExternalInterfaces.run` are ..."
+        >>> acknowledge = "## Interfaces\\n..."
         >>> investment = 10.0
         >>> trd = await write_trd(
         >>>     user_requirements=user_requirements,
@@ -116,6 +115,8 @@ async def write_trd(
         ## Technical Requirements Document\n ...
     """
     context = context or Context(cost_manager=CostManager(max_budget=investment))
+    compress_acknowledge = CompressExternalInterfaces()
+    external_interfaces = await compress_acknowledge.run(acknowledge=acknowledge)
     detect_interaction = DetectInteraction(context=context)
     w_trd = WriteTRD(context=context)
     evaluate_trd = EvaluateTRD(context=context)

@@ -18,11 +18,7 @@ from metagpt.actions.requirement_analysis.trd import (
     WriteTRD,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.tools.libs.software_development import (
-    extract_external_interfaces,
-    write_framework,
-    write_trd,
-)
+from metagpt.tools.libs.software_development import write_framework, write_trd
 from metagpt.utils.common import tool2name
 
 
@@ -62,7 +58,6 @@ class Architect(RoleZero):
         "Editor:write,read,write_content",
         "RoleZero",
         "WriteDesign",
-        extract_external_interfaces.__name__,
         write_trd.__name__,
         write_framework.__name__,
     ]

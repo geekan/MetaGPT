@@ -28,34 +28,25 @@ class TRDToolExpRetriever(ExpRetriever):
     EXAMPLE: str = """
     ## example 1
     User Requirement: Given some user requirements, write a TRD, and implement the TRD within a software framework.
-    Explanation: Given a complete user requirement, to write the TRD (Technical Requirements Document), follow these steps: 1. Call `extract_external_interfaces` to extract information about external interfaces from the acknowledgment; 2. Call `write_trd` to generate the TRD; 3. Call `write_framework` to generate the software framework code.
+    Explanation: Given a complete user requirement, to write the TRD (Technical Requirements Document), follow these steps: 1. Call `write_trd` to generate the TRD; 2. Call `write_framework` to generate the software framework code based on the TRD.
     ```json
     [
         {
-            "command_name": "extract_external_interfaces",
+            "command_name": "write_trd",
             "args": {
                 "task_id": "1",
                 "dependent_task_ids": [],
-                "instruction": "Execute `extract_external_interfaces` to extract external interfaces information from acknowledgement.",
-                "acknowledge": "## Interfaces\n balabala..."
-            }
-        },
-        {
-            "command_name": "write_trd",
-            "args": {
-                "task_id": "2",
-                "dependent_task_ids": ["1"],
                 "instruction": "Execute `write_trd` to write the TRD based on user requirements",
                 "user_requirements": "This is user requirement balabala...",
                 "use_case_actors": "These are actors involved in the use case, balabala...",
-                "external_interfaces": "<external_interfaces> returned by `extract_external_interfaces`",
+                "acknowledge": "## Interfaces\n balabala...",
             }
         },
         {
             "command_name": "write_framework",
             "args": {
-                "task_id": "3",
-                "dependent_task_ids": ["2"],
+                "task_id": "2",
+                "dependent_task_ids": ["1"],
                 "instruction": "Execute `write_framework` to write the framework based on the TRD",
                 "use_case_actors": "These are actors involved in the use case, balabala...",
                 "trd": "<trd> returned by `write_trd`",
