@@ -129,7 +129,7 @@ Develop source code based on the content of the "TRD";
   - Usage if necessary;
 - The `CLASS.md` file should include the class diagram in PlantUML format;
 - The `SEQUENCE.md` file should include the sequence diagram in PlantUML format;
-- Code comments using Google style;
+- Do not add comments to source code;
   
 Return a markdown JSON object list, each object containing:
 - a "path" key with a value specifying its path;
