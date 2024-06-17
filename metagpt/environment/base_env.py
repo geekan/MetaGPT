@@ -159,7 +159,7 @@ class Environment(ExtEnv):
         """增加一个在当前环境的角色
         Add a role in the current environment
         """
-        self.roles[role.profile] = role
+        self.roles[role.name] = role
         role.set_env(self)
         role.context = self.context
 
@@ -168,7 +168,7 @@ class Environment(ExtEnv):
         Add a batch of characters in the current environment
         """
         for role in roles:
-            self.roles[role.profile] = role
+            self.roles[role.name] = role
 
         for role in roles:  # setup system message with roles
             role.context = self.context
