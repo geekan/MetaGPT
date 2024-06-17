@@ -70,5 +70,5 @@ class EvaluateAction(Action):
             val = evaluations.get(vote, [])
             val.append(evaluation)
             if len(val) > 1:
-                return EvaluationData(is_pass=vote, evaluations="\n".join(val))
+                return EvaluationData(is_pass=vote, conclusion="\n".join(val))
             evaluations[vote] = val

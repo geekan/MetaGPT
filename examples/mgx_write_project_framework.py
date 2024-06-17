@@ -25,7 +25,7 @@ from metagpt.roles import Architect
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import AIMessage, UserMessage
 from metagpt.strategy.experience_retriever import TRDToolExpRetriever
-from metagpt.utils.common import aread, to_markdown_code_block
+from metagpt.utils.common import aread
 
 app = typer.Typer(add_completion=False)
 
@@ -34,7 +34,6 @@ class EnvBuilder(BaseModel):
     context: Context
     user_requirements: List[str]
     actors: Dict[str, str]
-    acknowledge: str
     technical_constraint: str
     output_dir: Path
 
@@ -52,14 +51,6 @@ The content of "Actor, System, External System" provides an explanation of actor
         """
         architect.rc.memory.add(AIMessage(content=msg.format(use_case_actors=use_case_actors)))
 
-        # Prepare acknowledge
-        msg = """
-The descriptions of the interfaces used in TRD can be found in the "Acknowledge" section.
-## Acknowledge
-{acknowledge}
-        """
-        architect.rc.memory.add(AIMessage(content=msg.format(acknowledge=to_markdown_code_block(val=self.acknowledge))))
-
         # Prepare technical requirements
         msg = """
 "Additional Technical Requirements" specifies the additional technical requirements that the generated software framework code must meet.
@@ -76,7 +67,6 @@ async def develop(
     context: Context,
     user_requirement_filename: str,
     actors_filename: str,
-    acknowledge_filename: str,
     constraint_filename: str,
     output_dir: str,
 ):
@@ -86,19 +76,17 @@ async def develop(
     user_requirements = json.loads(v)
     v = await aread(filename=actors_filename)
     actors = json.loads(v)
-    acknowledge = await aread(filename=acknowledge_filename)
     technical_constraint = await aread(filename=constraint_filename)
     env_builder = EnvBuilder(
         context=context,
         user_requirements=user_requirements,
         actors=actors,
-        acknowledge=acknowledge,
         technical_constraint=technical_constraint,
         output_dir=output_dir,
     )
     env = env_builder.build()
     msg = """
-根据"User Requirements"中的用户需求，写TRD
+Given the user requirement of "User Requirements", write out the software framework.
 ## User Requirements
 {user_requirements}
     """
@@ -115,7 +103,6 @@ async def develop(
 def startup(
     user_requirement_filename: str = typer.Argument(..., help="The filename of the user requirements."),
     actors_filename: str = typer.Argument(..., help="The filename of UML use case actors description."),
-    acknowledge_filename: str = typer.Argument(..., help="External interfaces declarations."),
     llm_config: str = typer.Option(default="", help="Low-cost LLM config"),
     constraint_filename: str = typer.Option(default="", help="What technical dependency constraints are."),
     output_dir: str = typer.Option(default="", help="Output directory."),
@@ -127,9 +114,7 @@ def startup(
         config = Config.default()
     ctx = Context(config=config)
 
-    asyncio.run(
-        develop(ctx, user_requirement_filename, actors_filename, acknowledge_filename, constraint_filename, output_dir)
-    )
+    asyncio.run(develop(ctx, user_requirement_filename, actors_filename, constraint_filename, output_dir))
 
 
 if __name__ == "__main__":

@@ -27,8 +27,8 @@ class TRDToolExpRetriever(ExpRetriever):
 
     EXAMPLE: str = """
     ## example 1
-    User Requirement: Given some user requirements, write a TRD, and implement the TRD within a software framework.
-    Explanation: Given a complete user requirement, to write the TRD (Technical Requirements Document), follow these steps: 1. Call `write_trd` to generate the TRD; 2. Call `write_framework` to generate the software framework code based on the TRD.
+    User Requirement: Given some user requirements, write a software framework.
+    Explanation: Given a complete user requirement, to write a software framework, you must follow all of the following steps to complete the TRD output required by the user: 1. Call 'write_trd' to generate TRD; 2. Call 'write_framework' to implement TRD into the software framework.
     ```json
     [
         {
@@ -39,7 +39,6 @@ class TRDToolExpRetriever(ExpRetriever):
                 "instruction": "Execute `write_trd` to write the TRD based on user requirements",
                 "user_requirements": "This is user requirement balabala...",
                 "use_case_actors": "These are actors involved in the use case, balabala...",
-                "acknowledge": "## Interfaces\n balabala...",
             }
         },
         {
@@ -50,7 +49,6 @@ class TRDToolExpRetriever(ExpRetriever):
                 "instruction": "Execute `write_framework` to write the framework based on the TRD",
                 "use_case_actors": "These are actors involved in the use case, balabala...",
                 "trd": "<trd> returned by `write_trd`",
-                "acknowledge": "## Interfaces\n balabala...",
                 "additional_technical_requirements": "These are additional technical requirements, balabala..."
             }
         }

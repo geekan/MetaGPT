@@ -8,6 +8,7 @@
 """
 import json
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union, List
 
@@ -22,7 +23,11 @@ from metagpt.utils.common import awrite
 
 @register_tool(tags=["software framework"])
 async def save_framework(dir_data: str, output_dir: Optional[Union[str, Path]] = None) -> List[str]:
-    output_dir = Path(output_dir) if output_dir else DEFAULT_WORKSPACE_ROOT / uuid.uuid4().hex
+    output_dir = (
+        Path(output_dir)
+        if output_dir
+        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex[0:8])
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     json_data = dir_data.removeprefix("```json").removesuffix("```")

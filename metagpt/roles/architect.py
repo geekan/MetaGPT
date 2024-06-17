@@ -7,16 +7,6 @@
 """
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
-from metagpt.actions.requirement_analysis.framework import (
-    EvaluateFramework,
-    WriteFramework,
-)
-from metagpt.actions.requirement_analysis.trd import (
-    CompressExternalInterfaces,
-    DetectInteraction,
-    EvaluateTRD,
-    WriteTRD,
-)
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.software_development import write_framework, write_trd
 from metagpt.utils.common import tool2name
@@ -43,17 +33,6 @@ class Architect(RoleZero):
 
     instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use WriteTRD tool to write a TRD if a TRD is required;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    # tools: list[str] = [
-    #     "Editor:write,read,write_content",
-    #     "RoleZero",
-    #     "WriteDesign",
-    #     "CompressExternalInterfaces",
-    #     "DetectInteraction",
-    #     "EvaluateTRD",
-    #     "WriteTRD",
-    #     "WriteFramework",
-    #     "EvaluateFramework",
-    # ]
     tools: list[str] = [
         "Editor:write,read,write_content",
         "RoleZero",
@@ -76,15 +55,9 @@ class Architect(RoleZero):
     def _update_tool_execution(self):
         write_design = WriteDesign()
         self.tool_execution_map.update(tool2name(WriteDesign, ["run"], write_design.run))
-        compress_external_interfaces = CompressExternalInterfaces()
-        self.tool_execution_map.update(tool2name(CompressExternalInterfaces, ["run"], compress_external_interfaces.run))
-        detect_interaction = DetectInteraction()
-        self.tool_execution_map.update(tool2name(DetectInteraction, ["run"], detect_interaction.run))
-        evaluate_trd = EvaluateTRD()
-        self.tool_execution_map.update(tool2name(EvaluateTRD, ["run"], evaluate_trd.run))
-        write_trd = WriteTRD()
-        self.tool_execution_map.update(tool2name(WriteTRD, ["run"], write_trd.run))
-        write_framework = WriteFramework()
-        self.tool_execution_map.update(tool2name(WriteFramework, ["run"], write_framework.run))
-        evaluate_framework = EvaluateFramework()
-        self.tool_execution_map.update(tool2name(EvaluateFramework, ["run"], evaluate_framework.run))
+        self.tool_execution_map.update(
+            {
+                write_trd.__name__: write_trd,
+                write_framework.__name__: write_framework,
+            }
+        )
