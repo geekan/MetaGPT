@@ -17,8 +17,10 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 class MGXEnv(Environment):
     """MGX Environment"""
 
-    # Before enabling TL to fully take over the routing, all software company roles need to be able to handle TL messages, which requires restructuring.
-    allow_bypass_team_leader: bool = True
+    # If True, fixed software sop bypassing TL is allowed, otherwise, TL will fully take over the routing
+    allow_bypass_team_leader: bool = False
+
+    direct_chat_roles: set[str] = set()  # record direct chat: @role_name
 
     def _publish_message(self, message: Message, peekable: bool = True) -> bool:
         return super().publish_message(message, peekable)
@@ -28,9 +30,17 @@ class MGXEnv(Environment):
         tl = self.get_role("Team Leader")
 
         if user_defined_recipient:
+            # human user's direct chat message to a certain role
             self._publish_message(message)
-            # bypass team leader, team leader only needs to know but not to react
-            tl.rc.memory.add(self.move_message_info_to_content(message))
+            self.direct_chat_roles.add(user_defined_recipient)
+            # # bypass team leader, team leader only needs to know but not to react (commented out because TL doesn't understand the message well in actual experiments)
+            # tl.rc.memory.add(self.move_message_info_to_content(message))
+
+        elif message.sent_from in self.direct_chat_roles:
+            # direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
+            # NOTE: This is a temp rule to handle direct chat messages and has the following pitfalls:
+            #       If human chats with a role directly when the role is undertaking a task assigned by TL, the rule prevents TL from processing the role's response, thus pausing global task progress.
+            self.direct_chat_roles.remove(message.sent_from)
 
         elif (
             self.allow_bypass_team_leader
@@ -106,3 +116,6 @@ class MGXEnv(Environment):
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
         converted_msg.content = f"from {sent_from} to {converted_msg.send_to}: {converted_msg.content}"
         return converted_msg
+
+    def __repr__(self):
+        return "MGXEnv()"
