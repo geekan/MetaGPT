@@ -17,20 +17,33 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 class MGXEnv(Environment):
     """MGX Environment"""
 
-    # Before enabling TL to fully take over the routing, all software company roles need to be able to handle TL messages, which requires restructuring.
-    allow_bypass_team_leader: bool = True
+    # If True, fixed software sop bypassing TL is allowed, otherwise, TL will fully take over the routing
+    allow_bypass_team_leader: bool = False
+
+    direct_chat_roles: set[str] = set()  # record direct chat: @role_name
 
     def _publish_message(self, message: Message, peekable: bool = True) -> bool:
         return super().publish_message(message, peekable)
 
     def publish_message(self, message: Message, user_defined_recipient: str = "", publicer: str = "") -> bool:
         """let the team leader take over message publishing"""
-        tl = self.get_role("Team Leader")
+        tl = self.get_role("Tim")  # TeamLeader's name is Tim
 
         if user_defined_recipient:
+            # human user's direct chat message to a certain role
+
+            if self.get_role(user_defined_recipient).is_idle:
+                # User starts a new direct chat with a certain role, expecting a direct chat response from the role; Other roles including TL should not be involved.
+                # If the role is not idle, it means the user helps the role with its current work, in this case, we handle the role's response message as usual.
+                self.direct_chat_roles.add(user_defined_recipient)
+
             self._publish_message(message)
-            # bypass team leader, team leader only needs to know but not to react
-            tl.rc.memory.add(self.move_message_info_to_content(message))
+            # # bypass team leader, team leader only needs to know but not to react (commented out because TL doesn't understand the message well in actual experiments)
+            # tl.rc.memory.add(self.move_message_info_to_content(message))
+
+        elif message.sent_from in self.direct_chat_roles:
+            # direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
+            self.direct_chat_roles.remove(message.sent_from)
 
         elif (
             self.allow_bypass_team_leader
@@ -106,3 +119,6 @@ class MGXEnv(Environment):
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
         converted_msg.content = f"from {sent_from} to {converted_msg.send_to}: {converted_msg.content}"
         return converted_msg
+
+    def __repr__(self):
+        return "MGXEnv()"
