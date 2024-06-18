@@ -74,7 +74,7 @@ class DataInterpreter(Role):
             return True
 
         prompt = REACT_THINK_PROMPT.format(user_requirement=self.user_requirement, context=context)
-        async with ThoughtReporter():
+        async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(prompt)
         rsp_dict = json.loads(CodeParser.parse_code(text=rsp))
         self.working_memory.add(Message(content=rsp_dict["thoughts"], role="assistant"))

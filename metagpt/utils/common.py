@@ -275,7 +275,7 @@ class CodeParser:
     def parse_code(cls, text: str, lang: str = "", block: Optional[str] = None) -> str:
         if block:
             text = cls.parse_block(block, text)
-        pattern = rf"```{lang}.*?\s+(.*?)```"
+        pattern = rf"```{lang}.*?\s+(.*?)\n```"
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
