@@ -8,7 +8,7 @@
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.tools.libs.software_development import write_framework, write_trd
+from metagpt.tools.libs.software_development import write_trd_and_framework
 from metagpt.utils.common import tool2name
 
 
@@ -31,14 +31,13 @@ class Architect(RoleZero):
         "libraries. Use same language as user requirement"
     )
 
-    instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use WriteTRD tool to write a TRD if a TRD is required;"""
+    instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = [
         "Editor:write,read,write_content",
         "RoleZero",
         "WriteDesign",
-        write_trd.__name__,
-        write_framework.__name__,
+        write_trd_and_framework.__name__,
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -57,7 +56,6 @@ class Architect(RoleZero):
         self.tool_execution_map.update(tool2name(WriteDesign, ["run"], write_design.run))
         self.tool_execution_map.update(
             {
-                write_trd.__name__: write_trd,
-                write_framework.__name__: write_framework,
+                write_trd_and_framework.__name__: write_trd_and_framework,
             }
         )

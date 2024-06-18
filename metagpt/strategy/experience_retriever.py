@@ -26,35 +26,54 @@ class TRDToolExpRetriever(ExpRetriever):
         return self.EXAMPLE
 
     EXAMPLE: str = """
-    ## example 1
-    User Requirement: Given some user requirements, write a software framework.
-    Explanation: Given a complete user requirement, to write a software framework, you must follow all of the following steps to complete the TRD output required by the user: 1. Call 'write_trd' to generate TRD; 2. Call 'write_framework' to implement TRD into the software framework.
-    ```json
-    [
-        {
-            "command_name": "write_trd",
-            "args": {
-                "task_id": "1",
-                "dependent_task_ids": [],
-                "instruction": "Execute `write_trd` to write the TRD based on user requirements",
-                "user_requirements": "This is user requirement balabala...",
-                "use_case_actors": "These are actors involved in the use case, balabala...",
-            }
-        },
-        {
-            "command_name": "write_framework",
-            "args": {
-                "task_id": "2",
-                "dependent_task_ids": ["1"],
-                "instruction": "Execute `write_framework` to write the framework based on the TRD",
-                "use_case_actors": "These are actors involved in the use case, balabala...",
-                "trd": "<trd> returned by `write_trd`",
-                "additional_technical_requirements": "These are additional technical requirements, balabala..."
-            }
+## example 1
+User Requirement: Given some user requirements, write a software framework.
+Explanation: Given a complete user requirement, to write a software framework, you must follow all of the following steps to complete the TRD output required by the user: 1. Call 'write_trd' to generate TRD; 2. Call 'write_framework' to implement TRD into the software framework.
+```json
+[
+    {
+        "command_name": "write_trd_and_framework",
+        "task_id": "1",
+        "dependent_task_ids": [],
+        "instruction": "Execute `write_trd` to write the TRD based on user requirements",
+        "args": {
+            "user_requirements": "This is user requirement balabala...",
+            "use_case_actors": "These are actors involved in the use case, balabala...",
+            "additional_technical_requirements": "These are additional technical requirements, balabala..."
         }
-    ]
-    ```
+    }
+]
     """
+    # EXAMPLE: str = """
+    # ## example 1
+    # User Requirement: Given some user requirements, write a software framework.
+    # Explanation: Given a complete user requirement, to write a software framework, you must follow all of the following steps to complete the TRD output required by the user: 1. Call 'write_trd' to generate TRD; 2. Call 'write_framework' to implement TRD into the software framework.
+    # ```json
+    # [
+    #     {
+    #         "command_name": "write_trd",
+    #         "task_id": "1",
+    #         "dependent_task_ids": [],
+    #         "instruction": "Execute `write_trd` to write the TRD based on user requirements",
+    #         "args": {
+    #             "user_requirements": "This is user requirement balabala...",
+    #             "use_case_actors": "These are actors involved in the use case, balabala...",
+    #         }
+    #     },
+    #     {
+    #         "command_name": "write_framework",
+    #         "task_id": "2",
+    #         "dependent_task_ids": ["1"],
+    #         "instruction": "Execute `write_framework` to write the framework based on the TRD",
+    #         "args": {
+    #             "use_case_actors": "These are actors involved in the use case, balabala...",
+    #             "trd": "<trd> returned by `write_trd`",
+    #             "additional_technical_requirements": "These are additional technical requirements, balabala..."
+    #         }
+    #     }
+    # ]
+    # ```
+    # """
 
 
 class TRDExpRetriever(ExpRetriever):

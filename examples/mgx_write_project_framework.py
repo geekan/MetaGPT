@@ -90,10 +90,7 @@ Given the user requirement of "User Requirements", write out the software framew
 ## User Requirements
 {user_requirements}
     """
-    env.publish_message(
-        UserMessage(content=msg.format(user_requirements="\n".join(user_requirements)), send_to="Bob"),
-        user_defined_recipient="Bob",
-    )
+    env.publish_message(UserMessage(content=msg.format(user_requirements="\n".join(user_requirements))))
 
     while not env.is_idle:
         await env.run()

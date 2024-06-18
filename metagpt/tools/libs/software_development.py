@@ -264,7 +264,7 @@ async def write_trd(
     user_requirements: str,
     investment: float = 10,
     context: Optional[Context] = None,
-) -> (str, str):
+) -> str:
     """
     Handles the writing of a Technical Requirements Document (TRD) based on user requirements.
 
@@ -397,3 +397,23 @@ async def write_framework(
     file_list = await save_framework(dir_data=framework, output_dir=output_dir)
     logger.info(f"Output:\n{file_list}")
     return "## Software Framework" + "".join([f"\n- {i}" for i in file_list])
+
+
+@register_tool(tags=["system design", "write trd and framework", "Write a TRD and the framework"])
+async def write_trd_and_framework(
+    use_case_actors: str,
+    user_requirements: str,
+    additional_technical_requirements: str,
+    investment: float = 15.0,
+    output_dir: Optional[str] = "",
+    context: Optional[Context] = None,
+) -> str:
+    context = context or Context(cost_manager=CostManager(max_budget=investment))
+    trd = await write_trd(use_case_actors=use_case_actors, user_requirements=user_requirements, context=context)
+    return await write_framework(
+        use_case_actors=use_case_actors,
+        trd=trd,
+        additional_technical_requirements=additional_technical_requirements,
+        output_dir=output_dir,
+        context=context,
+    )
