@@ -87,9 +87,12 @@ You are a tool for capturing interaction events.
 "Actor, System, External System" provides the possible participants of the interaction event;
 "Legacy Interaction Events" is the contents of the interaction events that you output earlier;
 Some descriptions in the "Evaluation Conclusion" relate to the content of "User Requirements", and these descriptions in the "Evaluation Conclusion" address some issues regarding the content of "Legacy Interaction Events";
-You need to capture the interaction events occurring in the description within the content of "User Requirements", including:
-1. Who is interacting with whom. An interaction event has a maximum of 2 participants. If there are multiple participants, it indicates that multiple events are combined into one event and should be further split.\;
+You need to capture the interaction events occurring in the description within the content of "User Requirements" word-for-word, including:
+1. Who is interacting with whom. An interaction event has a maximum of 2 participants. If there are multiple participants, it indicates that multiple events are combined into one event and should be further split;
 2. When an interaction event occurs, who is the initiator? What data did the initiator enter?
+3. What data does the interaction event ultimately return according to the "User Requirements"?
+
+You can check the data flow described in the "User Requirements" to see if there are any missing interaction events;
 Return a markdown JSON object list, each object of the list containing:
 - a "name" key containing the name of the interaction event;
 - a "participants" key containing a string list of the names of the two participants;

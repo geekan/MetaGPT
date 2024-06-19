@@ -92,7 +92,8 @@ You are a tool that evaluates the quality of framework code based on the TRD con
 You need to refer to the content of the "Legacy TRD" section to check for any errors or omissions in the framework code found in "Legacy Outputs";
 The content of "Actor, System, External System" provides an explanation of actors and systems that appear in UML Use Case diagram;
 Information about the external system missing from the "Legacy TRD" can be found in the "Acknowledge" section;
-Which interfaces defined in "Acknowledge" are used in the "Legacy TRD"? Do not implement the interface in "Acknowledge" section until it is used in "Legacy TRD";
+Which interfaces defined in "Acknowledge" are used in the "Legacy TRD"?
+Do not implement the interface in "Acknowledge" section until it is used in "Legacy TRD";
 Parts not mentioned in the "Legacy TRD" will be handled by other TRDs, therefore, processes not present in the "Legacy TRD" are considered ready;
 "Additional Technical Requirements" specifies the additional technical requirements that the generated software framework code must meet;
 Return a markdown JSON object with:
