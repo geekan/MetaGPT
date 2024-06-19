@@ -7,6 +7,7 @@ from metagpt.actions.write_code_review import (
     PROMPT_TEMPLATE,
     REWRITE_CODE_TEMPLATE,
 )
+from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, aread, awrite
 
@@ -21,6 +22,7 @@ class RewriteCode(Action):
         """Reviews the provided code based on the accompanying design and task documentation, return the complete and correct code.
 
         Read the code from `code_path`, and write the final code to `code_path`.
+        If there is no `design_doc` or `task_doc`, it will return and do nothing.
 
         Args:
             code_path (str): The file path of the code snippet to be reviewed. This should be a string containing the path to the source code file.
@@ -39,6 +41,9 @@ class RewriteCode(Action):
                 task_doc='{"Required packages":["No third-party dependencies required"],"..."}'
             )
         """
+        if not design_doc or not task_doc:
+            return
+
         code = await aread(code_path)
 
         context = "\n".join(
@@ -48,11 +53,12 @@ class RewriteCode(Action):
             ]
         )
 
-        for _ in range(code_review_k_times):
+        for i in range(code_review_k_times):
             context_prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=code_path)
             cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
                 format_example=FORMAT_EXAMPLE.format(filename=code_path),
             )
+            logger.info(f"The {i+1}th time to CodeReview: {code_path}.")
             result, rewrited_code = await self.write_code_review_and_rewrite(
                 context_prompt, cr_prompt, filename=code_path
             )
