@@ -53,7 +53,6 @@ class RoleZero(Role):
     experience_retriever: ExpRetriever = DummyExpRetriever()
 
     # Others
-    user_requirement: str = ""
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 20  # number of memories (messages) to use as historical context
@@ -106,8 +105,7 @@ class RoleZero(Role):
             return False
 
         if not self.planner.plan.goal:
-            self.user_requirement = self.get_memories()[-1].content
-            self.planner.plan.goal = self.user_requirement
+            self.planner.plan.goal = self.get_memories()[-1].content
 
         ### 1. Experience ###
         example = self._retrieve_experience()
