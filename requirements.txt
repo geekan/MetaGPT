@@ -66,7 +66,7 @@ anytree
 ipywidgets==8.1.1
 Pillow
 imap_tools==1.5.0  # Used by metagpt/tools/libs/email_login.py
-qianfan==0.3.2
+qianfan==0.3.16
 dashscope==1.14.1
 rank-bm25==0.2.2  # for tool recommendation
 gymnasium==0.29.1
