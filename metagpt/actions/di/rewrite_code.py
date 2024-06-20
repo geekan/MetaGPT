@@ -41,8 +41,8 @@ class RewriteCode(Action):
             # Example of how to call the run method with a code snippet and documentation
             await WriteCodeReview().run(
                 code_path="/tmp/game.js",
-                design_doc="/tmp/design_doc.json",
-                task_doc="/tmp/task_doc.json"
+                design_doc_path="/tmp/design_doc.json",
+                task_doc_path="/tmp/task_doc.json"
             )
         """
         if not design_doc_path or not design_doc_path:
