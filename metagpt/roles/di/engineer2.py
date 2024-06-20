@@ -11,7 +11,7 @@ class Engineer2(RoleZero):
     goal: str = "Take on game, app, and web development"
     instruction: str = ENGINEER2_INSTRUCTION
 
-    tools: str = ["Plan", "Editor:write,read,write_content", "RoleZero", "RewriteCode"]
+    tools: str = ["Plan", "Editor:write,read", "RoleZero", "RewriteCode"]
 
     def _update_tool_execution(self):
         rewrite_code = RewriteCode()
