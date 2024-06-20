@@ -79,6 +79,16 @@ TOKEN_COSTS = {
     "llama3-8b-llama3-8b-instruct": {"prompt": 0.0, "completion": 0.0},
 }
 
+"""
+腾讯混元大模型价格说明：https://cloud.tencent.com/document/product/1729/97731
+"""
+HUNYUAN_MODEL_TOKEN_COSTS = {
+    "hunyuan-pro": {"prompt": 0.03, "completion": 0.1},
+    "hunyuan-standard": {"prompt": 0.0045, "completion": 0.005},
+    "hunyuan-standard-256k": {"prompt": 0.015, "completion": 0.06},
+    "hunyuan-lite": {"prompt": 0.0, "completion": 0.0},
+    "hunyuan-embedding": {"prompt": 0.0007, "completion": 0.0007},
+}
 
 """
 QianFan Token Price https://cloud.baidu.com/doc/WENXINWORKSHOP/s/hlrk4akp7#tokens%E5%90%8E%E4%BB%98%E8%B4%B9
