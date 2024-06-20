@@ -45,7 +45,7 @@ class RewriteCode(Action):
                 task_doc_path="/tmp/task_doc.json"
             )
         """
-        if not design_doc_path or not design_doc_path:
+        if not design_doc_path or not task_doc_path:
             return
 
         code, design_doc, task_doc = await asyncio.gather(
