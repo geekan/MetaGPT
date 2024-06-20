@@ -127,7 +127,7 @@ class RoleZero(Role):
         )
         context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
-        async with ThoughtReporter():
+        async with ThoughtReporter(enable_llm_stream=True):
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 

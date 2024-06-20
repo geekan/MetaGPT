@@ -141,6 +141,8 @@ async def git_create_pull(
     Returns:
         PullRequest: The created pull request.
     """
+    from metagpt.utils.git_repository import GitRepository
+
     return await GitRepository.create_pull(
         base=base,
         head=head,
@@ -187,4 +189,6 @@ async def git_create_issue(
     Returns:
         Issue: The created issue.
     """
+    from metagpt.utils.git_repository import GitRepository
+
     return await GitRepository.create_issue(repo_name=repo_name, title=title, body=body, access_token=access_token)

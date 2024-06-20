@@ -26,7 +26,7 @@ class Terminal:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            executable="/bin/bash",
+            executable="/bin/bash"
         )
         self.stdout_queue = Queue()
         self.observer = TerminalReporter()
