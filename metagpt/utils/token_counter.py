@@ -137,6 +137,18 @@ DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/t
 Different model has different detail page. Attention, some model are free for a limited time.
 """
 DASHSCOPE_TOKEN_COSTS = {
+    "qwen2-72b-instruct": {"prompt": 0.000714, "completion": 0.001428},
+    "qwen2-57b-a14b-instruct": {"prompt": 0.0005, "completion": 0.001},
+    "qwen2-7b-instruct": {"prompt": 0.000143, "completion": 0.000286},
+    "qwen2-1.5b-instruct": {"prompt": 0, "completion": 0},
+    "qwen2-0.5b-instruct": {"prompt": 0, "completion": 0},
+    "qwen1.5-110b-chat": {"prompt": 0.001, "completion": 0.002},
+    "qwen1.5-72b-chat": {"prompt": 0.000714, "completion": 0.001428},
+    "qwen1.5-32b-chat": {"prompt": 0.0005, "completion": 0.001},
+    "qwen1.5-14b-chat": {"prompt": 0.000286, "completion": 0.000571},
+    "qwen1.5-7b-chat": {"prompt": 0.000143, "completion": 0.000286},
+    "qwen1.5-1.8b-chat": {"prompt": 0, "completion": 0},
+    "qwen1.5-0.5b-chat": {"prompt": 0, "completion": 0},
     "qwen-turbo": {"prompt": 0.00028, "completion": 0.00083},
     "qwen-long": {"prompt": 0.00007, "completion": 0.00028},
     "qwen-plus": {"prompt": 0.00055, "completion": 0.00166},
@@ -148,7 +160,7 @@ DASHSCOPE_TOKEN_COSTS = {
     "qwen-max-longcontext": {"prompt": 0.0055, "completion": 0.0166},
     "llama2-7b-chat-v2": {"prompt": 0.0, "completion": 0.0},
     "llama2-13b-chat-v2": {"prompt": 0.0, "completion": 0.0},
-    "qwen-72b-chat": {"prompt": 0.0, "completion": 0.0},
+    "qwen-72b-chat": {"prompt": 0.0028, "completion": 0.0028},
     "qwen-14b-chat": {"prompt": 0.0011, "completion": 0.0011},
     "qwen-7b-chat": {"prompt": 0.00084, "completion": 0.00084},
     "qwen-1.8b-chat": {"prompt": 0.0, "completion": 0.0},
@@ -228,6 +240,26 @@ TOKEN_MAX = {
     "doubao-pro-4k-240515": 4000,
     "doubao-pro-32k-240515": 32000,
     "doubao-pro-128k-240515": 128000,
+    # Qwen https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-qianwen-7b-14b-72b-api-detailes?spm=a2c4g.11186623.0.i20
+    "qwen2-57b-a14b-instruct": 32768,
+    "qwen2-72b-instruct": 131072,
+    "qwen2-7b-instruct": 32768,
+    "qwen2-1.5b-instruct": 32768,
+    "qwen2-0.5b-instruct": 32768,
+    "qwen1.5-110b-chat": 32000,
+    "qwen1.5-72b-chat": 32000,
+    "qwen1.5-32b-chat": 32000,
+    "qwen1.5-14b-chat": 8000,
+    "qwen1.5-7b-chat": 32000,
+    "qwen1.5-1.8b-chat": 32000,
+    "qwen1.5-0.5b-chat": 32000,
+    "codeqwen1.5-7b-chat": 64000,
+    "qwen-72b-chat": 32000,
+    "qwen-14b-chat": 8000,
+    "qwen-7b-chat": 32000,
+    "qwen-1.8b-longcontext-chat": 32000,
+    "qwen-1.8b-chat": 8000,
+    
 }
 
 # For Amazon Bedrock US region
