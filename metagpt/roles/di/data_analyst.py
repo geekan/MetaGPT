@@ -41,6 +41,7 @@ class DataAnalyst(DataInterpreter):
         # Command.PASS,
     ]
     commands: list[dict] = []  # issued commands to be executed
+    user_requirement: str = ""
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "DataInterpreter":
@@ -68,9 +69,6 @@ class DataAnalyst(DataInterpreter):
             self.user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = self.user_requirement
             example = KeywordExpRetriever().retrieve(self.user_requirement)
-        else:
-            self.working_memory.add_batch(self.rc.news)
-            # TODO: implement experience retrieval in multi-round setting
 
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
         # for task in plan_status["tasks"]:
@@ -82,10 +80,11 @@ class DataAnalyst(DataInterpreter):
             available_commands=prepare_command_prompt(self.available_commands),
         )
         context = self.llm.format_msg(self.working_memory.get() + [Message(content=prompt, role="user")])
+        # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(context)
         self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
-        self.rc.memory.add(Message(content=rsp, role="assistant"))
+        self.rc.working_memory.add(Message(content=rsp, role="assistant"))
 
         await run_commands(self, self.commands, self.rc.working_memory)
 
@@ -118,7 +117,11 @@ class DataAnalyst(DataInterpreter):
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # NOTE: Diff 2: Keep observing within _react, news will go into memory, allowing adapting to new info
+            # add news from self._observe, the one called in self.run, consider removing when switching from working_memory to memory
+            self.working_memory.add_batch(self.rc.news)
             await self._observe()
+            # add news from this self._observe, we need twice because _observe rewrites rc.news
+            self.working_memory.add_batch(self.rc.news)
 
             # think
             has_todo = await self._think()
