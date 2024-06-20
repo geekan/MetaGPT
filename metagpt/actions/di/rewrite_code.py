@@ -1,3 +1,5 @@
+import asyncio
+
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
@@ -18,16 +20,18 @@ class RewriteCode(Action):
 
     name: str = "RewriteCode"
 
-    async def run(self, code_path: str, design_doc: str = "", task_doc: str = "", code_review_k_times: int = 2) -> str:
+    async def run(
+        self, code_path: str, design_doc_path: str = "", task_doc_path: str = "", code_review_k_times: int = 2
+    ) -> str:
         """Reviews the provided code based on the accompanying design and task documentation, return the complete and correct code.
 
         Read the code from `code_path`, and write the final code to `code_path`.
-        If there is no `design_doc` or `task_doc`, it will return and do nothing.
+        If there is no `design_doc_path` or `task_doc_path`, it will return and do nothing.
 
         Args:
             code_path (str): The file path of the code snippet to be reviewed. This should be a string containing the path to the source code file.
-            design_doc (str): The design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the review process.
-            task_doc (str): The task document describing what the code is intended to accomplish. This should outline the functional requirements or objectives of the code.
+            design_doc_path (str): The file path of the design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the review process.
+            task_doc_path (str): The file path of the task document describing what the code is intended to accomplish. This should outline the functional requirements or objectives of the code.
             code_review_k_times (int, optional): The number of iterations for reviewing and potentially rewriting the code. Defaults to 2.
 
         Returns:
@@ -37,14 +41,16 @@ class RewriteCode(Action):
             # Example of how to call the run method with a code snippet and documentation
             await WriteCodeReview().run(
                 code_path="/tmp/game.js",
-                design_doc='{"Implementation approach":"We will implement the 2048 game..."}',
-                task_doc='{"Required packages":["No third-party dependencies required"],"..."}'
+                design_doc="/tmp/design_doc.json",
+                task_doc="/tmp/task_doc.json"
             )
         """
-        if not design_doc or not task_doc:
+        if not design_doc_path or not design_doc_path:
             return
 
-        code = await aread(code_path)
+        code, design_doc, task_doc = await asyncio.gather(
+            aread(code_path), aread(design_doc_path), aread(task_doc_path)
+        )
 
         context = "\n".join(
             [

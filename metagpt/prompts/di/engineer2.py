@@ -10,7 +10,7 @@ EXTRA_INSTRUCTION = """
 10. When provided system design, YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
 11. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 12. To modify code in a file, read the entire file, make changes, and use Editor.write instead of Editor.write_content to update the file with the complete code.
-13. Revise task is to use RewriteCode.run to correct code, must pass the content of system design and project schedule instead of just file path of them.
+13. Revise task is to use RewriteCode.run to correct code.
 14. Only When provided system design, at the end of the plan, add a Revise task for each file; for example, if there are three files, add three Revise tasks. 
 """
 
