@@ -1,18 +1,18 @@
 import asyncio
 import os
-
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from pathlib import Path
 
 from metagpt.actions.action import Action
 from metagpt.actions.write_code_review import (
     EXAMPLE_AND_INSTRUCTION,
     FORMAT_EXAMPLE,
     PROMPT_TEMPLATE,
-    REWRITE_CODE_TEMPLATE,
+    WriteCodeReview,
 )
 from metagpt.logs import logger
+from metagpt.schema import CodingContext, Document
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, aread, awrite
+from metagpt.utils.common import aread, awrite
 
 
 @register_tool(tags=["RewriteCode"], include_functions=["run"])
@@ -53,6 +53,8 @@ class RewriteCode(Action):
         code, design_doc, task_doc = await asyncio.gather(
             aread(code_path), self._try_aread(design_doc_input), self._try_aread(task_doc_input)
         )
+        code_doc = self._create_code_doc(code_path=code_path, code=code)
+        reviewer = WriteCodeReview(i_context=CodingContext(filename=code_doc.filename))
 
         context = "\n".join(
             [
@@ -67,8 +69,8 @@ class RewriteCode(Action):
                 format_example=FORMAT_EXAMPLE.format(filename=code_path),
             )
             logger.info(f"The {i+1}th time to CodeReview: {code_path}.")
-            result, rewrited_code = await self.write_code_review_and_rewrite(
-                context_prompt, cr_prompt, filename=code_path
+            result, rewrited_code = await reviewer.write_code_review_and_rewrite(
+                context_prompt, cr_prompt, doc=code_doc
             )
 
             if "LBTM" in result:
@@ -80,19 +82,6 @@ class RewriteCode(Action):
 
         return code
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def write_code_review_and_rewrite(self, context_prompt: str, cr_prompt: str, filename: str):
-        cr_rsp = await self._aask(context_prompt + cr_prompt)
-        result = CodeParser.parse_block("Code Review Result", cr_rsp)
-        if "LGTM" in result:
-            return result, None
-
-        # if LBTM, rewrite code
-        rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
-        code_rsp = await self._aask(rewrite_prompt)
-        code = CodeParser.parse_code(block="", text=code_rsp)
-        return result, code
-
     @staticmethod
     async def _try_aread(input: str) -> str:
         """Try to read from the path if it's a file; return input directly if not."""
@@ -101,3 +90,11 @@ class RewriteCode(Action):
             return await aread(input)
 
         return input
+
+    @staticmethod
+    def _create_code_doc(code_path: str, code: str) -> Document:
+        """Create a Document to represent the code doc."""
+
+        path = Path(code_path)
+
+        return Document(root_path=str(path.parent), filename=path.name, content=code)
