@@ -39,7 +39,7 @@ class RewriteCode(Action):
 
         Example Usage:
             # Example of how to call the run method with a code snippet and documentation
-            await WriteCodeReview().run(
+            await RewriteCode().run(
                 code_path="/tmp/game.js",
                 design_doc_input="/tmp/design_doc.json",
                 task_doc_input='{"Required packages":["No third-party dependencies required"], ...}'
