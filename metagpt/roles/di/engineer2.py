@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from metagpt.actions.di.rewrite_code import RewriteCode
+from metagpt.actions.write_code_review import RewriteCode
 from metagpt.prompts.di.engineer2 import ENGINEER2_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 
