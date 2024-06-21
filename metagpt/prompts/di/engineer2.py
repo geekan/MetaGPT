@@ -10,7 +10,7 @@ EXTRA_INSTRUCTION = """
 10. When provided system design, YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
 11. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 12. To modify code in a file, read the entire file, make changes, and update the file with the complete code.
-13. Only when a system design or a project schedule is provided, at the end of the plan, add a ReviewAndRewriteCode Task for each file; for example, if there are three files, add three ReviewAndRewriteCode Tasks. 
+13. If a system design or project schedule is provided, at the end of the plan, add a ReviewAndRewriteCode Task for each file; for example, if there are three files, add three ReviewAndRewriteCode Tasks. 
 """
 
 

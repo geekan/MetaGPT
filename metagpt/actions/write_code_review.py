@@ -218,17 +218,21 @@ class ReviewAndRewriteCode(Action):
     name: str = "ReviewAndRewriteCode"
 
     async def run(
-        self, code_path: str, design_doc_input: str = "", task_doc_input: str = "", code_review_k_times: int = 2
+        self,
+        code_path: str,
+        system_design_input: str = "",
+        project_schedule_input: str = "",
+        code_review_k_times: int = 2,
     ) -> str:
         """Reviews the provided code based on the accompanying design and task documentation, return the complete and correct code.
 
         Read the code from `code_path`, and write the final code to `code_path`.
-        If both `design_doc_input` and `task_doc_input are absent`, it will return and do nothing.
+        If both `system_design_input` and `project_schedule_input are absent`, it will return and do nothing.
 
         Args:
             code_path (str): The file path of the code snippet to be reviewed. This should be a string containing the path to the source code file.
-            design_doc_input (str): Content or file path of the design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the review process.
-            task_doc_input (str): Content or file path of the task document describing what the code is intended to accomplish. This should outline the functional requirements or objectives of the code.
+            system_design_input (str): Content or file path of the design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the review process.
+            project_schedule_input (str): Content or file path of the task document describing what the code is intended to accomplish. This should outline the functional requirements or objectives of the code.
             code_review_k_times (int, optional): The number of iterations for reviewing and potentially rewriting the code. Defaults to 2.
 
         Returns:
@@ -238,17 +242,19 @@ class ReviewAndRewriteCode(Action):
             # Example of how to call the run method with a code snippet and documentation
             await ReviewAndRewriteCode().run(
                 code_path="/tmp/game.js",
-                design_doc_input="/tmp/system_design.json",
-                task_doc_input="/tmp/project_task_list.json"
+                system_design_input="/tmp/system_design.json",
+                project_schedule_input="/tmp/project_task_list.json"
             )
         """
 
-        if not design_doc_input and not task_doc_input:
-            logger.info("Both design_doc_input and task_doc_input are absent, ReviewAndRewriteCode will do nothing.")
+        if not system_design_input and not project_schedule_input:
+            logger.info(
+                "Both `system_design_input` and `project_schedule_input` are absent, ReviewAndRewriteCode will do nothing."
+            )
             return
 
         code, design_doc, task_doc = await asyncio.gather(
-            aread(code_path), self._try_aread(design_doc_input), self._try_aread(task_doc_input)
+            aread(code_path), self._try_aread(system_design_input), self._try_aread(project_schedule_input)
         )
         code_doc = self._create_code_doc(code_path=code_path, code=code)
         review_action = WriteCodeReview(i_context=CodingContext(filename=code_doc.filename))
