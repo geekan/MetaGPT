@@ -211,11 +211,11 @@ class WriteCodeReview(Action):
         return self.i_context
 
 
-@register_tool(tags=["CodeReview"], include_functions=["run"])
-class RewriteCode(Action):
-    """Accordding design doc and task doc to review the code, to make the complete and correct code."""
+@register_tool(include_functions=["run"])
+class ReviewAndRewriteCode(Action):
+    """According to the design and task documents, review the code to ensure it is complete and correct."""
 
-    name: str = "RewriteCode"
+    name: str = "ReviewAndRewriteCode"
 
     async def run(
         self, code_path: str, design_doc_input: str = "", task_doc_input: str = "", code_review_k_times: int = 2
@@ -223,7 +223,7 @@ class RewriteCode(Action):
         """Reviews the provided code based on the accompanying design and task documentation, return the complete and correct code.
 
         Read the code from `code_path`, and write the final code to `code_path`.
-        If there is no `design_doc_input` or `task_doc_input`, it will return and do nothing.
+        If both `design_doc_input` and `task_doc_input are absent`, it will return and do nothing.
 
         Args:
             code_path (str): The file path of the code snippet to be reviewed. This should be a string containing the path to the source code file.
@@ -236,21 +236,22 @@ class RewriteCode(Action):
 
         Example Usage:
             # Example of how to call the run method with a code snippet and documentation
-            await RewriteCode().run(
+            await ReviewAndRewriteCode().run(
                 code_path="/tmp/game.js",
-                design_doc_input="/tmp/design_doc.json",
-                task_doc_input='{"Required packages":["No third-party dependencies required"], ...}'
+                design_doc_input="/tmp/system_design.json",
+                task_doc_input="/tmp/project_task_list.json"
             )
         """
 
-        if not design_doc_input or not task_doc_input:
+        if not design_doc_input and not task_doc_input:
+            logger.info("Both design_doc_input and task_doc_input are absent, ReviewAndRewriteCode will do nothing.")
             return
 
         code, design_doc, task_doc = await asyncio.gather(
             aread(code_path), self._try_aread(design_doc_input), self._try_aread(task_doc_input)
         )
         code_doc = self._create_code_doc(code_path=code_path, code=code)
-        reviewer = WriteCodeReview(i_context=CodingContext(filename=code_doc.filename))
+        review_action = WriteCodeReview(i_context=CodingContext(filename=code_doc.filename))
 
         context = "\n".join(
             [
@@ -265,7 +266,7 @@ class RewriteCode(Action):
                 format_example=FORMAT_EXAMPLE.format(filename=code_path),
             )
             logger.info(f"The {i+1}th time to CodeReview: {code_path}.")
-            result, rewrited_code = await reviewer.write_code_review_and_rewrite(
+            result, rewrited_code = await review_action.write_code_review_and_rewrite(
                 context_prompt, cr_prompt, doc=code_doc
             )
 
