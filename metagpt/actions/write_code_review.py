@@ -224,7 +224,7 @@ class ReviewAndRewriteCode(Action):
         project_schedule_input: str = "",
         code_review_k_times: int = 2,
     ) -> str:
-        """Reviews the provided code based on the accompanying design and task documentation, return the complete and correct code.
+        """Reviews the provided code based on the accompanying system design and project schedule documentation, return the complete and correct code.
 
         Read the code from `code_path`, and write the final code to `code_path`.
         If both `system_design_input` and `project_schedule_input are absent`, it will return and do nothing.
