@@ -50,5 +50,6 @@ class Architect(RoleZero):
             {
                 "WriteDesign.run": wd.run,
                 "WriteDesign": wd.run,  # alias
+                "run": wd.run,  # alias
             }
         )
