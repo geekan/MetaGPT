@@ -87,6 +87,23 @@ class RoleZero(Role):
             "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
         }
+        self.tool_execution_map.update(
+            {
+                f"Browser.{i}": getattr(self.browser, i)
+                for i in [
+                    "click",
+                    "close_tab",
+                    "go_back",
+                    "go_forward",
+                    "goto",
+                    "hover",
+                    "press",
+                    "scroll",
+                    "tab_focus",
+                    "type",
+                ]
+            }
+        )
         # can be updated by subclass
         self._update_tool_execution()
         return self
@@ -125,7 +142,10 @@ class RoleZero(Role):
             available_commands=tool_info,
             instruction=self.instruction.strip(),
         )
-        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
+        memory = self.rc.memory.get(self.memory_k)
+        if not self.browser.is_empty_page:
+            memory.append(UserMessage(cause_by="browser", content=await self.browser.view()))
+        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
