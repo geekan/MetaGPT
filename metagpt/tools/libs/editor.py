@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import subprocess
 
@@ -27,15 +26,16 @@ class Editor:
 
     def write(self, path: str, content: str):
         """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""
-        if len(re.findall(r"\\n", content)) >= 5:
-            # A very raw rule to correct the content: Many \\n suggests all new line characters are mistaken as \\n whereas the correct one should be \n
+        if "\n" not in content and "\\n" in content:
+            # A very raw rule to correct the content: If 'content' lacks actual newlines ('\n') but includes '\\n', consider
+            # replacing them with '\n' to potentially correct mistaken representations of newline characters.
             content = content.replace("\\n", "\n")
         directory = os.path.dirname(path)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
-        self.resource.report(path, "path")
+        # self.resource.report(path, "path")
 
     def read(self, path: str) -> FileBlock:
         """Read the whole content of a file."""

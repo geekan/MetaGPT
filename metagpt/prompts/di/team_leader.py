@@ -31,5 +31,6 @@ FINISH_CURRENT_TASK_CMD = """
         "command_name": "Plan.finish_current_task",
         "args": {{}}
     }
+]
 ```
 """
