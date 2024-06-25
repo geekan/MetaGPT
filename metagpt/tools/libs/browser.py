@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from typing import Literal, Optional
 
-from playwright.async_api import Browser as _Browser
+from playwright.async_api import Browser as Browser_
 from playwright.async_api import (
     BrowserContext,
     Frame,
@@ -67,7 +67,7 @@ class Browser:
 
     def __init__(self):
         self.playwright: Optional[Playwright] = None
-        self.browser: Optional[_Browser] = None
+        self.browser_instance: Optional[Browser_] = None
         self.browser_ctx: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.accessibility_tree: list = []
@@ -80,7 +80,7 @@ class Browser:
         """Starts Playwright and launches a browser"""
         if self.playwright is None:
             self.playwright = playwright = await async_playwright().start()
-            browser = self.browser = await playwright.chromium.launch(headless=self.headless, proxy=self.proxy)
+            browser = self.browser_instance = await playwright.chromium.launch(headless=self.headless, proxy=self.proxy)
             browser_ctx = self.browser_ctx = await browser.new_context()
             self.page = await browser_ctx.new_page()
 
@@ -88,7 +88,7 @@ class Browser:
         if self.playwright:
             playwright = self.playwright
             self.playwright = None
-            self.browser = None
+            self.browser_instance = None
             self.browser_ctx = None
             await playwright.stop()
 
@@ -196,7 +196,7 @@ class Browser:
 
     async def view(self):
         observation = parse_accessibility_tree(self.accessibility_tree)
-        return f"Current _Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0]}\n"
+        return f"Current Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0]}\n"
 
     async def __aenter__(self):
         await self.start()

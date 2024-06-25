@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import re
 import traceback
 from typing import Callable, Literal, Tuple
 
@@ -144,7 +145,11 @@ class RoleZero(Role):
         )
         memory = self.rc.memory.get(self.memory_k)
         if not self.browser.is_empty_page:
-            memory.append(UserMessage(cause_by="browser", content=await self.browser.view()))
+            pattern = re.compile(r"Command Browser\.(\w+) executed")
+            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
+                if pattern.match(msg.content):
+                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
+                    break
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
