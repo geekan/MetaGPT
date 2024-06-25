@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import json
-import uuid
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -105,45 +104,27 @@ class WritePRD(Action):
             **kwargs: Additional keyword arguments.
 
         Returns:
-            str: The resulting message after generating the Product Requirement Document.
+            str: The file path of the generated Product Requirement Document.
 
         Example:
-            # Write a new PRD(Product Requirement Document)
-            >>> user_requirement = "YOUR REQUIREMENTS"
-            >>> extra_info = "YOUR EXTRA INFO"
+            # Write a new PRD (Product Requirement Document)
+            >>> user_requirement = "Write PRD for a snake game"
+            >>> output_pathname = "snake_game/docs/prd.json"
+            >>> extra_info = "YOUR EXTRA INFO, if any"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info)
+            >>> result = await write_prd.run(user_requirement=user_requirement, output_pathname=output_pathname, extra_info=extra_info)
             >>> print(result)
-            PRD filename: "/path/to/prd/directory/213434ad.json"
+            PRD filename: "/absolute/path/to/snake_game/docs/prd.json"
 
-            # Modify a exists PRD(Product Requirement Document)
-            >>> user_requirement = "YOUR REQUIREMENTS"
-            >>> extra_info = "YOUR EXTRA INFO"
-            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
+            # Rewrite an existing PRD (Product Requirement Document) and save to a new path.
+            >>> user_requirement = "Write PRD for a snake game, include new features such as a web UI"
+            >>> legacy_prd_filename = "/absolute/path/to/snake_game/docs/prd.json"
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/prd_new.json"
+            >>> extra_info = "YOUR EXTRA INFO, if any"
             >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename)
+            >>> result = await write_prd.run(user_requirement=user_requirement, legacy_prd_filename=legacy_prd_filename, extra_info=extra_info)
             >>> print(result)
-            PRD filename: "/path/to/prd/directory/213434ad.json"
-
-            # Write and save a new PRD(Product Requirement Document) to the path name.
-            >>> user_requirement = "YOUR REQUIREMENTS"
-            >>> extra_info = "YOUR EXTRA INFO"
-            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
-            >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
-            >>> print(result)
-            PRD filename: "/path/to/prd/directory/213434ad.json"
-
-            # Modify a exists PRD(Product Requirement Document) and save to the path name.
-            >>> user_requirement = "YOUR REQUIREMENTS"
-            >>> extra_info = "YOUR EXTRA INFO"
-            >>> legacy_prd_filename = "/path/to/exists/prd_filename"
-            >>> output_pathname = "/path/to/prd/directory/213434ad.json"
-            >>> write_prd = WritePRD()
-            >>> result = await write_prd.run(user_requirement=user_requirement, extra_info=extra_info, legacy_prd_filename=legacy_prd_filename, output_pathname=output_pathname)
-            >>> print(result)
-            PRD filename: "/path/to/prd/directory/213434ad.json"
-
+            PRD filename: "/absolute/path/to/snake_game/docs/prd_new.json"
         """
         if not with_messages:
             return await self._execute_api(
@@ -329,9 +310,10 @@ class WritePRD(Action):
             new_prd = await self._merge(req=req, related_doc=old_prd)
 
         if not output_pathname:
-            output_path = DEFAULT_WORKSPACE_ROOT
-            output_path.mkdir(parents=True, exist_ok=True)
-            output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+            output_pathname = DEFAULT_WORKSPACE_ROOT / "docs" / "prd.json"
+            output_pathname.mkdir(parents=True, exist_ok=True)
+        elif not Path(output_pathname).is_absolute():
+            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
         output_pathname = Path(output_pathname)
         await awrite(filename=output_pathname, data=new_prd.content)
         competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"

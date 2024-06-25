@@ -41,6 +41,7 @@ class DataAnalyst(DataInterpreter):
         # Command.PASS,
     ]
     commands: list[dict] = []  # issued commands to be executed
+    user_requirement: str = ""
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "DataInterpreter":
@@ -54,7 +55,6 @@ class DataAnalyst(DataInterpreter):
         if self.tools and not self.tool_recommender:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools)
         self.set_actions([WriteAnalysisCode])
-        self._set_state(0)
 
         # HACK: Init Planner, control it through dynamic thinking; Consider formalizing as a react mode
         self.planner = Planner(goal="", working_memory=self.rc.working_memory, auto_run=True)
@@ -69,9 +69,6 @@ class DataAnalyst(DataInterpreter):
             self.user_requirement = self.get_memories()[-1].content
             self.planner.plan.goal = self.user_requirement
             example = KeywordExpRetriever().retrieve(self.user_requirement)
-        else:
-            self.working_memory.add_batch(self.rc.news)
-            # TODO: implement experience retrieval in multi-round setting
 
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
         # for task in plan_status["tasks"]:
@@ -83,10 +80,11 @@ class DataAnalyst(DataInterpreter):
             available_commands=prepare_command_prompt(self.available_commands),
         )
         context = self.llm.format_msg(self.working_memory.get() + [Message(content=prompt, role="user")])
-        async with ThoughtReporter():
+        # print(*context, sep="\n" + "*" * 5 + "\n")
+        async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(context)
-        self.commands = json.loads(CodeParser.parse_code(block=None, text=rsp))
-        self.rc.memory.add(Message(content=rsp, role="assistant"))
+        self.commands = json.loads(CodeParser.parse_code(block=None, lang='json', text=rsp))
+        self.rc.working_memory.add(Message(content=rsp, role="assistant"))
 
         await run_commands(self, self.commands, self.rc.working_memory)
 
@@ -112,11 +110,19 @@ class DataAnalyst(DataInterpreter):
         return Message(content="Task completed", role="assistant", sent_from=self._setting, cause_by=WriteAnalysisCode)
 
     async def _react(self) -> Message:
+        # NOTE: Diff 1: Each time landing here means observing news, set todo to allow news processing in _think
+        self._set_state(0)
+
         actions_taken = 0
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
-            # NOTE: difference here, keep observing within react
+            # NOTE: Diff 2: Keep observing within _react, news will go into memory, allowing adapting to new info
+            # add news from self._observe, the one called in self.run, consider removing when switching from working_memory to memory
+            self.working_memory.add_batch(self.rc.news)
             await self._observe()
+            # add news from this self._observe, we need twice because _observe rewrites rc.news
+            self.working_memory.add_batch(self.rc.news)
+
             # think
             has_todo = await self._think()
             if not has_todo:

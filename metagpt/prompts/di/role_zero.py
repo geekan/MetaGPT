@@ -20,7 +20,7 @@ class Task(BaseModel):
 
 # Available Commands
 {available_commands}
-Special Command: Use {{"command_name": "pass"}} to do nothing and {{"command_name": "end"}} to indicate completion of all requirements and the end of actions.
+Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
 
 # Current Plan
 {plan_status}

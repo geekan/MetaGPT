@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import traceback
-from typing import Literal, Tuple
+from typing import Callable, Literal, Tuple
 
 from pydantic import model_validator
 
@@ -42,7 +42,7 @@ class RoleZero(Role):
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
-    tool_execution_map: dict[str, callable] = {}
+    tool_execution_map: dict[str, Callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
@@ -53,7 +53,6 @@ class RoleZero(Role):
     experience_retriever: ExpRetriever = DummyExpRetriever()
 
     # Others
-    user_requirement: str = ""
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 20  # number of memories (messages) to use as historical context
@@ -106,8 +105,7 @@ class RoleZero(Role):
             return False
 
         if not self.planner.plan.goal:
-            self.user_requirement = self.get_memories()[-1].content
-            self.planner.plan.goal = self.user_requirement
+            self.planner.plan.goal = self.get_memories()[-1].content
 
         ### 1. Experience ###
         example = self._retrieve_experience()
@@ -129,7 +127,7 @@ class RoleZero(Role):
         )
         context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
-        async with ThoughtReporter():
+        async with ThoughtReporter(enable_llm_stream=True):
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
@@ -175,7 +173,7 @@ class RoleZero(Role):
             actions_taken += 1
         return rsp  # return output from the last action
 
-    async def _run_commands(self, commands) -> list:
+    async def _run_commands(self, commands) -> str:
         outputs = []
         for cmd in commands:
             # handle special command first
@@ -195,7 +193,7 @@ class RoleZero(Role):
                     outputs.append(output)
                 except Exception as e:
                     tb = traceback.format_exc()
-                    logger.exception(e + tb)
+                    logger.exception(str(e) + tb)
                     outputs.append(output + f": {tb}")
                     break  # Stop executing if any command fails
             else:
@@ -247,7 +245,7 @@ class RoleZero(Role):
 
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
-        return await self.rc.env.get_human_input(question, sent_from=self)
+        return await self.rc.env.ask_human(question, sent_from=self)
 
     async def reply_to_human(self, content: str) -> str:
         """Reply to human user with the content provided. Use this when you have a clear answer or solution to the user's question."""

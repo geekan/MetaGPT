@@ -11,7 +11,6 @@
 @Modified By: mashenquan, 2024/5/31. Implement Chapter 3 of RFC 236.
 """
 import json
-import uuid
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -87,84 +86,48 @@ class WriteDesign(Action):
             output_pathname (str, optional): The output path name of file that the system design should be saved to.
 
         Returns:
-            AIMessage: An AIMessage object containing the system design.
+            str: The file path of the generated system design.
 
         Example:
-            # Write a new system design.
-            >>> user_requirement = "Your user requirements"
-            >>> extra_info = "Your extra information"
-            >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info)
-            >>> print(result)
-            System Design filename: "/path/to/design/filename"
-
-            # Modify an exists system design.
-            >>> user_requirement = "Your user requirements"
-            >>> extra_info = "Your extra information"
-            >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename)
-            >>> print(result)
-            System Design filename: "/path/to/design/filename"
-
-            # Write a new system design with the given PRD(Product Requirement Document).
-            >>> user_requirement = "Your user requirements"
-            >>> extra_info = "Your extra information"
-            >>> prd_filename = "/path/to/prd/filename"
-            >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename)
-            >>> print(result)
-            System Design filename: "/path/to/design/filename"
-
-            # Modify an exists system design with the given PRD(Product Requirement Document).
-            >>> user_requirement = "Your user requirements"
-            >>> extra_info = "Your extra information"
-            >>> prd_filename = "/path/to/prd/filename"
-            >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, prd_filename=prd_filename)
-            >>> print(result)
-            TSystem Design filename: "/path/to/design/filename"
-
             # Write a new system design and save to the path name.
-            >>> user_requirement = "Your user requirements"
+            >>> user_requirement = "Write system design for a snake game"
             >>> extra_info = "Your extra information"
-            >>> output_pathname = "/path/to/design/filename"
+            >>> output_pathname = "snake_game/docs/system_design.json"
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, output_pathname=output_pathname)
             >>> print(result)
-            System Design filename: "/path/to/design/filename"
+            System Design filename: "/absolute/path/to/snake_game/docs/system_design.json"
 
-            # Modify an exists system design and save to the path name.
-            >>> user_requirement = "Your user requirements"
+            # Rewrite an existing system design and save to the path name.
+            >>> user_requirement = "Write system design for a snake game, include new features such as a web UI"
             >>> extra_info = "Your extra information"
-            >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> output_pathname = "/path/to/design/filename"
+            >>> legacy_design_filename = "/absolute/path/to/snake_game/docs/system_design.json"
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/system_design_new.json"
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, output_pathname=output_pathname)
             >>> print(result)
-            System Design filename: "/path/to/design/filename"
+            System Design filename: "/absolute/path/to/snake_game/docs/system_design_new.json"
 
             # Write a new system design with the given PRD(Product Requirement Document) and save to the path name.
-            >>> user_requirement = "Your user requirements"
+            >>> user_requirement = "Write system design for a snake game based on the PRD at /absolute/path/to/snake_game/docs/prd.json"
             >>> extra_info = "Your extra information"
-            >>> prd_filename = "/path/to/prd/filename"
-            >>> output_pathname = "/path/to/design/filename"
+            >>> prd_filename = "/absolute/path/to/snake_game/docs/prd.json"
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/sytem_design.json"
             >>> action = WriteDesign()
             >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename, output_pathname=output_pathname)
             >>> print(result)
-            System Design filename: "/path/to/design/filename"
+            System Design filename: "/absolute/path/to/snake_game/docs/sytem_design.json"
 
-            # Modify an exists system design with the given PRD(Product Requirement Document) and save to the path name.
-            >>> user_requirement = "Your user requirements"
+            # Rewrite an existing system design with the given PRD(Product Requirement Document) and save to the path name.
+            >>> user_requirement = "Write system design for a snake game, include new features such as a web UI"
             >>> extra_info = "Your extra information"
-            >>> prd_filename = "/path/to/prd/filename"
-            >>> legacy_design_filename = "/path/to/exists/design/filename"
-            >>> output_pathname = "/path/to/design/filename"
+            >>> prd_filename = "/absolute/path/to/snake_game/docs/prd.json"
+            >>> legacy_design_filename = "/absolute/path/to/snake_game/docs/system_design.json"
+            >>> output_pathname = "/absolute/path/to/snake_game/docs/system_design_new.json"
             >>> action = WriteDesign()
-            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, legacy_design_filename=legacy_design_filename, prd_filename=prd_filename, output_pathname=output_pathname)
+            >>> result = await action.run(user_requirement=user_requirement, extra_info=extra_info, prd_filename=prd_filename, legacy_design_filename=legacy_design_filename, output_pathname=output_pathname)
             >>> print(result)
-            System Design filename: "/path/to/design/filename"
+            System Design filename: "/absolute/path/to/snake_game/docs/system_design_new.json"
         """
         if not with_messages:
             return await self._execute_api(
@@ -301,9 +264,10 @@ class WriteDesign(Action):
             )
 
         if not output_pathname:
-            output_path = DEFAULT_WORKSPACE_ROOT
-            output_path.mkdir(parents=True, exist_ok=True)
-            output_pathname = Path(output_path) / f"{uuid.uuid4().hex}.json"
+            output_pathname = Path(output_pathname) / "docs" / "sytem_design.json"
+            output_pathname.mkdir(parents=True, exist_ok=True)
+        elif not Path(output_pathname).is_absolute():
+            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
         output_pathname = Path(output_pathname)
         await awrite(filename=output_pathname, data=design.content)
         output_filename = output_pathname.parent / f"{output_pathname.stem}-class-diagram"

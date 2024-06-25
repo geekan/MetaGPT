@@ -67,18 +67,18 @@ Create a 2048 game, follow the design doc and task doc. Write your code under /U
 After writing all codes, write a code review for the codes, make improvement or adjustment based on the review.
 Notice: You MUST implement the full code, don't leave comment without implementation!
 Design doc:
-{TASK_DOC_2048}
-Task doc:
 {DESIGN_DOC_2048}
+Task doc:
+{TASK_DOC_2048}
 """
 GAME_REQ_SNAKE = f"""
 Create a snake game, follow the design doc and task doc. Write your code under /Users/gary/Files/temp/workspace/snake_game/src.
 After writing all codes, write a code review for the codes, make improvement or adjustment based on the review.
 Notice: You MUST implement the full code, don't leave comment without implementation!
 Design doc:
-{TASK_DOC_SNAKE}
-Task doc:
 {DESIGN_DOC_SNAKE}
+Task doc:
+{TASK_DOC_SNAKE}
 """
 GAME_REQ_2048_NO_DOC = """
 Create a 2048 game with pygame. Write your code under /Users/gary/Files/temp/workspace/2048_game/src.
