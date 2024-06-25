@@ -24,6 +24,7 @@ from metagpt.utils.a11y_tree import (
     scroll_page,
     type_text,
 )
+from metagpt.utils.report import BrowserReporter
 
 
 @register_tool(
@@ -73,6 +74,7 @@ class Browser:
         self.headless: bool = True
         self.proxy = None
         self.is_empty_page = True
+        self.reporter = BrowserReporter()
 
     async def start(self) -> None:
         """Starts Playwright and launches a browser"""
@@ -120,9 +122,11 @@ class Browser:
 
     async def goto(self, url: str, timeout: float = 30000):
         """Navigate to a specific URL."""
-        await self.page.goto(url, timeout=timeout)
-        self.is_empty_page = False
-        return await self._wait_page()
+        async with self.reporter as reporter:
+            await reporter.async_report(url, "url")
+            await self.page.goto(url, timeout=timeout)
+            self.is_empty_page = False
+            return await self._wait_page()
 
     async def go_back(self):
         """Navigate to the previously viewed page."""
@@ -154,6 +158,7 @@ class Browser:
         page = self.page
         await self._wait_until_page_idle(page)
         self.accessibility_tree = await get_accessibility_tree(page)
+        await self.reporter.async_report(page, "page")
         return f"SUCCESS, URL: {page.url}"
 
     def _register_page_event(self, page: Page):
