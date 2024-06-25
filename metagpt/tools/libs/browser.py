@@ -28,7 +28,7 @@ from metagpt.utils.report import BrowserReporter
 
 
 @register_tool(
-    tags=["web", "browse", "scrape"],
+    tags=["web", "browse"],
     include_functions=[
         "click",
         "close_tab",
@@ -197,3 +197,10 @@ class Browser:
     async def view(self):
         observation = parse_accessibility_tree(self.accessibility_tree)
         return f"Current _Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0]}\n"
+
+    async def __aenter__(self):
+        await self.start()
+        return self
+
+    async def __aexit__(self, *args, **kwargs):
+        await self.stop()
