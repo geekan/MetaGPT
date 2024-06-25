@@ -3,6 +3,7 @@ from __future__ import annotations
 from metagpt.actions.write_code_review import ReviewAndRewriteCode
 from metagpt.prompts.di.engineer2 import ENGINEER2_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
+from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 
 
 class Engineer2(RoleZero):
@@ -22,3 +23,6 @@ class Engineer2(RoleZero):
                 "ReviewAndRewriteCode": review.run,
             }
         )
+
+    def _retrieve_experience(self) -> str:
+        return ENGINEER_EXAMPLE
