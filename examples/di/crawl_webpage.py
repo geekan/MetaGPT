@@ -6,9 +6,7 @@
 """
 
 from metagpt.roles.di.data_interpreter import DataInterpreter
-
-__import__("metagpt.tools.libs.browser", fromlist=["Browser"])  # To skip pre-commit check
-
+from metagpt.tools.libs.web_scraping import view_page_element_to_scrape
 
 PAPER_LIST_REQ = """"
 Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
@@ -34,7 +32,7 @@ NEWS_36KR_REQ = """从36kr创投平台https://pitchhub.36kr.com/financing-flash 
 
 
 async def main():
-    di = DataInterpreter(tools=["Browser"])
+    di = DataInterpreter(tools=[view_page_element_to_scrape.__name__])
 
     await di.run(ECOMMERCE_REQ)
 
