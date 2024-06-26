@@ -161,6 +161,7 @@ async def write_framework(
     output_dir: Optional[str] = "",
     investment: float = 20.0,
     context: Optional[Context] = None,
+    max_loop: int = 20,
 ) -> str:
     """
     Run the action to generate a software framework based on the provided TRD and related information.
@@ -172,6 +173,7 @@ async def write_framework(
         output_dir (str, optional): Path to save the software framework files. Default is en empty string.
         investment (float): Budget. Automatically stops optimizing TRD when the budget is overdrawn.
         context (Context, optional): The context configuration. Default is None.
+        max_loop(int, optional): Acts as a safety exit valve when cost statistics fail. Default is 20.
 
     Returns:
         str: The generated software framework as a string of pathnames.
@@ -197,6 +199,7 @@ async def write_framework(
     framework = ""
     evaluation_conclusion = ""
     acknowledgement = await mock_asearch_acknowledgement(use_case_actors)  # Replaced by acknowledgement_repo later.
+    loop_count = 0
     while not is_pass and (context.cost_manager.total_cost < context.cost_manager.max_budget):
         try:
             framework = await write_framework.run(
@@ -219,6 +222,10 @@ async def write_framework(
         )
         is_pass = evaluation.is_pass
         evaluation_conclusion = evaluation.conclusion
+        loop_count += 1
+        logger.info(f"Loop {loop_count}")
+        if context.cost_manager.total_cost < 1 and loop_count > max_loop:
+            break
 
     file_list = await save_framework(dir_data=framework, trd=trd, output_dir=output_dir)
     logger.info(f"Output:\n{file_list}")
@@ -236,6 +243,7 @@ async def write_trd_and_framework(
 ) -> str:
     context = context or Context(cost_manager=CostManager(max_budget=investment))
     trd = await write_trd(use_case_actors=use_case_actors, user_requirements=user_requirements, context=context)
+
     return await write_framework(
         use_case_actors=use_case_actors,
         trd=trd,
