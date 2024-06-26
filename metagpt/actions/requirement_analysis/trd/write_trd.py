@@ -206,7 +206,8 @@ The content of "Available External Interfaces" provides the candidate steps, alo
   3.1. In the description, use the actor and system names defined in the "Actor, System, External System" section to describe the interactors;
   3.2. The content should include the original text of the requirements from "User Requirements";
   3.3. In the TRD, each step can involve a maximum of two participants. If there are more than two participants, the step needs to be further split;
-  3.4. In the TRD, each step must include detailed descriptions, inputs, outputs, participants, initiator, and the rationale for the step's existence. The rationale should reference the original text to justify it, such as specifying which interface requires the output of this step as parameters or where in the requirements this step is mandated, etc.
+  3.4. In the TRD, each step must include detailed descriptions, inputs, outputs, participants, initiator, and the rationale for the step's existence. The rationale should reference the original text to justify it, such as specifying which interface requires the output of this step as parameters or where in the requirements this step is mandated, etc.;
+  3.5. In the TRD, if you need to call interfaces of external systems, you must explicitly specify the interface IDs of the external systems you want to call;
 """
 
 INCREMENTAL_PROMPT = """

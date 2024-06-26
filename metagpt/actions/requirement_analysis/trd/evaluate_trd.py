@@ -102,7 +102,9 @@ In order to integrate the full upstream and downstream data flow, the "TRD Desig
 Which interactions from "Interaction Events" correspond to which steps in "TRD Design"? Please provide reasons.
 Which aspects of "TRD Design" and "Interaction Events" do not align with the descriptions in "User Requirements"? Please provide detailed descriptions and reasons.
 If the descriptions in "User Requirements" are divided into multiple steps in "TRD Design" and "Interaction Events," it can be considered compliant with the descriptions in "User Requirements" as long as it does not conflict with them;
-There is a possibility of missing details in the descriptions of "User Requirements". Any additional steps in "TRD Design" and "Interaction Events" are considered compliant with "User Requirements" as long as they do not conflict with the descriptions provided in "User Requirements".
+There is a possibility of missing details in the descriptions of "User Requirements". Any additional steps in "TRD Design" and "Interaction Events" are considered compliant with "User Requirements" as long as they do not conflict with the descriptions provided in "User Requirements";
+If there are interaction events with external systems in "TRD Design", you must explicitly specify the ID of the external interface to use for the interaction events;
+Does the sequence of steps in "Interaction Events" cause performance or cost issues? Please provide detailed descriptions and reasons;
 Return a markdown JSON object with:
 - a "is_pass" key containing a true boolean value if there is not any issue in the "TRD Design";
 - an "issues" key containing a string list of natural text about the issues found in the "TRD Design" if any, each issue found must provide a detailed description and include reasons;

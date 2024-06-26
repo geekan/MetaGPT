@@ -159,7 +159,7 @@ async def write_framework(
     trd: str,
     additional_technical_requirements: str,
     output_dir: Optional[str] = "",
-    investment: float = 15.0,
+    investment: float = 20.0,
     context: Optional[Context] = None,
 ) -> str:
     """
@@ -220,7 +220,7 @@ async def write_framework(
         is_pass = evaluation.is_pass
         evaluation_conclusion = evaluation.conclusion
 
-    file_list = await save_framework(dir_data=framework, output_dir=output_dir)
+    file_list = await save_framework(dir_data=framework, trd=trd, output_dir=output_dir)
     logger.info(f"Output:\n{file_list}")
     return "## Software Framework" + "".join([f"\n- {i}" for i in file_list])
 
@@ -230,7 +230,7 @@ async def write_trd_and_framework(
     use_case_actors: str,
     user_requirements: str,
     additional_technical_requirements: str,
-    investment: float = 15.0,
+    investment: float = 17.0,
     output_dir: Optional[str] = "",
     context: Optional[Context] = None,
 ) -> str:

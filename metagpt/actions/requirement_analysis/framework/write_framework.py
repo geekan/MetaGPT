@@ -66,6 +66,7 @@ class WriteFramework(Action):
             {"path":"balabala", "filename":"...", ...
 
         """
+        acknowledge = await self._extract_external_interfaces(trd=trd, knowledge=acknowledge)
         prompt = PROMPT.format(
             use_case_actors=use_case_actors,
             trd=to_markdown_code_block(val=trd),
@@ -92,6 +93,22 @@ class WriteFramework(Action):
         json_data = rsp.removeprefix("```json").removesuffix("```")
         json.loads(json_data)  # validate
         return json_data
+
+    @retry(
+        wait=wait_random_exponential(min=1, max=20),
+        stop=stop_after_attempt(6),
+        after=general_after_log(logger),
+    )
+    async def _extract_external_interfaces(self, trd: str, knowledge: str) -> str:
+        prompt = f"## TRD\n{to_markdown_code_block(val=trd)}\n\n## Knowledge\n{to_markdown_code_block(val=knowledge)}\n"
+        rsp = await self.llm.aask(
+            prompt,
+            system_msgs=[
+                "You are a tool that removes impurities from articles; you can remove irrelevant content from articles.",
+                'Identify which interfaces are used in "TRD"? Remove the relevant content of the interfaces NOT used in "TRD" from "Knowledge" and return the simplified content of "Knowledge".',
+            ],
+        )
+        return rsp
 
 
 PROMPT = """

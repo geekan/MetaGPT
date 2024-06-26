@@ -93,9 +93,10 @@ You need to refer to the content of the "Legacy TRD" section to check for any er
 The content of "Actor, System, External System" provides an explanation of actors and systems that appear in UML Use Case diagram;
 Information about the external system missing from the "Legacy TRD" can be found in the "Acknowledge" section;
 Which interfaces defined in "Acknowledge" are used in the "Legacy TRD"?
-Do not implement the interface in "Acknowledge" section until it is used in "Legacy TRD";
+Do not implement the interface in "Acknowledge" section until it is used in "Legacy TRD", you can check whether they are the same interface by looking at its ID or url;
 Parts not mentioned in the "Legacy TRD" will be handled by other TRDs, therefore, processes not present in the "Legacy TRD" are considered ready;
 "Additional Technical Requirements" specifies the additional technical requirements that the generated software framework code must meet;
+Do the parameters of the interface of the external system used in the code comply with it's specifications in 'Acknowledge'?
 Return a markdown JSON object with:
 - a "is_pass" key containing a true boolean value if there is not any issue in the "Legacy Outputs";
 - an "issues" key containing a string list of natural text about the issues found in the "Legacy Outputs" if any, each issue found must provide a detailed description and include reasons;

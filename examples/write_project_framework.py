@@ -163,7 +163,7 @@ async def develop(
     )
 
     # Save
-    file_list = await save_framework(dir_data=framework, output_dir=output_dir)
+    file_list = await save_framework(dir_data=framework, trd=trd, output_dir=output_dir)
     logger.info(f"Output:\n{file_list}")
 
 
