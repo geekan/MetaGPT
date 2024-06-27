@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 class Point(BaseModel):
     id: int = Field(default=0, description="ID of the point.")
     text: str = Field(default="", description="Content of the point.")
-    language: Literal["python", "java"] = Field(
-        default="python", description="The programming language that the point corresponds to."
+    language: Literal["Python", "Java"] = Field(
+        default="Python", description="The programming language that the point corresponds to."
     )
     file_path: str = Field(default="", description="The file that the points come from.")
     start_line: int = Field(default=0, description="The starting line number that the point refers to.")

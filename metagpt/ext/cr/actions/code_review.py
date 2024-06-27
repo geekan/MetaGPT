@@ -149,9 +149,9 @@ class CodeReview(Action):
         points_str = "\n".join([f"{p.id} {p.text}" for p in points])
         for patched_file in patch:
             if patched_file.path.endswith(".py"):
-                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "python"])
+                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "Python"])
             elif patched_file.path.endswith(".java"):
-                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "java"])
+                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "Java"])
             else:
                 continue
             if len(str(patched_file).splitlines()) >= 50:
