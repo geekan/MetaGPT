@@ -11,7 +11,7 @@ from pydantic import model_validator
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
+from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION, JSON_REPAIR_PROMPT
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
@@ -22,6 +22,7 @@ from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
 from metagpt.utils.report import ThoughtReporter
+from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -163,13 +164,22 @@ class RoleZero(Role):
             return await super()._act()
 
         try:
-            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=self.command_rsp))
+            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
+        except json.JSONDecodeError as e:
+            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
+            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)
             error_msg = UserMessage(content=str(e))
             self.rc.memory.add(error_msg)
             return error_msg
+
+        # 为了对LLM不按格式生成进行容错
+        if isinstance(commands, dict):
+            commands = commands["commands"] if "commands" in commands else [commands]
+
         outputs = await self._run_commands(commands)
         self.rc.memory.add(UserMessage(content=outputs))
         return AIMessage(
