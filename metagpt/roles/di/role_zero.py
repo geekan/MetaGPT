@@ -10,7 +10,7 @@ from pydantic import model_validator
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
+from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION, JSON_REPAIR_PROMPT
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
@@ -21,6 +21,7 @@ from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
 from metagpt.utils.report import ThoughtReporter
+from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -138,6 +139,9 @@ class RoleZero(Role):
             return await super()._act()
 
         try:
+            commands = json.loads(repair_llm_raw_output(output=CodeParser.parse_code(block=None, lang="json", text=self.command_rsp), req_keys=[None], repair_type=RepairType.JSON))
+        except json.JSONDecodeError as e:
+            self.command_rsp = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=self.command_rsp))
         except Exception as e:
             tb = traceback.format_exc()
@@ -145,6 +149,12 @@ class RoleZero(Role):
             error_msg = UserMessage(content=str(e))
             self.rc.memory.add(error_msg)
             return error_msg
+
+        if isinstance(commands, dict):
+            if "commands" in commands:
+                commands = commands["commands"]
+            else:
+                commands = [commands]
         outputs = await self._run_commands(commands)
         self.rc.memory.add(UserMessage(content=outputs))
         return AIMessage(

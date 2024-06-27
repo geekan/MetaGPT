@@ -50,3 +50,15 @@ Some text indicating your thoughts, such as how you should update the plan statu
 ]
 ```
 """
+
+
+JSON_REPAIR_PROMPT = """
+    ## json data
+    {json_data}
+    
+    ## Output Format
+    ```json
+    Formatted JSON data
+    ```
+    Help check if there are any formatting issues with the JSON data? If so, please help format it
+"""
