@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import TaskResult, Message
+from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 
 
@@ -18,21 +19,22 @@ class DataAnalyst(RoleZero):
 
     tools: list[str] = ["Plan", "DataAnalyst", "RoleZero"]
     custom_tools: list[str] = ["machine learning", "web scraping", "Terminal"]
+    custom_tool_recommender: ToolRecommender = None
 
     use_reflection: bool = True
     write_code: WriteAnalysisCode = Field(default_factory=WriteAnalysisCode, exclude=True)
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
     task_result: TaskResult = None
 
+    @model_validator(mode="after")
+    def set_custom_tool(self):
+        if self.custom_tools and not self.custom_tool_recommender:
+            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools)
+
     def _update_tool_execution(self):
-        self.tool_execution_map = {
-            "Plan.append_task": self.planner.plan.append_task,
-            "Plan.reset_task": self.planner.plan.reset_task,
-            "Plan.replace_task": self.planner.plan.replace_task,
+        self.tool_execution_map.update({
             "DataAnalyst.write_and_exec_code": self.write_and_exec_code,
-            "RoleZero.ask_human": self.ask_human,
-            "RoleZero.reply_to_human": self.reply_to_human,
-        }
+        })
 
     async def write_and_exec_code(self):
         """Write a code block for current task and execute it in an interactive notebook environment."""

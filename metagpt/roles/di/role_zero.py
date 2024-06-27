@@ -41,10 +41,8 @@ class RoleZero(Role):
     max_react_loop: int = 20  # used for react mode
 
     # Tools
-    tools: list[str] = []
+    tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
-    custom_tools: list[str] = []
-    custom_tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, Callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
     # Equipped with three basic tools by default for optional use
@@ -70,8 +68,6 @@ class RoleZero(Role):
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop)
         if self.tools and not self.tool_recommender:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools, force=True)
-        if self.custom_tools and not self.custom_tool_recommender:
-            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools)
         self.set_actions([RunCommand])
 
         # HACK: Init Planner, control it through dynamic thinking; Consider formalizing as a react mode
