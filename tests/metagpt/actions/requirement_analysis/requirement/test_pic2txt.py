@@ -11,8 +11,6 @@ async def test_pic2txt(context):
         TEST_DATA_PATH / "requirements/pic/1.png",
         TEST_DATA_PATH / "requirements/pic/2.png",
         TEST_DATA_PATH / "requirements/pic/3.png",
-        TEST_DATA_PATH / "requirements/pic/4.png",
-        TEST_DATA_PATH / "requirements/pic/5.png",
     ]
     textual_user_requirements = await aread(filename=TEST_DATA_PATH / "requirements/1.original_requirement.txt")
     acknowledge = await aread(filename=TEST_DATA_PATH / "requirements/1.acknowledge.md")

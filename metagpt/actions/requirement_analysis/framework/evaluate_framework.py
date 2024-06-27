@@ -99,8 +99,8 @@ Parts not mentioned in the "Legacy TRD" will be handled by other TRDs, therefore
 Do the parameters of the interface of the external system used in the code comply with it's specifications in 'Acknowledge'?
 Is there a lack of necessary configuration files?
 Return a markdown JSON object with:
-- a "is_pass" key containing a true boolean value if there is not any issue in the "Legacy Outputs";
 - an "issues" key containing a string list of natural text about the issues that need to addressed, found in the "Legacy Outputs" if any exits, each issue found must provide a detailed description and include reasons;
 - a "conclusion" key containing the evaluation conclusion;
 - a "misalignment" key containing the judgement detail of the natural text string list about the misalignment with "Legacy TRD";
+- a "is_pass" key containing a true boolean value if there is not any issue in the "Legacy Outputs";
 """

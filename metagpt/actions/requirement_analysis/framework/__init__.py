@@ -54,7 +54,7 @@ async def save_framework(
     output_dir = (
         Path(output_dir)
         if output_dir
-        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex[0:8])
+        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 

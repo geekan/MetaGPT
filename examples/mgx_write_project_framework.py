@@ -9,6 +9,7 @@
 import asyncio
 import json
 import uuid
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, List
 
@@ -73,7 +74,10 @@ async def develop(
     output_dir = Path(output_dir) if output_dir else DEFAULT_WORKSPACE_ROOT / uuid.uuid4().hex
 
     v = await aread(filename=user_requirement_filename)
-    user_requirements = json.loads(v)
+    try:
+        user_requirements = json.loads(v)
+    except JSONDecodeError:
+        user_requirements = [v]
     v = await aread(filename=actors_filename)
     actors = json.loads(v)
     technical_constraint = await aread(filename=constraint_filename)

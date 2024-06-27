@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -16,7 +18,7 @@ from metagpt.actions.requirement_analysis.trd import (
     EvaluateTRD,
     WriteTRD,
 )
-from metagpt.const import ASSISTANT_ALIAS, TEST_DATA_PATH
+from metagpt.const import ASSISTANT_ALIAS, DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
 from metagpt.context import Context
 from metagpt.logs import ToolLogItem, log_tool_output, logger
 from metagpt.tools.tool_registry import register_tool
@@ -200,6 +202,12 @@ async def write_framework(
     evaluation_conclusion = ""
     acknowledgement = await mock_asearch_acknowledgement(use_case_actors)  # Replaced by acknowledgement_repo later.
     loop_count = 0
+    output_dir = (
+        Path(output_dir)
+        if output_dir
+        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
+    )
+    file_list = []
     while not is_pass and (context.cost_manager.total_cost < context.cost_manager.max_budget):
         try:
             framework = await write_framework.run(
@@ -226,9 +234,9 @@ async def write_framework(
         logger.info(f"Loop {loop_count}")
         if context.cost_manager.total_cost < 1 and loop_count > max_loop:
             break
+        file_list = await save_framework(dir_data=framework, trd=trd, output_dir=output_dir)
+        logger.info(f"Output:\n{file_list}")
 
-    file_list = await save_framework(dir_data=framework, trd=trd, output_dir=output_dir)
-    logger.info(f"Output:\n{file_list}")
     return "## Software Framework" + "".join([f"\n- {i}" for i in file_list])
 
 
@@ -237,13 +245,12 @@ async def write_trd_and_framework(
     use_case_actors: str,
     user_requirements: str,
     additional_technical_requirements: str,
-    investment: float = 17.0,
+    investment: float = 50.0,
     output_dir: Optional[str] = "",
     context: Optional[Context] = None,
 ) -> str:
     context = context or Context(cost_manager=CostManager(max_budget=investment))
     trd = await write_trd(use_case_actors=use_case_actors, user_requirements=user_requirements, context=context)
-
     return await write_framework(
         use_case_actors=use_case_actors,
         trd=trd,

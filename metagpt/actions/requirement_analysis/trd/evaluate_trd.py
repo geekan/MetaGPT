@@ -107,9 +107,9 @@ If there are interaction events with external systems in "TRD Design", you must 
 Does the sequence of steps in "Interaction Events" cause performance or cost issues? Please provide detailed descriptions and reasons;
 It is problematic if the data stream composed of input/output contains passive or irrelevant data;
 Return a markdown JSON object with:
-- a "is_pass" key containing a true boolean value if there is not any issue in the "TRD Design";
 - an "issues" key containing a string list of natural text about the issues that need to be addressed, found in the "TRD Design" if any exist, each issue found must provide a detailed description and include reasons;
 - a "conclusion" key containing the evaluation conclusion;
 - a "correspondence_between" key containing the judgement detail of the natural text string list about the correspondence between "Interaction Events" and "TRD Design" steps;
 - a "misalignment" key containing the judgement detail of the natural text string list about the misalignment with "User Requirements";
+- a "is_pass" key containing a true boolean value if there is not any issue in the "TRD Design";
 """
