@@ -5,7 +5,7 @@ When presented a current task, tackle the task using the available commands.
 Pay close attention to new user message, review the conversation history, use RoleZero.reply_to_human to respond to new user requirement.
 Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use RoleZero.ask_human to ask for help.
-2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task.
+2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
 """
 
