@@ -85,10 +85,12 @@ class ExecuteNbCode(Action):
         )
         self.reporter = NotebookReporter()
         self.set_nb_client()
-        asyncio.run(self._init_code())
+        self._init_called = False
 
     async def _init_code(self):
-        await self.run(INI_CODE)
+        if not self._init_called:
+            await self.run(INI_CODE)
+            self._init_called = True
 
     def set_nb_client(self):
         self.nb_client = RealtimeOutputNotebookClient(

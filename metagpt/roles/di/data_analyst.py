@@ -40,6 +40,7 @@ class DataAnalyst(RoleZero):
         """Write a code block for current task and execute it in an interactive notebook environment."""
         counter = 0
         success = False
+        await self.execute_code._init_code()
 
         # plan info
         plan_status = self.planner.get_plan_status()
