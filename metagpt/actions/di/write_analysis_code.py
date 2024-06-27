@@ -4,6 +4,7 @@
 @Author  :   orange-crow
 @File    :   write_analysis_code.py
 """
+
 from __future__ import annotations
 
 import json
@@ -31,8 +32,10 @@ class WriteAnalysisCode(Action):
 
         rsp = await self._aask(reflection_prompt, system_msgs=[REFLECTION_SYSTEM_MSG])
         reflection = json.loads(CodeParser.parse_code(block=None, text=rsp))
-
-        return reflection["improved_impl"]
+        improved_impl_code = CodeParser.parse_code(
+            block=None, text=reflection["improved_impl"], ignore_unmatched_error=True
+        )  # may case many unmatched error, so ignore it for clearer error message
+        return improved_impl_code
 
     async def run(
         self,

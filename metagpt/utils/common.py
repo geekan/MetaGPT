@@ -272,7 +272,7 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, block: str, text: str, lang: str = "", ignore_unmatched_error: bool = False) -> str:
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*)```"  # greedy match any character between ``` and ```, prevent matching from being interrupted by another ```
@@ -280,9 +280,10 @@ class CodeParser:
         if match:
             code = match.group(1)
         else:
-            logger.error(f"{pattern} not match following text:")
-            logger.error(text)
-            # raise Exception
+            if not ignore_unmatched_error:
+                logger.error(f"{pattern} not match following text:")
+                logger.error(text)
+                # raise Exception
             return text  # just assume original text is code
         return code
 
