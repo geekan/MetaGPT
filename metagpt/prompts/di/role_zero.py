@@ -49,8 +49,8 @@ Some text indicating your thoughts, such as how you should update the plan statu
     ...
 ]
 ```
-
 """
+
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
