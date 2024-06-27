@@ -139,7 +139,8 @@ class RoleZero(Role):
             return await super()._act()
 
         try:
-            commands = json.loads(repair_llm_raw_output(output=CodeParser.parse_code(block=None, lang="json", text=self.command_rsp), req_keys=[None], repair_type=RepairType.JSON))
+            self.command_rsp = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = json.loads(repair_llm_raw_output(output=self.command_rsp, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError as e:
             self.command_rsp = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=self.command_rsp))
@@ -150,11 +151,10 @@ class RoleZero(Role):
             self.rc.memory.add(error_msg)
             return error_msg
 
+        # 为了对LLM不按格式生成进行容错
         if isinstance(commands, dict):
-            if "commands" in commands:
-                commands = commands["commands"]
-            else:
-                commands = [commands]
+            commands = commands["commands"] if "commands" in commands else [commands]
+
         outputs = await self._run_commands(commands)
         self.rc.memory.add(UserMessage(content=outputs))
         return AIMessage(
