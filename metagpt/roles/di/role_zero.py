@@ -139,11 +139,11 @@ class RoleZero(Role):
             return await super()._act()
 
         try:
-            self.command_rsp = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
-            commands = json.loads(repair_llm_raw_output(output=self.command_rsp, req_keys=[None], repair_type=RepairType.JSON))
+            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError as e:
-            self.command_rsp = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
-            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=self.command_rsp))
+            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
+            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)
