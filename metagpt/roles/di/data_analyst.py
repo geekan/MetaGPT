@@ -9,6 +9,7 @@ from metagpt.actions import Action
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.prompts.di.data_analyst import CMD_PROMPT
+from metagpt.prompts.di.role_zero import JSON_REPAIR_PROMPT
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, TaskResult
 from metagpt.strategy.experience_retriever import KeywordExpRetriever
@@ -21,6 +22,7 @@ from metagpt.strategy.thinking_command import (
 from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.utils.common import CodeParser
 from metagpt.utils.report import ThoughtReporter
+from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 class DataAnalyst(DataInterpreter):
@@ -83,11 +85,23 @@ class DataAnalyst(DataInterpreter):
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(context)
-        self.commands = json.loads(CodeParser.parse_code(block=None, lang='json', text=rsp))
+
+        try:
+            commands = CodeParser.parse_code(block=None, lang="json", text=rsp)
+            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
+        except json.JSONDecodeError as e:
+            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=rsp))
+            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+
+        # 为了对LLM不按格式生成进行容错
+        if isinstance(commands, dict):
+            commands = commands["commands"] if "commands" in commands else [commands]
+
         self.rc.working_memory.add(Message(content=rsp, role="assistant"))
-
-        await run_commands(self, self.commands, self.rc.working_memory)
-
+        await run_commands(self, commands, self.rc.working_memory)
         return bool(self.rc.todo)
 
     async def _act(self) -> Message:

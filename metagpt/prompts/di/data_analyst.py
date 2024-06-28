@@ -40,4 +40,5 @@ Some text indicating your thoughts, such as how you should update the plan statu
     ...
 ]
 ```
+Notice: your output must been started with **```json [**
 """
