@@ -787,3 +787,115 @@ editor.read(path="./main.py")
 - If no specific file is provided, search the symbol in the whole codebase to locate the issue.
 - If no specific symbol is provided, directly open and read the file to diagnose the problem.
 """
+
+ENGINEER_EXAMPLE = """
+## example 1
+User Requirement: Please implement the core game logic for the 2048 game, including tile movements, merging logic, score tracking, and keyboard interaction. Refer to the project schedule located at '/tmp/project_schedule.json' and the system design document at '/tmp/system_design.json' for detailed information.
+Explanation: I will first need to read the system design document and the project schedule to understand the specific requirements and architecture outlined for the game development.
+
+```json
+[
+    {
+        "command_name": "Editor.read",
+        "args": {
+            "path": "/tmp/docs/project_schedule.json"
+        }
+    },
+    {
+        "command_name": "Editor.read",
+        "args": {
+            "path": "/tmp/docs/system_design.json"
+        }
+    }
+]
+```
+
+## example 2
+To achieve the goal of writing a 2048 game using JavaScript and HTML without any frameworks, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. Following the completion of these tasks, I will add a code review task for each file to ensure the implementation aligns with the provided system design and project schedule documents.
+
+Here's the plan:
+
+1. **Task 1**: Create `index.html` - This file will contain the HTML structure necessary for the game's UI.
+2. **Task 2**: Create `style.css` - This file will define the CSS styles to make the game visually appealing and responsive.
+3. **Task 3**: Create `script.js` - This file will contain the JavaScript code for the game logic and UI interactions.
+4. **Code Review Tasks**: Review each file to ensure they meet the project requirements and adhere to the system design.
+
+Let's start by appending the first task to the plan.
+
+```json
+[
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "Create the index.html file with the basic HTML structure for the 2048 game.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Create the style.css file with the necessary CSS to style the 2048 game.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "3",
+            "dependent_task_ids": ["1", "2"],
+            "instruction": "Create the script.js file containing the JavaScript logic for the 2048 game.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "4",
+            "dependent_task_ids": ["1"],
+            "instruction": "Use ReviewAndRewriteCode to review the code in index.html to ensure it meets the design specifications.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "5",
+            "dependent_task_ids": ["2"],
+            "instruction": "Use ReviewAndRewriteCode to review the code in style.css to ensure it meets the design specifications.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "6",
+            "dependent_task_ids": ["3"],
+            "instruction": "Use ReviewAndRewriteCode to review the code in script.js to ensure it meets the design specifications. ",
+            "assignee": "Alex"
+        }
+    }
+]
+```
+
+## example 3
+I will now review the code in `script.js`.
+Explanation: to review the code, call ReviewAndRewriteCode.run.
+
+```json
+[
+    {
+        "command_name": "ReviewAndRewriteCode.run",
+        "args": {
+            "code_path": "/tmp/src/script.js",
+            "system_design_input": "/tmp/docs/system_design.json",
+            "project_schedule_input": "/tmp/docs/project_schedule.json",
+            "code_review_k_times": 2
+        }
+    }
+]
+```
+"""

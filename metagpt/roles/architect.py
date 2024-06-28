@@ -57,5 +57,6 @@ class Architect(RoleZero):
         self.tool_execution_map.update(
             {
                 write_trd_and_framework.__name__: write_trd_and_framework,
+                "run": write_design.run,  # alias
             }
         )
