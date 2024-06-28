@@ -10,13 +10,13 @@ from rank_bm25 import BM25Okapi
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.prompts.di.role_zero import JSON_REPAIR_PROMPT
 from metagpt.schema import Plan
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_data_type import Tool
 from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.utils.common import CodeParser
-from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
-from metagpt.prompts.di.role_zero import JSON_REPAIR_PROMPT
+from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 
 TOOL_INFO_PROMPT = """
 ## Capabilities
@@ -140,11 +140,13 @@ class ToolRecommender(BaseModel):
         # -------------开始---------------
         try:
             ranked_tools = CodeParser.parse_code(block=None, lang="json", text=rsp)
-            ranked_tools = json.loads(repair_llm_raw_output(output=ranked_tools, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError as e:
+            ranked_tools = json.loads(
+                repair_llm_raw_output(output=ranked_tools, req_keys=[None], repair_type=RepairType.JSON)
+            )
+        except json.JSONDecodeError:
             ranked_tools = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=rsp))
             ranked_tools = json.loads(CodeParser.parse_code(block=None, lang="json", text=ranked_tools))
-        except Exception as e:
+        except Exception:
             tb = traceback.format_exc()
             print(tb)
 
