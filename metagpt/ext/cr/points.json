@@ -161,27 +161,27 @@
     },
     {
         "id": 21,
-        "text": "变量/方法/类 命名，要有效清晰表示对应的实际含义",
-        "language": "java",
-        "detail": "缺陷类型：变量/方法/类 命名，要有效清晰表示对应的实际含义；修复方案：修改成合适的变量/方法/类名，有效表示对应的实体含义",
-        "yes_example": "### 被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"的例子\n<例子1>\nint a = 1;\nif (a == 1) {\n\treturn a;\n}这段代码中的变量a的命名无法从命名中理解a代表什么，所以这个被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"\n</例子1>\n\n<例子2>\nStringBuilder sb = new StringBuilder();\nsb.append(\"{!\").append(tag).append(\"=\").append(tagField);\n这段代码中的变量sb的命名无法从命名中理解a代表什么，所以这个被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"\n</例子2>\n\n<例子3>\nPage<Owner> findAll(Pageable pageable);\n这段代码findAll是一个interface声明，接口名findAll无法清晰的理解这个接口要做什么，所以这个被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"\n</例子3>",
-        "no_example": "### 不能被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"的例子\n<例子1>\nint persionNum = 5;\nif (persionNum > 3) {\n\treturn True;\n}这段代码中的变量persionNum的命名可以比较清楚知道persionNum代表人员的数量，所以这个不能被判定为\"变量/方法/类 命名，要有效清晰表示对应的实际含义\"\n</例子1>"
+        "text": "在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开",
+        "detail": "缺陷类型：类型强制转换时空格使用不当；修复方案：在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开。",
+        "language": "Java",
+        "yes_example": "### 被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int) 3.5;\n</例子1>",
+        "no_example": "### 不能被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int)3.5;\n</例子1>"
     },
     {
         "id": 22,
-        "text": "判断逻辑应简洁，不能有重复或者无意义的判断",
-        "language": "java",
-        "detail": "缺陷类型：判断逻辑应简洁，不能有重复或者无意义的判断；修复方案：简化或删除一些重复的，无意义的判断逻辑",
-        "yes_example": "### 被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n<例子1>\nif (task == null) {\n\ttask = 1\n\tif (task != null) {\n\t\tInteger ok = 0;\n\t\tif (task == 1) {\n\t\t\tok=1;\n\t\t}\n\t\tif (ok == 0) {\n\t\t\ttask = null;\n\t\t}\n\t}\n}这段代码中的关于变量ok的判断逻辑不够简洁，变量ok其实可以被去掉进行逻辑简化，可以被简化为\nif (task == null) {\n\ttask = 1\n\tif (task != null) {\n\t\tif (task == 1) {\n\t\t  task = null;\n\t\t}\n\t}\n}，所以这个被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n</例子1>\n\n<例子2>\nif (!(a == 0) && a == 1 || a == 2){\n\treturn True;\n}这段代码的if判断逻辑过于复杂，可简化为if (0<a≤2)，所以这个被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n</例子2>\n\n<例子3>\na = 1;\nif (a > 1){\n\treturn True;\n}这段代码的变量a是确定的值1，这样就不会出现a > 1，所以if的判断无意义，所以这个被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n</例子3>",
-        "no_example": "### 不能被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n<例子1>\na = 1;\nb = 2;\nif (0 < a ≤ 2){\n\treturn a + b;\n}这段代码的判断条件比较简洁明了，无重复的判断，所以这个不能被判定为\"判断逻辑应简洁，不能有重复或者无意义的判断\"\n</例子1>"
+        "text": "方法参数在定义和传入时，多个参数逗号后面必须加空格",
+        "detail": "缺陷类型：方法参数逗号后缺少空格；修复方案：方法参数在定义和传入时，多个参数逗号后面必须加空格。",
+        "language": "Java",
+        "yes_example": "### 被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a,int b,int c) {}\n</例子1>",
+        "no_example": "### 不能被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a, int b, int c) {}\n</例子1>"
     },
     {
         "id": 23,
-        "text": "代码结构冗余，避免重复代码",
-        "language": "java",
-        "detail": "缺陷类型：代码结构冗余，避免重复代码；修复方案：忽略",
-        "yes_example": "### 被判定为\"代码结构冗余，避免重复代码\"的例子\n<例子1>\npublic void trigger(String executionId, Map<String, Object> processVariables) {\n    commandExecutor.execute(new TriggerCmd(executionId, processVariables));\n}\npublic void trigger(String executionId, Map<String, Object> processVariables, Map<String, Object> transientVariables) {\n\tcommandExecutor.execute(new TriggerCmd(executionId, processVariables, transientVariables));    \n}这段代码中的2个trigger存在代码都是触发器的逻辑，存在重复，可以合并成1个函数，所以这个被判定为\"代码结构冗余，避免重复代码\"\n</例子1>\n\n<例子2>\npublic int sum(int a, int b){\n\treturn a + b;\n}\npublic int merge(int a, int b){\n\treturn a + b;\n}这段代码中的2个函数sum和merge的逻辑是一样的，可以合并成1个函数，所以这个被判定为\"代码结构冗余，避免重复代码\"\n</例子2>",
-        "no_example": "### 不能被判定为\"代码结构冗余，避免重复代码\"的例子\n<例子1>\npublic int append(int a, int b){\n\treturn a + b;\n}\npublic int add(int a, int b){\n\treturn (a + b) - b;\n}这段代码中的2个函数sum和add的代码结构看上去差不多，但是具体的处理逻辑是不一样的，所以这个不能被判定为\"代码结构冗余，避免重复代码\"\n</例子1>"
+        "text": "禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象",
+        "detail": "缺陷类型：使用不推荐的 BigDecimal 构造方法；修复方案：禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象，推荐使用 BigDecimal 的 valueOf 方法。",
+        "language": "Java",
+        "yes_example": "### 被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = new BigDecimal(0.1);\n</例子1>",
+        "no_example": "### 不能被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = BigDecimal.valueOf(0.1);\n</例子1>"
     },
     {
         "id": 24,
@@ -396,30 +396,6 @@
         "language": "Java",
         "yes_example": "### 被判定为\"任何二目、三目运算符的左右两边都需要加一个空格\"的例子\n<例子1>\nint a=b+c;\n</例子1>",
         "no_example": "### 不能被判定为\"任何二目、三目运算符的左右两边都需要加一个空格\"的例子\n<例子1>\nint a = b + c;\n</例子1>"
-    },
-    {
-        "id": 51,
-        "text": "在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开",
-        "detail": "缺陷类型：类型强制转换时空格使用不当；修复方案：在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开。",
-        "language": "Java",
-        "yes_example": "### 被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int) 3.5;\n</例子1>",
-        "no_example": "### 不能被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int)3.5;\n</例子1>"
-    },
-    {
-        "id": 52,
-        "text": "方法参数在定义和传入时，多个参数逗号后面必须加空格",
-        "detail": "缺陷类型：方法参数逗号后缺少空格；修复方案：方法参数在定义和传入时，多个参数逗号后面必须加空格。",
-        "language": "Java",
-        "yes_example": "### 被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a,int b,int c) {}\n</例子1>",
-        "no_example": "### 不能被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a, int b, int c) {}\n</例子1>"
-    },
-    {
-        "id": 53,
-        "text": "禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象",
-        "detail": "缺陷类型：使用不推荐的 BigDecimal 构造方法；修复方案：禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象，推荐使用 BigDecimal 的 valueOf 方法。",
-        "language": "Java",
-        "yes_example": "### 被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = new BigDecimal(0.1);\n</例子1>",
-        "no_example": "### 不能被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = BigDecimal.valueOf(0.1);\n</例子1>"
     },
     {
         "id": 1,
