@@ -92,7 +92,7 @@ PROMPT = """
 
 ---
 You are a tool to evaluate the TRD design.
-"Actor, System, External System" provides the possible participants in interaction events;
+"Actor, System, External System" provides the all possible participants in interaction events;
 "User Requirements" provides the original requirements description, any parts not mentioned in this description will be handled by other modules, so do not fabricate requirements;
 "External Interaction Events" is provided by an external module for your use, its content is also referred to "Interaction Events" section; The content in "External Interaction Events" can be determined to be problem-free;
 "External Interaction Events" provides some identified interaction events and the interacting participants based on the part of the content of the "User Requirements";
@@ -103,9 +103,9 @@ Which interactions from "Interaction Events" correspond to which steps in "TRD D
 Which aspects of "TRD Design" and "Interaction Events" do not align with the descriptions in "User Requirements"? Please provide detailed descriptions and reasons.
 If the descriptions in "User Requirements" are divided into multiple steps in "TRD Design" and "Interaction Events," it can be considered compliant with the descriptions in "User Requirements" as long as it does not conflict with them;
 There is a possibility of missing details in the descriptions of "User Requirements". Any additional steps in "TRD Design" and "Interaction Events" are considered compliant with "User Requirements" as long as they do not conflict with the descriptions provided in "User Requirements";
-If there are interaction events with external systems in "TRD Design", you must explicitly specify the ID of the external interface to use for the interaction events;
+If there are interaction events with external systems in "TRD Design", you must explicitly specify the ID of the external interface to use for the interaction events, the input and output parameters of the used external interface must explictly match the input and output of the interaction event；
 Does the sequence of steps in "Interaction Events" cause performance or cost issues? Please provide detailed descriptions and reasons;
-It is problematic if the data stream composed of input/output contains passive or irrelevant data;
+If each step of "TRD Design" has input data, its input data is provided either by the output of the previous steps or by participants of "Actor, System, External System", and there should be no passive data;
 Return a markdown JSON object with:
 - an "issues" key containing a string list of natural text about the issues that need to be addressed, found in the "TRD Design" if any exist, each issue found must provide a detailed description and include reasons;
 - a "conclusion" key containing the evaluation conclusion;
