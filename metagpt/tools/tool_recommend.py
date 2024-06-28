@@ -136,6 +136,8 @@ class ToolRecommender(BaseModel):
         )
         rsp = await LLM().aask(prompt, stream=False)
 
+        # 临时方案，待role zero的版本完成可将本注释内的代码直接替换掉
+        # -------------开始---------------
         try:
             ranked_tools = CodeParser.parse_code(block=None, lang="json", text=rsp)
             ranked_tools = json.loads(repair_llm_raw_output(output=ranked_tools, req_keys=[None], repair_type=RepairType.JSON))
@@ -149,6 +151,8 @@ class ToolRecommender(BaseModel):
         # 为了对LLM不按格式生成进行容错
         if isinstance(ranked_tools, dict):
             ranked_tools = list(ranked_tools.values())[0]
+        # -------------结束---------------
+
         valid_tools = validate_tool_names(ranked_tools)
 
         return list(valid_tools.values())[:topk]

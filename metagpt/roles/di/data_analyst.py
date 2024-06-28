@@ -86,6 +86,8 @@ class DataAnalyst(DataInterpreter):
         async with ThoughtReporter(enable_llm_stream=True):
             rsp = await self.llm.aask(context)
 
+        # 临时方案，待role zero的版本完成可将本注释内的代码直接替换掉
+        # -------------开始---------------
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
@@ -99,6 +101,7 @@ class DataAnalyst(DataInterpreter):
         # 为了对LLM不按格式生成进行容错
         if isinstance(commands, dict):
             commands = commands["commands"] if "commands" in commands else [commands]
+        # -------------结束---------------
 
         self.rc.working_memory.add(Message(content=rsp, role="assistant"))
         await run_commands(self, commands, self.rc.working_memory)
