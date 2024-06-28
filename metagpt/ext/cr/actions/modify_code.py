@@ -71,8 +71,6 @@ class ModifyCode(Action):
                     )
                 # 代码增加上下文，提升代码修复的准确率
                 comment["code"] = code
-            if comment["point_id"] in [24, 25, 26]:
-                comment["point_detail"] = comment["point_detail"] + "\n" + comment["comment"]
             # 去掉CR时LLM给的comment的影响，应该使用既定的修复方案
             comment.pop("comment")
 
