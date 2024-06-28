@@ -4,6 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
+import fsspec
 from llama_index.core import SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
@@ -83,6 +84,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
     ) -> "SimpleEngine":
         """From docs.
 
@@ -96,11 +98,12 @@ class SimpleEngine(RetrieverQueryEngine):
             llm: Must supported by llama index. Default OpenAI.
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
+            fs: File system to use.
         """
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
+        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files, fs=fs).load_data()
         cls._fix_document_metadata(documents)
 
         transformations = transformations or cls._default_transformations()

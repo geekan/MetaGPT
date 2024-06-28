@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import re
 import traceback
 from typing import Callable, Literal, Tuple
 
@@ -10,7 +11,11 @@ from pydantic import model_validator
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION, JSON_REPAIR_PROMPT
+from metagpt.prompts.di.role_zero import (
+    CMD_PROMPT,
+    JSON_REPAIR_PROMPT,
+    ROLE_INSTRUCTION,
+)
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
@@ -20,8 +25,8 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
+from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
-from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -88,6 +93,23 @@ class RoleZero(Role):
             "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
         }
+        self.tool_execution_map.update(
+            {
+                f"Browser.{i}": getattr(self.browser, i)
+                for i in [
+                    "click",
+                    "close_tab",
+                    "go_back",
+                    "go_forward",
+                    "goto",
+                    "hover",
+                    "press",
+                    "scroll",
+                    "tab_focus",
+                    "type",
+                ]
+            }
+        )
         # can be updated by subclass
         self._update_tool_execution()
         return self
@@ -126,7 +148,14 @@ class RoleZero(Role):
             available_commands=tool_info,
             instruction=self.instruction.strip(),
         )
-        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
+        memory = self.rc.memory.get(self.memory_k)
+        if not self.browser.is_empty_page:
+            pattern = re.compile(r"Command Browser\.(\w+) executed")
+            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
+                if pattern.match(msg.content):
+                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
+                    break
+        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
@@ -141,7 +170,7 @@ class RoleZero(Role):
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
