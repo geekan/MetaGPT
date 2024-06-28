@@ -13,11 +13,11 @@ async def test_pic2txt(context):
         TEST_DATA_PATH / "requirements/pic/3.png",
     ]
     textual_user_requirements = await aread(filename=TEST_DATA_PATH / "requirements/1.original_requirement.txt")
-    acknowledge = await aread(filename=TEST_DATA_PATH / "requirements/1.acknowledge.md")
 
     action = Pic2Txt(context=context)
     rsp = await action.run(
-        image_paths=images, textual_user_requirement=textual_user_requirements, acknowledge=acknowledge
+        image_paths=images,
+        textual_user_requirement=textual_user_requirements,
     )
     assert rsp
 
