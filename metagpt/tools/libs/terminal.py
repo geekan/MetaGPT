@@ -2,6 +2,7 @@ import subprocess
 import threading
 from queue import Queue
 
+from metagpt.const import SWE_SETUP_PATH
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
 
@@ -26,7 +27,7 @@ class Terminal:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            executable="/bin/bash"
+            executable="/bin/bash",
         )
         self.stdout_queue = Queue()
         self.observer = TerminalReporter()
@@ -129,3 +130,95 @@ class Terminal:
         self.process.stdin.close()
         self.process.terminate()
         self.process.wait()
+
+
+@register_tool(include_functions=["run"])
+class Bash(Terminal):
+    """
+    A class to run bash commands directly and provides custom shell functions.
+    """
+
+    def __init__(self):
+        """init"""
+        super().__init__()
+        setup_cmd = f"source {SWE_SETUP_PATH}"
+        self.run_command(setup_cmd)
+
+    def run(self, cmd) -> str:
+        """
+        Executes a bash command.
+
+        Args:
+            cmd (str): The bash command to execute.
+
+        Returns:
+            str: The output of the command.
+
+        This method allows for executing standard bash commands as well as
+        utilizing several custom shell functions defined in the environment.
+
+        Custom Shell Functions:
+
+        - open <path> [<line_number>]
+          Opens the file at the given path in the editor. If line_number is provided,
+          the window will move to include that line.
+          Arguments:
+              path (str): The path to the file to open.
+              line_number (int, optional): The line number to move the window to.
+              If not provided, the window will start at the top of the file.
+
+        - goto <line_number>
+          Moves the window to show <line_number>.
+          Arguments:
+              line_number (int): The line number to move the window to.
+
+        - scroll_down
+          Moves the window down {WINDOW} lines.
+
+        - scroll_up
+          Moves the window up {WINDOW} lines.
+
+        - create <filename>
+          Creates and opens a new file with the given name.
+          Arguments:
+              filename (str): The name of the file to create.
+
+        - submit
+          Submits your current code and terminates the session.
+
+        - search_dir_and_preview <search_term> [<dir>]
+          Searches for search_term in all files in dir and gives their code preview
+          with line numbers. If dir is not provided, searches in the current directory.
+          Arguments:
+              search_term (str): The term to search for.
+              dir (str, optional): The directory to search in. Defaults to the current directory.
+
+        - search_file <search_term> [<file>]
+          Searches for search_term in file. If file is not provided, searches in the current open file.
+          Arguments:
+              search_term (str): The term to search for.
+              file (str, optional): The file to search in. Defaults to the current open file.
+
+        - find_file <file_name> [<dir>]
+          Finds all files with the given name in dir. If dir is not provided, searches in the current directory.
+          Arguments:
+              file_name (str): The name of the file to search for.
+              dir (str, optional): The directory to search in. Defaults to the current directory.
+
+        - edit <start_line>:<end_line> <<EOF
+          <replacement_text>
+          EOF
+          Line numbers start from 1. Replaces lines <start_line> through <end_line> (inclusive) with the given text in the open file.
+          The replacement text is terminated by a line with only EOF on it. All of the <replacement text> will be entered, so make
+          sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system
+          detects a syntax error, the edit will not be executed. Simply try to edit the file again, but make sure to read the error
+          message and modify the edit command you issue accordingly. Issuing the same command a second time will just lead to the same
+          error message again. All code modifications made via the 'edit' command must strictly follow the PEP8 standard.
+          Arguments:
+              start_line (int): The line number to start the edit at, starting from 1.
+              end_line (int): The line number to end the edit at (inclusive), starting from 1.
+              replacement_text (str): The text to replace the current selection with, must conform to PEP8 standards.
+
+        Note: Make sure to use these functions as per their defined arguments and behaviors.
+        """
+        return self.run_command(cmd)

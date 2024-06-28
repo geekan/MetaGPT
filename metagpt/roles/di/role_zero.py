@@ -4,14 +4,18 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Literal, Tuple
+from typing import Callable, Dict, List, Literal, Tuple, Union
 
 from pydantic import model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION, JSON_REPAIR_PROMPT
+from metagpt.prompts.di.role_zero import (
+    CMD_PROMPT,
+    JSON_REPAIR_PROMPT,
+    ROLE_INSTRUCTION,
+)
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
@@ -21,8 +25,8 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
+from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
-from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -163,25 +167,15 @@ class RoleZero(Role):
         if self.use_fixed_sop:
             return await super()._act()
 
-        try:
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
-            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError as e:
-            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
-            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(tb)
-            error_msg = UserMessage(content=str(e))
-            self.rc.memory.add(error_msg)
+        commands, ok = await self._get_commands()
+        if not ok:
+            error_msg = commands
             return error_msg
-
-        # 为了对LLM不按格式生成进行容错
-        if isinstance(commands, dict):
-            commands = commands["commands"] if "commands" in commands else [commands]
-
+        logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
+        logger.info(f"Commands outputs: \n{outputs}")
         self.rc.memory.add(UserMessage(content=outputs))
+
         return AIMessage(
             content=f"Complete run with outputs: {outputs}",
             sent_from=self.name,
@@ -207,6 +201,36 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
+
+    async def _get_commands(self) -> Tuple[Union[UserMessage, List[Dict]], bool]:
+        """Retrieves commands from the Large Language Model (LLM).
+
+        This function attempts to retrieve a list of commands from the LLM by
+        processing the response (`self.command_rsp`). It handles potential errors
+        during parsing and LLM response formats.
+
+        Returns:
+            A tuple containing:
+                - A `UserMessage` object or dict representing the commands.
+                - A boolean flag indicating success (True) or failure (False).
+        """
+        try:
+            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
+        except json.JSONDecodeError:
+            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
+            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.debug(tb)
+            error_msg = UserMessage(content=str(e))
+            self.rc.memory.add(error_msg)
+            return error_msg, False
+
+        # 为了对LLM不按格式生成进行容错
+        if isinstance(commands, dict):
+            commands = commands["commands"] if "commands" in commands else [commands]
+        return commands, True
 
     async def _run_commands(self, commands) -> str:
         outputs = []
