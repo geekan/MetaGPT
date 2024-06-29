@@ -8,7 +8,7 @@ from typing import List
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM 
 
-from examples.ags.w_action_node.operator_an import GENERATE_NODE, GENERATE_CODE_NODE, REVIEW_NODE, REVISE_NODE, ENSEMBLE_NODE
+from examples.ags.w_action_node.operator_an import GenerateOp, GenerateCodeOp, ReviewOp, ReviseOp, EnsembleOp
 from examples.ags.w_action_node.prompt import GENERATE_PROMPT, GENERATE_CODE_PROMPT, REVIEW_PROMPT, REVISE_PROMPT, ENSEMBLE_PROMPT
 
 class Operator:
@@ -25,7 +25,7 @@ class Generate(Operator):
 
     async def __call__(self, problem_description):
         prompt = GENERATE_PROMPT.format(problem_description=problem_description)
-        node = await GENERATE_NODE.fill(context=prompt, llm=self.llm)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
     
@@ -36,7 +36,7 @@ class GenerateCode(Operator):
 
     async def __call__(self, problem_description):
         prompt = GENERATE_CODE_PROMPT.format(problem_description=problem_description)
-        node = await GENERATE_CODE_NODE.fill(context=prompt, llm=self.llm)
+        node = await ActionNode.from_pydantic(GenerateCodeOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
     
@@ -48,7 +48,7 @@ class Review(Operator):
 
     async def __call__(self, problem_description, solution):
         prompt = REVIEW_PROMPT.format(problem_description=problem_description, solution=solution, criteria=self.criteria)
-        node = await REVIEW_NODE.fill(context=prompt, llm=self.llm)
+        node = await ActionNode.from_pydantic(ReviewOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
 
@@ -59,7 +59,7 @@ class Revise(Operator):
 
     async def __call__(self, problem_description, solution, feedback):
         prompt = REVISE_PROMPT.format(problem_description=problem_description, solution=solution, feedback=feedback)
-        node = await REVISE_NODE.fill(context=prompt, llm=self.llm)
+        node = await ActionNode.from_pydantic(ReviseOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
 
@@ -73,6 +73,6 @@ class Ensemble(Operator):
         for solution in solutions:
             solution_text += solution + "\n"
         prompt = ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
-        node = await ENSEMBLE_NODE.fill(context=prompt, llm=self.llm)
+        node = await ActionNode.from_pydantic(EnsembleOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
