@@ -76,3 +76,18 @@ class Ensemble(Operator):
         node = await ActionNode.from_pydantic(EnsembleOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
+    
+
+class ScEnsemble(Operator):
+
+    def __init__(self, name:str ="Ensembler", llm: LLM = LLM()):
+        super().__init__(name, llm)
+
+    async def __call__(self, solutions:List, problem_description):
+        solution_text = ""
+        for solution in solutions:
+            solution_text += str(solution) + "\n"
+        prompt = ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+        node = await ActionNode.from_pydantic(EnsembleOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response

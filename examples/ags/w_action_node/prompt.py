@@ -25,6 +25,6 @@ Then output the revised solution.
 """
 
 ENSEMBLE_PROMPT = """
-For the question described as {problem_description},
-please ensemble the following solutions: {solutions}, and provide an ensemble solution.
+For the question described as {problem_description}, Solutions: {solutions}
+Please select the solution that appears most frequently from these options and ensemble this to provide best solution.
 """

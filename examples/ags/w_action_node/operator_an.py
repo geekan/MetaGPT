@@ -4,7 +4,6 @@
 # @Desc    : action nodes for operator
 
 from pydantic import BaseModel, Field
-from metagpt.actions.action_node import ActionNode
 
 class GenerateOp(BaseModel):
     solution: str = Field(default="", description="Your Solution for this problem")
@@ -21,3 +20,6 @@ class ReviseOp(BaseModel):
 
 class EnsembleOp(BaseModel):
     final_solution: str = Field(default="", description="Final ensemble solution for this problem")
+
+class ScEnsembleOp(BaseModel):
+    solution_number: int = Field(default="", description="Choose The Best Solution Between These, and outp[ut the solution number")
