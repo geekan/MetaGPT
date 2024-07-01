@@ -259,7 +259,6 @@ TOKEN_MAX = {
     "qwen-7b-chat": 32000,
     "qwen-1.8b-longcontext-chat": 32000,
     "qwen-1.8b-chat": 8000,
-    
 }
 
 # For Amazon Bedrock US region
