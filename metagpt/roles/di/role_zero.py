@@ -6,6 +6,7 @@ import re
 import traceback
 from typing import Callable, Literal, Tuple
 
+from metagpt.strategy.task_type import TaskType
 from pydantic import model_validator
 
 from metagpt.actions import Action
@@ -130,6 +131,7 @@ class RoleZero(Role):
 
         ### 2. Plan Status ###
         plan_status, current_task = self._get_plan_status()
+        task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
 
         ### 3. Tool/Command Info ###
         tools = await self.tool_recommender.recommend_tools()
@@ -142,6 +144,7 @@ class RoleZero(Role):
             example=example,
             available_commands=tool_info,
             instruction=self.instruction.strip(),
+            task_type_desc=task_type_desc,
         )
         memory = self.rc.memory.get(self.memory_k)
         if not self.browser.is_empty_page:
@@ -201,13 +204,14 @@ class RoleZero(Role):
     async def _run_commands(self, commands) -> str:
         outputs = []
         for cmd in commands:
+            output = f"Command {cmd['command_name']} executed"
             # handle special command first
             if await self._run_special_command(cmd):
+                outputs.append(output)
                 continue
             # run command as specified by tool_execute_map
             if cmd["command_name"] in self.tool_execution_map:
                 tool_obj = self.tool_execution_map[cmd["command_name"]]
-                output = f"Command {cmd['command_name']} executed"
                 try:
                     if inspect.iscoroutinefunction(tool_obj):
                         tool_output = await tool_obj(**cmd["args"])
@@ -235,15 +239,12 @@ class RoleZero(Role):
         if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
             # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
             # self.planner.plan.current_task.update_task_result(task_result=task_result)
-            self._finish_current_task()
+            self.planner.plan.finish_current_task()
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
 
         return is_special_cmd
-
-    def _finish_current_task(self):
-        self.planner.plan.finish_current_task()
 
     def _get_plan_status(self) -> Tuple[str, str]:
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])

@@ -24,7 +24,6 @@ class DataAnalyst(RoleZero):
     use_reflection: bool = True
     write_code: WriteAnalysisCode = Field(default_factory=WriteAnalysisCode, exclude=True)
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
-    task_result: TaskResult = None
 
     @model_validator(mode="after")
     def set_custom_tool(self):
@@ -75,17 +74,14 @@ class DataAnalyst(RoleZero):
 
             ### process execution result ###
             counter += 1
-            self.task_result = TaskResult(code=code, result=result, is_success=success)
-
+            if success:
+                task_result = TaskResult(code=code, result=result, is_success=success)
+                self.planner.current_task.update_task_result(task_result)
         output = f"""
-        Code written:
+        **Code written**:
         {code}
-        Execution status:{'Success' if success else 'Failed'}
-        Execution result: {result}
+        **Execution status**:{'Success' if success else 'Failed'}
+        **Execution result**: {result}
         """
         self.rc.working_memory.clear()
         return output
-
-    def _finish_current_task(self):
-        self.planner.current_task.update_task_result(self.task_result)
-        super()._finish_current_task()

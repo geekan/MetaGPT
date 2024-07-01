@@ -22,6 +22,9 @@ class Task(BaseModel):
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
 
+# Available Task Types
+{task_type_desc}
+
 # Current Plan
 {plan_status}
 
@@ -38,7 +41,7 @@ Pay close attention to the Example provided, you can reuse the example for your 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 
-# Your commands in a json array, in the following output format. If there is nothing to do, use the pass or end command:
+# Your commands in a json array, in the following output format with command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts, such as how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 ```json
 [
