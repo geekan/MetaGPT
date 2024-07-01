@@ -25,10 +25,10 @@ from metagpt.utils.yaml_model import YamlModel
 
 class ModelsConfig(YamlModel):
     """
-    Configuration class for LLM models.
+    Configuration class for `models` in `config2.yaml`.
 
     Attributes:
-        models (Dict[str, LLMConfig]): Dictionary mapping model names to LLMConfig objects.
+        models (Dict[str, LLMConfig]): Dictionary mapping model names or types to LLMConfig objects.
 
     Methods:
         update_llm_model(cls, value): Validates and updates LLM model configurations.
