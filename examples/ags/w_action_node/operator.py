@@ -71,7 +71,7 @@ class Ensemble(Operator):
     async def __call__(self, solutions:List, problem_description):
         solution_text = ""
         for solution in solutions:
-            solution_text += solution + "\n"
+            solution_text += str(solution) + "\n"
         prompt = ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
         node = await ActionNode.from_pydantic(EnsembleOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
