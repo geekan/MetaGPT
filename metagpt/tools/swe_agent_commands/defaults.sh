@@ -177,7 +177,7 @@ create() {
 
 # @yaml
 # signature: submit
-# docstring: submits your current code and terminates the session
+# docstring: submits your current code and terminates the session. this is the only submit action needed; no need to run git add or git commit before this.
 submit() {
     # Check if the patch file exists and is non-empty
     if [ -s "$SWE_CMD_WORK_DIR/test.patch" ]; then

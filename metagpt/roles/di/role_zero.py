@@ -4,7 +4,7 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Dict, List, Literal, Tuple, Union
+from typing import Callable, Dict, List, Literal, Tuple
 
 from pydantic import model_validator
 
@@ -167,7 +167,7 @@ class RoleZero(Role):
         if self.use_fixed_sop:
             return await super()._act()
 
-        commands, ok = await self._get_commands()
+        commands, ok = await self._parse_commands()
         if not ok:
             error_msg = commands
             return error_msg
@@ -202,7 +202,7 @@ class RoleZero(Role):
             actions_taken += 1
         return rsp  # return output from the last action
 
-    async def _get_commands(self) -> Tuple[Union[UserMessage, List[Dict]], bool]:
+    async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
         This function attempts to retrieve a list of commands from the LLM by
@@ -211,7 +211,6 @@ class RoleZero(Role):
 
         Returns:
             A tuple containing:
-                - A `UserMessage` object or dict representing the commands.
                 - A boolean flag indicating success (True) or failure (False).
         """
         try:

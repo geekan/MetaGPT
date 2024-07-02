@@ -22,6 +22,7 @@ class SWE(RoleZero):
     _system_msg: str = SWE_AGENT_SYSTEM_TEMPLATE
     system_msg: list[str] = [_system_msg.format(WINDOW=_bash_window_size)]
     _instruction: str = NEXT_STEP_TEMPLATE
+    # tools: list[str] = ["Bash", "Browser"]
     tools: list[str] = ["Bash"]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""
@@ -35,11 +36,23 @@ class SWE(RoleZero):
         return res
 
     def _set_system_msg(self):
+        """
+        Sets the system message for the SWE agent.
+
+        Sets the `_bash_window_size` from the environment variable `WINDOW` if it exists.
+        Formats the `_system_msg` template with the current `_bash_window_size`.
+        """
         if os.getenv("WINDOW"):
             self._bash_window_size = int(os.getenv("WINDOW"))
         self.system_msg = [self._system_msg.format(WINDOW=self._bash_window_size)]
 
     def _format_instruction(self):
+        """
+        Formats the instruction message for the SWE agent.
+
+        Runs the "state" command in the terminal, parses its output as JSON,
+        and uses it to format the `_instruction` template.
+        """
         state_output = self.terminal.run("state")
         bash_state = json.loads(state_output)
 
@@ -50,7 +63,15 @@ class SWE(RoleZero):
         return self.instruction
 
     async def _handle_action(self):
-        commands, ok = await self._get_commands()
+        """
+        Handles actions based on parsed commands.
+
+        Parses commands, checks for a "submit" action, and generates a patch using `git diff`.
+        Stores the cleaned patch in `output_diff`. Logs any exceptions.
+
+        This function is specifically added for SWE bench evaluation.
+        """
+        commands, ok = await self._parse_commands()
         if not ok:
             return
         for cmd in commands:
