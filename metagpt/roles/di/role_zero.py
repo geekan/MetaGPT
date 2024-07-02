@@ -222,7 +222,7 @@ class RoleZero(Role):
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
             tb = traceback.format_exc()
-            logger.debug(tb)
+            print(tb)
             error_msg = UserMessage(content=str(e))
             self.rc.memory.add(error_msg)
             return error_msg, False

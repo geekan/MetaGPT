@@ -21,6 +21,7 @@ Note:
 4. If the requirement is a common-sense, logical, or math problem, you should respond directly without assigning any task to team members.
 5. If you think the requirement is not clear or ambiguous, you should ask the user for clarification immediately. Assign tasks only after all info is clear.
 6. It is helpful for Engineer to have both the system design and the project schedule for writing the code, so include paths of both files (if available) and remind Engineer to definitely read them when publishing message to Engineer.
+7. If the requirement is writing a TRD and software framework, you should assign it to Architect. When publishing message to Architect, you should directly copy the full original user requirement.
 """
 
 FINISH_CURRENT_TASK_CMD = """

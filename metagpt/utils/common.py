@@ -26,7 +26,7 @@ import sys
 import traceback
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
@@ -1013,3 +1013,34 @@ async def save_json_to_markdown(content: str, output_filename: str | Path):
         logger.warning(f"An unexpected error occurred: {e}")
         return
     await awrite(filename=output_filename, data=json_to_markdown(m))
+
+
+def tool2name(cls, methods: List[str], entry) -> Dict[str, Any]:
+    """
+    Generates a mapping of class methods to a given entry with class name as a prefix.
+
+    Args:
+        cls: The class from which the methods are derived.
+        methods (List[str]): A list of method names as strings.
+        entry (Any): The entry to be mapped to each method.
+
+    Returns:
+        Dict[str, Any]: A dictionary where keys are method names prefixed with the class name and
+                        values are the given entry. If the number of methods is less than 2,
+                        the dictionary will contain a single entry with the class name as the key.
+
+    Example:
+        >>> class MyClass:
+        >>>     pass
+        >>>
+        >>> tool2name(MyClass, ['method1', 'method2'], 'some_entry')
+        {'MyClass.method1': 'some_entry', 'MyClass.method2': 'some_entry'}
+
+        >>> tool2name(MyClass, ['method1'], 'some_entry')
+        {'MyClass': 'some_entry', 'MyClass.method1': 'some_entry'}
+    """
+    class_name = cls.__name__
+    mappings = {f"{class_name}.{i}": entry for i in methods}
+    if len(mappings) < 2:
+        mappings[class_name] = entry
+    return mappings

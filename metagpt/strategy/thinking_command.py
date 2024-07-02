@@ -100,7 +100,8 @@ def run_plan_command(role: Role, cmd: list[dict]):
     elif cmd["command_name"] == Command.FINISH_CURRENT_TASK.cmd_name:
         if role.planner.plan.is_plan_finished():
             return
-        role.planner.plan.current_task.update_task_result(task_result=role.task_result)
+        if role.task_result:
+            role.planner.plan.current_task.update_task_result(task_result=role.task_result)
         role.planner.plan.finish_current_task()
         role.rc.working_memory.clear()
 

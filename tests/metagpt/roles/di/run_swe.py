@@ -126,7 +126,7 @@ async def async_main():
 
     for idx, sub_dataset in enumerate(sample_datasets):
         exp_name = f"Nano-test-{date_time}-{round_}-part-{idx}"
-        swe_result_dir = DEFAULT_WORKSPACE_ROOT / "swe_agent_workdir" / f"result_{config.llm.model}" / exp_name
+        swe_result_dir = DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model}" / exp_name
         swe_result_dir.mkdir(parents=True, exist_ok=True)
         for instance in sub_dataset:
             await run(instance, swe_result_dir)
