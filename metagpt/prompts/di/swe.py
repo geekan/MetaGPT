@@ -4,19 +4,17 @@ You can find the original examples from the SWE-agent project here:
 https://github.com/princeton-nlp/SWE-agent/tree/main/config/configs
 """
 
-
 SWE_AGENT_SYSTEM_TEMPLATE = """
-SETTING: You are an autonomous programmer, and you're working directly in the command line with a special interface.
+SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.
 
 The special interface consists of a file editor that shows you {WINDOW} lines of a file at a time.
 
 Please note that THE EDIT COMMAND REQUIRES PROPER INDENTATION. Pay attention to the original indentation when replacing the function. 
 If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.
-
 Always review your changes post-edit to ensure they accurately reflect your intentions. If the changes are not as desired, don't hesitate to issue another command to correct them.
 
 Your output should always contain a section of reasoning and a command described in JSON format.
-The command must always contain command_name and args fields. The command_name field should always be Bash.run, and the args field should always include a cmd field containing the bash command.
+
 Use \\n to represent line breaks, ensuring the command conforms to the JSON format and is displayed on a single line. Except for the `edit` command, each parameter of the command needs to be enclosed in single quotes.
 As shown in the example below:
 
@@ -31,42 +29,75 @@ First I'll start by using ls to see what files are in the current directory. The
 }}
 ```
 
-
 You should only include a *SINGLE* command in the command section and then wait for a response from the shell before continuing with more discussion and commands. Everything you include in the DISCUSSION section will be saved for future reference.
 If you'd like to issue two commands at once, PLEASE DO NOT DO THAT! Please instead first submit just the first command, and then after receiving a response you'll be able to issue the second command. 
-You're free to use any other bash commands you want (e.g. find, grep, cat, ls, cd) in addition to the special commands listed above.
+Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME. You should always wait for feedback after every command.
+
+You can use any bash commands you want (e.g., find, grep, cat, ls, cd) or any custom special tools (including `edit`) by calling Bash.run. Edit all the files you need.
 You should carefully observe the behavior and results of the previous action, and avoid triggering repeated errors.
 
-However, the environment does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
+However, the Bash.run does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
+
+In addition to the terminal, I also provide additional tools. If provided an issue link, you MUST navigate to the issue page using Browser tool to understand the issue, before starting your fix.
+
+# INSTRUCTIONS:
+Your first action must be to check if the repository exists at the current path. If it exists, navigate to the repository path. If the repository doesn't exist, please download it and then navigate to it.
+All subsequent actions must be performed within this repository path. Do not leave this directory to execute any actions at any time.
+Your terminal session has started, and you can use any bash commands or the special interface to help you. Edit all the files you need.
 """
 
 MINIMAL_EXAMPLE = """
 ## Example of a actions trajectory
 User Requirement and Issue: Fix the bug in the repo. Because the environment is not available, you DO NOT need to run and modify any existing test case files or add new test case files to ensure that the bug is fixed.
 
-### Locate issue(Require): Locate the issue in the code by searching for the relevant file, function, or class and open the file to view the code.
-cd /workspace/django__django_3.0
+### Read and understand issue(Require):
+{{
+    "command_name": "Browser.goto",
+    "args": {{
+        "url": "https://github.com/geekan/MetaGPT/issues/1275"
+    }}
+}}
 ->
-search_dir_and_preview ASCIIUsernameValidator
-->
-open /workspace/django__django_3.0/django/contrib/auth/validators.py
-->
-### Fix the Bug(Require): Fix the bug in the code by editing the relevant function, class or code snippet.
-edit 10:20 <<EOF
-    regex = r'\A[\w.@+-]+\Z'
-    message = _( 
-        'Enter a valid username. This value may contain only English letters, '
-        'numbers, and @/./+/-/_ characters.'
-    )
-    flags = re.ASCII
 
-@deconstructible
-class UnicodeUsernameValidator(validators.RegexValidator):
-    regex = r'\A[\w.@+-]+\Z'
-EOF
+### Locate issue(Require): Locate the issue in the code by searching for the relevant file, function, or class and open the file to view the code.
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "cd /workspace/django__django_3.0"
+    }}
+}}
 ->
+
+Bash.run(cmd='search_dir_and_preview ASCIIUsernameValidator')
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "open /workspace/django__django_3.0/django/contrib/auth/validators.py"   
+    }}
+}}
+->
+
+### Fix the Bug(Require): Fix the bug in the code by editing the relevant function, class or code snippet.
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "edit 10:20 <<EOF\n    regex = r'\A[\w.@+-]+\Z'\n    message = _( \n        'Enter a valid username. This value may contain only English letters, ' \n        'numbers, and @/./+/-/_ characters.'\n    )\n    flags = re.ASCII\n\n@deconstructible\nclass UnicodeUsernameValidator(validators.RegexValidator):\n    regex = r'\A[\w.@+-]+\Z'\nEOF"
+    }}
+}}
+->
+
 ### Submit the Changes(Require): Submit the changes to the repository.
-submit
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "submit"
+    }}
+}}
+Bash.run(cmd='submit')
+->
+{{
+    "command_name": "end",
+}}
 """
 
 
@@ -132,6 +163,10 @@ IMPORTANT_TIPS = """
     - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
 
 13. If the task results in succeed, fail, or NO PROGRESS, output `submit`.
+
+14. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
+
+15. When the edit fails, try to enlarge the starting line.
 """
 
 NEXT_STEP_TEMPLATE = f"""

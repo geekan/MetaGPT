@@ -2,7 +2,7 @@ import subprocess
 import threading
 from queue import Queue
 
-from metagpt.const import SWE_SETUP_PATH
+from metagpt.const import SWE_SETUP_PATH, SWE_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
 
@@ -136,13 +136,14 @@ class Terminal:
 class Bash(Terminal):
     """
     A class to run bash commands directly and provides custom shell functions.
+    All custom functions in this class can ONLY be called via the `Bash.run` method.
     """
 
     def __init__(self):
         """init"""
         super().__init__()
         setup_cmd = f"source {SWE_SETUP_PATH}"
-        self.run_command(setup_cmd)
+        self.run_command(f"cd {SWE_WORKSPACE_ROOT} && {setup_cmd}")
 
     def run(self, cmd) -> str:
         """
@@ -184,7 +185,7 @@ class Bash(Terminal):
               filename (str): The name of the file to create.
 
         - submit
-          Submits your current code and terminates the session.
+          Submits your current code. it can only be executed once, the last action before the `end`.
 
         - search_dir_and_preview <search_term> [<dir>]
           Searches for search_term in all files in dir and gives their code preview

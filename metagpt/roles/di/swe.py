@@ -22,8 +22,7 @@ class SWE(RoleZero):
     _system_msg: str = SWE_AGENT_SYSTEM_TEMPLATE
     system_msg: list[str] = [_system_msg.format(WINDOW=_bash_window_size)]
     _instruction: str = NEXT_STEP_TEMPLATE
-    # tools: list[str] = ["Bash", "Browser"]
-    tools: list[str] = ["Bash"]
+    tools: list[str] = ["Bash", "Browser:goto,scroll"]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""
     max_react_loop: int = 30
@@ -75,11 +74,10 @@ class SWE(RoleZero):
         if not ok:
             return
         for cmd in commands:
-            if "submit" not in cmd.get("args", {}).get("cmd", ""):
+            if "end" != cmd.get("command_name", ""):
                 return
         try:
-            # Generate patch by git diff
-            diff_output = self.terminal.run("git diff")
+            diff_output = self.terminal.run("git diff --cached")
             clear_diff = extract_patch(diff_output)
             logger.info(f"Diff output: \n{clear_diff}")
             if clear_diff:
