@@ -25,7 +25,7 @@ class SWE(RoleZero):
     tools: list[str] = ["Bash", "Browser:goto,scroll"]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""
-    max_react_loop: int = 30
+    max_react_loop: int = 40
 
     async def _think(self) -> bool:
         self._set_system_msg()
