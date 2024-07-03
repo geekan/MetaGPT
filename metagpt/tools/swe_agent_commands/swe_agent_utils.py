@@ -16,10 +16,12 @@ def extract_patch(command_output):
 
 
 def load_hf_dataset(dataset_name_or_path: str, cache_dir, split: str = "test", existing_ids: list = []):
-    if Path(dataset_name_or_path).exists():
-        dataset = load_from_disk(dataset_name_or_path)
+    data_dir = cache_dir / dataset_name_or_path
+    if Path(data_dir).exists():
+        dataset = load_from_disk(data_dir)
     else:
-        dataset = load_dataset(dataset_name_or_path, cache_dir=cache_dir)
+        dataset = load_dataset(dataset_name_or_path)
+        dataset.save_to_disk(data_dir)
     print(dataset)
     if split not in dataset:
         raise ValueError(f"Invalid split {split} for dataset {dataset_name_or_path}")

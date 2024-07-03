@@ -177,7 +177,7 @@ create() {
 
 # @yaml
 # signature: submit
-# docstring: submits your current code and terminates the session. this is the only submit action needed; no need to run git add or git commit before this.
+# docstring: submits your current code. the last action before the `end`, it can only be executed once.
 submit() {
     # Check if the patch file exists and is non-empty
     if [ -s "$SWE_CMD_WORK_DIR/test.patch" ]; then
@@ -186,8 +186,7 @@ submit() {
     fi
 
     git add -A
-    git diff --cached > model.patch
-    echo "<<SUBMISSION||"
-    cat model.patch
-    echo "||SUBMISSION>>"
+    echo "<<SUBMISSION START||"
+    git diff --cached
+    echo "||SUBMISSION DONE>>"
 }

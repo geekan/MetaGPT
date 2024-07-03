@@ -122,6 +122,8 @@ class Browser:
 
     async def goto(self, url: str, timeout: float = 30000):
         """Navigate to a specific URL."""
+        if self.page is None:
+            await self.start()
         async with self.reporter as reporter:
             await reporter.async_report(url, "url")
             await self.page.goto(url, timeout=timeout)
