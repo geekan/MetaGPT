@@ -142,8 +142,8 @@ class Bash(Terminal):
     def __init__(self):
         """init"""
         super().__init__()
-        setup_cmd = f"source {SWE_SETUP_PATH}"
-        self.run_command(f"cd {SWE_WORKSPACE_ROOT} && {setup_cmd}")
+        self.run_command(f"cd {SWE_WORKSPACE_ROOT}")
+        self.run_command(f"source {SWE_SETUP_PATH}")
 
     def run(self, cmd) -> str:
         """
