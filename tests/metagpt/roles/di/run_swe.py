@@ -1,7 +1,6 @@
 import asyncio
 import json
 from datetime import datetime
-from pathlib import Path
 
 from metagpt.config2 import config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
@@ -11,7 +10,7 @@ from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
 # Specify by yourself
-TEST_REPO_DIR = Path("/Users/seeker/Projects/sdfz/mg/mg-swe-agent") / "benchmark" / "swe_bench" / "data" / "test_repo"
+TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
 INSTANCE_TEMPLATE = """
@@ -56,17 +55,13 @@ async def run(instance, swe_result_dir):
         logger.info(f"Instance {instance['instance_id']} already exists, skipping execution.")
         return
 
-    repo_path = Path("/Users/seeker/Projects/other/test_repo") / (
-        instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
-    )
-    # repo_path = Path("/Users/seeker/Projects/other/test_repo") / instance["repo"].split("/")[-1]
+    repo_path = TEST_REPO_DIR / instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
 
     # 前处理
     terminal = Terminal()
     terminal.run_command(f"cd {repo_path} && git reset --hard && git clean -n -d && git clean -f -d")
     terminal.run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')")
     logger.info(terminal.run_command("echo $BRANCH"))
-    # logger.info(terminal.run_command(f'Branch name: $BRANCH'))
     logger.info(terminal.run_command('git checkout "$BRANCH"'))
     logger.info(terminal.run_command("git branch"))
 
@@ -103,9 +98,9 @@ async def async_main():
     dataset_path = "manna-ai/SWE-bench_Nano"  # "princeton-nlp/SWE-bench_Lite" #"manna-ai/SWE-bench_Nano"
 
     dataset = load_hf_dataset(dataset_name_or_path=dataset_path, cache_dir=DATA_DIR, split="test")
-    date_time = datetime.now().strftime("%m-%d")
-    # _round = "first"
-    _round = "second"
+    date_time = datetime.now().strftime("%m%d")
+    _round = "first"
+    # _round = "second"
     exp_name = f"nano_mgx_{date_time}_{_round}"
     swe_result_dir = DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}" / exp_name
     swe_result_dir.mkdir(parents=True, exist_ok=True)
