@@ -4,7 +4,7 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Literal, Tuple
+from typing import Callable, Dict, List, Literal, Tuple
 
 from pydantic import model_validator
 
@@ -167,25 +167,15 @@ class RoleZero(Role):
         if self.use_fixed_sop:
             return await super()._act()
 
-        try:
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
-            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError:
-            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
-            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(tb)
-            error_msg = UserMessage(content=str(e))
-            self.rc.memory.add(error_msg)
+        commands, ok = await self._parse_commands()
+        if not ok:
+            error_msg = commands
             return error_msg
-
-        # 为了对LLM不按格式生成进行容错
-        if isinstance(commands, dict):
-            commands = commands["commands"] if "commands" in commands else [commands]
-
+        logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
+        logger.info(f"Commands outputs: \n{outputs}")
         self.rc.memory.add(UserMessage(content=outputs))
+
         return AIMessage(
             content=f"Complete run with outputs: {outputs}",
             sent_from=self.name,
@@ -211,6 +201,35 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
+
+    async def _parse_commands(self) -> Tuple[List[Dict], bool]:
+        """Retrieves commands from the Large Language Model (LLM).
+
+        This function attempts to retrieve a list of commands from the LLM by
+        processing the response (`self.command_rsp`). It handles potential errors
+        during parsing and LLM response formats.
+
+        Returns:
+            A tuple containing:
+                - A boolean flag indicating success (True) or failure (False).
+        """
+        try:
+            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
+        except json.JSONDecodeError:
+            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
+            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+            error_msg = UserMessage(content=str(e))
+            self.rc.memory.add(error_msg)
+            return error_msg, False
+
+        # 为了对LLM不按格式生成进行容错
+        if isinstance(commands, dict):
+            commands = commands["commands"] if "commands" in commands else [commands]
+        return commands, True
 
     async def _run_commands(self, commands) -> str:
         outputs = []
