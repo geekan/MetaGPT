@@ -4,7 +4,7 @@ import os
 from pydantic import Field
 
 from metagpt.logs import logger
-from metagpt.prompts.di.swe import (
+from metagpt.prompts.di.swe_agent import (
     MINIMAL_EXAMPLE,
     NEXT_STEP_TEMPLATE,
     SWE_AGENT_SYSTEM_TEMPLATE,
