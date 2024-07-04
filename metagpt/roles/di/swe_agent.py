@@ -4,14 +4,13 @@ import os
 from pydantic import Field
 
 from metagpt.logs import logger
-from metagpt.prompts.di.swe import (
+from metagpt.prompts.di.swe_agent import (
     MINIMAL_EXAMPLE,
     NEXT_STEP_TEMPLATE,
     SWE_AGENT_SYSTEM_TEMPLATE,
 )
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.terminal import Bash
-from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
 
 
 class SWEAgent(RoleZero):
@@ -72,6 +71,9 @@ class SWEAgent(RoleZero):
 
         This function is specifically added for SWE bench evaluation.
         """
+        # only import when evaluation is needed
+        from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
+
         commands, ok = await self._parse_commands()
         if not ok:
             return
