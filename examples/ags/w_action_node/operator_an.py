@@ -11,6 +11,9 @@ class GenerateOp(BaseModel):
 class GenerateCodeOp(BaseModel):
     code_solution: str = Field(default="", description="Your Code Solution for this problem")
 
+class GenerateCodeBlockOp(BaseModel):
+    code_solution: str = Field(default="", description="Your Code Solution for this problem")
+
 class ReviewOp(BaseModel):
     review_result: bool = Field(default=False, description="The Review Result (Bool). If you think this solution looks good for you, return 'true'; If not, return 'false'")
     feedback: str = Field(default="", description="Your FeedBack for this problem based on the criteria. If the review result is true, you can put it 'nothing here'.")
@@ -21,5 +24,6 @@ class ReviseOp(BaseModel):
 class EnsembleOp(BaseModel):
     final_solution: str = Field(default="", description="Final ensemble solution for this problem")
 
-class ScEnsembleOp(BaseModel):
-    solution_number: int = Field(default="", description="Choose The Best Solution Between These, and outp[ut the solution number")
+class MdEnsembleOp(BaseModel):
+    thought: str = Field(default="", description="Analyze the solutions and think what's the best step by step.")
+    solution_letter: str = Field(default="", description="Choose The Best Solution, and output the solution letter")

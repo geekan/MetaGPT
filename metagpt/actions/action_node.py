@@ -41,6 +41,7 @@ TAG = "CONTENT"
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
 
+
 SIMPLE_TEMPLATE = """
 ## context
 {context}
@@ -146,6 +147,8 @@ class ActionNode:
     # For ActionGraph
     prevs: List["ActionNode"]  # previous nodes
     nexts: List["ActionNode"]  # next nodes
+
+    MODE_CODE_FILL = "code_fill"
 
     def __init__(
         self,
@@ -464,6 +467,56 @@ class ActionNode:
 
         return self
 
+    def get_field_name(self):
+        """
+        Get the field name from the Pydantic model associated with this ActionNode.
+        """
+        model_class = self.create_class()
+        fields = model_class.model_fields
+        
+        # Assuming there's only one field in the model
+        if len(fields) == 1:
+            return next(iter(fields))
+        
+        # If there are multiple fields, we might want to use self.key to find the right one
+        return self.key
+    
+    async def code_fill(
+        self,
+        context,
+        timeout=USE_CONFIG_TIMEOUT
+    ):
+        """
+        fill CodeBlock Node
+        """
+
+        def extract_code_from_response(response):
+            """
+            Extracts code wrapped in triple backticks from the response,
+            removing any language specifier.
+            
+            :param response: The full response from the LLM
+            :return: The extracted code, or None if no code is found
+            """
+            code_pattern = r"```(?:\w+\n)?([\s\S]*?)```"
+            matches = re.findall(code_pattern, response)
+            
+            if matches:
+                # The first group in the regex contains the code without the language specifier
+                code = matches[0].strip()
+                return code
+            return None
+        
+        import re
+        field_name = self.get_field_name()
+        prompt = context
+        prompt += "\nPlease wrap the generated code within triple backticks, like this: ```<code>```"
+        content = await self.llm.aask(prompt, timeout=timeout)
+    
+        extracted_code = extract_code_from_response(content)    
+        result = {field_name: extracted_code}
+        return result
+
     async def fill(
         self,
         context,
@@ -499,6 +552,11 @@ class ActionNode:
         self.set_context(context)
         if self.schema:
             schema = self.schema
+
+        if mode == self.MODE_CODE_FILL:
+            result = await self.code_fill(context, timeout)
+            self.instruct_content = self.create_class()(**result)
+            return self
 
         if strgy == "simple":
             return await self.simple_fill(schema=schema, mode=mode, images=images, timeout=timeout, exclude=exclude)

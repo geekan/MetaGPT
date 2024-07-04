@@ -9,8 +9,20 @@ Generate Solution for the following problem: {problem_description}
 """
 
 GENERATE_CODE_PROMPT = """
-Generate Code Solution for the following problem: {problem_description}
+Below is an instruction that describes a task, paired with an input that provides further context.
+Write a response that appropriately completes the request.
+
+### Instruction:
+Write a program to perform the given task.
+
+Input:
+{problem_description}
+
+### Response:
 """
+# GENERATE_CODE_PROMPT = """
+# Generate Code Solution for the following problem: {problem_description}
+# """
 
 REVIEW_PROMPT = """
 For the question described as {problem_description},
@@ -27,4 +39,15 @@ Then output the revised solution.
 ENSEMBLE_PROMPT = """
 For the question described as {problem_description}, Solutions: {solutions}
 Please select the solution that appears most frequently from these options and ensemble this to provide best solution.
+"""
+
+MD_ENSEMBLE_PROMPT = """
+# Context
+For the question described as {problem_description}, 
+Solutions can be seen below: 
+{solutions}
+
+# Instruction
+Based on the problem and solution candidates, carefully analyze which is the best answer. Focus solely on the correctness of the solution in addressing the problem.
+Provide your final decision by writing the chosen solution number (e.g., A).
 """
