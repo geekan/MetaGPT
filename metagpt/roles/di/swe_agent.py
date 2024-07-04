@@ -29,14 +29,14 @@ class SWEAgent(RoleZero):
     run_eval: bool = False
 
     async def _think(self) -> bool:
-        self._set_system_msg()
+        self._update_system_msg()
         self._format_instruction()
         res = await super()._think()
         if self.run_eval:
             await self._parse_commands_for_eval()
         return res
 
-    def _set_system_msg(self):
+    def _update_system_msg(self):
         """
         Sets the system message for the SWE agent.
 
