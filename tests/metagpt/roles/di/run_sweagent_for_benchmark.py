@@ -5,7 +5,7 @@ from datetime import datetime
 from metagpt.config2 import config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
 from metagpt.logs import logger
-from metagpt.roles.di.swe import SWE
+from metagpt.roles.di.swe_agent import SWEAgent
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
@@ -74,13 +74,14 @@ async def run(instance, swe_result_dir):
     )
 
     logger.info(f"**** Starting to run {instance['instance_id']}****")
-    swe_agent = SWE()
+    swe_agent = SWEAgent()
+    swe_agent.run_eval = True
     await swe_agent.run(user_requirement_and_issue)
     save_predictions(swe_agent, instance, swe_result_dir)
     logger.info(f"**** Finished running {instance['instance_id']}****")
 
 
-def save_predictions(swe_agent: SWE, instance, swe_result_dir):
+def save_predictions(swe_agent: SWEAgent, instance, swe_result_dir):
     output_file = swe_result_dir / "all_preds.jsonl"
     instance["model_name_or_path"] = swe_agent.config.llm.model
     instance["model_patch"] = swe_agent.output_diff

@@ -14,9 +14,9 @@ from metagpt.tools.libs.terminal import Bash
 from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
 
 
-class SWE(RoleZero):
-    name: str = "SweAgent"
-    profile: str = "Software Engineer"
+class SWEAgent(RoleZero):
+    name: str = "Swen"
+    profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue"
     _bash_window_size: int = 100
     _system_msg: str = SWE_AGENT_SYSTEM_TEMPLATE
@@ -26,12 +26,14 @@ class SWE(RoleZero):
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""
     max_react_loop: int = 40
+    run_eval: bool = False
 
     async def _think(self) -> bool:
         self._set_system_msg()
         self._format_instruction()
         res = await super()._think()
-        await self._handle_action()
+        if self.run_eval:
+            await self._parse_commands_for_eval()
         return res
 
     def _set_system_msg(self):
@@ -61,7 +63,7 @@ class SWE(RoleZero):
 
         return self.instruction
 
-    async def _handle_action(self):
+    async def _parse_commands_for_eval(self):
         """
         Handles actions based on parsed commands.
 

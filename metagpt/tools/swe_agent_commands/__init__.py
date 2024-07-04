@@ -1,5 +1,5 @@
 """
-This tool is originally developed by the team behind the princeton-nlp/SWE-agent repository.
+This folder is borrowed from princeton-nlp/SWE-agent
 You can find the original repository here:
 https://github.com/princeton-nlp/SWE-agent/tree/main/config/commands
 We are using a modified version from OpenDevin:
