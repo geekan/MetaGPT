@@ -2,7 +2,7 @@ import subprocess
 import threading
 from queue import Queue
 
-from metagpt.const import SWE_SETUP_PATH, SWE_WORKSPACE_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
 
@@ -142,7 +142,7 @@ class Bash(Terminal):
     def __init__(self):
         """init"""
         super().__init__()
-        self.run_command(f"cd {SWE_WORKSPACE_ROOT}")
+        self.run_command(f"cd {DEFAULT_WORKSPACE_ROOT}")
         self.run_command(f"source {SWE_SETUP_PATH}")
 
     def run(self, cmd) -> str:
