@@ -55,7 +55,7 @@ async def run(instance, swe_result_dir):
         logger.info(f"Instance {instance['instance_id']} already exists, skipping execution.")
         return
 
-    repo_path = TEST_REPO_DIR / instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
+    repo_path = TEST_REPO_DIR / (instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"])
 
     # 前处理
     terminal = Terminal()
