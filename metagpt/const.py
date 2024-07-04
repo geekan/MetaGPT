@@ -149,8 +149,6 @@ METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
 
 # Metadata defines
 AGENT = "agent"
-SWE_WORKSPACE_ROOT = Path("/tmp/swe_workspace")
-if not SWE_WORKSPACE_ROOT.exists():
-    SWE_WORKSPACE_ROOT.mkdir(parents=True)
+
 # SWE agent
 SWE_SETUP_PATH = METAGPT_ROOT / "metagpt/tools/swe_agent_commands/setup_default.sh"
