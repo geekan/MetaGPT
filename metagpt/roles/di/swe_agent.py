@@ -11,7 +11,6 @@ from metagpt.prompts.di.swe_agent import (
 )
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.terminal import Bash
-from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
 
 
 class SWEAgent(RoleZero):
@@ -72,6 +71,9 @@ class SWEAgent(RoleZero):
 
         This function is specifically added for SWE bench evaluation.
         """
+        # only import when evaluation is needed
+        from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
+
         commands, ok = await self._parse_commands()
         if not ok:
             return
