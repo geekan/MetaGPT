@@ -10,6 +10,7 @@ from metagpt.prompts.di.swe_agent import (
     SWE_AGENT_SYSTEM_TEMPLATE,
 )
 from metagpt.roles.di.role_zero import RoleZero
+from metagpt.tools.libs.git import git_create_pull, git_push
 from metagpt.tools.libs.terminal import Bash
 
 
@@ -21,7 +22,13 @@ class SWEAgent(RoleZero):
     _system_msg: str = SWE_AGENT_SYSTEM_TEMPLATE
     system_msg: list[str] = [_system_msg.format(WINDOW=_bash_window_size)]
     _instruction: str = NEXT_STEP_TEMPLATE
-    tools: list[str] = ["Bash", "Browser:goto,scroll"]
+    tools: list[str] = [
+        "Bash",
+        "Browser:goto,scroll",
+        "RoleZero",
+        "git_push",
+        "git_create_pull",
+    ]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""
     max_react_loop: int = 40
@@ -34,6 +41,15 @@ class SWEAgent(RoleZero):
         if self.run_eval:
             await self._parse_commands_for_eval()
         return res
+
+    def _update_tool_execution(self):
+        self.tool_execution_map.update(
+            {
+                "Bash.run": self.terminal.run,
+                "git_push": git_push,
+                "git_create_pull": git_create_pull,
+            }
+        )
 
     def _update_system_msg(self):
         """
@@ -89,9 +105,6 @@ class SWEAgent(RoleZero):
 
         except Exception as e:
             logger.error(f"Error during submission: {e}")
-
-    def _update_tool_execution(self):
-        self.tool_execution_map.update({"Bash.run": self.terminal.run})
 
     def _retrieve_experience(self) -> str:
         return MINIMAL_EXAMPLE
