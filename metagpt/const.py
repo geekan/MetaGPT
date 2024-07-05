@@ -20,12 +20,6 @@ import metagpt
 def get_metagpt_package_root():
     """Get the root directory of the installed package."""
     package_root = Path(metagpt.__file__).parent.parent
-    for i in (".git", ".project_root", ".gitignore"):
-        if (package_root / i).exists():
-            break
-    else:
-        package_root = Path.cwd()
-
     logger.info(f"Package root set to {str(package_root)}")
     return package_root
 
@@ -40,6 +34,12 @@ def get_metagpt_root():
     else:
         # Fallback to package root if no environment variable is set
         project_root = get_metagpt_package_root()
+        for i in (".git", ".project_root", ".gitignore"):
+            if (project_root / i).exists():
+                break
+        else:
+            project_root = Path.cwd()
+
     return project_root
 
 
@@ -151,4 +151,4 @@ METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
 AGENT = "agent"
 
 # SWE agent
-SWE_SETUP_PATH = METAGPT_ROOT / "metagpt/tools/swe_agent_commands/setup_default.sh"
+SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/setup_default.sh"
