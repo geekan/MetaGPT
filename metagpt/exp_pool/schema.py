@@ -3,7 +3,6 @@
 from enum import Enum
 from typing import Optional
 
-from llama_index.core.schema import TextNode
 from pydantic import BaseModel, Field
 
 MAX_SCORE = 10
@@ -71,18 +70,3 @@ class Experience(BaseModel):
 
     def rag_key(self):
         return self.req
-
-
-class ExperienceNodeMetadata(BaseModel):
-    """Metadata of ExperienceNode."""
-
-    resp: str = Field(..., description="")
-
-
-class ExperienceNode(TextNode):
-    """ExperienceNode for RAG."""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.excluded_llm_metadata_keys = list(ExperienceNodeMetadata.model_fields.keys())
-        self.excluded_embed_metadata_keys = self.excluded_llm_metadata_keys
