@@ -4,20 +4,25 @@ from metagpt.config2 import Config
 from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.exp_pool.manager import ExperienceManager
-from metagpt.exp_pool.schema import MAX_SCORE, Experience, Metric, Score
+from metagpt.exp_pool.schema import Experience
 from metagpt.rag.engines import SimpleEngine
 
 
 class TestExperienceManager:
     @pytest.fixture
     def mock_config(self):
-        return Config(llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True))
+        return Config(
+            llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True, init_exp=False)
+        )
 
     @pytest.fixture
     def mock_storage(self, mocker):
         engine = mocker.MagicMock(spec=SimpleEngine)
         engine.add_objs = mocker.MagicMock()
         engine.aretrieve = mocker.AsyncMock(return_value=[])
+        engine._retriever = mocker.MagicMock()
+        engine._retriever._vector_store = mocker.MagicMock()
+        engine._retriever._vector_store._get = mocker.MagicMock(return_value=mocker.MagicMock(ids=[]))
         return engine
 
     @pytest.fixture
@@ -33,7 +38,7 @@ class TestExperienceManager:
 
     def test_create_exp(self, mock_experience_manager, mock_experience):
         mock_experience_manager.create_exp(mock_experience)
-        mock_experience_manager.storage.add_objs.assert_called_once_with([mock_experience])
+        mock_experience_manager.storage.add_objs.assert_called_with([mock_experience])
 
     def test_create_exp_write_disabled(self, mock_experience_manager, mock_experience, mock_config):
         mock_config.exp_pool.enable_write = False
@@ -60,18 +65,44 @@ class TestExperienceManager:
         result = await mock_experience_manager.query_exps("query")
         assert result == []
 
-    def test_extract_one_perfect_exp(self, mock_experience_manager):
-        experiences = [
-            Experience(req="req", resp="resp", metric=Metric(score=Score(val=MAX_SCORE))),
-            Experience(req="req", resp="resp"),
-        ]
-        perfect_exp: Experience = mock_experience_manager.extract_one_perfect_exp(experiences)
-        assert perfect_exp is not None
-        assert perfect_exp.metric.score.val == MAX_SCORE
+    def test_init_exp_pool(self, mock_experience_manager, mock_config, mocker):
+        mock_experience_manager._has_exps = mocker.MagicMock(return_value=False)
+        mock_experience_manager._init_teamleader_exps = mocker.MagicMock()
+        mock_experience_manager._init_engineer2_exps = mocker.MagicMock()
 
-    def test_is_perfect_exp(self):
-        exp = Experience(req="req", resp="resp", metric=Metric(score=Score(val=MAX_SCORE)))
-        assert ExperienceManager.is_perfect_exp(exp) == True
+        mock_config.exp_pool.init_exp = True
+        mock_experience_manager.init_exp_pool()
 
-        exp = Experience(req="req", resp="resp")
-        assert ExperienceManager.is_perfect_exp(exp) == False
+        mock_experience_manager._has_exps.assert_called_once()
+        mock_experience_manager._init_teamleader_exps.assert_called_once()
+        mock_experience_manager._init_engineer2_exps.assert_called_once()
+
+    def test_init_exp_pool_already_has_exps(self, mock_experience_manager, mock_config, mocker):
+        mock_experience_manager._has_exps = mocker.MagicMock(return_value=True)
+        mock_experience_manager._init_teamleader_exps = mocker.MagicMock()
+        mock_experience_manager._init_engineer2_exps = mocker.MagicMock()
+
+        mock_config.exp_pool.init_exp = True
+        mock_experience_manager.init_exp_pool()
+
+        mock_experience_manager._has_exps.assert_called_once()
+        mock_experience_manager._init_teamleader_exps.assert_not_called()
+        mock_experience_manager._init_engineer2_exps.assert_not_called()
+
+    def test_has_exps(self, mock_experience_manager, mock_storage):
+        mock_storage._retriever._vector_store._get.return_value.ids = ["id1"]
+
+        assert mock_experience_manager._has_exps() is True
+
+        mock_storage._retriever._vector_store._get.return_value.ids = []
+        assert mock_experience_manager._has_exps() is False
+
+    def test_init_teamleader_exps(self, mock_experience_manager, mocker):
+        mock_experience_manager._init_exp = mocker.MagicMock()
+        mock_experience_manager._init_teamleader_exps()
+        mock_experience_manager._init_exp.assert_called_once()
+
+    def test_init_engineer2_exps(self, mock_experience_manager, mocker):
+        mock_experience_manager._init_exp = mocker.MagicMock()
+        mock_experience_manager._init_engineer2_exps()
+        mock_experience_manager._init_exp.assert_called_once()

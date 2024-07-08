@@ -7,16 +7,15 @@ from metagpt.exp_pool import exp_cache, exp_manager
 from metagpt.logs import logger
 
 
-@exp_cache(pass_exps_to_func=True)
-async def produce(req, exps=None):
-    logger.info(f"Previous experiences: {exps}")
+@exp_cache()
+async def produce(req=""):
     return f"{req} {uuid.uuid4().hex}"
 
 
 async def main():
     req = "Water"
 
-    resp = await produce(req)
+    resp = await produce(req=req)
     logger.info(f"The resp of `produce{req}` is: {resp}")
 
     exps = await exp_manager.query_exps(req)

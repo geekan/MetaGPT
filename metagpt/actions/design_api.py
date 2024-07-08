@@ -178,12 +178,12 @@ class WriteDesign(Action):
         )
 
     async def _new_system_design(self, context):
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)
+        node = await DESIGN_API_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         return node
 
     async def _merge(self, prd_doc, system_design_doc):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm, schema=self.prompt_schema)
+        node = await REFINED_DESIGN_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 

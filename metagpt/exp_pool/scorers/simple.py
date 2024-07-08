@@ -1,4 +1,4 @@
-"""Simple Scorer."""
+"""Simple scorer."""
 
 import inspect
 import json
@@ -7,7 +7,7 @@ from typing import Any, Callable
 from pydantic import Field
 
 from metagpt.exp_pool.schema import Score
-from metagpt.exp_pool.scorers.base import ExperienceScorer
+from metagpt.exp_pool.scorers.base import BaseScorer
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import CodeParser
@@ -54,7 +54,7 @@ Follow instructions, generate output and make sure it follows the **Constraint**
 """
 
 
-class SimpleScorer(ExperienceScorer):
+class SimpleScorer(BaseScorer):
     llm: BaseLLM = Field(default_factory=LLM)
 
     async def evaluate(self, func: Callable, result: Any, args: tuple = None, kwargs: dict = None) -> Score:

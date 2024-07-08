@@ -1,12 +1,15 @@
 """Experience schema."""
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 
 from llama_index.core.schema import TextNode
 from pydantic import BaseModel, Field
 
 MAX_SCORE = 10
+
+DEFAULT_COLLECTION_NAME = "experience_pool"
+DEFAULT_SIMILARITY_TOP_K = 2
 
 
 class QueryType(str, Enum):
@@ -59,7 +62,7 @@ class Experience(BaseModel):
     """Experience."""
 
     req: str = Field(..., description="")
-    resp: Any = Field(..., description="The type is string/json/code.")
+    resp: str = Field(..., description="The type is string/json/code.")
     metric: Optional[Metric] = Field(default=None, description="Metric.")
     exp_type: ExperienceType = Field(default=ExperienceType.SUCCESS, description="The type of experience.")
     entry_type: EntryType = Field(default=EntryType.AUTOMATIC, description="Type of entry: Manual or Automatic.")

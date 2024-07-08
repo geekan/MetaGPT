@@ -151,12 +151,12 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context: str):
-        node = await PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
+        node = await PM_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         return node
 
     async def _merge(self, system_design_doc, task_doc) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_task=task_doc.content)
-        node = await REFINED_PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
+        node = await REFINED_PM_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 

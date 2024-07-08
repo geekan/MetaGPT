@@ -75,8 +75,10 @@ s3:
   bucket: "test"
 
 exp_pool:
-  enable_read: true
-  enable_write: true
+  enable_read: false 
+  enable_write: false
+  persist_path: .chroma_exp_data # The directory.
+  init_exp: false # If set to true, basic experiences associated with the roles will be added to the experience pool.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

@@ -1,13 +1,22 @@
 """Experience Manager."""
 
-from typing import Optional
-
+from llama_index.vector_stores.chroma import ChromaVectorStore
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from metagpt.config2 import Config, config
-from metagpt.exp_pool.schema import MAX_SCORE, Experience, QueryType
+from metagpt.exp_pool.schema import (
+    DEFAULT_COLLECTION_NAME,
+    DEFAULT_SIMILARITY_TOP_K,
+    EntryType,
+    Experience,
+    Metric,
+    QueryType,
+    Score,
+)
+from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE, TL_EXAMPLE
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -27,13 +36,32 @@ class ExperienceManager(BaseModel):
     @model_validator(mode="after")
     def initialize(self):
         if self.storage is None:
-            self.storage = SimpleEngine.from_objs(
-                retriever_configs=[
-                    ChromaRetrieverConfig(collection_name="experience_pool", persist_path=".chroma_exp_data")
-                ],
-                ranker_configs=[LLMRankerConfig()],
-            )
+            retriever_configs = [
+                ChromaRetrieverConfig(
+                    persist_path=self.config.exp_pool.persist_path,
+                    collection_name=DEFAULT_COLLECTION_NAME,
+                    similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
+                )
+            ]
+            ranker_configs = [LLMRankerConfig()]
+
+            self.storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
+
+        self.init_exp_pool()
+
         return self
+
+    @handle_exception
+    def init_exp_pool(self):
+        if not self.config.exp_pool.init_exp:
+            return
+
+        if self._has_exps():
+            return
+
+        self._init_teamleader_exps()
+        self._init_engineer2_exps()
+        logger.info("`init_exp_pool` done.")
 
     @handle_exception
     def create_exp(self, exp: Experience):
@@ -74,39 +102,26 @@ class ExperienceManager(BaseModel):
 
         return exps
 
-    def extract_one_perfect_exp(self, exps: list[Experience]) -> Optional[Experience]:
-        """Extracts the first 'perfect' experience from a list of experiences.
+    def _has_exps(self) -> bool:
+        vector_store: ChromaVectorStore = self.storage._retriever._vector_store
 
-        Args:
-            exps (list[Experience]): The experiences to evaluate.
+        return bool(vector_store._get(limit=1, where={}).ids)
 
-        Returns:
-            Optional[Experience]: The first perfect experience if found, otherwise None.
-        """
-        for exp in exps:
-            if self.is_perfect_exp(exp):
-                return exp
+    def _init_exp(self, req: str, resp: str, tag: str, metric: Metric = None):
+        exp = Experience(
+            req=req,
+            resp=resp,
+            entry_type=EntryType.MANUAL,
+            tag=tag,
+            metric=metric or Metric(score=Score(val=9, reason="Manual")),
+        )
+        self.create_exp(exp)
 
-        return None
+    def _init_teamleader_exps(self):
+        self._init_exp(req=TL_EXAMPLE, resp=TL_EXAMPLE, tag="TeamLeader.llm_cached_aask")
 
-    @staticmethod
-    def is_perfect_exp(exp: Experience) -> bool:
-        """Determines if an experience is considered 'perfect'.
-
-        Args:
-            exp (Experience): The experience to evaluate.
-
-        Returns:
-            bool: True if the experience is manually entered, otherwise False.
-        """
-        if not exp:
-            return False
-
-        # TODO: need more metrics
-        if exp.metric and exp.metric.score.val == MAX_SCORE:
-            return True
-
-        return False
+    def _init_engineer2_exps(self):
+        self._init_exp(req=ENGINEER_EXAMPLE, resp=ENGINEER_EXAMPLE, tag="Engineer2.llm_cached_aask")
 
 
 exp_manager = ExperienceManager()

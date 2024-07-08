@@ -211,7 +211,7 @@ class WritePRD(Action):
         context = CONTEXT_TEMPLATE.format(requirements=requirement, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
         node = await WRITE_PRD_NODE.fill(
-            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+            req=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
         )  # schema=schema
         return node
 
@@ -238,7 +238,7 @@ class WritePRD(Action):
     async def _is_bugfix(self, context: str) -> bool:
         if not self.repo.code_files_exists():
             return False
-        node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
+        node = await WP_ISSUE_TYPE_NODE.fill(req=context, llm=self.llm)
         return node.get("issue_type") == "BUG"
 
     async def get_related_docs(self, req: Document, docs: list[Document]) -> list[Document]:
@@ -248,14 +248,14 @@ class WritePRD(Action):
 
     async def _is_related(self, req: Document, old_prd: Document) -> bool:
         context = NEW_REQ_TEMPLATE.format(old_prd=old_prd.content, requirements=req.content)
-        node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
+        node = await WP_IS_RELATIVE_NODE.fill(req=context, llm=self.llm)
         return node.get("is_relative") == "YES"
 
     async def _merge(self, req: Document, related_doc: Document) -> Document:
         if not self.project_name:
             self.project_name = Path(self.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=req.content, old_prd=related_doc.content)
-        node = await REFINED_PRD_NODE.fill(context=prompt, llm=self.llm, schema=self.prompt_schema)
+        node = await REFINED_PRD_NODE.fill(req=prompt, llm=self.llm, schema=self.prompt_schema)
         related_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return related_doc

@@ -1,6 +1,6 @@
-"""Experience Scorers."""
+"""Base scorer."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Callable
 
 from pydantic import BaseModel, ConfigDict
@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 from metagpt.exp_pool.schema import Score
 
 
-class ExperienceScorer(BaseModel):
+class BaseScorer(BaseModel, ABC):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod

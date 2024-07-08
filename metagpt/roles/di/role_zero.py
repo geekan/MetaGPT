@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import inspect
 import json
 import re
@@ -10,8 +11,14 @@ from pydantic import model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.logs import logger
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION, JSON_REPAIR_PROMPT
+from metagpt.prompts.di.role_zero import (
+    CMD_PROMPT,
+    JSON_REPAIR_PROMPT,
+    ROLE_INSTRUCTION,
+)
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
 from metagpt.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
@@ -21,8 +28,8 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser
+from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
-from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -154,10 +161,36 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
-            self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
+            self.command_rsp = await self.llm_cached_aask(req=context, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
+
+    @exp_cache(context_builder=RoleZeroContextBuilder(), req_serialize=lambda req: RoleZero._req_serialize(req))
+    async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str]) -> str:
+        return await self.llm.aask(req, system_msgs=system_msgs)
+
+    @staticmethod
+    def _req_serialize(req: list[dict]) -> str:
+        """Serialize the request for database storage, ensuring it is a string.
+
+        This function deep copies the request and modifies the content of the last element
+        to remove unnecessary sections, making the request more concise.
+        """
+
+        req_copy = copy.deepcopy(req)
+
+        last_content = req_copy[-1]["content"]
+        last_content = RoleZeroContextBuilder.replace_content_between_markers(
+            last_content, "# Data Structure", "# Current Plan", ""
+        )
+        last_content = RoleZeroContextBuilder.replace_content_between_markers(
+            last_content, "# Example", "# Instruction", ""
+        )
+
+        req_copy[-1]["content"] = last_content
+
+        return json.dumps(req_copy)
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
@@ -166,7 +199,7 @@ class RoleZero(Role):
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
