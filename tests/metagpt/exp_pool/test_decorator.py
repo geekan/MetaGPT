@@ -2,6 +2,8 @@ import asyncio
 
 import pytest
 
+from metagpt.config2 import Config
+from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 from metagpt.exp_pool.context_builders import SimpleContextBuilder
 from metagpt.exp_pool.decorator import ExpCacheHandler, exp_cache
 from metagpt.exp_pool.manager import ExperienceManager
@@ -20,6 +22,8 @@ class TestExpCacheHandler:
     def mock_exp_manager(self, mocker):
         manager = mocker.MagicMock(spec=ExperienceManager)
         manager.storage = mocker.MagicMock(spec=SimpleEngine)
+        manager.config = mocker.MagicMock(spec=Config)
+        manager.config.exp_pool = ExperiencePoolConfig()
         manager.query_exps = mocker.AsyncMock()
         manager.create_exp = mocker.MagicMock()
         return manager
@@ -131,9 +135,10 @@ class TestExpCacheHandler:
 
 class TestExpCache:
     @pytest.fixture
-    def mock_exp_manager(self, mocker):
+    def mock_exp_manager(self, mocker, mock_config):
         manager = mocker.MagicMock(spec=ExperienceManager)
         manager.storage = mocker.MagicMock(spec=SimpleEngine)
+        manager.config = mock_config
         manager.query_exps = mocker.AsyncMock()
         manager.create_exp = mocker.MagicMock()
         return manager

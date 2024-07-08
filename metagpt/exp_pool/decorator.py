@@ -159,7 +159,7 @@ class ExpCacheHandler(BaseModel):
     async def evaluate_experience(self):
         """Evaluate the experience, and save the score."""
 
-        self._score = await self.exp_scorer.evaluate(self.func, self._resp, self.args, self.kwargs)
+        self._score = await self.exp_scorer.evaluate(self._req, self._resp)
 
     def save_experience(self):
         """Save the new experience."""

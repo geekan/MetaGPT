@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from metagpt.exp_pool.schema import Score
@@ -20,30 +22,43 @@ class TestSimpleScorer:
         assert isinstance(scorer.llm, BaseLLM)
 
     @pytest.mark.asyncio
-    async def test_evaluate(self, simple_scorer, mock_llm):
-        # Mock function to evaluate
-        def mock_func(a, b):
-            """This is a mock function."""
-            return a + b
+    async def test_evaluate(self, simple_scorer, mock_llm, mocker):
+        # Mock request and response
+        req = "What is the capital of France?"
+        resp = "The capital of France is Paris."
 
         # Mock LLM response
-        mock_llm.aask.return_value = '```json\n{"val": 8, "reason": "Good performance"}\n```'
+        mock_llm_response = '{"val": 9, "reason": "Accurate and concise answer"}'
+        mock_llm.aask.return_value = f"```json\n{mock_llm_response}\n```"
+
+        # Mock CodeParser.parse_code
+        mocker.patch("metagpt.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
 
         # Test evaluate method
-        result = await simple_scorer.evaluate(mock_func, 5, args=(2, 3), kwargs={})
+        result = await simple_scorer.evaluate(req, resp)
 
         # Assert LLM was called with correct prompt
-        expected_prompt = SIMPLE_SCORER_TEMPLATE.format(
-            func_name=mock_func.__name__,
-            func_doc=mock_func.__doc__,
-            func_signature="(a, b)",
-            func_args=(2, 3),
-            func_kwargs={},
-            func_result=5,
-        )
+        expected_prompt = SIMPLE_SCORER_TEMPLATE.format(req=req, resp=resp)
         mock_llm.aask.assert_called_once_with(expected_prompt)
 
         # Assert the result is correct
         assert isinstance(result, Score)
-        assert result.val == 8
-        assert result.reason == "Good performance"
+        assert result.val == 9
+        assert result.reason == "Accurate and concise answer"
+
+    @pytest.mark.asyncio
+    async def test_evaluate_invalid_response(self, simple_scorer, mock_llm, mocker):
+        # Mock request and response
+        req = "What is the capital of France?"
+        resp = "The capital of France is Paris."
+
+        # Mock LLM response with invalid JSON
+        mock_llm_response = "Invalid JSON"
+        mock_llm.aask.return_value = f"```json\n{mock_llm_response}\n```"
+
+        # Mock CodeParser.parse_code
+        mocker.patch("metagpt.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
+
+        # Test evaluate method with invalid response
+        with pytest.raises(json.JSONDecodeError):
+            await simple_scorer.evaluate(req, resp)
