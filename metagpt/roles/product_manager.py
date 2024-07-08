@@ -9,9 +9,10 @@
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
+from metagpt.actions.requirement_analysis.requirement.pic2txt import Pic2Txt
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.roles.role import RoleReactMode
-from metagpt.utils.common import any_to_name, any_to_str
+from metagpt.utils.common import any_to_name, any_to_str, tool2name
 from metagpt.utils.git_repository import GitRepository
 
 
@@ -32,9 +33,9 @@ class ProductManager(RoleZero):
     constraints: str = "utilize the same language as the user requirements for seamless communication"
     todo_action: str = any_to_name(WritePRD)
 
-    instruction: str = """Use WritePRD tool to write PRD"""
+    instruction: str = """Use WritePRD tool to write PRD if a PRD is required; Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WritePRD"]
+    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WritePRD", Pic2Txt.__name__]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -47,12 +48,9 @@ class ProductManager(RoleZero):
 
     def _update_tool_execution(self):
         wp = WritePRD()
-        self.tool_execution_map.update(
-            {
-                "WritePRD.run": wp.run,
-                "WritePRD": wp.run,  # alias
-            }
-        )
+        self.tool_execution_map.update(tool2name(WritePRD, ["run"], wp.run))
+        pic2txt = Pic2Txt()
+        self.tool_execution_map.update(tool2name(Pic2Txt, ["run"], pic2txt.run))
 
     async def _think(self) -> bool:
         """Decide what to do"""
