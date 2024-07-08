@@ -25,7 +25,8 @@ class BaseContextBuilder(BaseModel, ABC):
 
         result = []
         for i, exp in enumerate(self.exps, start=1):
-            result.append(f"{i}. " + EXP_TEMPLATE.format(req=exp.req, resp=exp.resp, score=exp.metric.score.val))
+            score_val = exp.metric.score.val if exp.metric and exp.metric.score else "N/A"
+            result.append(f"{i}. " + EXP_TEMPLATE.format(req=exp.req, resp=exp.resp, score=score_val))
 
         return "\n".join(result)
 
