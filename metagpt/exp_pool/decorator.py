@@ -56,7 +56,6 @@ def exp_cache(
 
         @functools.wraps(func)
         async def get_or_create(args: Any, kwargs: Any) -> ReturnType:
-            logger.info("exp_cache is enabled.")
             handler = ExpCacheHandler(
                 func=func,
                 args=args,

@@ -49,6 +49,7 @@ class ExperienceManager(BaseModel):
 
         self.init_exp_pool()
 
+        logger.debug(f"exp_pool config: {self.config.exp_pool}")
         return self
 
     @handle_exception

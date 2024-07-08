@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import inspect
 import json
 import re
@@ -166,31 +165,11 @@ class RoleZero(Role):
 
         return True
 
-    @exp_cache(context_builder=RoleZeroContextBuilder(), req_serialize=lambda req: RoleZero._req_serialize(req))
+    @exp_cache(
+        context_builder=RoleZeroContextBuilder(), req_serialize=lambda req: RoleZeroContextBuilder.req_serialize(req)
+    )
     async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str]) -> str:
         return await self.llm.aask(req, system_msgs=system_msgs)
-
-    @staticmethod
-    def _req_serialize(req: list[dict]) -> str:
-        """Serialize the request for database storage, ensuring it is a string.
-
-        This function deep copies the request and modifies the content of the last element
-        to remove unnecessary sections, making the request more concise.
-        """
-
-        req_copy = copy.deepcopy(req)
-
-        last_content = req_copy[-1]["content"]
-        last_content = RoleZeroContextBuilder.replace_content_between_markers(
-            last_content, "# Data Structure", "# Current Plan", ""
-        )
-        last_content = RoleZeroContextBuilder.replace_content_between_markers(
-            last_content, "# Example", "# Instruction", ""
-        )
-
-        req_copy[-1]["content"] = last_content
-
-        return json.dumps(req_copy)
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
