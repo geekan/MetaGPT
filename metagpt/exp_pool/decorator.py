@@ -109,6 +109,11 @@ class ExpCacheHandler(BaseModel):
 
     @model_validator(mode="after")
     def initialize(self):
+        """Initialize default values for optional parameters if they are None.
+
+        This is necessary because the decorator might pass None, which would override the default values set by Field.
+        """
+
         self._validate_params()
 
         self.exp_manager = self.exp_manager or exp_manager
