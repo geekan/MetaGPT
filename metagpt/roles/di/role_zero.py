@@ -49,6 +49,7 @@ class RoleZero(Role):
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
+    browser_memory: list[dict] = []  # store the memory of browser
     # terminal: Terminal = Terminal()  # FIXME: TypeError: cannot pickle '_thread.lock' object
 
     # Experience
@@ -151,7 +152,11 @@ class RoleZero(Role):
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
                 if pattern.match(msg.content):
-                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
+                    content = await self.browser.view()
+                    memory.insert(index, UserMessage(cause_by="browser", content=content))
+                    browser_url = re.search('URL: (.*?)\\n', content).group(1)
+                    browser_action = {'command': pattern.match(msg.content).group(1), 'current url': browser_url}
+                    self.browser_memory.append(browser_action)
                     break
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
