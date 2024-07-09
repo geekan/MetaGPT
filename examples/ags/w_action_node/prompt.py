@@ -3,6 +3,10 @@
 # @Author  : didi
 # @Desc    : prompts of operators
 
+# TODO PromptBreeder 评分是怎么做的？
+# TODO 评估案例 GSM-8K 直接拿的DataSet
+# 
+# 
 
 GENERATE_PROMPT = """
 Generate Solution for the following problem: {problem_description}

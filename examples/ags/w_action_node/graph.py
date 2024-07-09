@@ -16,7 +16,7 @@ class Graph:
         NotImplementedError("Subclasses must implement __call__ method")
 
 class HumanEvalGraph(Graph):
-    def __init__(self, name:str, llm: LLM, criteria:str, vote_count:int =3) -> None:
+    def __init__(self, name:str, llm: LLM, criteria:str, vote_count:int =5) -> None:
         super().__init__(name, llm)
         self.criteria = criteria # TODO 自动构建图时，图的初始参数与图所使用的算子要求的外部参数相匹配
         self.generate_code = GenerateCode(llm=llm)
@@ -29,11 +29,11 @@ class HumanEvalGraph(Graph):
     async def __call__(self, problem:str, ensemble_count:int = 3):
         solution_list = []
         for _ in range(ensemble_count):
-            # solution = await self.generate_code(problem)
-            solution = await self.generate_code_block(problem)
+            solution = await self.generate_code(problem)
+            # solution = await self.generate_code_block(problem)
             solution = solution.get('code_solution')
             solution_list.append(solution)
-        solution = await self.mdensemble(solution_list, problem)
+        solution = await self.mdensemble("code", solution_list, problem)
         return solution
     
     async def review_revise_ensemble(self, problem:str, ensemble_count:int = 2):
@@ -44,14 +44,16 @@ class HumanEvalGraph(Graph):
         solution = await self.ensemble(solution_list, problem)
         return solution
 
-    async def simple_ensemble(self, problem:str):
-        solution_list = []
-        for _ in range(3):
-            solution = await self.generate_code(problem)
-            solution = solution.get('code_solution')
-            solution_list.append(solution)
-        solution = await self.ensemble(solution_list, problem)
-        return solution
+    # async def simple_ensemble(self, problem:str, ensemble_count:int = 3):
+    # async def __call__(self, problem:str, ensemble_count:int = 3):
+    #     solution_list = []
+    #     for _ in range(ensemble_count):
+    #         solution = await self.generate_code(problem)
+    #         # solution = await self.generate_code_block(problem)
+    #         solution = solution.get('code_solution')
+    #         solution_list.append(solution)
+    #     solution = await self.ensemble(solution_list, problem)
+    #     return solution
     
     async def single_solve(self, problem:str, max_loop:int):
         solution = await self.generate_code(problem)

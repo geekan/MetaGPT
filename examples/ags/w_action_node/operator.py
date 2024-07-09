@@ -2,7 +2,7 @@
 # @Date    : 6/27/2024 17:36 PM
 # @Author  : didi
 # @Desc    : operator demo of ags
-
+import ast
 import random
 from typing import List, Tuple, Any, Dict
 from collections import Counter
@@ -90,7 +90,7 @@ class Ensemble(Operator):
         response = node.instruct_content.model_dump()
         return response
     
-class MdEnsemble(Ensemble):
+class MdEnsemble(Operator):
 
     def __init__(self, name:str ="MdEnsembler", llm: LLM = LLM(), vote_count:int=3):
         super().__init__(name, llm)
@@ -100,21 +100,35 @@ class MdEnsemble(Ensemble):
     def shuffle_answers(solutions: List[str]) -> Tuple[List[str], Dict[str, str]]:
         shuffled_solutions = solutions.copy()
         random.shuffle(shuffled_solutions)
-        answer_mapping = {
-            chr(65 + i): solutions.index(sol)
-            for i, sol in enumerate(shuffled_solutions)
-        }
+        # 这里的index方法会把检索到的放在第一个索引的位置。
+        answer_mapping = {chr(65 + i): solutions.index(solution) for i, solution in enumerate(shuffled_solutions)}
         return shuffled_solutions, answer_mapping
-    
-    @staticmethod
-    def most_frequent(lst: List[Any]) -> Tuple[Any, int]:
-        counter = Counter(lst)
-        most_common = counter.most_common(1)
-        return most_common[0] if most_common else (None, 0)
 
-    async def __call__(self, solutions:List[str], problem_description:str,):
+    async def __call__(self, solution_type:str ,solutions:List[str], problem_description:str):
         all_responses = []
+        # 如果Solution方案是Code，我们利用AST去重
+        if solution_type == "code":
+            original_length = len(solutions)
+            unique_structures = {}
+            updated_solutions = []
 
+            for solution in solutions:
+                try:
+                    tree = ast.parse(solution)
+                    structure_key = ast.dump(tree, annotate_fields=False, include_attributes=False)
+                    
+                    if structure_key not in unique_structures:
+                        unique_structures[structure_key] = solution
+                        updated_solutions.append(solution)
+                except SyntaxError:
+                    # If the solution has a syntax error, we'll skip it
+                    continue
+            solutions = updated_solutions
+            updated_length = len(solutions)
+            print(f"Original number of solutions: {original_length}")
+            print(f"Updated number of solutions: {updated_length}")
+            if updated_length == 1:
+                return {"final_solution": solutions[0]}
         for _ in range(self.vote_count):
             shuffled_solutions, answer_mapping = self.shuffle_answers(solutions)
             
@@ -131,38 +145,16 @@ class MdEnsemble(Ensemble):
             
             if answer in answer_mapping:
                 original_index = answer_mapping[answer]
-                all_responses.append(solutions[original_index])
-            
-        final_answer, frequency = self.most_frequent(all_responses)
+                print(f"original index: {original_index}")
+                all_responses.append(original_index)
         
+        most_frequent_index = Counter(all_responses).most_common(1)[0][0]
+        print(f"most frequent_index: {most_frequent_index}") 
+        final_answer = solutions[most_frequent_index]
+        print(f"final answer: {final_answer}")
+        # final_answer, frequency = self.most_frequent(all_responses)
         return {"final_solution": final_answer}
 
-
-
-
-
-
-
-
-
-
-# def load_llm_configs(*config_names):
-#     """
-#     Load multiple LLM configurations and return a list of initialized LLMs.
-
-#     :param config_names: Variable number of configuration file names (without .yaml extension)
-#     :return: List of initialized LLM objects
-#     """
-#     llms = []
-#     for config_name in config_names:
-#         config_path = Path(f"~/.metagpt/{config_name}.yaml").expanduser()
-#         if config_path.exists():
-#             config = Config.from_yaml_file(config_path)
-#             llms.append(LLM(config.llm))
-#         else:
-#             print(f"Warning: Configuration file {config_path} not found. Skipping.")
-#     return llms
-
-
-# 使用函数加载多个 LLM 配置
-# llms = load_llm_configs("gpt-4o", "sonnet-35")  # 你可以根据需要添加或删除配置
+class ScEnsemble(Operator):
+    # TODO
+    pass
