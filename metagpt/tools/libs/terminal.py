@@ -184,9 +184,6 @@ class Bash(Terminal):
           Arguments:
               filename (str): The name of the file to create.
 
-        - submit
-          Submits your current code. it can only be executed once, the last action before the `end`.
-
         - search_dir_and_preview <search_term> [<dir>]
           Searches for search_term in all files in dir and gives their code preview
           with line numbers. If dir is not provided, searches in the current directory.
