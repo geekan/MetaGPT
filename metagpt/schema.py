@@ -464,8 +464,8 @@ class Task(BaseModel):
         self.is_finished = False
 
     def update_task_result(self, task_result: TaskResult):
-        self.code = task_result.code + "\n" + task_result.code
-        self.result = task_result.result
+        self.code = self.code + "\n" + task_result.code
+        self.result = self.result + "\n" + task_result.result
         self.is_success = task_result.is_success
 
 

@@ -106,11 +106,11 @@ class ToolRecommender(BaseModel):
         Wrap recommended tools with their info in a string, which can be used directly in a prompt.
         """
         recommended_tools = await self.recommend_tools(**kwargs)
+        if fix:
+            recommended_tools.extend([self.tools[tool_name] for tool_name in fix if tool_name in self.tools])
         if not recommended_tools:
             return ""
         tool_schemas = {tool.name: tool.schemas for tool in recommended_tools}
-        if fix:
-            tool_schemas.update({tool.name: tool.schemas for tool in self.tools.values() if tool.name in fix})
         return TOOL_INFO_PROMPT.format(tool_schemas=tool_schemas)
 
     async def recall_tools(self, context: str = "", plan: Plan = None, topk: int = 20) -> list[Tool]:
