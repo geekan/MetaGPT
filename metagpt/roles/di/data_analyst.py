@@ -5,8 +5,11 @@ from pydantic import Field, model_validator
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
+from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION
+from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import TaskResult, Message
+from metagpt.strategy.experience_retriever import ExpRetriever, WebExpRetriever
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 
@@ -16,10 +19,12 @@ class DataAnalyst(RoleZero):
     name: str = "David"
     profile: str = "DataAnalyst"
     goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, git and github operation, etc."
+    instruction: str = ROLE_INSTRUCTION + BROWSER_INSTRUCTION
 
-    tools: list[str] = ["Plan", "DataAnalyst", "RoleZero"]
+    tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]
     custom_tools: list[str] = ["machine learning", "web scraping", "Terminal"]
     custom_tool_recommender: ToolRecommender = None
+    experience_retriever: ExpRetriever = WebExpRetriever()
 
     use_reflection: bool = True
     write_code: WriteAnalysisCode = Field(default_factory=WriteAnalysisCode, exclude=True)
@@ -63,6 +68,7 @@ class DataAnalyst(RoleZero):
                 tool_info=tool_info,
                 working_memory=self.rc.working_memory.get() if use_reflection else None,
                 use_reflection=use_reflection,
+                browser_memory=self.browser_memory
             )
             self.rc.working_memory.add(Message(content=code, role="assistant", cause_by=WriteAnalysisCode))
 
