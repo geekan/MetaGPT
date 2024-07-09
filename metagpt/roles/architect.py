@@ -8,6 +8,8 @@
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles.di.role_zero import RoleZero
+from metagpt.tools.libs.software_development import write_trd_and_framework
+from metagpt.utils.common import tool2name
 
 
 class Architect(RoleZero):
@@ -29,9 +31,14 @@ class Architect(RoleZero):
         "libraries. Use same language as user requirement"
     )
 
-    instruction: str = """Use WriteDesign tool to write a system design document"""
+    instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WriteDesign"]
+    tools: list[str] = [
+        "Editor:write,read,write_content",
+        "RoleZero",
+        "WriteDesign",
+        write_trd_and_framework.__name__,
+    ]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -45,11 +52,11 @@ class Architect(RoleZero):
         self._watch({WritePRD})
 
     def _update_tool_execution(self):
-        wd = WriteDesign()
+        write_design = WriteDesign()
+        self.tool_execution_map.update(tool2name(WriteDesign, ["run"], write_design.run))
         self.tool_execution_map.update(
             {
-                "WriteDesign.run": wd.run,
-                "WriteDesign": wd.run,  # alias
-                "run": wd.run,  # alias
+                write_trd_and_framework.__name__: write_trd_and_framework,
+                "run": write_design.run,  # alias
             }
         )

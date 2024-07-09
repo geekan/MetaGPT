@@ -1,16 +1,19 @@
 import asyncio
 import os
+import re
 import threading
+import time
 
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
 from metagpt.roles.di.data_analyst import DataAnalyst
 from metagpt.roles.di.engineer2 import Engineer2
+from metagpt.roles.di.swe_agent import SWEAgent
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import Message
 
 
-async def main(requirement="", enable_human_input=False, use_fixed_sop=False):
+async def main(requirement="", enable_human_input=False, use_fixed_sop=False, allow_idle_time=30):
     if use_fixed_sop:
         engineer = Engineer(n_borg=5, use_code_review=False)
     else:
@@ -26,35 +29,56 @@ async def main(requirement="", enable_human_input=False, use_fixed_sop=False):
             engineer,
             # QaEngineer(),
             DataAnalyst(tools=["<all>"]),
+            SWEAgent(),
         ]
     )
 
     if enable_human_input:
         # simulate human sending messages in chatbox
-        send_human_input(env)
+        stop_event = threading.Event()
+        human_input_thread = send_human_input(env, stop_event)
 
     if requirement:
         env.publish_message(Message(content=requirement))
-        # env.publish_message(Message(content=requirement, send_to={"David"}), user_defined_recipient="David")
+        # user_defined_recipient = "Alex"
+        # env.publish_message(Message(content=requirement, send_to={user_defined_recipient}), user_defined_recipient=user_defined_recipient)
 
-    while not env.is_idle:
-        await env.run()
+    allow_idle_time = allow_idle_time if enable_human_input else 1
+    start_time = time.time()
+    while time.time() - start_time < allow_idle_time:
+        if not env.is_idle:
+            await env.run()
+            start_time = time.time()  # reset start time
+
+    if enable_human_input:
+        print("No more human input, terminating, press ENTER for a full termination.")
+        stop_event.set()
+        human_input_thread.join()
 
 
-def send_human_input(env):
+def send_human_input(env, stop_event):
     """
     Simulate sending message in chatbox
     Note in local environment, the message is consumed only after current round of env.run is finished
     """
 
     def send_messages():
-        while True:
+        while not stop_event.is_set():
             message = input("Enter a message any time: ")
-            env.publish_message(Message(content=message))
+            user_defined_recipient = re.search(r"@(\w+)", message)
+            if user_defined_recipient:
+                recipient_name = user_defined_recipient.group(1)
+                print(f"{recipient_name} will receive the message")
+                env.publish_message(
+                    Message(content=message, send_to={recipient_name}), user_defined_recipient=recipient_name
+                )
+            else:
+                env.publish_message(Message(content=message))
 
     # Start a thread for sending messages
     send_thread = threading.Thread(target=send_messages, args=())
     send_thread.start()
+    return send_thread
 
 
 GAME_REQ = "create a 2048 game"
@@ -99,6 +123,14 @@ PUSH_PR_REQ = """
 clone https://github.com/garylin2099/simple_calculator, checkout a new branch named test-branch, add an empty file test_file.py to the repo.
 Commit your changes and push, finally, create a PR to the master branch of https://github.com/mannaandpoem/simple_calculator.
 """
+
+TL_CHAT1 = """Summarize the paper for me"""  # expecting clarification
+TL_CHAT2 = """Solve the issue at this link"""  # expecting clarification
+TL_CHAT3 = """Who is the first man landing on Moon"""  # expecting answering directly
+TL_CHAT4 = """Find all zeros in the indicated finite field of the given polynomial with coefficients in that field. x^5 + 3x^3 + x^2 + 2x in Z_5"""  # expecting answering directly
+TL_CHAT5 = """Find the degree for the given field extension Q(sqrt(2), sqrt(3), sqrt(18)) over Q."""  # expecting answering directly
+TL_CHAT6 = """Statement 1 | A ring homomorphism is one to one if and only if the kernel is {{0}},. Statement 2 | Q is an ideal in R"""  # expecting answering directly
+TL_CHAT7 = """Jean has 30 lollipops. Jean eats 2 of the lollipops. With the remaining lollipops, Jean wants to package 2 lollipops in one bag. How many bags can Jean fill?"""  # expecting answering directly
 
 
 if __name__ == "__main__":

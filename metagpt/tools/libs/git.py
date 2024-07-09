@@ -14,7 +14,7 @@ from metagpt.tools.tool_registry import register_tool
 @register_tool(tags=["software development", "git", "Commit the changes and push to remote git repository."])
 async def git_push(
     local_path: Union[str, Path],
-    access_token: str,
+    app_name: str,
     comments: str = "Commit",
     new_branch: str = "",
 ) -> "GitBranch":
@@ -23,7 +23,7 @@ async def git_push(
 
     Args:
         local_path (Union[str, Path]): The path to the local Git repository.
-        access_token (str): The access token for authentication. Use `get_env` to get access token.
+        app_name (str): The name of the application where the repository is hosted. For example, "github", "gitlab", "bitbucket", etc.
         comments (str, optional): The commit message to use. Defaults to "Commit".
         new_branch (str, optional): The name of the new branch to create and push changes to.
             If not provided, changes will be pushed to the current branch. Defaults to "".
@@ -36,11 +36,10 @@ async def git_push(
     Example:
         >>> url = "https://github.com/iorisa/snake-game.git"
         >>> local_path = await git_clone(url=url)
-        >>> from metagpt.tools.libs import get_env
-        >>> access_token = await get_env(key="access_token", app_name="github")  # Read access token from enviroment variables.
+        >>> app_name="github"
         >>> comments = "Archive"
         >>> new_branch = "feature/new"
-        >>> branch = await git_push(local_path=local_path, access_token=access_token, comments=comments, new_branch=new_branch)
+        >>> branch = await git_push(local_path=local_path, app_name=app_name, comments=comments, new_branch=new_branch)
         >>> base = branch.base
         >>> head = branch.head
         >>> repo_name = branch.repo_name
@@ -48,12 +47,15 @@ async def git_push(
         base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
 
     """
+    from metagpt.tools.libs import get_env
     from metagpt.utils.git_repository import GitRepository
 
     if not GitRepository.is_git_dir(local_path):
         raise ValueError("Invalid local git repository")
 
     repo = GitRepository(local_path=local_path, auto_init=False)
+    # Read access token from environment variables.
+    access_token = await get_env(key="access_token", app_name=app_name)
     branch = await repo.push(new_branch=new_branch, comments=comments, access_token=access_token)
     return branch
 
@@ -63,7 +65,7 @@ async def git_create_pull(
     base: str,
     head: str,
     base_repo_name: str,
-    access_token: str,
+    app_name: str,
     head_repo_name: Optional[str] = None,
     title: Optional[str] = None,
     body: Optional[str] = None,
@@ -76,43 +78,13 @@ async def git_create_pull(
         base (str): The base branch of the pull request.
         head (str): The head branch of the pull request.
         base_repo_name (str): The full repository name (user/repo) where the pull request will be created.
-        access_token (str): The access token for authentication. Use `get_env` to get access token.
+        app_name (str): The name of the application where the repository is hosted. For example, "github", "gitlab", "bitbucket", etc.
         head_repo_name (Optional[str], optional): The full repository name (user/repo) where the pull request will merge from. Defaults to None.
         title (Optional[str], optional): The title of the pull request. Defaults to None.
         body (Optional[str], optional): The body of the pull request. Defaults to None.
         issue (Optional[Issue], optional): The related issue of the pull request. Defaults to None.
 
     Example:
-        >>> # push and create pull
-        >>> url = "https://github.com/iorisa/snake-game.git"
-        >>> local_path = await git_clone(url=url)
-        >>> from metagpt.tools.libs import get_env
-        >>> access_token = await get_env(key="access_token", app_name="github")
-        >>> comments = "Archive"
-        >>> new_branch = "feature/new"
-        >>> branch = await git_push(local_path=local_path, access_token=access_token, comments=comments, new_branch=new_branch)
-        >>> base = branch.base
-        >>> head = branch.head
-        >>> repo_name = branch.repo_name
-        >>> print(f"base branch:'{base}', head branch:'{head}', repo_name:'{repo_name}'")
-        base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
-        >>> title = "feat: modify http lib",
-        >>> body = "Change HTTP library used to send requests"
-        >>> pr = await git_create_pull(
-        >>>   base_repo_name=repo_name,
-        >>>   base=base,
-        >>>   head=head,
-        >>>   title=title,
-        >>>   body=body,
-        >>>   access_token=access_token,
-        >>> )
-        >>> if isinstance(pr, PullRequest):
-        >>>     print(pr)
-        PullRequest("feat: modify http lib")
-        >>> if isinstance(pr, str):
-        >>>     print(f"Visit this url to create a new pull request: '{pr}'")
-        Visit this url to create a new pull request: 'https://github.com/iorisa/snake-game/compare/master...feature/new'
-
         >>> # create pull request
         >>> base_repo_name = "geekan/MetaGPT"
         >>> head_repo_name = "ioris/MetaGPT"
@@ -120,8 +92,7 @@ async def git_create_pull(
         >>> head = "feature/http"
         >>> title = "feat: modify http lib",
         >>> body = "Change HTTP library used to send requests"
-        >>> from metagpt.tools.libs import get_env
-        >>> access_token = await get_env(key="access_token", app_name="github")
+        >>> app_name = "github"
         >>> pr = await git_create_pull(
         >>>   base_repo_name=base_repo_name,
         >>>   head_repo_name=head_repo_name,
@@ -129,7 +100,7 @@ async def git_create_pull(
         >>>   head=head,
         >>>   title=title,
         >>>   body=body,
-        >>>   access_token=access_token,
+        >>>   app_name=app_name,
         >>> )
         >>> if isinstance(pr, PullRequest):
         >>>     print(pr)
@@ -141,8 +112,11 @@ async def git_create_pull(
     Returns:
         PullRequest: The created pull request.
     """
+
+    from metagpt.tools.libs import get_env
     from metagpt.utils.git_repository import GitRepository
 
+    access_token = await get_env(key="access_token", app_name=app_name)
     return await GitRepository.create_pull(
         base=base,
         head=head,

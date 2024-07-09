@@ -12,7 +12,7 @@ class Engineer2(RoleZero):
     goal: str = "Take on game, app, and web development"
     instruction: str = ENGINEER2_INSTRUCTION
 
-    tools: str = ["Plan", "Editor:write,read", "RoleZero", "ReviewAndRewriteCode"]
+    tools: list[str] = ["Plan", "Editor:write,read", "RoleZero", "ReviewAndRewriteCode"]
 
     def _update_tool_execution(self):
         review = ReviewAndRewriteCode()

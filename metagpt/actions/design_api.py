@@ -254,25 +254,29 @@ class WriteDesign(Action):
             extra_info=to_markdown_code_block(extra_info),
             prd=to_markdown_code_block(prd_content),
         )
-        if not legacy_design_filename:
-            node = await self._new_system_design(context=context)
-            design = Document(content=node.instruct_content.model_dump_json())
-        else:
-            old_design_content = await aread(filename=legacy_design_filename)
-            design = await self._merge(
-                prd_doc=Document(content=context), system_design_doc=Document(content=old_design_content)
-            )
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "design"}, "meta")
+            if not legacy_design_filename:
+                node = await self._new_system_design(context=context)
+                design = Document(content=node.instruct_content.model_dump_json())
+            else:
+                old_design_content = await aread(filename=legacy_design_filename)
+                design = await self._merge(
+                    prd_doc=Document(content=context), system_design_doc=Document(content=old_design_content)
+                )
 
-        if not output_pathname:
-            output_pathname = Path(output_pathname) / "docs" / "sytem_design.json"
-            output_pathname.mkdir(parents=True, exist_ok=True)
-        elif not Path(output_pathname).is_absolute():
-            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
-        output_pathname = Path(output_pathname)
-        await awrite(filename=output_pathname, data=design.content)
-        output_filename = output_pathname.parent / f"{output_pathname.stem}-class-diagram"
-        await self._save_data_api_design(design_doc=design, output_filename=output_filename)
-        output_filename = output_pathname.parent / f"{output_pathname.stem}-sequence-diagram"
-        await self._save_seq_flow(design_doc=design, output_filename=output_filename)
-        await save_json_to_markdown(content=design.content, output_filename=output_pathname.with_suffix(".md"))
+            if not output_pathname:
+                output_pathname = Path(output_pathname) / "docs" / "sytem_design.json"
+                output_pathname.mkdir(parents=True, exist_ok=True)
+            elif not Path(output_pathname).is_absolute():
+                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+            output_pathname = Path(output_pathname)
+            await awrite(filename=output_pathname, data=design.content)
+            output_filename = output_pathname.parent / f"{output_pathname.stem}-class-diagram"
+            await self._save_data_api_design(design_doc=design, output_filename=output_filename)
+            output_filename = output_pathname.parent / f"{output_pathname.stem}-sequence-diagram"
+            await self._save_seq_flow(design_doc=design, output_filename=output_filename)
+            md_output_filename = output_pathname.with_suffix(".md")
+            await save_json_to_markdown(content=design.content, output_filename=md_output_filename)
+            await reporter.async_report(md_output_filename, "path")
         return f'System Design filename: "{str(output_pathname)}"'
