@@ -41,3 +41,10 @@ Some text indicating your thoughts, such as how you should update the plan statu
 ]
 ```
 """
+
+BROWSER_INSTRUCTION = """
+4. Carefully choose to use or not use the browser tool to assist you in web tasks. 
+    - When no click action is required, no need to use the browser tool to navigate to the webpage before scraping.
+    - If you need detail HTML content, write code to get it but not to use the browser tool.
+    - Make sure the command_name are certainly in Available Commands when you use the browser tool.
+"""
