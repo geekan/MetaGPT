@@ -5,7 +5,7 @@ https://github.com/princeton-nlp/SWE-agent/tree/main/config/configs
 """
 
 SWE_AGENT_SYSTEM_TEMPLATE = """
-SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.
+SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.Let's work step by step.
 
 The special interface consists of a file editor that shows you {WINDOW} lines of a file at a time.
 
