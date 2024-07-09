@@ -111,13 +111,15 @@ class CollectLinks(Action):
         """
         system_text = system_text if system_text else RESEARCH_TOPIC_SYSTEM.format(topic=topic)
         keywords = await self._aask(SEARCH_TOPIC_PROMPT, [system_text])
+        logger.debug(f"Generated keywords: {keywords}")
         try:
             keywords = OutputParser.extract_struct(keywords, list)
             keywords = TypeAdapter(list[str]).validate_python(keywords)
         except Exception as e:
-            logger.exception(f"fail to get keywords related to the research topic '{topic}' for {e}")
+            logger.exception(f"Failed to get keywords related to the research topic '{topic}' due to {e}")
             keywords = [topic]
         results = await asyncio.gather(*(self.search_engine.run(i, as_string=False) for i in keywords))
+        logger.debug(f"Search results: {results}")
 
         def gen_msg():
             while True:
@@ -135,14 +137,19 @@ class CollectLinks(Action):
 
         model_name = config.llm.model
         prompt = reduce_message_length(gen_msg(), model_name, system_text, config.llm.max_token)
-        logger.debug(prompt)
+        logger.debug(f"Generated prompt: {prompt}")
         queries = await self._aask(prompt, [system_text])
+        logger.debug(f"Generated queries: {queries}")
         try:
             queries = OutputParser.extract_struct(queries, list)
             queries = TypeAdapter(list[str]).validate_python(queries)
         except Exception as e:
-            logger.exception(f"fail to break down the research question due to {e}")
+            logger.exception(f"Failed to break down the research question due to {e}")
             queries = keywords
+        ret = {}
+        for query in queries:
+            ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
+        return ret
         ret = {}
         for query in queries:
             ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
