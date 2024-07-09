@@ -41,13 +41,13 @@ class WebPage(BaseModel):
 
     def get_slim_soup(self, keep_links: bool = False):
         soup = _get_soup(self.html)
-        keep_attrs = ["class"]
+        keep_attrs = ["class", "id"]
         if keep_links:
-            keep_attrs.append("href")
+            keep_attrs.extend(["href", "title"])
 
         for i in soup.find_all(True):
             for name in list(i.attrs):
-                if i[name] and name not in keep_attrs:
+                if i[name] and name not in keep_attrs and not name.startswith("data-"):
                     del i[name]
 
         for i in soup.find_all(["svg", "img", "video", "audio"]):

@@ -8,13 +8,15 @@ from metagpt.utils.parse_html import simplify_html
 
 
 @register_tool(tags=["web scraping"])
-async def view_page_element_to_scrape(url: str, requirement: str, keep_links: bool = False) -> None:
-    """view the HTML content of current page to understand the structure. When executed, the content will be printed out
+async def view_page_element_to_scrape(url: str, requirement: str, keep_links: bool = False) -> str:
+    """view the HTML content of current page to understand the structure.
 
     Args:
         url (str): The URL of the web page to scrape.
         requirement (str): Providing a clear and detailed requirement helps in focusing the inspection on the desired elements.
         keep_links (bool): Whether to keep the hyperlinks in the HTML content. Set to True if links are required
+    Returns:
+        str: The HTML content of the page.
     """
     async with Browser() as browser:
         await browser.goto(url)
@@ -36,7 +38,7 @@ async def view_page_element_to_scrape(url: str, requirement: str, keep_links: bo
         html = "\n".join(i.text for i in nodes)
 
     mem_fs.rm_file(filename)
-    print(html)
+    return html
 
 
 # async def get_elements_outerhtml(self, element_ids: list[int]):
