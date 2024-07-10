@@ -7,7 +7,7 @@ https://github.com/princeton-nlp/SWE-agent/tree/main/config/configs
 SWE_AGENT_SYSTEM_TEMPLATE = """
 SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.
 
-The special interface consists of a file editor that shows you {WINDOW} lines of a file at a time.
+The special interface consists of a file editor that shows you 100 lines of a file at a time.
 
 Please note that THE EDIT COMMAND REQUIRES PROPER INDENTATION. Pay attention to the original indentation when replacing the function. 
 If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.

@@ -1,5 +1,4 @@
 import json
-import os
 
 from pydantic import Field
 
@@ -18,9 +17,7 @@ class SWEAgent(RoleZero):
     name: str = "Swen"
     profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue"
-    _bash_window_size: int = 100
-    _system_msg: str = SWE_AGENT_SYSTEM_TEMPLATE
-    system_msg: list[str] = [_system_msg.format(WINDOW=_bash_window_size)]
+    system_msg: str = [SWE_AGENT_SYSTEM_TEMPLATE]
     _instruction: str = NEXT_STEP_TEMPLATE
     tools: list[str] = [
         "Bash",
@@ -35,7 +32,6 @@ class SWEAgent(RoleZero):
     run_eval: bool = False
 
     async def _think(self) -> bool:
-        self._update_system_msg()
         self._format_instruction()
         res = await super()._think()
         if self.run_eval:
@@ -51,17 +47,6 @@ class SWEAgent(RoleZero):
             }
         )
 
-    def _update_system_msg(self):
-        """
-        Sets the system message for the SWE agent.
-
-        Sets the `_bash_window_size` from the environment variable `WINDOW` if it exists.
-        Formats the `_system_msg` template with the current `_bash_window_size`.
-        """
-        if os.getenv("WINDOW"):
-            self._bash_window_size = int(os.getenv("WINDOW"))
-        self.system_msg = [self._system_msg.format(WINDOW=self._bash_window_size)]
-
     def _format_instruction(self):
         """
         Formats the instruction message for the SWE agent.
@@ -71,10 +56,7 @@ class SWEAgent(RoleZero):
         """
         state_output = self.terminal.run("state")
         bash_state = json.loads(state_output)
-
-        self.instruction = self._instruction.format(
-            WINDOW=self._bash_window_size, examples=MINIMAL_EXAMPLE, **bash_state
-        ).strip()
+        self.instruction = self._instruction.format(**bash_state).strip()
 
         return self.instruction
 
