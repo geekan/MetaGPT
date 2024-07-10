@@ -638,6 +638,8 @@ class KeywordExpRetriever(ExpRetriever):
                 return DEPLOY_EXAMPLE
             elif "issue" in context.lower():
                 return FIX_ISSUE_EXAMPLE
+            elif "https:" or "http:" in context.lower():
+                return WEB_SCRAPING_EXAMPLE
         elif exp_type == "task":
             if "diagnose" in context.lower():
                 return SEARCH_SYMBOL_EXAMPLE
@@ -1018,10 +1020,3 @@ Here is the command to finish the current task and parse the html content:
 
 ...
 """
-
-
-class WebExpRetriever(ExpRetriever):
-    """A simple experience retriever that returns manually crafted examples."""
-
-    def retrieve(self, context: str = "") -> str:
-        return WEB_SCRAPING_EXAMPLE

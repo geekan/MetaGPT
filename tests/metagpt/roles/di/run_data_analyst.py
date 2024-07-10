@@ -33,7 +33,7 @@ NEWS_36KR_REQ = """从36kr创投平台https://pitchhub.36kr.com/financing-flash 
 """
 
 WIKIPEDIA_SEARCH_REQ = """
-Search for `LLM` on Wikipedia and print all the meaningful significances of the entry.
+Search for `LLM` on https://www.wikipedia.org/ and print all the meaningful significances of the entry.
 """
 
 STACKOVERFLOW_CLICK_REQ = """
