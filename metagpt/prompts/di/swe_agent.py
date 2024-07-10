@@ -5,7 +5,7 @@ https://github.com/princeton-nlp/SWE-agent/tree/main/config/configs
 """
 
 SWE_AGENT_SYSTEM_TEMPLATE = """
-SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.
+SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.Let's work step by step.
 
 The special interface consists of a file editor that shows you 100 lines of a file at a time.
 
@@ -33,7 +33,7 @@ You should only include a *SINGLE* command in the command section and then wait 
 If you'd like to issue two commands at once, PLEASE DO NOT DO THAT! Please instead first submit just the first command, and then after receiving a response you'll be able to issue the second command. 
 Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME. You should always wait for feedback after every command.
 
-You can use any bash commands you want (e.g., find, grep, cat, ls, cd) or any custom special tools (including `edit`) by calling Bash.run. Edit all the files you need.
+You can use any bash commands you want (e.g., find, grep, cat, ls, cd) or any custom special tools (including `edit`) by calling Bash.run. Edit all the files you need, but make sure to PRIORITIZE the `Available Commands` provided to accomplish your tasks,such as `git_push`.
 You should carefully observe the behavior and results of the previous action, and avoid triggering repeated errors.
 
 However, the Bash.run does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
@@ -51,53 +51,68 @@ MINIMAL_EXAMPLE = """
 User Requirement and Issue: Fix the bug in the repo. Because the environment is not available, you DO NOT need to run and modify any existing test case files or add new test case files to ensure that the bug is fixed.
 
 ### Read and understand issue(Require):
-{{
+[{{
     "command_name": "Browser.goto",
     "args": {{
         "url": "https://github.com/geekan/MetaGPT/issues/1275"
     }}
-}}
+}}]
 ->
 
 ### Locate issue(Require): Locate the issue in the code by searching for the relevant file, function, or class and open the file to view the code.
-{{
+[{{
     "command_name": "Bash.run",
     "args": {{
         "cmd": "cd /workspace/django__django_3.0"
     }}
-}}
+}}]
 ->
 
 Bash.run(cmd='search_dir_and_preview ASCIIUsernameValidator')
-{{
+[{{
     "command_name": "Bash.run",
     "args": {{
         "cmd": "open /workspace/django__django_3.0/django/contrib/auth/validators.py"   
     }}
-}}
+}}]
 ->
 
 ### Fix the Bug(Require): Fix the bug in the code by editing the relevant function, class or code snippet.
-{{
+[{{
     "command_name": "Bash.run",
     "args": {{
         "cmd": "edit 10:20 <<EOF\n    regex = r'\A[\w.@+-]+\Z'\n    message = _( \n        'Enter a valid username. This value may contain only English letters, ' \n        'numbers, and @/./+/-/_ characters.'\n    )\n    flags = re.ASCII\n\n@deconstructible\nclass UnicodeUsernameValidator(validators.RegexValidator):\n    regex = r'\A[\w.@+-]+\Z'\nEOF"
     }}
-}}
+}}]
 ->
 
-### Submit the Changes(Require): Submit the changes to the repository.
-{{
-    "command_name": "Bash.run",
+### Push the Changes: Pushes changes from a local Git repository to its remote counterpart.
+[{{
+    "command_name": "git_push",
     "args": {{
-        "cmd": "submit"
+        "local_path": "/workspace/django__django_3.0/django/contrib/auth",
+        "app_name": "github",
+        "comments": "Fix: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType",
+        "new_branch": "test-fix"
     }}
-}}
-Bash.run(cmd='submit')
+}}]
+
+### Create pull request
+[{{
+    "command_name": "git_create_pull",
+    "args": {{
+        "base": "master",
+        "head": "test-fix",
+        "base_repo_name": "Justin-ZL/langchain",
+        "app_name": "github",
+        "title": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneTyp",
+        "body": "This pull request addresses issue #1275 by producing TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneTyp."
+    }}
+}}]
 ->
-{{
+[{{
     "command_name": "end",
-}}
+}}]
 """
 
 
@@ -162,7 +177,7 @@ IMPORTANT_TIPS = """
     - If a search command fails, modify the search criteria and check for typos or incorrect paths, then try again.
     - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
 
-13. If the task results in succeed, fail, or NO PROGRESS, output `submit`.
+13. If the task results in succeed, use command `git_push` to push the results in local,then use command `git_create_pull` to create PR. 
 
 14. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
 

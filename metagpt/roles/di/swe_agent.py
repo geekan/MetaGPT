@@ -32,7 +32,7 @@ class SWEAgent(RoleZero):
     run_eval: bool = False
 
     async def _think(self) -> bool:
-        self._format_instruction()
+        await self._format_instruction()
         res = await super()._think()
         if self.run_eval:
             await self._parse_commands_for_eval()
@@ -47,18 +47,16 @@ class SWEAgent(RoleZero):
             }
         )
 
-    def _format_instruction(self):
+    async def _format_instruction(self):
         """
         Formats the instruction message for the SWE agent.
 
         Runs the "state" command in the terminal, parses its output as JSON,
         and uses it to format the `_instruction` template.
         """
-        state_output = self.terminal.run("state")
+        state_output = await self.terminal.run("state")
         bash_state = json.loads(state_output)
         self.instruction = self._instruction.format(**bash_state).strip()
-
-        return self.instruction
 
     async def _parse_commands_for_eval(self):
         """
@@ -79,7 +77,7 @@ class SWEAgent(RoleZero):
             if "end" != cmd.get("command_name", ""):
                 return
         try:
-            diff_output = self.terminal.run("git diff --cached")
+            diff_output = await self.terminal.run("git diff --cached")
             clear_diff = extract_patch(diff_output)
             logger.info(f"Diff output: \n{clear_diff}")
             if clear_diff:
