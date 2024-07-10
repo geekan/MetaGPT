@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Queue
-from asyncio.subprocess import PIPE
+from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
@@ -28,7 +28,7 @@ class Terminal:
     async def _start_process(self):
         # Start a persistent shell process
         self.process = await asyncio.create_subprocess_exec(
-            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=PIPE, executable="/bin/bash"
+            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="/bin/bash"
         )
         await self._check_state()
 
@@ -115,6 +115,7 @@ class Terminal:
             # '\r' is changed to '\n', resulting in excessive output.
             tmp = b""
             while True:
+                self.process.communicate()
                 output = tmp + await self.process.stdout.read(1)
                 *lines, tmp = output.splitlines(True)
                 for line in lines:
