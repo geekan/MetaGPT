@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import re
+from typing import List
+
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
-from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION
+from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION, TASK_TYPE_DESC, CODE_STATUS
 from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import TaskResult, Message
-from metagpt.strategy.experience_retriever import ExpRetriever, WebExpRetriever
+from metagpt.strategy.experience_retriever import ExpRetriever, KeywordExpRetriever
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 
@@ -20,11 +23,12 @@ class DataAnalyst(RoleZero):
     profile: str = "DataAnalyst"
     goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, git and github operation, etc."
     instruction: str = ROLE_INSTRUCTION + BROWSER_INSTRUCTION
+    task_type_desc: str = TASK_TYPE_DESC
 
     tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]
     custom_tools: list[str] = ["machine learning", "web scraping", "Terminal"]
     custom_tool_recommender: ToolRecommender = None
-    experience_retriever: ExpRetriever = WebExpRetriever()
+    experience_retriever: ExpRetriever = KeywordExpRetriever()
 
     use_reflection: bool = True
     write_code: WriteAnalysisCode = Field(default_factory=WriteAnalysisCode, exclude=True)
@@ -39,6 +43,17 @@ class DataAnalyst(RoleZero):
         self.tool_execution_map.update({
             "DataAnalyst.write_and_exec_code": self.write_and_exec_code,
         })
+
+    def parse_browser_actions(self, memory: List[Message]):
+        for index, msg in enumerate(memory):
+            if msg.cause_by == "browser":
+                browser_url = re.search('URL: (.*?)\\n', msg.content).group(1)
+                pattern = re.compile(r"Command Browser\.(\w+) executed")
+                browser_action = {
+                    'command': pattern.match(memory[index - 1].content).group(1),
+                    'current url': browser_url
+                }
+                self.browser_actions.append(browser_action)
 
     async def write_and_exec_code(self):
         """Write a code block for current task and execute it in an interactive notebook environment."""
@@ -68,7 +83,7 @@ class DataAnalyst(RoleZero):
                 tool_info=tool_info,
                 working_memory=self.rc.working_memory.get() if use_reflection else None,
                 use_reflection=use_reflection,
-                browser_memory=self.browser_memory
+                browser_actions=self.browser_actions
             )
             self.rc.working_memory.add(Message(content=code, role="assistant", cause_by=WriteAnalysisCode))
 
@@ -83,11 +98,8 @@ class DataAnalyst(RoleZero):
             if success:
                 task_result = TaskResult(code=code, result=result, is_success=success)
                 self.planner.current_task.update_task_result(task_result)
-        output = f"""
-        **Code written**:
-        {code}
-        **Execution status**:{'Success' if success else 'Failed'}
-        **Execution result**: {result}
-        """
+
+        status = 'Success' if success else 'Failed'
+        output = CODE_STATUS.format(code=code, status=status, result=result)
         self.rc.working_memory.clear()
         return output

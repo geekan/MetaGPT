@@ -6,7 +6,6 @@ import re
 import traceback
 from typing import Callable, Dict, List, Literal, Tuple
 
-from metagpt.strategy.task_type import TaskType
 from pydantic import model_validator
 
 from metagpt.actions import Action
@@ -41,6 +40,7 @@ class RoleZero(Role):
     system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     instruction: str = ROLE_INSTRUCTION
+    task_type_desc: str = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -54,7 +54,7 @@ class RoleZero(Role):
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
-    browser_memory: list[dict] = []  # store the memory of browser
+    browser_actions: list[dict] = []  # store the browser history actions
     # terminal: Terminal = Terminal()  # FIXME: TypeError: cannot pickle '_thread.lock' object
 
     # Experience
@@ -137,7 +137,6 @@ class RoleZero(Role):
 
         ### 2. Plan Status ###
         plan_status, current_task = self._get_plan_status()
-        task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
 
         ### 3. Tool/Command Info ###
         tools = await self.tool_recommender.recommend_tools()
@@ -150,19 +149,16 @@ class RoleZero(Role):
             example=example,
             available_commands=tool_info,
             instruction=self.instruction.strip(),
-            task_type_desc=task_type_desc,
+            task_type_desc=self.task_type_desc,
         )
         memory = self.rc.memory.get(self.memory_k)
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
                 if pattern.match(msg.content):
-                    content = await self.browser.view()
-                    memory.insert(index, UserMessage(cause_by="browser", content=content))
-                    browser_url = re.search('URL: (.*?)\\n', content).group(1)
-                    browser_action = {'command': pattern.match(msg.content).group(1), 'current url': browser_url}
-                    self.browser_memory.append(browser_action)
+                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
+        self.parse_browser_actions(memory=memory)
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
@@ -170,6 +166,9 @@ class RoleZero(Role):
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
+
+    def parse_browser_actions(self, memory: List[Message]):
+        pass
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:

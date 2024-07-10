@@ -42,7 +42,7 @@ class WriteAnalysisCode(Action):
         tool_info: str = "",
         working_memory: list[Message] = None,
         use_reflection: bool = False,
-        browser_memory: list[dict] = None,
+        browser_actions: list[dict] = None,
         **kwargs,
     ) -> str:
         structual_prompt = STRUCTUAL_PROMPT.format(
@@ -51,8 +51,8 @@ class WriteAnalysisCode(Action):
             tool_info=tool_info,
         )
         message = [Message(content=structual_prompt, role="user")]
-        if browser_memory:
-            browser_prompt = BROWSER_INFO.format(browser_memory=browser_memory)
+        if browser_actions:
+            browser_prompt = BROWSER_INFO.format(browser_actions=browser_actions)
             message = [Message(content=browser_prompt, role="user")] + message
 
         working_memory = working_memory or []
