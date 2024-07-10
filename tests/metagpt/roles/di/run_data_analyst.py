@@ -10,6 +10,7 @@ CALIFORNIA_HOUSING_REQ = """
 Analyze the 'Canifornia-housing-dataset' using https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html#sklearn.datasets.fetch_california_housing to predict the median house value. you need to perfrom data preprocessing, feature engineering and finally modeling to predict the target. Use machine learning techniques such as linear regression (including ridge regression and lasso regression), random forest, CatBoost, LightGBM, XGBoost or other appropriate method. You also need to report the MSE on the test dataset
 """
 
+# For web scraping task, please provide url begin with `https://` or `http://`
 PAPER_LIST_REQ = """"
 Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
 and save it to a csv file. paper title must include `multiagent` or `large language model`.
