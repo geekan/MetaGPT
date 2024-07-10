@@ -129,9 +129,11 @@ TL_CHAT2 = """Solve the issue at this link"""  # expecting clarification
 TL_CHAT3 = """Who is the first man landing on Moon"""  # expecting answering directly
 TL_CHAT4 = """Find all zeros in the indicated finite field of the given polynomial with coefficients in that field. x^5 + 3x^3 + x^2 + 2x in Z_5"""  # expecting answering directly
 TL_CHAT5 = """Find the degree for the given field extension Q(sqrt(2), sqrt(3), sqrt(18)) over Q."""  # expecting answering directly
-TL_CHAT6 = """Statement 1 | A ring homomorphism is one to one if and only if the kernel is {{0}},. Statement 2 | Q is an ideal in R"""  # expecting answering directly
+TL_CHAT6 = """True or False? Statement 1 | A ring homomorphism is one to one if and only if the kernel is {{0}},. Statement 2 | Q is an ideal in R"""  # expecting answering directly
 TL_CHAT7 = """Jean has 30 lollipops. Jean eats 2 of the lollipops. With the remaining lollipops, Jean wants to package 2 lollipops in one bag. How many bags can Jean fill?"""  # expecting answering directly
-
+TL_CHAT9 = """What's your name?"""
+TL_CHAT10 = "Hi"
+TL_CHAT11 = "Tell me about your team"
 
 if __name__ == "__main__":
     # NOTE: Add access_token to test github issue fixing

@@ -51,6 +51,7 @@ Some text indicating your thoughts, such as how you should update the plan statu
 ```
 Notice: your output JSON data section must start with **```json [**
 """
+
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
@@ -60,4 +61,11 @@ JSON_REPAIR_PROMPT = """
 Formatted JSON data
 ```
 Help check if there are any formatting issues with the JSON data? If so, please help format it
+"""
+
+QUICK_THINK_PROMPT = """
+Decide if the latest user message is a quick question.
+Quick questions include common-sense, logical, math questions, greetings, or casual chat that you can answer directly, excluding software development tasks.
+Respond with "#YES#, (then start your actual response to the question...)" if so, otherwise, simply respond with "#NO#".
+Your response:
 """
