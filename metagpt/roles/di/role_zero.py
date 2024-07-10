@@ -8,12 +8,13 @@ from typing import Callable, Dict, List, Literal, Tuple
 
 from pydantic import model_validator
 
-from metagpt.actions import Action
+from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
+    QUICK_THINK_PROMPT,
     ROLE_INSTRUCTION,
 )
 from metagpt.roles import Role
@@ -24,7 +25,7 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, any_to_str
 from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
 
@@ -47,7 +48,7 @@ class RoleZero(Role):
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = None
+    tool_recommender: ToolRecommender = ToolRecommender()
     tool_execution_map: dict[str, Callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
     # Equipped with three basic tools by default for optional use
@@ -183,8 +184,13 @@ class RoleZero(Role):
         )
 
     async def _react(self) -> Message:
-        # NOTE: Diff 1: Each time landing here means observing news, set todo to allow news processing in _think
+        # NOTE: Diff 1: Each time landing here means news is observed, set todo to allow news processing in _think
         self._set_state(0)
+
+        # problems solvable by quick thinking doesn't need to a formal think-act cycle
+        quick_rsp = await self._quick_think()
+        if quick_rsp:
+            return quick_rsp
 
         actions_taken = 0
         rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
@@ -201,6 +207,29 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
+
+    async def _quick_think(self) -> Message:
+        msg = self.rc.news[-1]
+        rsp_msg = None
+        if msg.cause_by != any_to_str(UserRequirement):
+            # Agents themselves won't generate quick questions, use this rule to reduce extra llm calls
+            return rsp_msg
+
+        context = self.llm.format_msg(self.get_memories(k=4) + [UserMessage(content=QUICK_THINK_PROMPT)])
+        rsp = await self.llm.aask(context)
+
+        pattern = r"#YES#,? ?"
+        if re.search(pattern, rsp):
+            answer = re.sub(pattern, "", rsp).strip()
+            self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
+            await self.reply_to_human(content=answer)
+            rsp_msg = AIMessage(
+                content="Complete run",
+                sent_from=self.name,
+                cause_by=RunCommand,
+            )
+
+        return rsp_msg
 
     async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
