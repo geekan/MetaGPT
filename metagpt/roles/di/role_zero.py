@@ -12,6 +12,7 @@ from metagpt.actions import Action
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
@@ -165,9 +166,7 @@ class RoleZero(Role):
 
         return True
 
-    @exp_cache(
-        context_builder=RoleZeroContextBuilder(), req_serialize=lambda req: RoleZeroContextBuilder.req_serialize(req)
-    )
+    @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
     async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str]) -> str:
         return await self.llm.aask(req, system_msgs=system_msgs)
 

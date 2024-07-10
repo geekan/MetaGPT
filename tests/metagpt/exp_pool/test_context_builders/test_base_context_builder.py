@@ -30,16 +30,3 @@ class TestBaseContextBuilder:
             ]
         )
         assert result == expected
-
-    def test_replace_content_between_markers(self):
-        text = "Start\n# Example\nOld content\n# Instruction\nEnd"
-        new_content = "New content"
-        result = BaseContextBuilder.replace_content_between_markers(text, "# Example", "# Instruction", new_content)
-        expected = "Start\n# Example\nNew content\n\n# Instruction\nEnd"
-        assert result == expected
-
-    def test_replace_content_between_markers_no_match(self):
-        text = "Start\nNo markers\nEnd"
-        new_content = "New content"
-        result = BaseContextBuilder.replace_content_between_markers(text, "# Example", "# Instruction", new_content)
-        assert result == text

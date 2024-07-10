@@ -1,15 +1,19 @@
 """RoleZero context builder."""
-import copy
-import json
+
+import re
 
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
 
 
 class RoleZeroContextBuilder(BaseContextBuilder):
-    async def build(self, *args, **kwargs) -> list[dict]:
+    async def build(self, **kwargs) -> list[dict]:
         """Builds the context by updating the req with formatted experiences.
 
-        If there are no experiences, retains the original examples in req, otherwise replaces the examples with the formatted experiences.
+        Args:
+            **kwargs: Arbitrary keyword arguments, expecting 'req' as a key.
+
+        Returns:
+            list[dict]: The updated request with formatted experiences or the original request if no experiences are available.
         """
 
         req = kwargs.get("req", [])
@@ -28,23 +32,23 @@ class RoleZeroContextBuilder(BaseContextBuilder):
         return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
 
     @staticmethod
-    def req_serialize(req: list[dict]) -> str:
-        """Serialize the request for database storage, ensuring it is a string.
+    def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:
+        """Replace the content between `start_marker` and `end_marker` in the text with `new_content`.
 
-        This function deep copies the request and modifies the content of the last element
-        to remove unnecessary sections, making the request more concise.
+        Args:
+            text (str): The original text.
+            new_content (str): The new content to replace the old content.
+            start_marker (str): The marker indicating the start of the content to be replaced, such as '# Example'.
+            end_marker (str): The marker indicating the end of the content to be replaced, such as '# Instruction'.
+
+        Returns:
+            str: The text with the content replaced.
         """
 
-        req_copy = copy.deepcopy(req)
+        pattern = re.compile(f"({start_marker}\n)(.*?)(\n{end_marker})", re.DOTALL)
 
-        last_content = req_copy[-1]["content"]
-        last_content = RoleZeroContextBuilder.replace_content_between_markers(
-            last_content, "# Data Structure", "# Current Plan", ""
-        )
-        last_content = RoleZeroContextBuilder.replace_content_between_markers(
-            last_content, "# Example", "# Instruction", ""
-        )
+        def replacement(match):
+            return f"{match.group(1)}{new_content}\n{match.group(3)}"
 
-        req_copy[-1]["content"] = last_content
-
-        return json.dumps(req_copy)
+        replaced_text = pattern.sub(replacement, text)
+        return replaced_text

@@ -32,7 +32,8 @@ class TestSimpleContextBuilder:
         req = "Test request"
         result = await context_builder.build(req=req)
 
-        assert result == req
+        expected = SIMPLE_CONTEXT_TEMPLATE.format(req=req, exps="")
+        assert result == expected
 
     @pytest.mark.asyncio
     async def test_build_without_req(self, context_builder, mocker):

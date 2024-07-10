@@ -1,6 +1,5 @@
 """Base context builder."""
 
-import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -17,11 +16,19 @@ class BaseContextBuilder(BaseModel, ABC):
     exps: list[Experience] = []
 
     @abstractmethod
-    async def build(self, *args, **kwargs) -> Any:
+    async def build(self, **kwargs) -> Any:
         """Build context from parameters."""
 
     def format_exps(self) -> str:
-        """Format experiences into a numbered list of strings."""
+        """Format experiences into a numbered list of strings.
+
+        Example:
+            1. Given the request: req1, We can get the response: resp1, Which scored: 8.
+            2. Given the request: req2, We can get the response: resp2, Which scored: 9.
+
+        Returns:
+            str: The formatted experiences as a string.
+        """
 
         result = []
         for i, exp in enumerate(self.exps, start=1):
@@ -29,25 +36,3 @@ class BaseContextBuilder(BaseModel, ABC):
             result.append(f"{i}. " + EXP_TEMPLATE.format(req=exp.req, resp=exp.resp, score=score_val))
 
         return "\n".join(result)
-
-    @staticmethod
-    def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:
-        """Replace the content between `start_marker` and `end_marker` in the text with `new_content`.
-
-        Args:
-            text (str): The original text.
-            new_content (str): The new content to replace the old content.
-            start_marker (str): The marker indicating the start of the content to be replaced, such as '# Example'.
-            end_marker (str): The marker indicating the end of the content to be replaced, such as '# Instruction'.
-
-        Returns:
-            str: The text with the content replaced.
-        """
-
-        pattern = re.compile(f"({start_marker}\n)(.*?)(\n{end_marker})", re.DOTALL)
-
-        def replacement(match):
-            return f"{match.group(1)}{new_content}\n{match.group(3)}"
-
-        replaced_text = pattern.sub(replacement, text)
-        return replaced_text

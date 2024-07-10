@@ -47,14 +47,12 @@ class ExperienceManager(BaseModel):
 
             self.storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
-        self.init_exp_pool()
-
         logger.debug(f"exp_pool config: {self.config.exp_pool}")
         return self
 
     @handle_exception
     def init_exp_pool(self):
-        if not self.config.exp_pool.init_exp:
+        if not self.config.exp_pool.enable_write:
             return
 
         if self._has_exps():

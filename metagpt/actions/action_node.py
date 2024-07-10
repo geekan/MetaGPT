@@ -19,6 +19,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action_outcls_registry import register_action_outcls
 from metagpt.const import MARKDOWN_TITLE_PREFIX, USE_CONFIG_TIMEOUT
 from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.serializers import ActionNodeSerializer
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -466,29 +467,7 @@ class ActionNode:
 
         return self
 
-    @classmethod
-    def deserialize_to_action_node(cls, serialized_data) -> "ActionNode":
-        """Customized deserialization, it will be triggered when a perfect experience is found.
-
-        ActionNode cannot be serialized, it throws an error 'cannot pickle 'SSLContext' object'.
-        """
-
-        class InstructContent:
-            def __init__(self, json_data):
-                self.json_data = json_data
-
-            def model_dump_json(self):
-                return self.json_data
-
-        action_node = cls(key="", expected_type=Type[str], instruction="", example="")
-        action_node.instruct_content = InstructContent(serialized_data)
-
-        return action_node
-
-    @exp_cache(
-        resp_serialize=lambda action_node: action_node.instruct_content.model_dump_json(),
-        resp_deserialize=lambda resp: ActionNode.deserialize_to_action_node(resp),
-    )
+    @exp_cache(serializer=ActionNodeSerializer())
     async def fill(
         self,
         *,

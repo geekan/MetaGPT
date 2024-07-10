@@ -11,9 +11,7 @@ from metagpt.rag.engines import SimpleEngine
 class TestExperienceManager:
     @pytest.fixture
     def mock_config(self):
-        return Config(
-            llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True, init_exp=False)
-        )
+        return Config(llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True))
 
     @pytest.fixture
     def mock_storage(self, mocker):
@@ -64,30 +62,6 @@ class TestExperienceManager:
         mock_config.exp_pool.enable_read = False
         result = await mock_experience_manager.query_exps("query")
         assert result == []
-
-    def test_init_exp_pool(self, mock_experience_manager, mock_config, mocker):
-        mock_experience_manager._has_exps = mocker.MagicMock(return_value=False)
-        mock_experience_manager._init_teamleader_exps = mocker.MagicMock()
-        mock_experience_manager._init_engineer2_exps = mocker.MagicMock()
-
-        mock_config.exp_pool.init_exp = True
-        mock_experience_manager.init_exp_pool()
-
-        mock_experience_manager._has_exps.assert_called_once()
-        mock_experience_manager._init_teamleader_exps.assert_called_once()
-        mock_experience_manager._init_engineer2_exps.assert_called_once()
-
-    def test_init_exp_pool_already_has_exps(self, mock_experience_manager, mock_config, mocker):
-        mock_experience_manager._has_exps = mocker.MagicMock(return_value=True)
-        mock_experience_manager._init_teamleader_exps = mocker.MagicMock()
-        mock_experience_manager._init_engineer2_exps = mocker.MagicMock()
-
-        mock_config.exp_pool.init_exp = True
-        mock_experience_manager.init_exp_pool()
-
-        mock_experience_manager._has_exps.assert_called_once()
-        mock_experience_manager._init_teamleader_exps.assert_not_called()
-        mock_experience_manager._init_engineer2_exps.assert_not_called()
 
     def test_has_exps(self, mock_experience_manager, mock_storage):
         mock_storage._retriever._vector_store._get.return_value.ids = ["id1"]

@@ -1,6 +1,7 @@
 """Experience Decorator."""
 
 import asyncio
+import copy
 import functools
 from typing import Any, Callable, Optional, TypeVar
 
@@ -12,6 +13,7 @@ from metagpt.exp_pool.manager import ExperienceManager, exp_manager
 from metagpt.exp_pool.perfect_judges import BasePerfectJudge, SimplePerfectJudge
 from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
 from metagpt.exp_pool.scorers import BaseScorer, SimpleScorer
+from metagpt.exp_pool.serializers import BaseSerializer, SimpleSerializer
 from metagpt.logs import logger
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.exceptions import handle_exception
@@ -26,9 +28,7 @@ def exp_cache(
     scorer: Optional[BaseScorer] = None,
     perfect_judge: Optional[BasePerfectJudge] = None,
     context_builder: Optional[BaseContextBuilder] = None,
-    req_serialize: Optional[Callable[..., str]] = None,
-    resp_serialize: Optional[Callable[..., str]] = None,
-    resp_deserialize: Optional[Callable[[str], Any]] = None,
+    serializer: Optional[BaseSerializer] = None,
     tag: Optional[str] = None,
 ):
     """Decorator to get a perfect experience, otherwise, it executes the function, and create a new experience.
@@ -44,9 +44,7 @@ def exp_cache(
         scorer: Evaluate experience. Default to `SimpleScorer()`.
         perfect_judge: Determines if an experience is perfect. Defaults to `SimplePerfectJudge()`.
         context_builder: Build the context from exps and the function parameters. Default to `SimpleContextBuilder()`.
-        req_serialize: Serializes the request for storage. Defaults to `lambda req: str(req)`.
-        resp_serialize: Serializes the function's return value for storage. Defaults to `lambda resp: str(resp)`.
-        resp_deserialize: Deserializes the stored response back to the function's return value. Defaults to `lambda resp: resp`.
+        serializer: Serializes the request and the function's return value for storage, deserializes the stored response back to the function's return value. Defaults to `SimpleSerializer()`.
         tag: An optional tag for the experience. Default to `ClassName.method_name` or `function_name`.
     """
 
@@ -65,9 +63,7 @@ def exp_cache(
                 exp_scorer=scorer,
                 exp_perfect_judge=perfect_judge,
                 context_builder=context_builder,
-                req_serialize=req_serialize,
-                resp_serialize=resp_serialize,
-                resp_deserialize=resp_deserialize,
+                serializer=serializer,
                 tag=tag,
             )
 
@@ -96,9 +92,7 @@ class ExpCacheHandler(BaseModel):
     exp_scorer: Optional[BaseScorer] = None
     exp_perfect_judge: Optional[BasePerfectJudge] = None
     context_builder: Optional[BaseContextBuilder] = None
-    req_serialize: Optional[Callable[..., str]] = None
-    resp_serialize: Optional[Callable[..., str]] = None
-    resp_deserialize: Optional[Callable[[str], Any]] = None
+    serializer: Optional[BaseSerializer] = None
     tag: Optional[str] = None
 
     _exps: list[Experience] = None
@@ -120,12 +114,10 @@ class ExpCacheHandler(BaseModel):
         self.exp_scorer = self.exp_scorer or SimpleScorer()
         self.exp_perfect_judge = self.exp_perfect_judge or SimplePerfectJudge()
         self.context_builder = self.context_builder or SimpleContextBuilder()
-        self.req_serialize = self.req_serialize or (lambda resp: str(resp))
-        self.resp_serialize = self.resp_serialize or (lambda resp: str(resp))
-        self.resp_deserialize = self.resp_deserialize or (lambda resp: resp)
+        self.serializer = self.serializer or SimpleSerializer()
         self.tag = self.tag or self._generate_tag()
 
-        self._req = self.req_serialize(self.kwargs["req"])
+        self._req = self.serializer.serialize_req(copy.deepcopy(self.kwargs["req"]))
 
         return self
 
@@ -140,7 +132,7 @@ class ExpCacheHandler(BaseModel):
         for exp in self._exps:
             if await self.exp_perfect_judge.is_perfect_exp(exp, self._req, *self.args, **self.kwargs):
                 logger.info(f"Get one perfect experience: {exp.req[:20]}...")
-                return self.resp_deserialize(exp.resp)
+                return self.serializer.deserialize_resp(exp.resp)
 
         return None
 
@@ -148,7 +140,7 @@ class ExpCacheHandler(BaseModel):
         """Execute the function, and save resp."""
 
         self._raw_resp = await self._execute_function()
-        self._resp = self.resp_serialize(self._raw_resp)
+        self._resp = self.serializer.serialize_resp(copy.deepcopy(self._raw_resp))
 
     @handle_exception
     async def process_experience(self):
@@ -204,7 +196,7 @@ class ExpCacheHandler(BaseModel):
     async def _build_context(self) -> str:
         self.context_builder.exps = self._exps
 
-        return await self.context_builder.build(*self.args, **self.kwargs)
+        return await self.context_builder.build(**self.kwargs)
 
     async def _execute_function(self):
         self.kwargs["req"] = await self._build_context()
