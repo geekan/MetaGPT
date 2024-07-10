@@ -123,12 +123,12 @@ class Terminal:
                     if ix >= 0:
                         line = line[0:ix]
                         if line:
-                            observer.report(line, "output")
+                            await observer.async_report(line, "output")
                             # report stdout in real-time
                             cmd_output.append(line)
                         return "".join(cmd_output)
                     # log stdout in real-time
-                    observer.report(line, "output")
+                    await observer.async_report(line, "output")
                     cmd_output.append(line)
                     if daemon:
                         await self.stdout_queue.put(line)
