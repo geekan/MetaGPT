@@ -73,6 +73,8 @@ async def samples_generate(mode:str):
         if automatic_evalplus():
             unpassed_exapmle = extract_failure_tests()
             print(unpassed_exapmle)
+    else:
+        print(failed_tasks)
 
 async def samples_generate_ags():
     sample_list = []

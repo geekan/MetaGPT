@@ -45,13 +45,25 @@ For the question described as {problem_description}, Solutions: {solutions}
 Please select the solution that appears most frequently from these options and ensemble this to provide best solution.
 """
 
-MD_ENSEMBLE_PROMPT = """
-# Context
-For the question described as {problem_description}, 
-Solutions can be seen below: 
-{solutions}
+# MD_ENSEMBLE_PROMPT = """
+# # Context
+# For the question described as {problem_description}, 
+# Solutions can be seen below: 
+# {solutions}
 
-# Instruction
-Based on the problem and solution candidates, carefully analyze which is the best answer. Focus solely on the correctness of the solution in addressing the problem.
-Provide your final decision by writing the chosen solution number (e.g., A).
+# # Instruction
+# Based on the problem and solution candidates, carefully analyze which is the best answer. Focus solely on the correctness of the solution in addressing the problem.
+# Provide your final decision by writing the chosen solution number (e.g., A).
+# """
+
+MD_ENSEMBLE_PROMPT = """
+### Given problem
+
+{problem_description}
+
+### We've got a list of solutions
+
+<solutions>
+{solutions}
+</solutions>
 """

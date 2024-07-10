@@ -158,3 +158,13 @@ class MdEnsemble(Operator):
 class ScEnsemble(Operator):
     # TODO
     pass
+
+class Debate(Operator):
+    # TODO
+    """
+    You agree with my answer 90% of the time and have almost no reservations. Affirm your agreement, share any additional thoughts if you have them, and conclude with the capital letter corresponding to your answer at the end of your response.
+    """
+    pass
+
+class CriticalThinkingAbstract(Operator):
+    pass
