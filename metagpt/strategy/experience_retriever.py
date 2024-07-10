@@ -511,15 +511,6 @@ Explanation: The requirement is about software development. Assign each tasks to
         }
     },
     {
-        "command_name": "Plan.append_task",
-        "args": {
-            "task_id": "5",
-            "dependent_task_ids": ["4"],
-            "instruction": "Write comprehensive tests for the game logic and user interface to ensure functionality and reliability.",
-            "assignee": "Edward"
-        }
-    },
-    {
         "command_name": "TeamLeader.publish_message",
         "args": {
             "content": "Create a cli snake game using Python",
