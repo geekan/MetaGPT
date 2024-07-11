@@ -13,5 +13,5 @@ async def main(requirement: str = ""):
 
 
 if __name__ == "__main__":
-    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    requirement = "在sklearn Iris数据集上运行数据分析，包括一个图"
     asyncio.run(main(requirement))
