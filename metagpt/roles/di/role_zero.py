@@ -158,7 +158,8 @@ class RoleZero(Role):
                     break
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
-        async with ThoughtReporter(enable_llm_stream=True):
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
@@ -216,7 +217,9 @@ class RoleZero(Role):
             return rsp_msg
 
         context = self.llm.format_msg(self.get_memories(k=4) + [UserMessage(content=QUICK_THINK_PROMPT)])
-        rsp = await self.llm.aask(context)
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "quick"})
+            rsp = await self.llm.aask(context)
 
         pattern = r"#YES#,? ?"
         if re.search(pattern, rsp):
