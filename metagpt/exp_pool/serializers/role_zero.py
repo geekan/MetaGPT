@@ -1,5 +1,6 @@
 """RoleZero Serializer."""
 
+import copy
 import json
 
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
@@ -27,7 +28,8 @@ class RoleZeroSerializer(SimpleSerializer):
         if not req:
             return ""
 
-        last_content = req[-1]["content"]
+        req_copy = copy.deepcopy(req)
+        last_content = req_copy[-1]["content"]
         last_content = RoleZeroContextBuilder.replace_content_between_markers(
             last_content, "# Data Structure", "# Current Plan", ""
         )
@@ -35,6 +37,6 @@ class RoleZeroSerializer(SimpleSerializer):
             last_content, "# Example", "# Instruction", ""
         )
 
-        req[-1]["content"] = last_content
+        req_copy[-1]["content"] = last_content
 
-        return json.dumps(req)
+        return json.dumps(req_copy)

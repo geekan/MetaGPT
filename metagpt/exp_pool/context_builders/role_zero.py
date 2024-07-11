@@ -15,16 +15,15 @@ class RoleZeroContextBuilder(BaseContextBuilder):
         Returns:
             list[dict]: The updated request with formatted experiences or the original request if no experiences are available.
         """
-
         req = kwargs.get("req", [])
         if not req:
             return req
 
-        exps_str = self.format_exps()
-        if not exps_str:
+        exps = self.format_exps()
+        if not exps:
             return req
 
-        req[-1]["content"] = self.replace_example_content(req[-1].get("content", ""), exps_str)
+        req[-1]["content"] = self.replace_example_content(req[-1].get("content", ""), exps)
 
         return req
 

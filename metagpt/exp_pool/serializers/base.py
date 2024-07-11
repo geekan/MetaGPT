@@ -11,11 +11,18 @@ class BaseSerializer(BaseModel, ABC):
 
     @abstractmethod
     def serialize_req(self, req: Any) -> str:
-        """Serializes the request for storage."""
+        """Serializes the request for storage.
+
+        Do not modify req. If modification is necessary, use copy.deepcopy to create a copy first.
+        Note that copy.deepcopy may raise errors, such as TypeError: cannot pickle '_thread.RLock' object.
+        """
 
     @abstractmethod
     def serialize_resp(self, resp: Any) -> str:
-        """Serializes the function's return value for storage."""
+        """Serializes the function's return value for storage.
+
+        Do not modify resp. The rest is the same as `serialize_req`.
+        """
 
     @abstractmethod
     def deserialize_resp(self, resp: str) -> Any:

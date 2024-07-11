@@ -1,7 +1,6 @@
 """Experience Decorator."""
 
 import asyncio
-import copy
 import functools
 from typing import Any, Callable, Optional, TypeVar
 
@@ -33,9 +32,11 @@ def exp_cache(
 ):
     """Decorator to get a perfect experience, otherwise, it executes the function, and create a new experience.
 
-    1. This can be applied to both synchronous and asynchronous functions.
-    2. The function must have a `req` parameter, and it must be provided as a keyword argument.
-    3. If `config.exp_pool.enable_read` is False, the decorator will just directly execute the function.
+    Note:
+        1. This can be applied to both synchronous and asynchronous functions.
+        2. The function must have a `req` parameter, and it must be provided as a keyword argument.
+        3. If `config.exp_pool.enable_read` is False, the decorator will just directly execute the function.
+        4. If `config.exp_pool.enable_write` is False, the decorator will skip evaluating and saving the experience.
 
     Args:
         _func: Just to make the decorator more flexible, for example, it can be used directly with @exp_cache by default, without the need for @exp_cache().
@@ -68,11 +69,14 @@ def exp_cache(
             )
 
             await handler.fetch_experiences()
+
             if exp := await handler.get_one_perfect_exp():
                 return exp
 
             await handler.execute_function()
-            await handler.process_experience()
+
+            if config.exp_pool.enable_write:
+                await handler.process_experience()
 
             return handler._raw_resp
 
@@ -117,7 +121,7 @@ class ExpCacheHandler(BaseModel):
         self.serializer = self.serializer or SimpleSerializer()
         self.tag = self.tag or self._generate_tag()
 
-        self._req = self.serializer.serialize_req(copy.deepcopy(self.kwargs["req"]))
+        self._req = self.serializer.serialize_req(self.kwargs["req"])
 
         return self
 
@@ -140,7 +144,7 @@ class ExpCacheHandler(BaseModel):
         """Execute the function, and save resp."""
 
         self._raw_resp = await self._execute_function()
-        self._resp = self.serializer.serialize_resp(copy.deepcopy(self._raw_resp))
+        self._resp = self.serializer.serialize_resp(self._raw_resp)
 
     @handle_exception
     async def process_experience(self):
