@@ -226,7 +226,7 @@ IMPORTANT_TIPS = """
 
 14. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
 
-15. When the edit fails, try to enlarge the starting line, The edit function needs to use `Bash.Run` call.
+15. When the edit fails, try to enlarge the starting line.
 """
 
 NEXT_STEP_TEMPLATE = f"""
