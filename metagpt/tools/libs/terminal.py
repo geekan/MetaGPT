@@ -28,7 +28,7 @@ class Terminal:
     async def _start_process(self):
         # Start a persistent shell process
         self.process = await asyncio.create_subprocess_exec(
-            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="/bin/bash"
+            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash"
         )
         await self._check_state()
 
@@ -228,6 +228,9 @@ class Bash(Terminal):
               start_line (int): The line number to start the edit at, starting from 1.
               end_line (int): The line number to end the edit at (inclusive), starting from 1.
               replacement_text (str): The text to replace the current selection with, must conform to PEP8 standards.
+
+        - submit
+          Submits your current code locally. it can only be executed once, the last action before the `end`.
 
         Note: Make sure to use these functions as per their defined arguments and behaviors.
         """
