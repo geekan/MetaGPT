@@ -11,8 +11,8 @@ class LLM():
     def __init__(self, model:str='gpt-4-turbo', timeout:int=60):
         self.model = model
         self.timeout = timeout
-        self.api_key = 'sk-6uLg7KCASTHxoLIL00E0F0C0377449Bd9cE506B04791B23a'
-        self.base_url = 'https://api.aigcbest.top/v1'
+        self.api_key = ''
+        self.base_url = ''
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.system_prompt = None
 
