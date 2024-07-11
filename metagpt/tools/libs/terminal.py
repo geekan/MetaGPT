@@ -115,8 +115,9 @@ class Terminal:
             # '\r' is changed to '\n', resulting in excessive output.
             tmp = b""
             while True:
-                self.process.communicate()
                 output = tmp + await self.process.stdout.read(1)
+                if not output:
+                    continue
                 *lines, tmp = output.splitlines(True)
                 for line in lines:
                     line = line.decode()

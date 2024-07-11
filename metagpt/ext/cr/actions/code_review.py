@@ -57,7 +57,7 @@ Just print the PR Patch comments in json format like **Output Format**.
 """
 
 CODE_REVIEW_COMFIRM_SYSTEM_PROMPT = """
-You are a professional engineer with Java stack, and good at code review comment result judgement.
+You are a professional engineer with {code_language} stack, and good at code review comment result judgement.
 """
 
 CODE_REVIEW_COMFIRM_TEMPLATE = """
@@ -132,13 +132,20 @@ class CodeReview(Action):
                 code = get_code_block_from_patch(
                     patch, str(max(1, int(code_start_line) - 5)), str(int(code_end_line) + 5)
                 )
+            code_language = "Java"
+            code_file_ext = cmt.get("commented_file", ".java").split(".")[-1]
+            if code_file_ext == ".java":
+                code_language = "Java"
+            elif code_file_ext == ".py":
+                code_language = "Python"
             prompt = CODE_REVIEW_COMFIRM_TEMPLATE.format(
                 code=code,
                 comment=cmt.get("comment"),
                 desc=point.text,
                 example=point.yes_example + "\n" + point.no_example,
             )
-            resp = await self.llm.aask(prompt, system_msgs=[CODE_REVIEW_COMFIRM_SYSTEM_PROMPT])
+            system_prompt = [CODE_REVIEW_COMFIRM_SYSTEM_PROMPT.format(code_language=code_language)]
+            resp = await self.llm.aask(prompt, system_msgs=system_prompt)
             if "True" in resp or "true" in resp:
                 new_comments.append(cmt)
         logger.info(f"original comments num: {len(comments)}, confirmed comments num: {len(new_comments)}")
@@ -163,7 +170,11 @@ class CodeReview(Action):
             prompt = CODE_REVIEW_PROMPT_TEMPLATE.format(patch=str(patched_file), points=points_str)
             resp = await self.llm.aask(prompt)
             json_str = parse_json_code_block(resp)[0]
-            comments += json.loads(json_str)
+            comment = json.loads(json_str)
+            patched_file_path = patched_file.path
+            for c in comment:
+                c["commented_file"] = patched_file_path
+            comments += comment
 
         return comments
 

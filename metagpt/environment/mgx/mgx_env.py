@@ -27,7 +27,7 @@ class MGXEnv(Environment):
 
     def publish_message(self, message: Message, user_defined_recipient: str = "", publicer: str = "") -> bool:
         """let the team leader take over message publishing"""
-        tl = self.get_role("Tim")  # TeamLeader's name is Tim
+        tl = self.get_role("Mike")  # TeamLeader's name is Mike
 
         if user_defined_recipient:
             # human user's direct chat message to a certain role
