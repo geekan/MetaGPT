@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Queue
-from asyncio.subprocess import PIPE
+from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
@@ -28,7 +28,7 @@ class Terminal:
     async def _start_process(self):
         # Start a persistent shell process
         self.process = await asyncio.create_subprocess_exec(
-            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=PIPE, executable="bash"
+            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash"
         )
         await self._check_state()
 
@@ -116,6 +116,8 @@ class Terminal:
             tmp = b""
             while True:
                 output = tmp + await self.process.stdout.read(1)
+                if not output:
+                    continue
                 *lines, tmp = output.splitlines(True)
                 for line in lines:
                     line = line.decode()
@@ -123,12 +125,12 @@ class Terminal:
                     if ix >= 0:
                         line = line[0:ix]
                         if line:
-                            observer.report(line, "output")
+                            await observer.async_report(line, "output")
                             # report stdout in real-time
                             cmd_output.append(line)
                         return "".join(cmd_output)
                     # log stdout in real-time
-                    observer.report(line, "output")
+                    await observer.async_report(line, "output")
                     cmd_output.append(line)
                     if daemon:
                         await self.stdout_queue.put(line)

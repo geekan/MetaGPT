@@ -9,7 +9,6 @@ from github.Issue import Issue
 from github.PullRequest import PullRequest
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.git_repository import GitBranch
 
 
 @register_tool(tags=["software development", "git", "Push to remote git repository."])
