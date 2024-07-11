@@ -121,7 +121,7 @@ class Browser:
         await scroll_page(self.page, direction)
         return await self._wait_page()
 
-    async def goto(self, url: str, timeout: float = 30000):
+    async def goto(self, url: str, timeout: float = 90000):
         """Navigate to a specific URL."""
         if self.page is None:
             await self.start()
