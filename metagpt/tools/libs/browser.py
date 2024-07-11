@@ -24,6 +24,7 @@ from metagpt.utils.a11y_tree import (
     scroll_page,
     type_text,
 )
+from metagpt.utils.proxy_env import get_proxy_from_env
 from metagpt.utils.report import BrowserReporter
 
 
@@ -72,7 +73,7 @@ class Browser:
         self.page: Optional[Page] = None
         self.accessibility_tree: list = []
         self.headless: bool = True
-        self.proxy = None
+        self.proxy = get_proxy_from_env()
         self.is_empty_page = True
         self.reporter = BrowserReporter()
 
