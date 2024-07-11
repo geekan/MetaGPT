@@ -5,7 +5,7 @@
 import json
 import re
 
-from unidiff import PatchedFile, PatchSet
+from unidiff import PatchSet
 
 from metagpt.actions.action import Action
 from metagpt.ext.cr.utils.cleaner import (
@@ -19,6 +19,7 @@ from metagpt.utils.common import parse_json_code_block
 
 CODE_REVIEW_PROMPT_TEMPLATE = """
 NOTICE
+Let's think and work step by step.
 With the given pull-request(PR) Patch, and referenced Points(Code Standards), you should compare each point with the code one-by-one.
 
 The Patch code has added line number at the first character each line for reading, but the review should focus on new added code inside the `Patch` (lines starting with line number and '+').
@@ -52,12 +53,13 @@ CodeReview guidelines:
 - Don't suggest to add docstring unless it's necessary indeed.
 - If the same code error occurs multiple times, it cannot be omitted, and all places need to be identified.But Don't duplicate at the same place with the same comment!
 - Every line of code in the patch needs to be carefully checked, and laziness cannot be omitted. It is necessary to find out all the places.
+- The `comment` and `point_id` in the Output must correspond to and belong to the same one `Point`.
 
 Just print the PR Patch comments in json format like **Output Format**.
 """
 
 CODE_REVIEW_COMFIRM_SYSTEM_PROMPT = """
-You are a professional engineer with {code_language} stack, and good at code review comment result judgement.
+You are a professional engineer with {code_language} stack, and good at code review comment result judgement.Let's think and work step by step.
 """
 
 CODE_REVIEW_COMFIRM_TEMPLATE = """
@@ -76,7 +78,8 @@ CODE_REVIEW_COMFIRM_TEMPLATE = """
 
 ## Your Task:
 1. First, check if the code meets the requirements and does not violate any defects. If it meets the requirements and does not violate any defects, print `False` and do not proceed with further judgment.
-2. If the check in step 1 does not print `False`, proceed to further judgment. Based on the "Reference Example for Judgment" provided, determine if the "Code" and "Code Review Comments" match. If they match, print `True`; otherwise, print `False`.
+2. Then, check if the "Code Review Comments" meets "Description of Defects".If they don't meet,print `False` and do not proceed with further judgment.
+3. If the check in step 1 and step 2 do not print `False`, proceed to further judgment. Based on the "Reference Example for Judgment" provided, determine if the "Code" and "Code Review Comments" match. If they match, print `True`; otherwise, print `False`.
 
 Note: Your output should only be `True` or `False` without any explanations.
 """
@@ -89,25 +92,35 @@ class CodeReview(Action):
         new_comments = []
         logger.debug(f"original comments: {comments}")
         for cmt in comments:
-            for p in points:
-                if int(cmt.get("point_id", -1)) == p.id:
-                    code_start_line = cmt.get("code_start_line")
-                    code_end_line = cmt.get("code_end_line")
-                    code = get_code_block_from_patch(patch, code_start_line, code_end_line)
+            try:
+                if cmt.get("commented_file").endswith(".py"):
+                    points = [p for p in points if p.language == "Python"]
+                elif cmt.get("commented_file").endswith(".java"):
+                    points = [p for p in points if p.language == "Java"]
+                else:
+                    continue
+                for p in points:
+                    point_id = int(cmt.get("point_id", -1))
+                    if point_id == p.id:
+                        code_start_line = cmt.get("code_start_line")
+                        code_end_line = cmt.get("code_end_line")
+                        code = get_code_block_from_patch(patch, code_start_line, code_end_line)
 
-                    new_comments.append(
-                        {
-                            "commented_file": cmt.get("commented_file"),
-                            "code": code,
-                            "code_start_line": code_start_line,
-                            "code_end_line": code_end_line,
-                            "comment": cmt.get("comment"),
-                            "point_id": p.id,
-                            "point": p.text,
-                            "point_detail": p.detail,
-                        }
-                    )
-                    break
+                        new_comments.append(
+                            {
+                                "commented_file": cmt.get("commented_file"),
+                                "code": code,
+                                "code_start_line": code_start_line,
+                                "code_end_line": code_end_line,
+                                "comment": cmt.get("comment"),
+                                "point_id": p.id,
+                                "point": p.text,
+                                "point_detail": p.detail,
+                            }
+                        )
+                        break
+            except Exception:
+                pass
 
         logger.debug(f"new_comments: {new_comments}")
         return new_comments
@@ -151,43 +164,27 @@ class CodeReview(Action):
         logger.info(f"original comments num: {len(comments)}, confirmed comments num: {len(new_comments)}")
         return new_comments
 
-    async def cr_by_full_points(self, patch: PatchSet, points: list[Point]):
+    async def cr_by_points(self, patch: PatchSet, points: list[Point]):
         comments = []
-        points_str = "\n".join([f"{p.id} {p.text}" for p in points])
         for patched_file in patch:
             if patched_file.path.endswith(".py"):
-                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "Python"])
+                points = [p for p in points if p.language == "Python"]
             elif patched_file.path.endswith(".java"):
-                points_str = "\n".join([f"{p.id} {p.text}" for p in points if p.language == "Java"])
+                points = [p for p in points if p.language == "Java"]
             else:
                 continue
-            if len(str(patched_file).splitlines()) >= 50:
-                cr_by_segment_points_comments = await self.cr_by_segment_points(
-                    patched_file=patched_file, points=points
-                )
-                comments += cr_by_segment_points_comments
-                continue
-            prompt = CODE_REVIEW_PROMPT_TEMPLATE.format(patch=str(patched_file), points=points_str)
-            resp = await self.llm.aask(prompt)
-            json_str = parse_json_code_block(resp)[0]
-            comment = json.loads(json_str)
-            patched_file_path = patched_file.path
-            for c in comment:
-                c["commented_file"] = patched_file_path
-            comments += comment
-
-        return comments
-
-    async def cr_by_segment_points(self, patched_file: PatchedFile, points: list[Point]):
-        comments = []
-        group_points = [points[i : i + 3] for i in range(0, len(points), 3)]
-        for group_point in group_points:
-            points_str = "\n".join([f"{p.id} {p.text}" for p in group_point])
-            prompt = CODE_REVIEW_PROMPT_TEMPLATE.format(patch=str(patched_file), points=points_str)
-            resp = await self.llm.aask(prompt)
-            json_str = parse_json_code_block(resp)[0]
-            comments_batch = json.loads(json_str)
-            comments += comments_batch
+            group_points = [points[i : i + 3] for i in range(0, len(points), 3)]
+            for group_point in group_points:
+                points_str = "id description\n"
+                points_str += "\n".join([f"{p.id} {p.text}" for p in group_point])
+                prompt = CODE_REVIEW_PROMPT_TEMPLATE.format(patch=str(patched_file), points=points_str)
+                resp = await self.llm.aask(prompt)
+                json_str = parse_json_code_block(resp)[0]
+                comments_batch = json.loads(json_str)
+                patched_file_path = patched_file.path
+                for c in comments_batch:
+                    c["commented_file"] = patched_file_path
+                comments += comments_batch
 
         return comments
 
@@ -196,7 +193,7 @@ class CodeReview(Action):
         patch: PatchSet = add_line_num_on_patch(patch)
 
         result = []
-        comments = await self.cr_by_full_points(patch=patch, points=points)
+        comments = await self.cr_by_points(patch=patch, points=points)
         if len(comments) != 0:
             comments = self.format_comments(comments, points, patch)
             comments = await self.confirm_comments(patch=patch, comments=comments, points=points)
