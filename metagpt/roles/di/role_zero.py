@@ -48,7 +48,7 @@ class RoleZero(Role):
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = ToolRecommender()
+    tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, Callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
     # Equipped with three basic tools by default for optional use
@@ -246,6 +246,7 @@ class RoleZero(Role):
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError:
+            logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
             commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:
