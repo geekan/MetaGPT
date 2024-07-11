@@ -62,21 +62,3 @@ class TestExperienceManager:
         mock_config.exp_pool.enable_read = False
         result = await mock_experience_manager.query_exps("query")
         assert result == []
-
-    def test_has_exps(self, mock_experience_manager, mock_storage):
-        mock_storage._retriever._vector_store._get.return_value.ids = ["id1"]
-
-        assert mock_experience_manager._has_exps() is True
-
-        mock_storage._retriever._vector_store._get.return_value.ids = []
-        assert mock_experience_manager._has_exps() is False
-
-    def test_init_teamleader_exps(self, mock_experience_manager, mocker):
-        mock_experience_manager._init_exp = mocker.MagicMock()
-        mock_experience_manager._init_teamleader_exps()
-        mock_experience_manager._init_exp.assert_called_once()
-
-    def test_init_engineer2_exps(self, mock_experience_manager, mocker):
-        mock_experience_manager._init_exp = mocker.MagicMock()
-        mock_experience_manager._init_engineer2_exps()
-        mock_experience_manager._init_exp.assert_called_once()

@@ -7,16 +7,12 @@ from metagpt.config2 import Config, config
 from metagpt.exp_pool.schema import (
     DEFAULT_COLLECTION_NAME,
     DEFAULT_SIMILARITY_TOP_K,
-    EntryType,
     Experience,
-    Metric,
     QueryType,
-    Score,
 )
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
-from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE, TL_EXAMPLE
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -50,17 +46,9 @@ class ExperienceManager(BaseModel):
         logger.debug(f"exp_pool config: {self.config.exp_pool}")
         return self
 
-    @handle_exception
-    def init_exp_pool(self):
-        if not self.config.exp_pool.enable_write:
-            return
-
-        if self._has_exps():
-            return
-
-        self._init_teamleader_exps()
-        self._init_engineer2_exps()
-        logger.info("`init_exp_pool` done.")
+    @property
+    def vector_store(self) -> ChromaVectorStore:
+        return self.storage._retriever._vector_store
 
     @handle_exception
     def create_exp(self, exp: Experience):
@@ -101,26 +89,8 @@ class ExperienceManager(BaseModel):
 
         return exps
 
-    def _has_exps(self) -> bool:
-        vector_store: ChromaVectorStore = self.storage._retriever._vector_store
-
-        return bool(vector_store._get(limit=1, where={}).ids)
-
-    def _init_exp(self, req: str, resp: str, tag: str, metric: Metric = None):
-        exp = Experience(
-            req=req,
-            resp=resp,
-            entry_type=EntryType.MANUAL,
-            tag=tag,
-            metric=metric or Metric(score=Score(val=9, reason="Manual")),
-        )
-        self.create_exp(exp)
-
-    def _init_teamleader_exps(self):
-        self._init_exp(req=TL_EXAMPLE, resp=TL_EXAMPLE, tag="TeamLeader.llm_cached_aask")
-
-    def _init_engineer2_exps(self):
-        self._init_exp(req=ENGINEER_EXAMPLE, resp=ENGINEER_EXAMPLE, tag="Engineer2.llm_cached_aask")
+    def get_exps_count(self) -> int:
+        return self.vector_store._collection.count()
 
 
 exp_manager = ExperienceManager()
