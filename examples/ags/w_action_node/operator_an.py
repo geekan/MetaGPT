@@ -25,9 +25,5 @@ class EnsembleOp(BaseModel):
     final_solution: str = Field(default="", description="Final ensemble solution for this problem")
 
 class MdEnsembleOp(BaseModel):
-    thought: str = Field(default="",
-                          description="Analyze the solutions and think what's the best step by step.")
-    solution_letter: str = Field(default="",
-                                 description="""
-        Based on the problem and solution candidates, carefully analyze which is the best answer. Focus solely on the correctness of the solution in addressing the problem.
-        Provide your final decision by writing the chosen solution number. (eg.A) """)
+    thought: str = Field(default="", description="Analyze the solutions and think what's the best step by step.")
+    solution_letter: str = Field(default="", description="Choose The Best Solution, and output only one solution letter")

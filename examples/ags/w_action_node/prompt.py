@@ -66,4 +66,7 @@ MD_ENSEMBLE_PROMPT = """
 <solutions>
 {solutions}
 </solutions>
+
+### Instructions
+Based on the problem and solution candidates, carefully analyze which is the best answer. Focus solely on the correctness of the solution in addressing the problem. Provide your final decision by writing the chosen solution number. (eg.B). Keep the json format.
 """

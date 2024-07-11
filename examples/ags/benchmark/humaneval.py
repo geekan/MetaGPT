@@ -21,7 +21,7 @@ solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficie
 
 async def sample_generate(id):
     case = get_human_eval_plus()[f"{id}"]
-    solution_result = await solver(case['prompt'],ensemble_count=5)
+    solution_result = await solver(case['prompt'],ensemble_count=3)
     sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
     with open("samples.jsonl", mode='a') as f:
         f.write(json.dumps(sample_dict) + '\n')
@@ -153,6 +153,7 @@ def extract_failure_tests(file_path:str = "/Users/trl/Github_project/MetaGPT-Mat
 
 
 # asyncio.run(sample_generate('HumanEval/101'))
-# asyncio.run(samples_generate(mode='llm'))
+# asyncio.run(samples_generate(mode='ags'))
 # jsonl_ranker("samples.jsonl", "samples.jsonl")
 # {"task_id": "HumanEval/101", "solution": "def words_string(s):\n    import re\n    return re.split(r'[,\\s]\\s*', s)"}
+
