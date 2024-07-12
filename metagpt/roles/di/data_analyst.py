@@ -72,8 +72,8 @@ class DataAnalyst(RoleZero):
         # tool info
         if self.custom_tool_recommender:
             plan = self.planner.plan
-            fix = ["Terminal"] if "Terminal" in self.custom_tools else None
-            tool_info = await self.custom_tool_recommender.get_recommended_tool_info(fix=fix, plan=plan)
+            fixed = ["Terminal"] if "Terminal" in self.custom_tools else None
+            tool_info = await self.custom_tool_recommender.get_recommended_tool_info(fixed=fixed, plan=plan)
         else:
             tool_info = ""
 
