@@ -78,8 +78,7 @@ CODE_REVIEW_COMFIRM_TEMPLATE = """
 
 ## Your Task:
 1. First, check if the code meets the requirements and does not violate any defects. If it meets the requirements and does not violate any defects, print `False` and do not proceed with further judgment.
-2. Then, check if the "Code Review Comments" meets "Description of Defects".If they don't meet,print `False` and do not proceed with further judgment.
-3. If the check in step 1 and step 2 do not print `False`, proceed to further judgment. Based on the "Reference Example for Judgment" provided, determine if the "Code" and "Code Review Comments" match. If they match, print `True`; otherwise, print `False`.
+3. Based on the `Reference Example for Judgment` provided, determine if the `Code` and `Code Review Comments` match. If they match, print `True`; otherwise, print `False`.
 
 Note: Your output should only be `True` or `False` without any explanations.
 """
