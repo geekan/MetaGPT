@@ -1,6 +1,8 @@
 """Simple context builder."""
 
 
+from typing import Any
+
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
 
 SIMPLE_CONTEXT_TEMPLATE = """
@@ -20,5 +22,5 @@ Consider **Experiences** to generate a better answer.
 
 
 class SimpleContextBuilder(BaseContextBuilder):
-    async def build(self, **kwargs) -> str:
-        return SIMPLE_CONTEXT_TEMPLATE.format(req=kwargs.get("req", ""), exps=self.format_exps())
+    async def build(self, req: Any) -> str:
+        return SIMPLE_CONTEXT_TEMPLATE.format(req=req, exps=self.format_exps())

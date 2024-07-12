@@ -200,7 +200,7 @@ class ExpCacheHandler(BaseModel):
     async def _build_context(self) -> str:
         self.context_builder.exps = self._exps
 
-        return await self.context_builder.build(**self.kwargs)
+        return await self.context_builder.build(self.kwargs["req"])
 
     async def _execute_function(self):
         self.kwargs["req"] = await self._build_context()

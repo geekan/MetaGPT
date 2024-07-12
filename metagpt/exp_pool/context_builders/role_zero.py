@@ -1,34 +1,36 @@
 """RoleZero context builder."""
 
+import copy
 import re
+from typing import Any
 
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
 
 
 class RoleZeroContextBuilder(BaseContextBuilder):
-    async def build(self, **kwargs) -> list[dict]:
-        """Builds the context by updating the req with formatted experiences.
+    async def build(self, req: Any) -> list[dict]:
+        """Builds the role zero context string.
 
-        Args:
-            **kwargs: Arbitrary keyword arguments, expecting 'req' as a key.
-
-        Returns:
-            list[dict]: The updated request with formatted experiences or the original request if no experiences are available.
+        Note:
+            1. The expected format for `req`, e.g., [{...}, {"role": "user", "content": "context"}, {"role": "user", "content": "context exp part"}].
+            2. Returns the original `req` if it is empty, incorrectly formatted or there are no experiences.
+            3. Creates a copy of req and replaces the example content in the copied req with actual experiences.
         """
-        req = kwargs.get("req", [])
-        if not req:
+        if not req or len(req) < 2:
             return req
 
         exps = self.format_exps()
         if not exps:
             return req
 
-        req[-1]["content"] = self.replace_example_content(req[-1].get("content", ""), exps)
+        req_copy = copy.deepcopy(req)
 
-        return req
+        req_copy[-2]["content"] = self.replace_example_content(req_copy[-2].get("content", ""), exps)
+
+        return req_copy
 
     def replace_example_content(self, text: str, new_example_content: str) -> str:
-        return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
+        return self.replace_content_between_markers(text, "# Example", "# Available Commands", new_example_content)
 
     @staticmethod
     def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:

@@ -16,8 +16,11 @@ class BaseContextBuilder(BaseModel, ABC):
     exps: list[Experience] = []
 
     @abstractmethod
-    async def build(self, **kwargs) -> Any:
-        """Build context from parameters."""
+    async def build(self, req: Any) -> Any:
+        """Build context from req.
+
+        Do not modify `req`. If modification is necessary, use copy.deepcopy to create a copy first.
+        """
 
     def format_exps(self) -> str:
         """Format experiences into a numbered list of strings.

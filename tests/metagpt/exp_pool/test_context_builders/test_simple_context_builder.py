@@ -13,7 +13,7 @@ class TestSimpleContextBuilder:
         return SimpleContextBuilder()
 
     @pytest.mark.asyncio
-    async def test_build_with_experiences(self, context_builder, mocker):
+    async def test_build_with_experiences(self, mocker, context_builder: SimpleContextBuilder):
         # Mock the format_exps method
         mock_exps = "Mocked experiences"
         mocker.patch.object(BaseContextBuilder, "format_exps", return_value=mock_exps)
@@ -25,7 +25,7 @@ class TestSimpleContextBuilder:
         assert result == expected
 
     @pytest.mark.asyncio
-    async def test_build_without_experiences(self, context_builder, mocker):
+    async def test_build_without_experiences(self, mocker, context_builder: SimpleContextBuilder):
         # Mock the format_exps method to return an empty string
         mocker.patch.object(BaseContextBuilder, "format_exps", return_value="")
 
@@ -36,12 +36,12 @@ class TestSimpleContextBuilder:
         assert result == expected
 
     @pytest.mark.asyncio
-    async def test_build_without_req(self, context_builder, mocker):
+    async def test_build_without_req(self, mocker, context_builder: SimpleContextBuilder):
         # Mock the format_exps method
         mock_exps = "Mocked experiences"
         mocker.patch.object(BaseContextBuilder, "format_exps", return_value=mock_exps)
 
-        result = await context_builder.build()
+        result = await context_builder.build(req="")
 
         expected = SIMPLE_CONTEXT_TEMPLATE.format(req="", exps=mock_exps)
         assert result == expected

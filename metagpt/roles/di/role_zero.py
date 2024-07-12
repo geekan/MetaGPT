@@ -16,6 +16,7 @@ from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
+    CMD_PROMPT_EXP_PART,
     JSON_REPAIR_PROMPT,
     ROLE_INSTRUCTION,
 )
@@ -144,12 +145,13 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
-        prompt = self.cmd_prompt.format(
+        cmd_prompt_exp_part = CMD_PROMPT_EXP_PART.format(
             plan_status=plan_status,
             current_task=current_task,
-            example=example,
-            available_commands=tool_info,
             instruction=self.instruction.strip(),
+        )
+        prompt = self.cmd_prompt.format(
+            example=example, available_commands=tool_info, cmd_prompt_exp_part=cmd_prompt_exp_part
         )
         memory = self.rc.memory.get(self.memory_k)
         if not self.browser.is_empty_page:
@@ -158,16 +160,24 @@ class RoleZero(Role):
                 if pattern.match(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
-        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
-        # print(*context, sep="\n" + "*" * 5 + "\n")
+        req = self.llm.format_msg(memory + [UserMessage(content=prompt), UserMessage(content=cmd_prompt_exp_part)])
         async with ThoughtReporter(enable_llm_stream=True):
-            self.command_rsp = await self.llm_cached_aask(req=context, system_msgs=self.system_msg)
+            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg)
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
     async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str]) -> str:
+        """Use `exp_cache` to automatically manage experiences.
+
+        The `RoleZeroContextBuilder` attempts to add experiences to `req`.
+        The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
+        """
+        # Remove the "cmd_prompt_exp_part", it is only used within the exp_cache decorator.
+        if req:
+            req.pop()
+
         return await self.llm.aask(req, system_msgs=system_msgs)
 
     async def _act(self) -> Message:
