@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import json
 import re
-from typing import List
 
 from pydantic import Field, model_validator
 
@@ -44,7 +44,8 @@ class DataAnalyst(RoleZero):
             "DataAnalyst.write_and_exec_code": self.write_and_exec_code,
         })
 
-    def parse_browser_actions(self, memory: List[Message]):
+    async def parse_browser_actions(self):
+        memory = await super().parse_browser_actions()
         for index, msg in enumerate(memory):
             if msg.cause_by == "browser":
                 browser_url = re.search('URL: (.*?)\\n', msg.content).group(1)
@@ -53,7 +54,10 @@ class DataAnalyst(RoleZero):
                     'command': pattern.match(memory[index - 1].content).group(1),
                     'current url': browser_url
                 }
-                self.browser_actions.append(browser_action)
+                self.rc.working_memory.add(
+                    Message(content=json.dumps(browser_action), role="user", cause_by="browser")
+                )
+        return memory
 
     async def write_and_exec_code(self):
         """Write a code block for current task and execute it in an interactive notebook environment."""
@@ -81,9 +85,8 @@ class DataAnalyst(RoleZero):
                 user_requirement=self.planner.plan.goal,
                 plan_status=plan_status,
                 tool_info=tool_info,
-                working_memory=self.rc.working_memory.get() if use_reflection else None,
+                working_memory=self.rc.working_memory.get(),
                 use_reflection=use_reflection,
-                browser_actions=self.browser_actions
             )
             self.rc.working_memory.add(Message(content=code, role="assistant", cause_by=WriteAnalysisCode))
 

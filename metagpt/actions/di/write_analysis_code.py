@@ -42,7 +42,6 @@ class WriteAnalysisCode(Action):
         tool_info: str = "",
         working_memory: list[Message] = None,
         use_reflection: bool = False,
-        browser_actions: list[dict] = None,
         **kwargs,
     ) -> str:
         structual_prompt = STRUCTUAL_PROMPT.format(
@@ -51,11 +50,12 @@ class WriteAnalysisCode(Action):
             tool_info=tool_info,
         )
         message = [Message(content=structual_prompt, role="user")]
+        browser_actions = [msg for msg in working_memory if msg.cause_by == "browser"]
         if browser_actions:
             browser_prompt = BROWSER_INFO.format(browser_actions=browser_actions)
             message = [Message(content=browser_prompt, role="user")] + message
 
-        working_memory = working_memory or []
+        working_memory = [msg for msg in working_memory if msg.cause_by != "browser"] if use_reflection else []
         context = self.llm.format_msg(message + working_memory)
 
         # LLM call

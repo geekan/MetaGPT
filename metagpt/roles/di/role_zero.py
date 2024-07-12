@@ -54,7 +54,6 @@ class RoleZero(Role):
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
-    browser_actions: list[dict] = []  # store the browser history actions
     # terminal: Terminal = Terminal()  # FIXME: TypeError: cannot pickle '_thread.lock' object
 
     # Experience
@@ -151,14 +150,7 @@ class RoleZero(Role):
             instruction=self.instruction.strip(),
             task_type_desc=self.task_type_desc,
         )
-        memory = self.rc.memory.get(self.memory_k)
-        if not self.browser.is_empty_page:
-            pattern = re.compile(r"Command Browser\.(\w+) executed")
-            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
-                if pattern.match(msg.content):
-                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
-                    break
-        self.parse_browser_actions(memory=memory)
+        memory = await self.parse_browser_actions()
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
@@ -167,8 +159,15 @@ class RoleZero(Role):
 
         return True
 
-    def parse_browser_actions(self, memory: List[Message]):
-        pass
+    async def parse_browser_actions(self):
+        memory = self.rc.memory.get(self.memory_k)
+        if not self.browser.is_empty_page:
+            pattern = re.compile(r"Command Browser\.(\w+) executed")
+            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
+                if pattern.match(msg.content):
+                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
+                    break
+        return memory
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
