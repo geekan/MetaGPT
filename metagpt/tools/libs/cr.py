@@ -30,7 +30,7 @@ class CodeReview:
         Args:
             patch_path: The local path of the patch file or the url of the pull request. Example: "/data/xxx-pr-1.patch", "https://github.com/xx/XX/pull/1362"
             cr_output_file: Output file path where code review comments will be saved. Example: "cr/xxx-pr-1.json"
-            cr_point_file: File path for specifying code review points. Set `None` to use a predefined file.
+            cr_point_file: File path for specifying code review points. If not specified, this parameter is not passed..
         """
         patch = await self._get_patch_content(patch_path)
         cr_point_file = cr_point_file if cr_point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"

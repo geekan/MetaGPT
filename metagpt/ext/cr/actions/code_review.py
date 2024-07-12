@@ -166,6 +166,8 @@ class CodeReview(Action):
     async def cr_by_points(self, patch: PatchSet, points: list[Point]):
         comments = []
         for patched_file in patch:
+            if not patched_file:
+                continue
             if patched_file.path.endswith(".py"):
                 points = [p for p in points if p.language == "Python"]
             elif patched_file.path.endswith(".java"):
@@ -180,10 +182,11 @@ class CodeReview(Action):
                 resp = await self.llm.aask(prompt)
                 json_str = parse_json_code_block(resp)[0]
                 comments_batch = json.loads(json_str)
-                patched_file_path = patched_file.path
-                for c in comments_batch:
-                    c["commented_file"] = patched_file_path
-                comments += comments_batch
+                if comments_batch:
+                    patched_file_path = patched_file.path
+                    for c in comments_batch:
+                        c["commented_file"] = patched_file_path
+                    comments += comments_batch
 
         return comments
 
