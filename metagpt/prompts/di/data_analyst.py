@@ -17,3 +17,10 @@ CODE_STATUS = """
 **Execution status**: {status}
 **Execution result**: {result}
 """
+
+
+BROWSER_INFO = """
+Here are ordered web actions in the browser environment, note that you can not use the browser tool in the current environment.
+{browser_actions}
+The latest url is the one you should use to view the page. If view page has been done, directly use the variable and html content in executing result.
+"""

@@ -16,7 +16,6 @@ from metagpt.prompts.di.write_analysis_code import (
     REFLECTION_PROMPT,
     REFLECTION_SYSTEM_MSG,
     STRUCTUAL_PROMPT,
-    BROWSER_INFO,
 )
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser, remove_comments
@@ -49,14 +48,9 @@ class WriteAnalysisCode(Action):
             plan_status=plan_status,
             tool_info=tool_info,
         )
-        message = [Message(content=structual_prompt, role="user")]
-        browser_actions = [msg for msg in working_memory if msg.cause_by == "browser"]
-        if browser_actions:
-            browser_prompt = BROWSER_INFO.format(browser_actions=browser_actions)
-            message = [Message(content=browser_prompt, role="user")] + message
 
-        working_memory = [msg for msg in working_memory if msg.cause_by != "browser"] if use_reflection else []
-        context = self.llm.format_msg(message + working_memory)
+        working_memory = working_memory or []
+        context = self.llm.format_msg([Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
         if use_reflection:

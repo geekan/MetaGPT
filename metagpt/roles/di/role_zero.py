@@ -150,7 +150,8 @@ class RoleZero(Role):
             instruction=self.instruction.strip(),
             task_type_desc=self.task_type_desc,
         )
-        memory = await self.parse_browser_actions()
+        memory = self.rc.memory.get(self.memory_k)
+        memory = await self.parse_browser_actions(memory)
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True):
@@ -159,8 +160,7 @@ class RoleZero(Role):
 
         return True
 
-    async def parse_browser_actions(self):
-        memory = self.rc.memory.get(self.memory_k)
+    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):

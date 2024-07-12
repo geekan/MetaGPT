@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import json
 import re
+from typing import List
 
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
-from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION, TASK_TYPE_DESC, CODE_STATUS
+from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION, TASK_TYPE_DESC, CODE_STATUS, BROWSER_INFO
 from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import TaskResult, Message
@@ -44,19 +44,20 @@ class DataAnalyst(RoleZero):
             "DataAnalyst.write_and_exec_code": self.write_and_exec_code,
         })
 
-    async def parse_browser_actions(self):
-        memory = await super().parse_browser_actions()
+    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
+        memory = await super().parse_browser_actions(memory)
+        browser_actions = []
         for index, msg in enumerate(memory):
             if msg.cause_by == "browser":
                 browser_url = re.search('URL: (.*?)\\n', msg.content).group(1)
                 pattern = re.compile(r"Command Browser\.(\w+) executed")
-                browser_action = {
+                browser_actions.append({
                     'command': pattern.match(memory[index - 1].content).group(1),
                     'current url': browser_url
-                }
-                self.rc.working_memory.add(
-                    Message(content=json.dumps(browser_action), role="user", cause_by="browser")
-                )
+                })
+        if browser_actions:
+            browser_actions = BROWSER_INFO.format(browser_actions=browser_actions)
+            self.rc.working_memory.add(Message(content=browser_actions, role="user", cause_by="browser"))
         return memory
 
     async def write_and_exec_code(self):
