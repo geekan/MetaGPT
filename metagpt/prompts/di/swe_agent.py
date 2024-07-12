@@ -7,7 +7,7 @@ https://github.com/princeton-nlp/SWE-agent/tree/main/config/configs
 SWE_AGENT_SYSTEM_TEMPLATE = """
 SETTING: You are an autonomous programmer, and you're working directly in the environment line with a special interface.
 
-The special interface consists of a file editor that shows you {WINDOW} lines of a file at a time.
+The special interface consists of a file editor that shows you 100 lines of a file at a time.
 
 Please note that THE EDIT COMMAND REQUIRES PROPER INDENTATION. Pay attention to the original indentation when replacing the function. 
 If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.
@@ -50,7 +50,8 @@ MINIMAL_EXAMPLE = """
 ## Example of a actions trajectory
 User Requirement and Issue: Fix the bug in the repo. Because the environment is not available, you DO NOT need to run and modify any existing test case files or add new test case files to ensure that the bug is fixed.
 
-### Read and understand issue(Require):
+### Read and understand issue:
+Thought: Firstly, I need to review the detailed information of this issue in order to understand the problem that needs fixing.
 {{
     "command_name": "Browser.goto",
     "args": {{
@@ -60,43 +61,99 @@ User Requirement and Issue: Fix the bug in the repo. Because the environment is 
 ->
 
 ### Locate issue(Require): Locate the issue in the code by searching for the relevant file, function, or class and open the file to view the code.
+Thought: I need to come under the repo path
 {{
     "command_name": "Bash.run",
     "args": {{
-        "cmd": "cd /workspace/django__django_3.0"
+        "cmd": "cd /workspace/MetaGPT"
     }}
 }}
 ->
 
-Bash.run(cmd='search_dir_and_preview ASCIIUsernameValidator')
+Thought: Let's start by locating the `openai_api.py` file.\nFirst, let's search for the `openai_api.py` file.
 {{
     "command_name": "Bash.run",
     "args": {{
-        "cmd": "open /workspace/django__django_3.0/django/contrib/auth/validators.py"   
+        "cmd": "find_file 'openai_api.py'"   
+    }}
+}}
+->
+
+Thought: We have located both the `openai_api.py` file. Let's start by opening the `openai_api.py` file to apply the necessary changes.",
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "open '/workspace/MetaGPT/provider/openai_api.py'"   
     }}
 }}
 ->
 
 ### Fix the Bug(Require): Fix the bug in the code by editing the relevant function, class or code snippet.
+Thought: Now that I've found the bug, let's fix it by edit.
 {{
     "command_name": "Bash.run",
     "args": {{
-        "cmd": "edit 10:20 <<EOF\n    regex = r'\A[\w.@+-]+\Z'\n    message = _( \n        'Enter a valid username. This value may contain only English letters, ' \n        'numbers, and @/./+/-/_ characters.'\n    )\n    flags = re.ASCII\n\n@deconstructible\nclass UnicodeUsernameValidator(validators.RegexValidator):\n    regex = r'\A[\w.@+-]+\Z'\nEOF"
+        "cmd": "edit 93:95 <<EOF\n        usage = None\n        collected_messages = []\n        async for chunk in response:\n            if chunk.usage is not None:\n                usage = CompletionUsage(**chunk.usage)\n            chunk_message = chunk.choices[0].delta.content or '' if chunk.choices else ''  # extract the message\n            finish_reason = (\n                chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], 'finish_reason') else None\n            )\n            log_llm_stream(chunk_message)\nEOF"
+    }}
+}}
+->
+Thought: Due to a syntax error related to an undefined name 'Image', we need to address this issue even though it is not directly related to our work. Let's try importing the package to fix it.
+{{
+    "command_name": "Bash.run",
+    "args": {{
+        "cmd": "edit 14:14 <<EOF\nfrom PIL.Image import Image\nEOF"
     }}
 }}
 ->
 
-### Submit the Changes(Require): Submit the changes to the repository.
+### Save the Changes (Required): After all changes have been made, save them to the repository.
+> You must choose one of the following two methods.
+
+#### Just save the changes locally, it only need one action.
+Thought: The bug has been fixed. Let's submit the changes.
 {{
     "command_name": "Bash.run",
     "args": {{
         "cmd": "submit"
     }}
 }}
-Bash.run(cmd='submit')
 ->
+
+#### Save the changes and commit them to the remote repository.
+
+##### Push the changes from the local repository to the remote repository.
+Thought: All changes have been saved, let's push the code to the remote repository.
 {{
-    "command_name": "end",
+    "command_name": "git_push",
+    "args": {{
+        "local_path": "/workspace/MetaGPT",
+        "app_name": "github",
+        "comments": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType"",
+        "new_branch": "test-fix"
+    }}
+}}
+->
+
+##### Create a pull request (Optional): Merge the changes from the new branch into the master branch.
+Thought: Now that the changes have been pushed to the remote repository, due to the user's requirement, let's create a pull request to merge the changes into the master branch.
+[{{
+    "command_name": "git_create_pull",
+    "args": {{
+        "base": "master",
+        "head": "test-fix",
+        "base_repo_name": "garylin2099/MetaGPT",
+        "head_repo_name": "seeker-jie/MetaGPT",
+        "app_name": "github",
+        "title": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType"",
+        "body": "This pull request addresses issue #1275 by ensuring that chunk.usage is not None before passing it to CompletionUsage."
+   }}
+}}]
+->
+
+### Finally
+Thought: All task has been done, let's end the conversation.
+{{
+    "command_name": "end"
 }}
 """
 
@@ -162,7 +219,10 @@ IMPORTANT_TIPS = """
     - If a search command fails, modify the search criteria and check for typos or incorrect paths, then try again.
     - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
 
-13. If the task results in succeed, fail, or NO PROGRESS, output `submit`.
+13. Save the code change:
+  - If you need to submit changes to the remote repository, first use the regular git commit command to save the changes locally, then select a command from the `Available Commands: [git_push, git_create_pull]` to submit the changes to the remote repository.
+
+  - If you don't need to submit code changes to the remote repository. use the command Bash.run('submit') to commit the changes locally. 
 
 14. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
 
@@ -185,5 +245,4 @@ The current bash state is:
 (Current directory: {{working_dir}})
 
 Avoid repeating the same command. Instead, please think about the current situation and provide the next bash command to execute in JSON format:"
-
 """

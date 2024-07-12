@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import aiofiles
+from bs4 import BeautifulSoup
 from unidiff import PatchSet
 
 import metagpt.ext.cr
@@ -29,7 +30,7 @@ class CodeReview:
         Args:
             patch_path: The local path of the patch file or the url of the pull request. Example: "/data/xxx-pr-1.patch", "https://github.com/xx/XX/pull/1362"
             cr_output_file: Output file path where code review comments will be saved. Example: "cr/xxx-pr-1.json"
-            cr_point_file: File path for specifying code review points. Defaults to a predefined file.
+            cr_point_file: File path for specifying code review points. If not specified, this parameter is not passed..
         """
         patch = await self._get_patch_content(patch_path)
         cr_point_file = cr_point_file if cr_point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"
@@ -45,7 +46,7 @@ class CodeReview:
             )
             comments = await CodeReview_().run(patch, cr_points)
             cr_output_path.parent.mkdir(exist_ok=True, parents=True)
-            async with aiofiles.open(cr_output_path, "w") as f:
+            async with aiofiles.open(cr_output_path, "w", encoding="utf-8") as f:
                 await f.write(json.dumps(comments, ensure_ascii=False))
             await reporter.async_report(cr_output_path)
 
@@ -65,7 +66,7 @@ class CodeReview:
             output_dir: File path where code review comments are stored.
         """
         patch = await self._get_patch_content(patch_path)
-        async with aiofiles.open(cr_file, "r") as f:
+        async with aiofiles.open(cr_file, "r", encoding="utf-8") as f:
             comments = json.loads(await f.read())
         await ModifyCode(pr="").run(patch, comments, output_dir)
         return f"The fixed patch files store in {output_dir}"
@@ -75,12 +76,14 @@ class CodeReview:
             # async with aiohttp.ClientSession(trust_env=True) as client:
             #     async with client.get(f"{patch_path}.diff", ) as resp:
             #         patch_file_content = await resp.text()
-            browser = Browser()
-            browser.proxy = {"server": "http://127.0.0.1:20172"}
-            async with browser:
+            async with Browser() as browser:
                 await browser.goto(f"{patch_path}.diff")
                 patch_file_content = await browser.page.content()
-
+                if patch_file_content.startswith("<html>"):
+                    soup = BeautifulSoup(patch_file_content, "html.parser")
+                    pre = soup.find("pre")
+                    if pre:
+                        patch_file_content = pre.text
         else:
             async with aiofiles.open(patch_path) as f:
                 patch_file_content = await f.read()
