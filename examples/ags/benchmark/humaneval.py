@@ -19,15 +19,15 @@ generate_code_block = GenerateCodeBlock(llm=LLM())
 
 solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=5)
 
-async def sample_generate(id):
+async def sample_generate(id, result_path:str="samples.jsonl"):
     case = get_human_eval_plus()[f"{id}"]
-    solution_result = await solver(case['prompt'],ensemble_count=3)
+    solution_result = await solver(case['prompt'],ensemble_count=5)
     sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
-    with open("samples.jsonl", mode='a') as f:
+    with open(result_path, mode='a') as f:
         f.write(json.dumps(sample_dict) + '\n')
-    jsonl_ranker("samples.jsonl", "samples.jsonl")
+    jsonl_ranker(result_path, result_path)
 
-async def samples_generate(mode:str):
+async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     cases = list(get_human_eval_plus().values())
     file_lock = asyncio.Lock()
     
@@ -48,7 +48,7 @@ async def samples_generate(mode:str):
                 }
 
             async with file_lock:
-                async with aiofiles.open("samples.jsonl", mode='a') as f:
+                async with aiofiles.open(result_path, mode='a') as f:
                     await f.write(json.dumps(sample_dict) + '\n')
             return None
 
@@ -67,11 +67,12 @@ async def samples_generate(mode:str):
                 await sample_generate(task_id) 
             except Exception as e:
                 print(f"failure {task_id}")
-    jsonl_ranker("samples.jsonl", "samples.jsonl")
+    jsonl_ranker(result_path, result_path)
     
     if not failed_tasks:
-        if automatic_evalplus():
-            unpassed_exapmle = extract_failure_tests()
+        if automatic_evalplus(result_path):
+            eval_path = result_path[:-6]+"_eval_results.json"
+            unpassed_exapmle = extract_failure_tests(eval_path)
             print(unpassed_exapmle)
     else:
         print(failed_tasks)
@@ -111,7 +112,7 @@ async def samples_generate_llm():
     
     write_jsonl("samples.jsonl", sample_list)
 
-def automatic_evalplus():
+def automatic_evalplus(result_path:str ="samples.jsonl"):
     """
     在命令行中自动执行 evalplus.evaluate --dataset humaneval --samples samples.jsonl --parallel 2 --base-only
     """
@@ -120,7 +121,7 @@ def automatic_evalplus():
         "-m",
         "evalplus.evaluate",
         "--dataset", "humaneval",
-        "--samples", "samples.jsonl",
+        "--samples", result_path,
         "--parallel", "2",
         "--base-only"
     ]
@@ -133,7 +134,7 @@ def automatic_evalplus():
         print("错误输出:", e.stderr)
         return False
     
-def extract_failure_tests(file_path:str = "/Users/trl/Github_project/MetaGPT-MathAI/samples_eval_results.json"):
+def extract_failure_tests(file_path:str = "samples_eval_results.json"):
     with open(file_path, 'r') as f:
         task_results = json.load(f)
 

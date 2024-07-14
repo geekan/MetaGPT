@@ -5,7 +5,7 @@
 
 from metagpt.llm import LLM 
 
-from examples.ags.w_action_node.operator import Generate, GenerateCode, GenerateCodeBlock, Review, Revise, Ensemble, MdEnsemble
+from examples.ags.w_action_node.operator import Generate, GenerateCode, GenerateCodeBlock, Review, Revise, FuEnsemble, MdEnsemble
 
 class Graph:
     def __init__(self, name:str, llm:LLM) -> None:
@@ -23,18 +23,18 @@ class HumanEvalGraph(Graph):
         self.generate_code_block = GenerateCodeBlock(llm=llm)
         self.review = Review(llm=llm, criteria=criteria)
         self.revise = Revise(llm=llm)
-        self.ensemble = Ensemble(llm=llm)
+        self.fuensemble = FuEnsemble(llm=llm)
         self.mdensemble = MdEnsemble(llm=llm, vote_count=vote_count)
 
-    async def __call__(self, problem:str, ensemble_count:int = 3):
-        solution_list = []
-        for _ in range(ensemble_count):
-            solution = await self.generate_code(problem)
-            # solution = await self.generate_code_block(problem)
-            solution = solution.get('code_solution')
-            solution_list.append(solution)
-        solution = await self.mdensemble("code", solution_list, problem)
-        return solution
+    # async def __call__(self, problem:str, ensemble_count:int = 3):
+    #     solution_list = []
+    #     for _ in range(ensemble_count):
+    #         solution = await self.generate_code(problem)
+    #         # solution = await self.generate_code_block(problem)
+    #         solution = solution.get('code_solution')
+    #         solution_list.append(solution)
+    #     solution = await self.mdensemble("code", solution_list, problem)
+    #     return solution
     
     async def review_revise_ensemble(self, problem:str, ensemble_count:int = 2):
         solution_list = []
@@ -45,15 +45,15 @@ class HumanEvalGraph(Graph):
         return solution
 
     # async def simple_ensemble(self, problem:str, ensemble_count:int = 3):
-    # async def __call__(self, problem:str, ensemble_count:int = 3):
-    #     solution_list = []
-    #     for _ in range(ensemble_count):
-    #         solution = await self.generate_code(problem)
-    #         # solution = await self.generate_code_block(problem)
-    #         solution = solution.get('code_solution')
-    #         solution_list.append(solution)
-    #     solution = await self.ensemble(solution_list, problem)
-    #     return solution
+    async def __call__(self, problem:str, ensemble_count:int = 3):
+        solution_list = []
+        for _ in range(ensemble_count):
+            solution = await self.generate_code(problem)
+            # solution = await self.generate_code_block(problem)
+            solution = solution.get('code_solution')
+            solution_list.append(solution)
+        solution = await self.fuensemble(solution_list, problem)
+        return solution
     
     async def single_solve(self, problem:str, max_loop:int):
         solution = await self.generate_code(problem)
@@ -66,4 +66,3 @@ class HumanEvalGraph(Graph):
             solution = solution.get('revised_solution')
         return solution
     
-

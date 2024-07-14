@@ -516,6 +516,15 @@ class ActionNode:
         extracted_code = extract_code_from_response(content)    
         result = {field_name: extracted_code}
         return result
+    
+    async def messages_fill(
+        self,
+    ):
+        """
+        参考这个代码，只不过LLM调用方式改成使用；
+        
+        """
+        pass
 
     async def fill(
         self,
