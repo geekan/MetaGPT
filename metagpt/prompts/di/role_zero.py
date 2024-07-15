@@ -5,7 +5,7 @@ When presented a current task, tackle the task using the available commands.
 Pay close attention to new user message, review the conversation history, use RoleZero.reply_to_human to respond to new user requirement.
 Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use RoleZero.ask_human to ask for help.
-2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task.
+2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task explicitly.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
 """
 
@@ -17,6 +17,9 @@ class Task(BaseModel):
     instruction: str = ""
     task_type: str = ""
     assignee: str = ""
+
+# Available Task Types
+{task_type_desc}
 
 # Available Commands
 {available_commands}
@@ -38,7 +41,7 @@ Pay close attention to the Example provided, you can reuse the example for your 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 
-# Your commands in a json array, in the following output format. If there is nothing to do, use the pass or end command:
+# Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts, such as how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 ```json
 [

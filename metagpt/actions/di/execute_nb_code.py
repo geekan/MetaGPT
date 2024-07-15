@@ -30,6 +30,12 @@ from metagpt.logs import logger
 from metagpt.utils.report import NotebookReporter
 
 INSTALL_KEEPLEN = 500
+INI_CODE = """import warnings
+import logging
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.ERROR)
+warnings.filterwarnings('ignore')"""
 
 
 class RealtimeOutputNotebookClient(NotebookClient):
@@ -79,6 +85,12 @@ class ExecuteNbCode(Action):
         )
         self.reporter = NotebookReporter()
         self.set_nb_client()
+        self.init_called = False
+
+    async def init_code(self):
+        if not self.init_called:
+            await self.run(INI_CODE)
+            self.init_called = True
 
     def set_nb_client(self):
         self.nb_client = RealtimeOutputNotebookClient(
@@ -175,9 +187,12 @@ class ExecuteNbCode(Action):
                 is_success = False
 
             output_text = remove_escape_and_color_codes(output_text)
+            if is_success:
+                output_text = remove_log_and_warning_lines(output_text)
             # The useful information of the exception is at the end,
             # the useful information of normal output is at the begining.
-            output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
+            if '<!DOCTYPE html>' not in output_text:
+                output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
         return is_success, ",".join(parsed_output)
@@ -266,6 +281,18 @@ class ExecuteNbCode(Action):
             await self.reporter.async_report(file_path, "path")
 
             return outputs, success
+
+
+def remove_log_and_warning_lines(input_str: str) -> str:
+    delete_lines = ["[warning]", "warning:", "[cv]", "[info]"]
+    result = "\n".join(
+        [
+            line
+            for line in input_str.split("\n")
+            if not any(dl in line.lower() for dl in delete_lines)
+        ]
+    ).strip()
+    return result
 
 
 def remove_escape_and_color_codes(input_str: str):

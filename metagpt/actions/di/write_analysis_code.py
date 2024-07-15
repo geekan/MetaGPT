@@ -57,7 +57,7 @@ class WriteAnalysisCode(Action):
             code = await self._debug_with_reflection(context=context, working_memory=working_memory)
         else:
             rsp = await self.llm.aask(context, system_msgs=[INTERPRETER_SYSTEM_MSG], **kwargs)
-            code = CodeParser.parse_code(text=rsp)
+            code = CodeParser.parse_code(text=rsp, lang="python")
 
         return code
 

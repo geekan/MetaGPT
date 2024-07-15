@@ -41,7 +41,7 @@ class WebPage(BaseModel):
 
     def get_slim_soup(self, keep_links: bool = False):
         soup = _get_soup(self.html)
-        keep_attrs = ["class"]
+        keep_attrs = ["class", "id"]
         if keep_links:
             keep_attrs.append("href")
 
