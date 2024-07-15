@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from metagpt.exp_pool.schema import Experience
 
-EXP_TEMPLATE = """Given the request: {req}, We can get the response: {resp}, Which scored: {score}."""
+EXP_TEMPLATE = """Given the request: {req}, We can get the response: {resp}, which scored: {score}."""
 
 
 class BaseContextBuilder(BaseModel, ABC):
@@ -26,8 +26,8 @@ class BaseContextBuilder(BaseModel, ABC):
         """Format experiences into a numbered list of strings.
 
         Example:
-            1. Given the request: req1, We can get the response: resp1, Which scored: 8.
-            2. Given the request: req2, We can get the response: resp2, Which scored: 9.
+            1. Given the request: req1, We can get the response: resp1, which scored: 8.
+            2. Given the request: req2, We can get the response: resp2, which scored: 9.
 
         Returns:
             str: The formatted experiences as a string.
