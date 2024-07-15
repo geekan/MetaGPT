@@ -31,7 +31,7 @@
 🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Data Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/di/README.md), a powerful agent capable of solving a wide range of real-world problems.
 
 🚀 Jan. 16, 2024: Our paper [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework
-](https://arxiv.org/abs/2308.00352) accepted for **oral presentation (top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
+](https://openreview.net/forum?id=VtmBAGCN7o) accepted for **oral presentation (top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
 
 🚀 Jan. 03, 2024: [v0.6.0](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0) released, new features include serialization, upgraded OpenAI package and supported multiple LLM, provided [minimal example for debate](https://github.com/geekan/MetaGPT/blob/main/examples/debate_simple.py) etc.
 
@@ -166,16 +166,15 @@ We will respond to all questions within 2-3 business days.
 
 To stay updated with the latest research and development, follow [@MetaGPT_](https://twitter.com/MetaGPT_) on Twitter. 
 
-To cite [MetaGPT](https://arxiv.org/abs/2308.00352) or [Data Interpreter](https://arxiv.org/abs/2402.18679) in publications, please use the following BibTeX entries.
+To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) or [Data Interpreter](https://arxiv.org/abs/2402.18679) in publications, please use the following BibTeX entries.
 
 ```bibtex
-@misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework}, 
-      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Ceyao Zhang and Jinlin Wang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and Jürgen Schmidhuber},
-      year={2023},
-      eprint={2308.00352},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
+@inproceedings{hong2024metagpt,
+      title={Meta{GPT}: Meta Programming for A Multi-Agent Collaborative Framework},
+      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and J{\"u}rgen Schmidhuber},
+      booktitle={The Twelfth International Conference on Learning Representations},
+      year={2024},
+      url={https://openreview.net/forum?id=VtmBAGCN7o}
 }
 @misc{hong2024data,
       title={Data Interpreter: An LLM Agent For Data Science}, 
@@ -185,6 +184,5 @@ To cite [MetaGPT](https://arxiv.org/abs/2308.00352) or [Data Interpreter](https:
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }
-
 ```
 
