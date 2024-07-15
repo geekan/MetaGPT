@@ -43,8 +43,14 @@ class RoleZeroSerializer(SimpleSerializer):
             list[dict]: The filtered request.
         """
 
-        filtered_req = [
-            copy.deepcopy(item) for item in req if "Command Editor.read executed: file_path" in item["content"]
-        ]
+        filtered_req = [copy.deepcopy(item) for item in req if self._is_useful_content(item["content"])]
 
         return filtered_req
+
+    def _is_useful_content(self, content: str) -> bool:
+        """Currently, only the content of the file is considered, and more judgments can be added later."""
+
+        if "Command Editor.read executed: file_path" in content:
+            return True
+
+        return False
