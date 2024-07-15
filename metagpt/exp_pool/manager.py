@@ -39,7 +39,7 @@ class ExperienceManager(BaseModel):
                     similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
                 )
             ]
-            ranker_configs = [LLMRankerConfig()]
+            ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
 
             self.storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
@@ -57,6 +57,7 @@ class ExperienceManager(BaseModel):
         Args:
             exp (Experience): The experience to add.
         """
+
         if not self.config.exp_pool.enable_write:
             return
 
@@ -74,6 +75,7 @@ class ExperienceManager(BaseModel):
         Returns:
             list[Experience]: A list of experiences that match the args.
         """
+
         if not self.config.exp_pool.enable_read:
             return []
 
@@ -90,6 +92,8 @@ class ExperienceManager(BaseModel):
         return exps
 
     def get_exps_count(self) -> int:
+        """Get the total number of experiences."""
+
         return self.vector_store._collection.count()
 
 

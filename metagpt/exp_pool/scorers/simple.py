@@ -57,6 +57,7 @@ class SimpleScorer(BaseScorer):
         Returns:
             Score: An object containing the score (1-10) and the reasoning.
         """
+
         prompt = SIMPLE_SCORER_TEMPLATE.format(req=req, resp=resp)
         resp = await self.llm.aask(prompt)
         resp_json = json.loads(CodeParser.parse_code(resp, lang="json"))

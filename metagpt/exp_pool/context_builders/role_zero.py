@@ -16,6 +16,7 @@ class RoleZeroContextBuilder(BaseContextBuilder):
             2. Returns the original `req` if it is empty, incorrectly formatted or there are no experiences.
             3. Creates a copy of req and replaces the example content in the copied req with actual experiences.
         """
+
         if not req or len(req) < 2:
             return req
 

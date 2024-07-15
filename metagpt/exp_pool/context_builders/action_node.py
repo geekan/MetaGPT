@@ -24,6 +24,7 @@ class ActionNodeContextBuilder(BaseContextBuilder):
         If there are no experiences, returns the original `req`;
         otherwise returns context with `req` and formatted experiences.
         """
+
         exps = self.format_exps()
 
         return ACTION_NODE_CONTEXT_TEMPLATE.format(req=req, exps=exps) if exps else req

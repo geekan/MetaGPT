@@ -24,6 +24,7 @@ class RoleZeroSerializer(SimpleSerializer):
         Returns:
             str: The serialized request as a JSON string.
         """
+
         if not req:
             return ""
 
