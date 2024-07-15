@@ -104,11 +104,13 @@ class ToolRecommender(BaseModel):
 
         return ranked_tools
 
-    async def get_recommended_tool_info(self, **kwargs) -> str:
+    async def get_recommended_tool_info(self, fixed: list[str] = None, **kwargs) -> str:
         """
         Wrap recommended tools with their info in a string, which can be used directly in a prompt.
         """
         recommended_tools = await self.recommend_tools(**kwargs)
+        if fixed:
+            recommended_tools.extend([self.tools[tool_name] for tool_name in fixed if tool_name in self.tools])
         if not recommended_tools:
             return ""
         tool_schemas = {tool.name: tool.schemas for tool in recommended_tools}

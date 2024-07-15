@@ -45,6 +45,7 @@ class RoleZero(Role):
     system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     instruction: str = ROLE_INSTRUCTION
+    task_type_desc: str = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -152,19 +153,19 @@ class RoleZero(Role):
             instruction=self.instruction.strip(),
         )
         prompt = self.cmd_prompt.format(
-            example=example, available_commands=tool_info, cmd_prompt_exp_part=cmd_prompt_exp_part
+            example=example,
+            available_commands=tool_info,
+            task_type_desc=self.task_type_desc,
+            cmd_prompt_exp_part=cmd_prompt_exp_part,
         )
         memory = self.rc.memory.get(self.memory_k)
-        if not self.browser.is_empty_page:
-            pattern = re.compile(r"Command Browser\.(\w+) executed")
-            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
-                if pattern.match(msg.content):
-                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
-                    break
+        memory = await self.parse_browser_actions(memory)
+
         req = self.llm.format_msg(memory + [UserMessage(content=prompt), UserMessage(content=cmd_prompt_exp_part)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg)
+
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
@@ -181,6 +182,15 @@ class RoleZero(Role):
             req.pop()
 
         return await self.llm.aask(req, system_msgs=system_msgs)
+
+    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
+        if not self.browser.is_empty_page:
+            pattern = re.compile(r"Command Browser\.(\w+) executed")
+            for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
+                if pattern.match(msg.content):
+                    memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
+                    break
+        return memory
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
@@ -284,13 +294,14 @@ class RoleZero(Role):
     async def _run_commands(self, commands) -> str:
         outputs = []
         for cmd in commands:
+            output = f"Command {cmd['command_name']} executed"
             # handle special command first
             if await self._run_special_command(cmd):
+                outputs.append(output)
                 continue
             # run command as specified by tool_execute_map
             if cmd["command_name"] in self.tool_execution_map:
                 tool_obj = self.tool_execution_map[cmd["command_name"]]
-                output = f"Command {cmd['command_name']} executed"
                 try:
                     if inspect.iscoroutinefunction(tool_obj):
                         tool_output = await tool_obj(**cmd["args"])
