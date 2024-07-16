@@ -1,4 +1,6 @@
-"""Decorator example of experience pool."""
+"""
+This script demonstrates how to automatically store experiences using @exp_cache and query the stored experiences.
+"""
 
 import asyncio
 import uuid
@@ -16,7 +18,7 @@ async def main():
     req = "Water"
 
     resp = await produce(req=req)
-    logger.info(f"The resp of `produce{req}` is: {resp}")
+    logger.info(f"The response of `produce({req})` is: {resp}")
 
     exps = await exp_manager.query_exps(req)
     logger.info(f"Find experiences: {exps}")

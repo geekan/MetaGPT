@@ -1,4 +1,8 @@
-"""Simple example of experience pool."""
+"""
+Demonstrate the creation and querying of experiences.
+
+This script creates a new experience, logs its creation, and then queries for experiences matching the same request.
+"""
 
 import asyncio
 
@@ -8,12 +12,16 @@ from metagpt.logs import logger
 
 
 async def main():
-    req = "Simple task."
-    exp = Experience(req=req, resp="echo", entry_type=EntryType.MANUAL)
+    # Define the simple request and response
+    req = "Simple req"
+    resp = "Simple resp"
 
+    # Add the new experience
+    exp = Experience(req=req, resp=resp, entry_type=EntryType.MANUAL)
     exp_manager.create_exp(exp)
     logger.info(f"New experience created for the request `{req}`.")
 
+    # Query for experiences matching the request
     exps = await exp_manager.query_exps(req)
     logger.info(f"Got experiences: {exps}")
 

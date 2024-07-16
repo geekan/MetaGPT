@@ -22,7 +22,7 @@ class TestRoleZeroSerializer:
         return [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
 
     def test_serialize_req_empty_input(self, serializer: RoleZeroSerializer):
-        assert serializer.serialize_req([]) == ""
+        assert serializer.serialize_req(req=[]) == ""
 
     def test_serialize_req_with_content(self, serializer: RoleZeroSerializer, last_item: dict):
         req = [
@@ -33,7 +33,7 @@ class TestRoleZeroSerializer:
         expected_output = json.dumps(
             [{"role": "user", "content": "Command Editor.read executed: file_path=test.py"}, last_item]
         )
-        assert serializer.serialize_req(req) == expected_output
+        assert serializer.serialize_req(req=req) == expected_output
 
     def test_filter_req(self, serializer: RoleZeroSerializer):
         req = [
