@@ -121,7 +121,7 @@ class ExpCacheHandler(BaseModel):
         self.serializer = self.serializer or SimpleSerializer()
         self.tag = self.tag or self._generate_tag()
 
-        self._req = self.serializer.serialize_req(self.kwargs["req"])
+        self._req = self.serializer.serialize_req(**self.kwargs)
 
         return self
 

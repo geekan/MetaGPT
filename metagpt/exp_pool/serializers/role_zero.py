@@ -7,7 +7,7 @@ from metagpt.exp_pool.serializers.simple import SimpleSerializer
 
 
 class RoleZeroSerializer(SimpleSerializer):
-    def serialize_req(self, req: list[dict]) -> str:
+    def serialize_req(self, **kwargs) -> str:
         """Serialize the request for database storage, ensuring it is a string.
 
         Only extracts the necessary content from `req` because `req` may be very lengthy and could cause embedding errors.
@@ -18,18 +18,20 @@ class RoleZeroSerializer(SimpleSerializer):
                     {"role": "user", "content": "..."},
                     {"role": "assistant", "content": "..."},
                     {"role": "user", "content": "context"},
-                    {"role": "user", "content": "context exp part"},
                 ]
 
         Returns:
             str: The serialized request as a JSON string.
         """
+        req = kwargs.get("req", [])
 
         if not req:
             return ""
 
         filtered_req = self._filter_req(req)
-        filtered_req.append(req[-1])
+
+        if state_data := kwargs.get("state_data"):
+            filtered_req.append({"role": "user", "content": state_data})
 
         return json.dumps(filtered_req)
 

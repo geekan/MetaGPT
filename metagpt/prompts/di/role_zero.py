@@ -8,16 +8,6 @@ Note:
 2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task explicitly.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
 """
-CMD_PROMPT_EXP_PART = """
-# Current Plan
-{plan_status}
-
-# Current Task
-{current_task}
-
-# Instruction
-{instruction}
-"""
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
 # Data Structure
@@ -38,7 +28,14 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 # Available Task Types
 {task_type_desc}
 
-{cmd_prompt_exp_part}
+# Current Plan
+{plan_status}
+
+# Current Task
+{current_task}
+
+# Instruction
+{instruction}
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.

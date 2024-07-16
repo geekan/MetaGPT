@@ -10,10 +10,10 @@ class BaseSerializer(BaseModel, ABC):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
-    def serialize_req(self, req: Any) -> str:
+    def serialize_req(self, **kwargs) -> str:
         """Serializes the request for storage.
 
-        Do not modify req. If modification is necessary, use copy.deepcopy to create a copy first.
+        Do not modify kwargs. If modification is necessary, use copy.deepcopy to create a copy first.
         Note that copy.deepcopy may raise errors, such as TypeError: cannot pickle '_thread.RLock' object.
         """
 

@@ -6,10 +6,10 @@ from metagpt.exp_pool.serializers.base import BaseSerializer
 
 
 class SimpleSerializer(BaseSerializer):
-    def serialize_req(self, req: Any) -> str:
+    def serialize_req(self, **kwargs) -> str:
         """Just use `str` to convert the request object into a string."""
 
-        return str(req)
+        return str(kwargs.get("req", ""))
 
     def serialize_resp(self, resp: Any) -> str:
         """Just use `str` to convert the response object into a string."""
