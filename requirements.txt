@@ -43,7 +43,9 @@ wrapt==1.15.0
 #aiohttp_jinja2
 # azure-cognitiveservices-speech~=1.31.0 # Used by metagpt/tools/azure_tts.py
 #aioboto3~=12.4.0  # Used by metagpt/utils/s3.py
-aioredis~=2.0.1 # Used by metagpt/utils/redis.py
+redis~=5.0.0 # Used by metagpt/utils/redis.py
+curl-cffi~=0.7.0
+httplib2~=0.22.0
 websocket-client~=1.8.0
 aiofiles==23.2.1
 gitpython==3.1.40
