@@ -12,12 +12,12 @@ class RoleZeroContextBuilder(BaseContextBuilder):
         """Builds the role zero context string.
 
         Note:
-            1. The expected format for `req`, e.g., [{...}, {"role": "user", "content": "context"}, {"role": "user", "content": "context exp part"}].
-            2. Returns the original `req` if it is empty, incorrectly formatted or there are no experiences.
+            1. The expected format for `req`, e.g., [{...}, {"role": "user", "content": "context"}].
+            2. Returns the original `req` if it is empty.
             3. Creates a copy of req and replaces the example content in the copied req with actual experiences.
         """
 
-        if not req or len(req) < 2:
+        if not req:
             return req
 
         exps = self.format_exps()
@@ -26,12 +26,12 @@ class RoleZeroContextBuilder(BaseContextBuilder):
 
         req_copy = copy.deepcopy(req)
 
-        req_copy[-2]["content"] = self.replace_example_content(req_copy[-2].get("content", ""), exps)
+        req_copy[-1]["content"] = self.replace_example_content(req_copy[-1].get("content", ""), exps)
 
         return req_copy
 
     def replace_example_content(self, text: str, new_example_content: str) -> str:
-        return self.replace_content_between_markers(text, "# Example", "# Available Commands", new_example_content)
+        return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
 
     @staticmethod
     def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:

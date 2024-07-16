@@ -18,9 +18,6 @@ class Task(BaseModel):
     task_type: str = ""
     assignee: str = ""
 
-# Example
-{example}
-
 # Available Commands
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
@@ -33,6 +30,9 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 
 # Current Task
 {current_task}
+
+# Example
+{example}
 
 # Instruction
 {instruction}
