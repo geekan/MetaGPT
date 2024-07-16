@@ -11,7 +11,7 @@ from multiprocessing import Pipe
 
 
 class StreamPipe:
-    def __init__(self,name=None):
+    def __init__(self, name=None):
         self.name = name
         self.parent_conn, self.child_conn = Pipe()
         self.finish: bool = False

@@ -226,8 +226,8 @@ TOKEN_MAX = {
     "claude-2.1": 200000,
     "claude-3-sonnet-20240229": 200000,
     "claude-3-opus-20240229": 200000,
-    "claude-3-5-sonnet-20240620":200000,
-    "claude-3-haiku-20240307":200000,
+    "claude-3-5-sonnet-20240620": 200000,
+    "claude-3-haiku-20240307": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
     "yi-large": 16385,
@@ -263,7 +263,6 @@ TOKEN_MAX = {
     "qwen-7b-chat": 32000,
     "qwen-1.8b-longcontext-chat": 32000,
     "qwen-1.8b-chat": 8000,
-    
 }
 
 # For Amazon Bedrock US region
