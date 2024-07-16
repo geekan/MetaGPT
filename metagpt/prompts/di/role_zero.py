@@ -7,6 +7,8 @@ Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use RoleZero.ask_human to ask for help.
 2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task explicitly.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
+4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
+5. Don't repeat the same command if it has been executed successfully.
 """
 
 CMD_PROMPT = """
