@@ -38,7 +38,7 @@ async def test_write_design_an(mocker):
     mocker.patch("metagpt.actions.design_api_an.REFINED_DESIGN_NODE.fill", return_value=root)
 
     prompt = NEW_REQ_TEMPLATE.format(old_design=DESIGN_SAMPLE, context=dict_to_markdown(REFINED_PRD_JSON))
-    node = await REFINED_DESIGN_NODE.fill(prompt, llm)
+    node = await REFINED_DESIGN_NODE.fill(req=prompt, llm=llm)
 
     assert "Refined Implementation Approach" in node.instruct_content.model_dump()
     assert "Refined File list" in node.instruct_content.model_dump()

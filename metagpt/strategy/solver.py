@@ -39,7 +39,7 @@ class NaiveSolver(BaseSolver):
         self.graph.topological_sort()
         for key in self.graph.execution_order:
             op = self.graph.nodes[key]
-            await op.fill(self.context, self.llm, mode="root")
+            await op.fill(req=self.context, llm=self.llm, mode="root")
 
 
 class TOTSolver(BaseSolver):
