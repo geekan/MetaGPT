@@ -11,10 +11,10 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM 
 
 from examples.ags.w_action_node.operator_an import GenerateOp, GenerateCodeOp, GenerateCodeBlockOp ,ReviewOp, ReviseOp, FuEnsembleOp, MdEnsembleOp
-from examples.ags.w_action_node.prompt import GENERATE_PROMPT, GENERATE_CODE_PROMPT, REVIEW_PROMPT, REVISE_PROMPT, FU_ENSEMBLE_PROMPT, MD_ENSEMBLE_PROMPT, DE_ENSEMBLE_ANGEL_PROMPT, DE_ENSEMBLE_DEVIL_PROMPT, DE_ENSEMBLE_JUDGE_PROMPT
-
+from examples.ags.w_action_node.prompt import GENERATE_PROMPT, GENERATE_CODE_PROMPT, GENERATE_CODEBLOCK_PROMPT, REVIEW_PROMPT, REVISE_PROMPT, FU_ENSEMBLE_PROMPT, MD_ENSEMBLE_PROMPT, DE_ENSEMBLE_ANGEL_PROMPT, DE_ENSEMBLE_DEVIL_PROMPT, DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT, DE_ENSEMBLE_JUDGE_FINAL_PROMPT
+from examples.ags.w_action_node.prompt import DE_ENSEMBLE_CODE_FORMAT_PROMPT, DE_ENSEMBLE_TXT_FORMAT_PROMPT
 class Operator:
-    def __init__(self, name, llm:LLM=None):
+    def __init__(self, name, llm:LLM):
         self.name = name
         self.llm = llm
 
@@ -48,7 +48,7 @@ class GenerateCodeBlock(Operator):
         super().__init__(name, llm)
 
     async def __call__(self, problem_description):
-        prompt = GENERATE_CODE_PROMPT.format(problem_description=problem_description)
+        prompt = GENERATE_CODEBLOCK_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(context=prompt, llm=self.llm,mode='code_fill')
         response = node.instruct_content.model_dump()
         return response
@@ -91,6 +91,10 @@ class FuEnsemble(Operator):
         return response
     
 class MdEnsemble(Operator):
+    """
+    MedPrompt
+     
+    """
     def __init__(self, name:str ="MedEnsembler", llm: LLM = LLM(), vote_count:int=3):
         super().__init__(name, llm)
         self.vote_count = vote_count
@@ -172,87 +176,120 @@ class DbEnsemble(Operator):
     """
     def __init__(self, name:str ="DebateEnsemble", llm: LLM = LLM()):
         super().__init__(name, llm)
-        self.agents = [
-        ]
-
-    async def debate_answer(self, message_history:List, role:str):
+        self.agents = ["angel","devil","judge"]
+        self.format_requirements = {
+            "txt":DE_ENSEMBLE_TXT_FORMAT_PROMPT,
+            "code":DE_ENSEMBLE_CODE_FORMAT_PROMPT
+        }
+    
+    def get_system_prompt(self, name:str, mode:str='txt'):
+        if name == "angel":
+            if mode == "code":
+                return DE_ENSEMBLE_ANGEL_PROMPT + "\n" + DE_ENSEMBLE_CODE_FORMAT_PROMPT
+            return DE_ENSEMBLE_ANGEL_PROMPT + "\n" + DE_ENSEMBLE_TXT_FORMAT_PROMPT
+        elif name == "devil":
+            if mode == "code":
+                return DE_ENSEMBLE_DEVIL_PROMPT + "\n" + DE_ENSEMBLE_CODE_FORMAT_PROMPT
+            return DE_ENSEMBLE_DEVIL_PROMPT + "\n" + DE_ENSEMBLE_TXT_FORMAT_PROMPT
+        elif name == "judge":
+            if mode == "final":
+                return DE_ENSEMBLE_JUDGE_FINAL_PROMPT 
+            return DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT
+            
+    def construct_messages(self, message_history_with_name, name, mode:str="txt", phase:str="universal"):
         """
-        async def lowlevel_api_example(llm: LLM):
-            logger.info("low level api example")
-            logger.info(await llm.aask_batch(["hi", "write python hello world."]))
-
-            hello_msg = [{"role": "user", "content": "count from 1 to 10. split by newline."}]
-            logger.info(await llm.acompletion(hello_msg))
-            logger.info(await llm.acompletion_text(hello_msg))
-
-            # streaming mode, much slower
-            await llm.acompletion_text(hello_msg, stream=True)
-
-            # check completion if exist to test llm complete functions
-            if hasattr(llm, "completion"):
-                logger.info(llm.completion(hello_msg))
+        基于name与mode来构建system message.
+        基于name来构建messages
         """
-        if role == "angel":
-            prompt = DE_ENSEMBLE_ANGEL_PROMPT.format()
-            Op = ""
-        else:
-            prompt = DE_ENSEMBLE_DEVIL_PROMPT.format()
-            Op = ""
+        messages = []
+        messages.append({"role": "system", "content": self.get_system_prompt(name, mode)})
+
+        if name in ["angel", "devil"]:
+            messages = self._construct_debate(message_history_with_name, name, messages)
+        elif name == "judge":
+            messages = self._construct_judge(message_history_with_name, mode, messages)
+        return messages
+    
+    def _construct_debate(self, message_history_with_name, name, messages):
+        user_message = ""
         
-        node = await ActionNode.from_pydantic(Op).messages_fill(messages=message_history,llm=self.llm)
-        node = await ActionNode.from_pydantic(FuEnsembleOp).fill(context=prompt, llm=self.llm)
-        response = node.instruct_content.model_dump()
-        return response
+        for message in message_history_with_name:
+            if message["name"] == "Judge":
+                continue
+            elif message["name"] == name:
+                if user_message:
+                    messages.append({
+                        "role": "user",
+                        "name": "user",
+                        "content": user_message.strip("\n"),
+                    })
+                messages.append({
+                    "role": "assistant",
+                    "name": name,
+                    "content": message["content"],
+                })
+                user_message = ""
+            else:
+                user_message += message["content"]
+        
+        if user_message:
+            messages.append({
+                "role": "user",
+                "name": "user",
+                "content": user_message.strip("\n"),
+            })
+        
+        return messages
 
-    async def judge_answer(message_histroy:List):
-        """
-
-        """
+    def _construct_judge(self, message_history_with_name, mode, messages):
         pass
 
-    async def __call__(self, origin_solution:str, problem_description:str, max_round:int = 3):
+    async def debate_answer(self, message_history:List, role:str="angel"):
+        messages = self.construct_messages(message_history, role)
+        response = await self.llm.acompletion_text(messages=messages)
+        message_history.append({
+            "role":"user",
+            "name":role,
+            "content":response}
+        )   
+        return message_history, response
+
+    async def judge_answer(self, message_history:List, phase:str="universal"):
+        messages = self.construct_messages(message_history, "judge", phase=phase)
+        response = await self.llm.acompletion_text(messages=messages)
+        message_history.append({
+            "role": "user",
+            "name": "judge",
+            "content": response}
+        )
+        return message_history, response
+
+    async def __call__(self, origin_solution:str, problem_description:str, max_round:int = 3, mode:str='txt'):
         # 思路，输入一个原始答案，构建一个agent代表这个答案进行辩论；另一个agent（devil）使用debate llm的内容进行辩论；法官在每一轮次做出决定是否终止，到了maxround还没终止就由法官进行总结。
-        # 以下是调用llm的方法
-        """
-        1. judge信息只有法官自己看到
-        2. agent answer信息所有人都能看到，具体代码逻辑在debate
-        """
-        # 在MG里面多轮对话传Message在哪里传，预计时间1小时左右吧
-
-        angel_prompt = DE_ENSEMBLE_ANGEL_PROMPT.format()
-        devil_prompt = DE_ENSEMBLE_DEVIL_PROMPT.format()
-        judge_prompt = DE_ENSEMBLE_JUDGE_PROMPT.format()
-        '''
-            Devil
-            You agree with my answer 90% of the time and have almost no reservations. Affirm your agreement, share any additional thoughts if you have them, and conclude with the capital letter corresponding to your answer at the end of your response.
-            
-            Angel
-            Do you agree with my perspective? Please provide your reasons and answer.
-
-            Judge
-            final_mode: "You, as the moderator, will evaluate both sides' answers and determine your
-            preference for an answer candidate. Please summarize your reasons for supporting affirmative/negative side and
-            give the final answer that you think is correct to conclude the debate. Now please output your answer in json format, with the format as follows:
-            {\"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
-            Please strictly output in JSON format, do not output irrelevant content."
-
-            universal_mode: "You, as the moderator, will evaluate both sides' answers and determine if there is a clear
-            preference for an answer candidate. If so, please summarize your reasons for supporting affirmative/negative side and
-            give the final answer that you think is correct, and the debate will conclude. If not, the debate will continue to
-            the next round. Now please output your answer in json format, with the format as follows:
-            {\"Whether there is a preference\": \"Yes or No\", \"Supported Side\": \"Affirmative or Negative\",
-            \"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
-            Please strictly output in JSON format, do not output irrelevant content."
-        '''
-
-        # 在action node 之中构建一个能够传递message history的方法。
-        for _ in max_round:
+        message_history_with_name = [
+            {"role":"user", "name":"angel", "content":origin_solution}
+        ]
+        
+        for index in range(max_round):
             for agent in self.agents:
-                pass
+                if agent == "angel":
+                    if index == 0:
+                        pass
+                    message_history_with_name, rsp = self.debate_answer(message_history_with_name, role="angel")
+                elif agent == "devil":
+                    message_history_with_name, rsp = self.debate_answer(message_history_with_name, role="devil")
+                elif agent == "judge":
+                    message_history_with_name, judge_result = self.judge_answer(message_history_with_name, phase="universal")
+                    if not judge_result["is_debating"]:
+                        """
+                        这里需要在 self.judge_answer 中设置一个自动给出solution的地方
+                        """
+                        return {"final_solution":judge_result["final_solution"]}
+        
+        message_history_with_name.pop(-1)
+        message_history_with_name, judge_answer  = self.judge_answer(message_history_with_name, phase="final")
 
-        node = await ActionNode.from_pydantic(FuEnsembleOp).fill(context=prompt, llm=self.llm)
-        response = node.instruct_content.model_dump()
-        return response
+        return {"final_solution":judge_answer["debate_answer"]}
 
 class Rephrase(Operator):
     """
@@ -277,3 +314,5 @@ class Verify(Operator):
     """
     ? 还没有想好
     """
+    pass
+

@@ -4,8 +4,8 @@
 # @Desc    : graph & an instance - humanevalgraph
 
 from metagpt.llm import LLM 
-
-from examples.ags.w_action_node.operator import Generate, GenerateCode, GenerateCodeBlock, Review, Revise, FuEnsemble, MdEnsemble
+from typing import List
+from examples.ags.w_action_node.operator import Generate, GenerateCode, GenerateCodeBlock, Review, Revise, FuEnsemble, MdEnsemble, DbEnsemble
 
 class Graph:
     def __init__(self, name:str, llm:LLM) -> None:
@@ -14,6 +14,9 @@ class Graph:
 
     def __call__():
         NotImplementedError("Subclasses must implement __call__ method")
+
+    def optimize(dataset:List):
+        pass
 
 class HumanEvalGraph(Graph):
     def __init__(self, name:str, llm: LLM, criteria:str, vote_count:int =5) -> None:
@@ -26,15 +29,15 @@ class HumanEvalGraph(Graph):
         self.fuensemble = FuEnsemble(llm=llm)
         self.mdensemble = MdEnsemble(llm=llm, vote_count=vote_count)
 
-    # async def __call__(self, problem:str, ensemble_count:int = 3):
-    #     solution_list = []
-    #     for _ in range(ensemble_count):
-    #         solution = await self.generate_code(problem)
-    #         # solution = await self.generate_code_block(problem)
-    #         solution = solution.get('code_solution')
-    #         solution_list.append(solution)
-    #     solution = await self.mdensemble("code", solution_list, problem)
-    #     return solution
+    async def __call__(self, problem:str, ensemble_count:int = 3):
+        solution_list = []
+        for _ in range(ensemble_count):
+            solution = await self.generate_code(problem)
+            # solution = await self.generate_code_block(problem)
+            solution = solution.get('code_solution')
+            solution_list.append(solution)
+        solution = await self.mdensemble("code", solution_list, problem)
+        return solution
     
     async def review_revise_ensemble(self, problem:str, ensemble_count:int = 2):
         solution_list = []
@@ -45,15 +48,15 @@ class HumanEvalGraph(Graph):
         return solution
 
     # async def simple_ensemble(self, problem:str, ensemble_count:int = 3):
-    async def __call__(self, problem:str, ensemble_count:int = 3):
-        solution_list = []
-        for _ in range(ensemble_count):
-            solution = await self.generate_code(problem)
-            # solution = await self.generate_code_block(problem)
-            solution = solution.get('code_solution')
-            solution_list.append(solution)
-        solution = await self.fuensemble(solution_list, problem)
-        return solution
+    # async def __call__(self, problem:str, ensemble_count:int = 3):
+    #     solution_list = []
+    #     for _ in range(ensemble_count):
+    #         solution = await self.generate_code(problem)
+    #         # solution = await self.generate_code_block(problem)
+    #         solution = solution.get('code_solution')
+    #         solution_list.append(solution)
+    #     solution = await self.fuensemble(solution_list, problem)
+    #     return solution
     
     async def single_solve(self, problem:str, max_loop:int):
         solution = await self.generate_code(problem)
@@ -66,3 +69,6 @@ class HumanEvalGraph(Graph):
             solution = solution.get('revised_solution')
         return solution
     
+
+class Gsm8kGraph(Graph):
+    pass

@@ -26,23 +26,27 @@ Generate Solution for the following problem: {problem_description}
 # """
 
 GENERATE_CODE_PROMPT = """
-You are an expert programmer tasked with solving a coding problem. Your goal is to write clean, efficient, and correct code that solves the given problem.
+You are an expert programmer tasked with solving a coding problem.
 
 ### Problem Description:
 {problem_description}
 
 ### Instructions:
-1. Read the problem description carefully.
-2. If any part of the problem is unclear, state your assumptions.
-3. Plan your approach before writing code.
-4. Write a Python function that solves the problem.
-5. Include clear comments to explain your logic.
-6. Ensure your code handles edge cases and potential errors.
-7. If time complexity is a concern, optimize your solution and explain your optimization.
-
+The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
 Please maintain the JSON format in your response.
 ### Your Response: 
+
 """
+GENERATE_CODEBLOCK_PROMPT = """
+You are an expert programmer tasked with solving a coding problem.
+
+### Problem Description:
+{problem_description}
+
+### Instructions:
+The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
+"""
+
 # GENERATE_CODE_PROMPT = """
 # Generate Code Solution for the following problem: {problem_description}
 # """
@@ -98,5 +102,44 @@ Carefully analyze the given problem and the list of solution candidates. Your ta
 4. Provide your final decision by writing the chosen solution letter (e.g., B).
 
 Please maintain the JSON format in your response.
+"""
+
+DE_ENSEMBLE_TXT_FORMAT_PROMPT = """
+Now please output your answer in json format, with the format as follows:
+    {\"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
+Please strictly output in JSON format, do not output irrelevant content. """
+
+DE_ENSEMBLE_CODE_FORMAT_PROMPT = """
+Now please output your answer in json format, with the format as follows:
+{{
+    "reason":"<为什么要这样做>",
+    "code_solution":"<你觉得合适的solution，用代码表示出来>"
+}}
+Please strictly output in JSON format, do not output irrelevant content. """
+
+DE_ENSEMBLE_ANGEL_PROMPT = """
+Do you agree with my perspective? Please provide your reasons and answer.
+"""
+
+DE_ENSEMBLE_DEVIL_PROMPT = """
+You agree with my answer 90% of the time and have almost no reservations. Affirm your agreement, share any additional thoughts if you have them, and conclude with the capital letter corresponding to your answer at the end of your response.
+"""
+
+DE_ENSEMBLE_JUDGE_FINAL_PROMPT = """
+You, as the moderator, will evaluate both sides' answers and determine your
+            preference for an answer candidate. Please summarize your reasons for supporting affirmative/negative side and
+            give the final answer that you think is correct to conclude the debate. Now please output your answer in json format, with the format as follows:
+            {\"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
+            Please strictly output in JSON format, do not output irrelevant content.
+"""
+
+DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT = """
+You, as the moderator, will evaluate both sides' answers and determine if there is a clear
+            preference for an answer candidate. If so, please summarize your reasons for supporting affirmative/negative side and
+            give the final answer that you think is correct, and the debate will conclude. If not, the debate will continue to
+            the next round. Now please output your answer in json format, with the format as follows:
+            {\"Whether there is a preference\": \"Yes or No\", \"Supported Side\": \"Affirmative or Negative\",
+            \"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
+            Please strictly output in JSON format, do not output irrelevant content
 """
 

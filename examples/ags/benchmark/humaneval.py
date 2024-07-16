@@ -34,8 +34,8 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     async def solve_and_write(case, mode):
         try:
             if mode == 'llm':
-                # solution_result = await generate_code_block(case['prompt'])
-                solution_result = await generate_code(case['prompt'])
+                solution_result = await generate_code_block(case['prompt'])
+                # solution_result = await generate_code(case['prompt'])
                 sample_dict = {
                 'task_id': case['task_id'],
                 'solution': solution_result['code_solution']
@@ -70,10 +70,12 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     jsonl_ranker(result_path, result_path)
     
     if not failed_tasks:
+        
         if automatic_evalplus(result_path):
             eval_path = result_path[:-6]+"_eval_results.json"
             unpassed_exapmle = extract_failure_tests(eval_path)
             print(unpassed_exapmle)
+        
     else:
         print(failed_tasks)
 
@@ -111,6 +113,9 @@ async def samples_generate_llm():
         sample_list.append(sample_dict)
     
     write_jsonl("samples.jsonl", sample_list)
+
+def hello():
+    pass
 
 def automatic_evalplus(result_path:str ="samples.jsonl"):
     """

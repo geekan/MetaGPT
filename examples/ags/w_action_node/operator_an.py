@@ -9,7 +9,7 @@ class GenerateOp(BaseModel):
     solution: str = Field(default="", description="Your Solution for this problem")
 
 class GenerateCodeOp(BaseModel):
-    code_solution: str = Field(default="", description="Your complete code solution for this problem")
+    code_solution: str = Field(default="", description="Complete and correct code here.")
 
 class GenerateCodeBlockOp(BaseModel):
     code_solution: str = Field(default="", description="Your complete code solution for this problem")
