@@ -69,6 +69,7 @@ class Config(CLIParams, YamlModel):
     workspace: WorkspaceConfig = WorkspaceConfig()
     enable_longterm_memory: bool = False
     code_review_k_times: int = 2
+    agentops_api_key: str = ""
 
     # Will be removed in the future
     metagpt_tti_url: str = ""
