@@ -638,8 +638,10 @@ class KeywordExpRetriever(ExpRetriever):
                 return DEPLOY_EXAMPLE
             elif "issue" in context.lower():
                 return FIX_ISSUE_EXAMPLE
-            elif "https:" or "http:" in context.lower():
-                return WEB_SCRAPING_EXAMPLE
+            elif "https:" in context.lower() or "http:" in context.lower():
+                if "search" in context.lower() or "click" in context.lower():
+                    return WEB_SCRAPING_EXAMPLE
+                return WEB_SCRAPING_EXAMPLE_SIMPLE
         elif exp_type == "task":
             if "diagnose" in context.lower():
                 return SEARCH_SYMBOL_EXAMPLE
@@ -916,7 +918,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
             "task_id": "1",
             "dependent_task_ids": [],
             "instruction": "Navigate to the yelp website.",
-            "assignee": "Browser"
+            "assignee": "David"
         }
     },
     {
@@ -925,7 +927,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
             "task_id": "2",
             "dependent_task_ids": ["1"],
             "instruction": "Search for restaurants with the keyword 'beef'.",
-            "assignee": "Browser"
+            "assignee": "David"
         }
     },
     {
@@ -934,7 +936,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
             "task_id": "3",
             "dependent_task_ids": ["2"],
             "instruction": "View the html content of the search result page before scrap data to understand the structure.",
-            "assignee": "DataAnalyst"
+            "assignee": "David"
         }
     },
     {
@@ -943,7 +945,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
             "task_id": "4",
             "dependent_task_ids": ["3"],
             "instruction": "Parse the html content to scrape the restaurant names and print it.",
-            "assignee": "DataAnalyst"
+            "assignee": "David"
         }
     }
 ]
@@ -1018,5 +1020,66 @@ Here is the command to finish the current task and parse the html content:
     }
 ]
 
+...
+"""
+
+
+WEB_SCRAPING_EXAMPLE_SIMPLE = """
+## action 1
+User Requirement: List the restaurant names on the website https://www.yelp.com/search?find_desc=beef&find_loc=New+York%2C+NY.
+Explanation: The requirement is to scrape data from a website and extract information about restaurants. The process involves retrieving and presenting the data in a structured format.
+
+```json
+[
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "View the html content of the page before scrap data to understand the structure.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["3"],
+            "instruction": "Parse the html content to scrape the restaurant names and print it.",
+            "assignee": "David"
+        }
+    }
+]
+```
+
+## action 2
+Explanation: To scrap data from the website, I will first view the html content of the page.
+Here is the command to view the html content:
+
+```json
+[
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+```
+
+## action 3
+Explanation: Since the DataAnalyst has successfully viewed the html content of the page, I will finish the current task and then write code to parse the html content and extract the restaurant names.
+Here is the command to finish the current task and parse the html content:
+    
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+```
 ...
 """
