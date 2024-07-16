@@ -17,13 +17,13 @@ class Task(BaseModel):
     instruction: str = ""
     task_type: str = ""
     assignee: str = ""
+    
+# Available Task Types
+{task_type_desc}
 
 # Available Commands
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
-
-# Available Task Types
-{task_type_desc}
 
 # Current Plan
 {plan_status}
