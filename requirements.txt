@@ -72,3 +72,4 @@ rank-bm25==0.2.2  # for tool recommendation
 gymnasium==0.29.1
 boto3~=1.34.69
 spark_ai_python~=0.3.30
+agentops

@@ -6,11 +6,14 @@
 @File    : architect.py
 """
 
+import agentops
+
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles.role import Role
 
 
+@agentops.track_agent(name="Architect")
 class Architect(Role):
     """
     Represents an Architect role in a software development process.

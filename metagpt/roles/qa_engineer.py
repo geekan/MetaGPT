@@ -15,6 +15,8 @@
     of SummarizeCode.
 """
 
+import agentops
+
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import MESSAGE_ROUTE_TO_NONE
@@ -24,6 +26,7 @@ from metagpt.schema import Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import any_to_str_set, parse_recipient
 
 
+@agentops.track_agent(name="QaEngineer")
 class QaEngineer(Role):
     name: str = "Edward"
     profile: str = "QaEngineer"

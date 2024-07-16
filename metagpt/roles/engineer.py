@@ -24,6 +24,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Set
 
+import agentops
+
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
@@ -58,6 +60,7 @@ otherwise, answer 'YES' in JSON format.
 """
 
 
+@agentops.track_agent(name="Engineer")
 class Engineer(Role):
     """
     Represents an Engineer role responsible for writing and possibly reviewing code.

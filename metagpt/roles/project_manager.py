@@ -6,11 +6,14 @@
 @File    : project_manager.py
 """
 
+import agentops
+
 from metagpt.actions import WriteTasks
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles.role import Role
 
 
+@agentops.track_agent(name="ProjectManager")
 class ProjectManager(Role):
     """
     Represents a Project Manager role responsible for overseeing project execution and team efficiency.
