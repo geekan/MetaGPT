@@ -193,6 +193,8 @@ class ExecuteNbCode(Action):
             # the useful information of normal output is at the begining.
             if '<!DOCTYPE html>' not in output_text:
                 output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
+            else:
+                output_text = output_text[:20000] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
         return is_success, ",".join(parsed_output)

@@ -161,7 +161,7 @@ class Browser:
         await self._wait_until_page_idle(page)
         self.accessibility_tree = await get_accessibility_tree(page)
         await self.reporter.async_report(page, "page")
-        return f"SUCCESS, URL: {page.url}"
+        return f"SUCCESS, URL: {page.url} have been loaded."
 
     def _register_page_event(self, page: Page):
         page.last_busy_time = time.time()
@@ -196,9 +196,9 @@ class Browser:
     async def _on_frame_change(self, frame: Frame):
         await self._update_page_last_busy_time(frame.page)
 
-    async def view(self):
+    async def view(self, keep_len: int = 10000):
         observation = parse_accessibility_tree(self.accessibility_tree)
-        return f"Current Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0]}\n"
+        return f"Current Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0][:keep_len]}\n"
 
     async def __aenter__(self):
         await self.start()
