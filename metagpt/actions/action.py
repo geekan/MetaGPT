@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from metagpt.actions.action_node import ActionNode
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.context_mixin import ContextMixin
+from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.schema import (
     CodePlanAndChangeContext,
     CodeSummarizeContext,
@@ -45,7 +46,9 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     def _update_private_llm(cls, data: Any) -> Any:
         config = ModelsConfig.default().get(data.llm_name_or_type)
         if config:
-            data.llm.config = config
+            llm = create_llm_instance(config)
+            llm.cost_manager = data.llm.cost_manager
+            data.llm = llm
         return data
 
     @property
