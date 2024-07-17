@@ -85,7 +85,7 @@ def query_exps_count():
 
 
 async def main():
-    await add_exps_from_file("TeamLeader.llm_cached_aask", EXAMPLE_DATA_PATH / "exp_pool/team_leader_exps.json"),
+    await add_exps_from_file("TeamLeader.llm_cached_aask", EXAMPLE_DATA_PATH / "exp_pool/team_leader_exps.json")
     await add_exps_from_file("Engineer2.llm_cached_aask", EXAMPLE_DATA_PATH / "exp_pool/engineer_exps.json")
     query_exps_count()
 
