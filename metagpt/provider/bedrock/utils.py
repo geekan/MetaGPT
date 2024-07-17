@@ -27,6 +27,7 @@ SUPPORT_STREAM_MODELS = {
     "anthropic.claude-3-sonnet-20240229-v1:0:28k": 28000,
     "anthropic.claude-3-sonnet-20240229-v1:0:200k": 200000,
     "anthropic.claude-3-haiku-20240307-v1:0": 200000,
+    "anthropic.claude-3-5-sonnet-20240620-v1:0": 200000,
     "anthropic.claude-3-haiku-20240307-v1:0:48k": 48000,
     "anthropic.claude-3-haiku-20240307-v1:0:200k": 200000,
     # currently (2024-4-29) only available at US West (Oregon) AWS Region.
