@@ -47,7 +47,7 @@ PLAN_STATUS = """
 {current_task_result}
 
 ## Task Guidance
-Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
+Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks' and 'Finished Section of Current Task', such as repeated import of packages, reading data, etc.
 Specifically, {guidance}
 """
 

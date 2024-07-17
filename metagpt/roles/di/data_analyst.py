@@ -105,5 +105,7 @@ class DataAnalyst(RoleZero):
 
         status = 'Success' if success else 'Failed'
         output = CODE_STATUS.format(code=code, status=status, result=result)
+        if success:
+            output += 'The code written has been executed successfully.'
         self.rc.working_memory.clear()
         return output

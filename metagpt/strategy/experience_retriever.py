@@ -1035,7 +1035,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "2",
-            "dependent_task_ids": ["3"],
+            "dependent_task_ids": ["1"],
             "instruction": "Parse the html content to scrape the restaurant names and print it.",
             "assignee": "David"
         }
