@@ -511,15 +511,6 @@ Explanation: The requirement is about software development. Assign each tasks to
         }
     },
     {
-        "command_name": "Plan.append_task",
-        "args": {
-            "task_id": "5",
-            "dependent_task_ids": ["4"],
-            "instruction": "Write comprehensive tests for the game logic and user interface to ensure functionality and reliability.",
-            "assignee": "Edward"
-        }
-    },
-    {
         "command_name": "TeamLeader.publish_message",
         "args": {
             "content": "Create a cli snake game using Python",
@@ -802,13 +793,13 @@ Explanation: I will first need to read the system design document and the projec
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/project_schedule.json"
+            "path": "/tmp/project_schedule.json"
         }
     },
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/system_design.json"
+            "path": "/tmp/system_design.json"
         }
     }
 ]

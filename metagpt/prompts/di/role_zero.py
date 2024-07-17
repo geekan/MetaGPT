@@ -10,7 +10,7 @@ Note:
 4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
 5. Don't repeat the same command if it has been executed successfully.
 """
-
+# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
 # Data Structure
 class Task(BaseModel):
@@ -19,7 +19,7 @@ class Task(BaseModel):
     instruction: str = ""
     task_type: str = ""
     assignee: str = ""
-
+    
 # Available Task Types
 {task_type_desc}
 
@@ -56,6 +56,7 @@ Some text indicating your thoughts, such as how you should update the plan statu
 ```
 Notice: your output JSON data section must start with **```json [**
 """
+
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
@@ -65,4 +66,11 @@ JSON_REPAIR_PROMPT = """
 Formatted JSON data
 ```
 Help check if there are any formatting issues with the JSON data? If so, please help format it
+"""
+
+QUICK_THINK_PROMPT = """
+Decide if the latest user message is a quick question.
+Quick questions include common-sense, logical, math questions, greetings, or casual chat that you can answer directly, excluding software development tasks.
+Respond with "#YES#, (then start your actual response to the question...)" if so, otherwise, simply respond with "#NO#".
+Your response:
 """

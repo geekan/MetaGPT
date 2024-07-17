@@ -22,4 +22,4 @@ class PrepareInterview(Action):
     name: str = "PrepareInterview"
 
     async def run(self, context):
-        return await QUESTIONS.fill(context=context, llm=self.llm)
+        return await QUESTIONS.fill(req=context, llm=self.llm)

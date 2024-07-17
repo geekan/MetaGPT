@@ -8,12 +8,16 @@ from typing import Callable, Dict, List, Literal, Tuple
 
 from pydantic import model_validator
 
-from metagpt.actions import Action
+from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
+    QUICK_THINK_PROMPT,
     ROLE_INSTRUCTION,
 )
 from metagpt.roles import Role
@@ -24,7 +28,7 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, any_to_str
 from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
 
@@ -142,23 +146,41 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
+        instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
-            plan_status=plan_status,
-            current_task=current_task,
             example=example,
             available_commands=tool_info,
-            instruction=self.instruction.strip(),
             task_type_desc=self.task_type_desc,
+            plan_status=plan_status,
+            current_task=current_task,
+            instruction=instruction,
         )
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
-        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
-        # print(*context, sep="\n" + "*" * 5 + "\n")
-        async with ThoughtReporter(enable_llm_stream=True):
-            self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
+
+        req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "react"})
+            state_data = dict(
+                plan_status=plan_status,
+                current_task=current_task,
+                instruction=instruction,
+            )
+            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+
         self.rc.memory.add(AIMessage(content=self.command_rsp))
 
         return True
+
+    @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
+    async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str], **kwargs) -> str:
+        """Use `exp_cache` to automatically manage experiences.
+
+        The `RoleZeroContextBuilder` attempts to add experiences to `req`.
+        The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
+        """
+
+        return await self.llm.aask(req, system_msgs=system_msgs)
 
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
@@ -189,8 +211,13 @@ class RoleZero(Role):
         )
 
     async def _react(self) -> Message:
-        # NOTE: Diff 1: Each time landing here means observing news, set todo to allow news processing in _think
+        # NOTE: Diff 1: Each time landing here means news is observed, set todo to allow news processing in _think
         self._set_state(0)
+
+        # problems solvable by quick thinking doesn't need to a formal think-act cycle
+        quick_rsp = await self._quick_think()
+        if quick_rsp:
+            return quick_rsp
 
         actions_taken = 0
         rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
@@ -208,6 +235,31 @@ class RoleZero(Role):
             actions_taken += 1
         return rsp  # return output from the last action
 
+    async def _quick_think(self) -> Message:
+        msg = self.rc.news[-1]
+        rsp_msg = None
+        if msg.cause_by != any_to_str(UserRequirement):
+            # Agents themselves won't generate quick questions, use this rule to reduce extra llm calls
+            return rsp_msg
+
+        context = self.llm.format_msg(self.get_memories(k=4) + [UserMessage(content=QUICK_THINK_PROMPT)])
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "quick"})
+            rsp = await self.llm.aask(context)
+
+        pattern = r"#YES#,? ?"
+        if re.search(pattern, rsp):
+            answer = re.sub(pattern, "", rsp).strip()
+            self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
+            await self.reply_to_human(content=answer)
+            rsp_msg = AIMessage(
+                content="Complete run",
+                sent_from=self.name,
+                cause_by=RunCommand,
+            )
+
+        return rsp_msg
+
     async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
@@ -223,6 +275,7 @@ class RoleZero(Role):
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError:
+            logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
             commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
             commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
         except Exception as e:

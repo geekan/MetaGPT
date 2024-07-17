@@ -81,17 +81,18 @@ class ModifyCode(Action):
         }
         resp = None
         for patched_file in patch:
-            patch_target_file_name = str(patched_file.target_file).split("/", maxsplit=1)[-1]
-            if patch_target_file_name not in grouped_comments:
+            patch_target_file_name = str(patched_file.path).split("/")[-1]
+            if patched_file.path not in grouped_comments:
                 continue
             comments_prompt = ""
             index = 1
-            for grouped_comment in grouped_comments[patch_target_file_name]:
+            for grouped_comment in grouped_comments[patched_file.path]:
                 comments_prompt += f"""
                     <comment{index}>
                     {grouped_comment}
                     </comment{index}>\n
                 """
+                index += 1
             prompt = MODIFY_CODE_PROMPT.format(patch=patched_file, comments=comments_prompt)
             output_dir = (
                 Path(output_dir)

@@ -11,7 +11,7 @@ from github.PullRequest import PullRequest
 from metagpt.tools.tool_registry import register_tool
 
 
-@register_tool(tags=["software development", "git", "Commit the changes and push to remote git repository."])
+@register_tool(tags=["software development", "git", "Push to remote git repository."])
 async def git_push(
     local_path: Union[str, Path],
     app_name: str,
@@ -22,22 +22,23 @@ async def git_push(
     Pushes changes from a local Git repository to its remote counterpart.
 
     Args:
-        local_path (Union[str, Path]): The path to the local Git repository.
-        app_name (str): The name of the application where the repository is hosted. For example, "github", "gitlab", "bitbucket", etc.
-        comments (str, optional): The commit message to use. Defaults to "Commit".
+        local_path (Union[str, Path]): The absolute path to the local Git repository.
+        app_name (str): The name of the platform hosting the repository (e.g., "github", "gitlab", "bitbucket").
+        comments (str, optional): Comments to be associated with the push. Defaults to "Commit".
         new_branch (str, optional): The name of the new branch to create and push changes to.
             If not provided, changes will be pushed to the current branch. Defaults to "".
 
     Returns:
         GitBranch: The branch to which the changes were pushed.
+
     Raises:
         ValueError: If the provided local_path does not point to a valid Git repository.
 
     Example:
         >>> url = "https://github.com/iorisa/snake-game.git"
         >>> local_path = await git_clone(url=url)
-        >>> app_name="github"
-        >>> comments = "Archive"
+        >>> app_name = "github"
+        >>> comments = "Commit"
         >>> new_branch = "feature/new"
         >>> branch = await git_push(local_path=local_path, app_name=app_name, comments=comments, new_branch=new_branch)
         >>> base = branch.base
@@ -45,8 +46,8 @@ async def git_push(
         >>> repo_name = branch.repo_name
         >>> print(f"base branch:'{base}', head branch:'{head}', repo_name:'{repo_name}'")
         base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
-
     """
+
     from metagpt.tools.libs import get_env
     from metagpt.utils.git_repository import GitRepository
 
@@ -64,9 +65,9 @@ async def git_push(
 async def git_create_pull(
     base: str,
     head: str,
-    base_repo_name: str,
     app_name: str,
-    head_repo_name: Optional[str] = None,
+    base_repo_name: str,
+    head_repo_name: str = None,
     title: Optional[str] = None,
     body: Optional[str] = None,
     issue: Optional[Issue] = None,
@@ -75,14 +76,14 @@ async def git_create_pull(
     Creates a pull request on a Git repository. Use this tool in priority over Browser to create a pull request.
 
     Args:
-        base (str): The base branch of the pull request.
-        head (str): The head branch of the pull request.
-        base_repo_name (str): The full repository name (user/repo) where the pull request will be created.
-        app_name (str): The name of the application where the repository is hosted. For example, "github", "gitlab", "bitbucket", etc.
-        head_repo_name (Optional[str], optional): The full repository name (user/repo) where the pull request will merge from. Defaults to None.
-        title (Optional[str], optional): The title of the pull request. Defaults to None.
-        body (Optional[str], optional): The body of the pull request. Defaults to None.
-        issue (Optional[Issue], optional): The related issue of the pull request. Defaults to None.
+        base (str): The name of the base branch where the pull request will be merged.
+        head (str): The name of the branch that contains the changes for the pull request.
+        app_name (str): The name of the platform hosting the repository (e.g., "github", "gitlab", "bitbucket").
+        base_repo_name (str): The full name of the target repository (in the format "user/repo") where the pull request will be created.
+        head_repo_name (Optional[str]): The full name of the source repository (in the format "user/repo") from which the changes will be pulled.
+        title (Optional[str]): The title of the pull request. Defaults to None.
+        body (Optional[str]): The description or body content of the pull request. Defaults to None.
+        issue (Optional[Issue]): An optional issue related to the pull request. Defaults to None.
 
     Example:
         >>> # create pull request
