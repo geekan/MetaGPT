@@ -127,8 +127,8 @@ class MdEnsemble(Operator):
                     continue
             solutions = updated_solutions
             updated_length = len(solutions)
-            print(f"Original number of solutions: {original_length}")
-            print(f"Updated number of solutions: {updated_length}")
+            # print(f"Original number of solutions: {original_length}")
+            # print(f"Updated number of solutions: {updated_length}")
             if updated_length == 1:
                 return {"final_solution": solutions[0]}
         for _ in range(self.vote_count):
@@ -136,7 +136,7 @@ class MdEnsemble(Operator):
             
             solution_text = ""
             for index, solution in enumerate(shuffled_solutions):
-                solution_text += f"{chr(65 + index)}: {str(solution)}\n"
+                solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
     
             prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
             node = await ActionNode.from_pydantic(MdEnsembleOp).fill(context=prompt, llm=self.llm)

@@ -19,10 +19,14 @@ generate_code_block = GenerateCodeBlock(llm=LLM())
 
 solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=5)
 
-async def sample_generate(id, result_path:str="samples.jsonl"):
+async def sample_generate(id, result_path:str="samples.jsonl",mode:str="ags"):
     case = get_human_eval_plus()[f"{id}"]
-    solution_result = await solver(case['prompt'],ensemble_count=5)
-    sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
+    if mode == "ags":
+        solution_result = await solver(case['prompt'],ensemble_count=5)
+        sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
+    else:
+        solution_result =  await generate_code_block(case['prompt'])
+        sample_dict = dict(task_id=case['task_id'], solution=solution_result['code_solution'])
     with open(result_path, mode='a') as f:
         f.write(json.dumps(sample_dict) + '\n')
     jsonl_ranker(result_path, result_path)
@@ -62,11 +66,29 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
 
     # TODO 这个地方还是不够自动化
     if failed_tasks:
-        for task_id in failed_tasks:
-            try:
-                await sample_generate(task_id) 
-            except Exception as e:
-                print(f"failure {task_id}")
+        print(failed_tasks)
+        if mode == 'llm':
+            for task_id in failed_tasks:
+                case = get_human_eval_plus()[task_id]
+                for _ in range(3):
+                    try:
+                        solution_result = await generate_code_block(case['prompt'])
+                        task_dict = {
+                        'task_id': case['task_id'],
+                        'solution': solution_result['code_solution']
+                        }
+                        with open(result_path, mode='a') as f:
+                            f.write(json.dumps(task_dict) + '\n')
+                        failed_tasks.remove(task_id)
+                        break
+                    except Exception as e:
+                        print(f"{e} \n failure {task_id}")
+        elif mode == "ags":
+            for task_id in failed_tasks:
+                try:
+                    await sample_generate(task_id,result_path) 
+                except Exception as e:
+                    print(f"failure {task_id}")
     jsonl_ranker(result_path, result_path)
     
     if not failed_tasks:

@@ -83,23 +83,15 @@ Based on the given problem and solution candidates:
 """
 
 MD_ENSEMBLE_PROMPT = """
-### Given problem
-
+You are given a coding problem:
 {problem_description}
 
-### We've got a list of solutions
-
-<solutions>
+Here is a list of possible solutions to the problem:
 {solutions}
-</solutions>
 
-### Instructions
-Carefully analyze the given problem and the list of solution candidates. Your task is to determine the best answer based solely on how correctly and effectively it addresses the problem. Follow these steps:
-
-1. Thoroughly examine each solution.
-2. Evaluate their relevance and effectiveness in solving the problem.
-3. Compare the solutions to identify the most suitable one.
-4. Provide your final decision by writing the chosen solution letter (e.g., B).
+Using the inputs above, your goal is to choose the best solution to the code contest problem.
+Don't just pick the most efficient solution. The main consideration is that the solution can fully solve the problem in a correct and robust manner.
+Provide your final decision by writing the chosen solution letter (e.g., B).
 
 Please maintain the JSON format in your response.
 """

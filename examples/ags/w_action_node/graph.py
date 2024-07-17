@@ -32,10 +32,16 @@ class HumanEvalGraph(Graph):
     async def __call__(self, problem:str, ensemble_count:int = 3):
         solution_list = []
         for _ in range(ensemble_count):
-            solution = await self.generate_code(problem)
-            # solution = await self.generate_code_block(problem)
-            solution = solution.get('code_solution')
-            solution_list.append(solution)
+            for retry_count in range(5):
+                try:
+                    # solution = await self.generate_code(problem)
+                    solution = await self.generate_code_block(problem)
+                    solution = solution.get('code_solution')
+                    solution_list.append(solution)
+                    break
+                except Exception as e:
+                    print(e)
+            # solution list 有5个
         solution = await self.mdensemble("code", solution_list, problem)
         return solution
     

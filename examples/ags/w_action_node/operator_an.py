@@ -39,6 +39,6 @@ class MdEnsembleOp(BaseModel):
     )
     solution_letter: str = Field(
         default="",
-        description="The letter of the chosen best solution (output only one letter)."
+        description="The letter of the chosen best solution (only one letter)."
     )
 
