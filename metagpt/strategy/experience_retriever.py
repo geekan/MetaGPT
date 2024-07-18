@@ -585,7 +585,7 @@ Explanation: You received a message from Alice, the Product Manager, that she ha
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
+            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture."
         }
     },
     {
@@ -605,6 +605,17 @@ Explanation: The user is asking for a general update on the project status. Give
             "content": "The team is currently working on ... We have completed ...",
         }
     },
+    {
+        "command_name": "end"
+    }
+]
+```
+
+## example 4
+OBSERVATION : current task is none and all task is finished.
+Explanation: Last task is "Plan.finish_current_task" and now the current task is none, it means everything is done.Just coutput command "end".
+```json
+[
     {
         "command_name": "end"
     }
