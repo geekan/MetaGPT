@@ -149,13 +149,12 @@ class RoleZero(Role):
             current_task=current_task,
             example=example,
             available_commands=tool_info,
-            pre_task = await self._parse_commands(),
             instruction=self.instruction.strip(),
-            root_direction = DEFAULT_WORKSPACE_ROOT,
             task_type_desc=self.task_type_desc,
         )
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+        memory = await self.add_editor_root_directory(memory)
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         # print(*context, sep="\n" + "*" * 5 + "\n")
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
@@ -173,7 +172,10 @@ class RoleZero(Role):
             print(self.command_rsp)
         self.rc.memory.add(AIMessage(content=self.command_rsp)) 
         return True
-
+    
+    async def add_editor_root_directory(self,memory) -> List[Message]:
+        memory.append(UserMessage(cause_by="editory", content=f'Root directory is {DEFAULT_WORKSPACE_ROOT}'))
+        return memory
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
@@ -251,7 +253,6 @@ class RoleZero(Role):
             )
 
         return rsp_msg
-
     async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
