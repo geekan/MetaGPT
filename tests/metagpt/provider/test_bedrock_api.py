@@ -64,7 +64,7 @@ def is_subset(subset, superset) -> bool:
     superset = {"prompt": "hello", "kwargs": {"temperature": 0.0, "top-p": 0.0}}
     is_subset(subset, superset)
     ```
-    >>>False
+
     """
     for key, value in subset.items():
         if key not in superset:
