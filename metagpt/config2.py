@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List, Literal, Optional
 from pydantic import BaseModel, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
-from metagpt.configs.embedding_config import EmbeddingConfig
+from metagpt.configs.embedding_config import EmbeddingConfig, OmniParseConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
 from metagpt.configs.redis_config import RedisConfig
@@ -50,6 +50,9 @@ class Config(CLIParams, YamlModel):
 
     # RAG Embedding
     embedding: EmbeddingConfig = EmbeddingConfig()
+
+    # omniparse
+    omniparse: OmniParseConfig = OmniParseConfig()
 
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""

@@ -1,13 +1,14 @@
 """RAG schemas."""
-
+from enum import Enum
 from pathlib import Path
-from typing import Any, ClassVar, Literal, Optional, Union
+from typing import Any, ClassVar, Literal, Optional, Union, List
 
-from chromadb.api.types import CollectionMetadata
+# from chromadb.api.types import CollectionMetadata
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
+from llama_parse import ResultType
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from metagpt.config2 import config
@@ -67,9 +68,9 @@ class ChromaRetrieverConfig(IndexRetrieverConfig):
 
     persist_path: Union[str, Path] = Field(default="./chroma_db", description="The directory to save data.")
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
-    metadata: Optional[CollectionMetadata] = Field(
-        default=None, description="Optional metadata to associate with the collection"
-    )
+    # metadata: Optional[CollectionMetadata] = Field(
+    #     default=None, description="Optional metadata to associate with the collection"
+    # )
 
 
 class ElasticsearchStoreConfig(BaseModel):
@@ -165,9 +166,9 @@ class ChromaIndexConfig(VectorIndexConfig):
     """Config for chroma-based index."""
 
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
-    metadata: Optional[CollectionMetadata] = Field(
-        default=None, description="Optional metadata to associate with the collection"
-    )
+    # metadata: Optional[CollectionMetadata] = Field(
+    #     default=None, description="Optional metadata to associate with the collection"
+    # )
 
 
 class BM25IndexConfig(BaseIndexConfig):
@@ -214,3 +215,41 @@ class ObjectNode(TextNode):
         )
 
         return metadata.model_dump()
+
+
+class OmniParseType(str, Enum):
+    """OmniParse解析类型"""
+    PDF = "PDF"
+    DOCUMENT = "DOCUMENT"
+
+
+class OmniParseOptions(BaseModel):
+    """OmniParse可选配置"""
+    result_type: ResultType = Field(default=ResultType.MD, description="OmniParse解析返回的结果类型")
+    parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse解析类型，默认文档类型")
+    max_timeout: Optional[int] = Field(default=120, description="OmniParse服务请求最大超时")
+    num_workers: int = Field(
+        default=4,
+        gt=0,
+        lt=10,
+        description="多文件列表时并发请求数量",
+    )
+
+
+class OminParseImage(BaseModel):
+    image: str = Field(default="", description="image str bytes")
+    image_name: str = Field(default="", description="image name")
+    image_info: Optional[dict] = Field(default={}, description="image info")
+
+
+class OmniParsedResult(BaseModel):
+    markdown: str = Field(default="", description="markdown text")
+    text: str = Field(default="", description="plain text")
+    images: Optional[List[OminParseImage]] = Field(default=[], description="images")
+    metadata: Optional[dict] = Field(default={}, description="metadata")
+
+    @model_validator(mode="before")
+    def set_markdown(cls, values):
+        if not values.get("markdown"):
+            values["markdown"] = values.get("text")
+        return values

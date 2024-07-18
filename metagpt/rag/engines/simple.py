@@ -27,7 +27,9 @@ from llama_index.core.schema import (
     QueryType,
     TransformComponent,
 )
+from llama_parse import ResultType
 
+from metagpt.config2 import config
 from metagpt.rag.factories import (
     get_index,
     get_rag_embedding,
@@ -36,6 +38,7 @@ from metagpt.rag.factories import (
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
+from metagpt.rag.parser.omniparse.parse import OmniParse
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
@@ -43,7 +46,7 @@ from metagpt.rag.schema import (
     BaseRankerConfig,
     BaseRetrieverConfig,
     BM25RetrieverConfig,
-    ObjectNode,
+    ObjectNode, OmniParseOptions, OmniParseType,
 )
 from metagpt.utils.common import import_class
 
@@ -74,6 +77,18 @@ class SimpleEngine(RetrieverQueryEngine):
         self._transformations = transformations or self._default_transformations()
 
     @classmethod
+    def get_file_extractor(cls, file_type: str):
+        if not config.omniparse.base_url:
+            return
+        parser = OmniParse(
+            api_key=config.omniparse.api_key,
+            base_url=config.omniparse.base_url,
+            parse_options=OmniParseOptions(parse_type=OmniParseType.PDF, result_type=ResultType.MD)
+        )
+        file_extractor = {file_type: parser}
+        return file_extractor
+
+    @classmethod
     def from_docs(
         cls,
         input_dir: str = None,
@@ -100,7 +115,10 @@ class SimpleEngine(RetrieverQueryEngine):
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
+        file_extractor = cls.get_file_extractor(file_type=".pdf")
+        documents = SimpleDirectoryReader(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+        ).load_data()
         cls._fix_document_metadata(documents)
 
         transformations = transformations or cls._default_transformations()
