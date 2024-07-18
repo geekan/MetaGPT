@@ -10,9 +10,7 @@ from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
-from metagpt.exp_pool import exp_cache
-from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
-from metagpt.exp_pool.serializers import RoleZeroSerializer
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
@@ -31,7 +29,6 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, any_to_str
 from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])
@@ -164,22 +161,24 @@ class RoleZero(Role):
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
-        try :
+        # check and repair
+        try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except :
-            logger.warning('Trying to repair json string with repair tool...')
+        except:
+            logger.warning("Trying to repair json string with repair tool...")
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp).strip()
-            if commands.endswith(']') and not commands.startswith('['):
-                commands = '['+ commands
-            self.command_rsp = f"```json\n{self.commands}\n```"
+            if commands.endswith("]") and not commands.startswith("["):
+                commands = "[" + commands
+            self.command_rsp = f"```json\n{self.command_rsp}\n```"
             print(self.command_rsp)
-        self.rc.memory.add(AIMessage(content=self.command_rsp)) 
+        self.rc.memory.add(AIMessage(content=self.command_rsp))
         return True
-    
-    async def add_editor_root_directory(self,memory) -> List[Message]:
-        memory.append(UserMessage(cause_by="editory", content=f'Root directory is {DEFAULT_WORKSPACE_ROOT}'))
+
+    async def add_editor_root_directory(self, memory) -> List[Message]:
+        memory.append(UserMessage(cause_by="editory", content=f"Root directory is {DEFAULT_WORKSPACE_ROOT}"))
         return memory
+
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
@@ -257,6 +256,7 @@ class RoleZero(Role):
             )
 
         return rsp_msg
+
     async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
@@ -294,7 +294,7 @@ class RoleZero(Role):
             # handle special command first
             if self._is_special_command(cmd):
                 special_command_output = await self._run_special_command(cmd)
-                outputs.append(output+':'+special_command_output)
+                outputs.append(output + ":" + special_command_output)
                 continue
             # run command as specified by tool_execute_map
             if cmd["command_name"] in self.tool_execution_map:
@@ -318,10 +318,10 @@ class RoleZero(Role):
         outputs = "\n\n".join(outputs)
 
         return outputs
-    def _is_special_command(self,cmd) -> bool:
-        
+
+    def _is_special_command(self, cmd) -> bool:
         return cmd["command_name"] in self.special_tool_commands
-    
+
     async def _run_special_command(self, cmd) -> str:
         """command requiring special check or parsing"""
         command_output = ""

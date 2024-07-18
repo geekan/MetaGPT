@@ -520,7 +520,7 @@ Explanation: The requirement is about software development. Assign each tasks to
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
+            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly"
         }
     },
     {
@@ -602,7 +602,7 @@ Explanation: The user is asking for a general update on the project status. Give
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "The team is currently working on ... We have completed ...",
+            "content": "The team is currently working on ... We have completed ..."
         }
     },
     {
