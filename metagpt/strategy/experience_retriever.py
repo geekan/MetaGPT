@@ -944,7 +944,6 @@ Explanation: The requirement is to scrape data from a website and extract inform
 
 ## action 2
 Explanation: To search for restaurants, I will now go to the website https://www.yelp.com/ first.
-Here is the command to navigate to the website:
 
 ```json
 [
@@ -959,7 +958,6 @@ Here is the command to navigate to the website:
 
 ## action 3
 Explanation: Since the Browser has successfully navigated to the website, and I find that the element id of the search box is 53. I will finish the current task and then use the Browser tool to type the keyword `beef` in the search box and press enter.
-Here is the command to finish the current task and type the keyword:
 
 ```json
 [
@@ -980,7 +978,6 @@ Here is the command to finish the current task and type the keyword:
 
 ## action 4
 Explanation: Since the Browser has successfully search the keyword `beef`, I will finish the current task and then write code to view the html content of the page.
-Here is the command to finish the current task and view the html content:
 
 ```json
 [
@@ -996,8 +993,7 @@ Here is the command to finish the current task and view the html content:
 ```
 
 ## action 5
-Explanation: Since the DataAnalyst has successfully viewed the html content of the page, I will finish the current task and then write code to parse the html content and extract the restaurant names.
-Here is the command to finish the current task and parse the html content:
+Explanation: Since I has successfully viewed the html content in the context, I will first finish the current task and then write code to parse the html content and extract the restaurant names.
 
 ```json
 [
@@ -1045,7 +1041,6 @@ Explanation: The requirement is to scrape data from a website and extract inform
 
 ## action 2
 Explanation: To scrap data from the website, I will first view the html content of the page.
-Here is the command to view the html content:
 
 ```json
 [
@@ -1057,8 +1052,7 @@ Here is the command to view the html content:
 ```
 
 ## action 3
-Explanation: Since the DataAnalyst has successfully viewed the html content of the page, I will finish the current task and then write code to parse the html content and extract the restaurant names.
-Here is the command to finish the current task and parse the html content:
+Explanation: Since I has successfully viewed the html content in the context, I will first finish the current task and then write code to parse the html content and extract the restaurant names.
     
 ```json
 [
