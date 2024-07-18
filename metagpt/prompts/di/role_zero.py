@@ -8,7 +8,7 @@ Note:
 2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task explicitly.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
 """
-
+# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
 # Data Structure
 class Task(BaseModel):
@@ -17,7 +17,7 @@ class Task(BaseModel):
     instruction: str = ""
     task_type: str = ""
     assignee: str = ""
-
+    
 # Available Task Types
 {task_type_desc}
 

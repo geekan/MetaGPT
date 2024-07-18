@@ -802,13 +802,13 @@ Explanation: I will first need to read the system design document and the projec
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/project_schedule.json"
+            "path": "/tmp/project_schedule.json"
         }
     },
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/system_design.json"
+            "path": "/tmp/system_design.json"
         }
     }
 ]

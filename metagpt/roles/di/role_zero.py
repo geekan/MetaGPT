@@ -10,6 +10,9 @@ from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
@@ -144,13 +147,14 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
+        instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
-            plan_status=plan_status,
-            current_task=current_task,
             example=example,
             available_commands=tool_info,
-            instruction=self.instruction.strip(),
             task_type_desc=self.task_type_desc,
+            plan_status=plan_status,
+            current_task=current_task,
+            instruction=instruction,
         )
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)

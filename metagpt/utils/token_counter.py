@@ -154,6 +154,7 @@ TOKEN_MAX = {
     "gpt-4-1106-preview": 128000,
     "gpt-4-vision-preview": 128000,
     "gpt-4-1106-vision-preview": 128000,
+    "gpt-4-turbo": 128000,
     "gpt-4": 8192,
     "gpt-4-0613": 8192,
     "gpt-4-32k": 32768,

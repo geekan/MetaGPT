@@ -50,9 +50,9 @@ async def generate_novel():
         "Fill the empty nodes with your own ideas. Be creative! Use your own words!"
         "I will tip you $100,000 if you write a good novel."
     )
-    novel_node = await ActionNode.from_pydantic(Novel).fill(context=instruction, llm=LLM())
+    novel_node = await ActionNode.from_pydantic(Novel).fill(req=instruction, llm=LLM())
     chap_node = await ActionNode.from_pydantic(Chapters).fill(
-        context=f"### instruction\n{instruction}\n### novel\n{novel_node.content}", llm=LLM()
+        req=f"### instruction\n{instruction}\n### novel\n{novel_node.content}", llm=LLM()
     )
     print(chap_node.instruct_content)
 
