@@ -91,7 +91,7 @@ class MGXEnv(Environment):
 
     async def reply_to_human(self, content: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
-        return "Message send successfully."
+        return "The monitor has verified the message, confirmation acknowledged. Refrain from resending duplicate messages."
 
     def message_within_software_sop(self, message: Message) -> bool:
         # Engineer, QaEngineer can be end of the SOP. Their msg requires routing outside.

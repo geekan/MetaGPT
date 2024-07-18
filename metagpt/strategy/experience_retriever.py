@@ -613,7 +613,7 @@ Explanation: The user is asking for a general update on the project status. Give
 
 ## example 4
 OBSERVATION : current task is none and all task is finished.
-Explanation: Last task is "Plan.finish_current_task" and now the current task is none, it means everything is done.Just coutput command "end".
+Explanation: Last task is "Plan.finish_current_task" or 'RoleZero.reply_to_human' and now the current task is none, it means everything is done.Just coutput command "end".
 ```json
 [
     {
