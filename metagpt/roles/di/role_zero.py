@@ -10,6 +10,9 @@ from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
@@ -154,24 +157,30 @@ class RoleZero(Role):
         )
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
-        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
-        # print(*context, sep="\n" + "*" * 5 + "\n")
+
+        req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
-            self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
-        # check and repair
-        try:
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
-            commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except:
-            logger.warning("Trying to repair json string with repair tool...")
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp).strip()
-            if commands.endswith("]") and not commands.startswith("["):
-                commands = "[" + commands
-            self.command_rsp = f"```json\n{self.command_rsp}\n```"
-            print(self.command_rsp)
+            state_data = dict(
+                plan_status=plan_status,
+                current_task=current_task,
+                instruction=instruction,
+            )
+            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+
         self.rc.memory.add(AIMessage(content=self.command_rsp))
+
         return True
+
+    @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
+    async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str], **kwargs) -> str:
+        """Use `exp_cache` to automatically manage experiences.
+
+        The `RoleZeroContextBuilder` attempts to add experiences to `req`.
+        The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
+        """
+
+        return await self.llm.aask(req, system_msgs=system_msgs)
 
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
@@ -264,6 +273,8 @@ class RoleZero(Role):
         """
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            if commands.endswith("]") and not commands.startswith("["):
+                commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError:
             logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
