@@ -3,6 +3,7 @@ from __future__ import annotations
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
+    QUICK_THINK_SYSTEM_PROMPT,
     SYSTEM_PROMPT,
     TL_INSTRUCTION,
 )
@@ -16,6 +17,7 @@ from metagpt.tools.tool_registry import register_tool
 class TeamLeader(RoleZero):
     name: str = "Tim"
     profile: str = "Team Leader"
+    goal: str = "Manage a team to assist users"
     system_msg: list[str] = [SYSTEM_PROMPT]
 
     # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
@@ -33,16 +35,26 @@ class TeamLeader(RoleZero):
             }
         )
 
-    def set_instruction(self):
+    def _get_team_info(self) -> str:
+        if not self.rc.env:
+            return ""
         team_info = ""
         for role in self.rc.env.roles.values():
             # if role.profile == "Team Leader":
             #     continue
             team_info += f"{role.name}: {role.profile}, {role.goal}\n"
-        self.instruction = TL_INSTRUCTION.format(team_info=team_info)
+        return team_info
+
+    async def _quick_think(self) -> Message:
+        # insert team info for quick question
+        self.llm.system_prompt = QUICK_THINK_SYSTEM_PROMPT.format(
+            role_info=super()._get_prefix(),
+            team_info=self._get_team_info(),
+        )
+        return await super()._quick_think()
 
     async def _think(self) -> bool:
-        self.set_instruction()
+        self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
         return await super()._think()
 
     def publish_message(self, msg: Message, send_to="no one"):
