@@ -158,7 +158,7 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: list[str], keep_len: int = 20000) -> Tuple[bool, str]:
+    def parse_outputs(self, outputs: list[str], keep_len: int = 5000) -> Tuple[bool, str]:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
         parsed_output, is_success = [], True
@@ -191,8 +191,8 @@ class ExecuteNbCode(Action):
                 output_text = remove_log_and_warning_lines(output_text)
             # The useful information of the exception is at the end,
             # the useful information of normal output is at the begining.
-            # if '<!DOCTYPE html>' not in output_text:
-            output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
+            if '<!DOCTYPE html>' not in output_text:
+                output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
         return is_success, ",".join(parsed_output)

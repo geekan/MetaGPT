@@ -197,9 +197,9 @@ class Browser:
     async def _on_frame_change(self, frame: Frame):
         await self._update_page_last_busy_time(frame.page)
 
-    async def view(self, keep_len: int = 10000):
+    async def view(self):
         observation = parse_accessibility_tree(self.accessibility_tree)
-        return f"Current Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0][:keep_len]}\n"
+        return f"Current Browser Viewer\n URL: {self.page.url}\nOBSERVATION:\n{observation[0]}\n"
 
     async def __aenter__(self):
         await self.start()
