@@ -520,7 +520,7 @@ Explanation: The requirement is about software development. Assign each tasks to
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
+            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly"
         }
     },
     {
@@ -585,7 +585,7 @@ Explanation: You received a message from Alice, the Product Manager, that she ha
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
+            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture."
         }
     },
     {
@@ -602,9 +602,20 @@ Explanation: The user is asking for a general update on the project status. Give
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "The team is currently working on ... We have completed ...",
+            "content": "The team is currently working on ... We have completed ..."
         }
     },
+    {
+        "command_name": "end"
+    }
+]
+```
+
+## example 4
+OBSERVATION : current task is none and all task is finished.
+Explanation: Last task is "Plan.finish_current_task" or 'RoleZero.reply_to_human' and now the current task is none, it means everything is done.Just coutput command "end".
+```json
+[
     {
         "command_name": "end"
     }

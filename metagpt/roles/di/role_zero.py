@@ -273,6 +273,8 @@ class RoleZero(Role):
         """
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            if commands.endswith("]") and not commands.startswith("["):
+                commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError:
             logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
@@ -295,8 +297,9 @@ class RoleZero(Role):
         for cmd in commands:
             output = f"Command {cmd['command_name']} executed"
             # handle special command first
-            if await self._run_special_command(cmd):
-                outputs.append(output)
+            if self._is_special_command(cmd):
+                special_command_output = await self._run_special_command(cmd)
+                outputs.append(output + ":" + special_command_output)
                 continue
             # run command as specified by tool_execute_map
             if cmd["command_name"] in self.tool_execution_map:
@@ -321,19 +324,24 @@ class RoleZero(Role):
 
         return outputs
 
-    async def _run_special_command(self, cmd) -> bool:
+    def _is_special_command(self, cmd) -> bool:
+        return cmd["command_name"] in self.special_tool_commands
+
+    async def _run_special_command(self, cmd) -> str:
         """command requiring special check or parsing"""
-        is_special_cmd = cmd["command_name"] in self.special_tool_commands
+        command_output = ""
 
         if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
             # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
             # self.planner.plan.current_task.update_task_result(task_result=task_result)
             self.planner.plan.finish_current_task()
+            command_output = "Current task is finished. "
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
+            command_output = "Everything Done"
 
-        return is_special_cmd
+        return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
