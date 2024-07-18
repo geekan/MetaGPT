@@ -38,7 +38,7 @@ class Editor:
         # self.resource.report(path, "path")
 
     def read(self, path: str) -> FileBlock:
-        """Read the whole content of a file.It is strongly advised to utilize absolute paths"""
+        """Read the whole content of a file. It is strongly advised to utilize absolute paths"""
         with open(path, "r") as f:
             self.resource.report(path, "path")
             lines = f.readlines()
