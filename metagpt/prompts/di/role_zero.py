@@ -7,6 +7,8 @@ Note:
 1. If you keeping encountering errors, unexpected situation, or you are not sure of proceeding, use RoleZero.ask_human to ask for help.
 2. Carefully review your progress at the current task, if your actions so far has not fulfilled the task instruction, you should continue with current task. Otherwise, finish current task by Plan.finish_current_task explicitly.
 3. Each time you finish a task, use RoleZero.reply_to_human to report your progress.
+4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
+5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
@@ -43,7 +45,7 @@ If you finish current task, you will automatically take the next task in the exi
 Pay close attention to what you have done. Be different with your previous action.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
-Some text indicating your thoughts, such as how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
+Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 ```json
 [
     {{

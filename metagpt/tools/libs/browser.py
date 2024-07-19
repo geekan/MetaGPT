@@ -162,7 +162,7 @@ class Browser:
         await self._wait_until_page_idle(page)
         self.accessibility_tree = await get_accessibility_tree(page)
         await self.reporter.async_report(page, "page")
-        return f"SUCCESS, URL: {page.url}"
+        return f"SUCCESS, URL: {page.url} have been loaded."
 
     def _register_page_event(self, page: Page):
         page.last_busy_time = time.time()
