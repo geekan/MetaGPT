@@ -55,15 +55,15 @@ async def run(instance, swe_result_dir):
         logger.info(f"Instance {instance['instance_id']} already exists, skipping execution.")
         return
 
-    repo_path = TEST_REPO_DIR / instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
+    repo_path = TEST_REPO_DIR / (instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"])
 
     # 前处理
     terminal = Terminal()
-    terminal.run_command(f"cd {repo_path} && git reset --hard && git clean -n -d && git clean -f -d")
-    terminal.run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')")
-    logger.info(terminal.run_command("echo $BRANCH"))
-    logger.info(terminal.run_command('git checkout "$BRANCH"'))
-    logger.info(terminal.run_command("git branch"))
+    await terminal.run_command(f"cd {repo_path} && git reset --hard && git clean -n -d && git clean -f -d")
+    await terminal.run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')")
+    logger.info(await terminal.run_command("echo $BRANCH"))
+    logger.info(await terminal.run_command('git checkout "$BRANCH"'))
+    logger.info(await terminal.run_command("git branch"))
 
     user_requirement_and_issue = INSTANCE_TEMPLATE.format(
         issue=instance["problem_statement"],

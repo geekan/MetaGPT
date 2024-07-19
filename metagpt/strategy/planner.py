@@ -40,8 +40,14 @@ PLAN_STATUS = """
 ## Current Task
 {current_task}
 
+## Finished Section of Current Task
+### code
+{current_task_code}
+### execution result
+{current_task_result}
+
 ## Task Guidance
-Write complete code for 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
+Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks' and 'Finished Section of Current Task', such as repeated import of packages, reading data, etc.
 Specifically, {guidance}
 """
 
@@ -173,6 +179,8 @@ class Planner(BaseModel):
             code_written=code_written,
             task_results=task_results,
             current_task=self.current_task.instruction,
+            current_task_code=self.current_task.code if self.current_task.code else "",
+            current_task_result=self.current_task.result if self.current_task.result else "",
             guidance=guidance,
         )
 

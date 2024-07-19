@@ -90,7 +90,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
         msgs = args[0]
         context = "## History Messages\n"
         context += "\n".join([f"{idx}: {i}" for idx, i in enumerate(reversed(msgs))])
-        return await self.node.fill(context=context, llm=self.llm)
+        return await self.node.fill(req=context, llm=self.llm)
 
     async def run(self, *args, **kwargs):
         """Run action"""

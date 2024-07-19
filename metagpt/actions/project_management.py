@@ -151,12 +151,12 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context: str):
-        node = await PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
+        node = await PM_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         return node
 
     async def _merge(self, system_design_doc, task_doc) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_task=task_doc.content)
-        node = await REFINED_PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
+        node = await REFINED_PM_NODE.fill(req=context, llm=self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
@@ -180,16 +180,20 @@ class WriteTasks(Action):
         if design_filename:
             content = await aread(filename=design_filename)
             context += to_markdown_code_block(content)
-        node = await self._run_new_tasks(context)
-        file_content = node.instruct_content.model_dump_json()
 
-        if not output_pathname:
-            output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
-            output_pathname.mkdir(parents=True, exist_ok=True)
-        elif not Path(output_pathname).is_absolute():
-            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
-        output_pathname = Path(output_pathname)
-        await awrite(filename=output_pathname, data=file_content)
-        await save_json_to_markdown(content=file_content, output_filename=output_pathname.with_suffix(".md"))
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "task"}, "meta")
+            node = await self._run_new_tasks(context)
+            file_content = node.instruct_content.model_dump_json()
 
+            if not output_pathname:
+                output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
+                output_pathname.mkdir(parents=True, exist_ok=True)
+            elif not Path(output_pathname).is_absolute():
+                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+            output_pathname = Path(output_pathname)
+            await awrite(filename=output_pathname, data=file_content)
+            md_output_filename = output_pathname.with_suffix(".md")
+            await save_json_to_markdown(content=file_content, output_filename=md_output_filename)
+            await reporter.async_report(md_output_filename, "path")
         return f'Project Schedule filename: "{str(output_pathname)}"'

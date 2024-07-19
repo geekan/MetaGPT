@@ -28,7 +28,10 @@ your code
 ```
 """
 
-REFLECTION_SYSTEM_MSG = """You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation."""
+REFLECTION_SYSTEM_MSG = """
+You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation.
+When occuring ModuleNotFoundError, always install the required package. And use Terminal tool if available.
+"""
 
 DEBUG_REFLECTION_EXAMPLE = '''
 [previous impl]:

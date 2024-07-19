@@ -18,6 +18,8 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
 from metagpt.const import MARKDOWN_TITLE_PREFIX, USE_CONFIG_TIMEOUT
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.serializers import ActionNodeSerializer
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -465,9 +467,11 @@ class ActionNode:
 
         return self
 
+    @exp_cache(serializer=ActionNodeSerializer())
     async def fill(
         self,
-        context,
+        *,
+        req,
         llm,
         schema="json",
         mode="auto",
@@ -478,7 +482,7 @@ class ActionNode:
     ):
         """Fill the node(s) with mode.
 
-        :param context: Everything we should know when filling node.
+        :param req: Everything we should know when filling node.
         :param llm: Large Language Model with pre-defined system message.
         :param schema: json/markdown, determine example and output format.
          - raw: free form text
@@ -497,7 +501,7 @@ class ActionNode:
         :return: self
         """
         self.set_llm(llm)
-        self.set_context(context)
+        self.set_context(req)
         if self.schema:
             schema = self.schema
 

@@ -11,6 +11,7 @@ EXTRA_INSTRUCTION = """
 11. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 12. To modify code in a file, read the entire file, make changes, and update the file with the complete code, ensuring that no line numbers are included in the final write.
 13. When a system design or project schedule is provided, at the end of the plan, add a CodeRview Task for each file; for example, if there are three files, add three CodeRview Tasks. For each CodeRview Task, just call ReviewAndRewriteCode.run.
+14. When you are making plan.it is hightly recommand to plan all the coding plan and reviews plan in first response.
 """
 
 

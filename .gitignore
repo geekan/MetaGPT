@@ -162,6 +162,7 @@ examples/graph_store.json
 examples/image__vector_store.json
 examples/index_store.json
 .chroma
+.chroma_exp_data
 *~$*
 workspace/*
 tmp

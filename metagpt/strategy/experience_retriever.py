@@ -520,7 +520,7 @@ Explanation: The requirement is about software development. Assign each tasks to
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly",
+            "content": "I have assigned the tasks to the team members. Alice will create the PRD, Bob will design the software architecture, Eve will break down the architecture into tasks, Alex will implement the core game logic, and Edward will write comprehensive tests. The team will work on the project accordingly"
         }
     },
     {
@@ -585,7 +585,7 @@ Explanation: You received a message from Alice, the Product Manager, that she ha
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture.",
+            "content": "Alice has completed the PRD. I have marked her task as finished and sent the PRD to Bob. Bob will work on the software architecture."
         }
     },
     {
@@ -602,9 +602,20 @@ Explanation: The user is asking for a general update on the project status. Give
     {
         "command_name": "RoleZero.reply_to_human",
         "args": {
-            "content": "The team is currently working on ... We have completed ...",
+            "content": "The team is currently working on ... We have completed ..."
         }
     },
+    {
+        "command_name": "end"
+    }
+]
+```
+
+## example 4
+OBSERVATION : current task is none and all task is finished.
+Explanation: Last task is "Plan.finish_current_task" or 'RoleZero.reply_to_human' and now the current task is none, it means everything is done.Just coutput command "end".
+```json
+[
     {
         "command_name": "end"
     }
@@ -629,6 +640,10 @@ class KeywordExpRetriever(ExpRetriever):
                 return DEPLOY_EXAMPLE
             elif "issue" in context.lower():
                 return FIX_ISSUE_EXAMPLE
+            elif "https:" in context.lower() or "http:" in context.lower():
+                if "search" in context.lower() or "click" in context.lower():
+                    return WEB_SCRAPING_EXAMPLE
+                return WEB_SCRAPING_EXAMPLE_SIMPLE
         elif exp_type == "task":
             if "diagnose" in context.lower():
                 return SEARCH_SYMBOL_EXAMPLE
@@ -789,13 +804,13 @@ Explanation: I will first need to read the system design document and the projec
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/project_schedule.json"
+            "path": "/tmp/project_schedule.json"
         }
     },
     {
         "command_name": "Editor.read",
         "args": {
-            "path": "/tmp/docs/system_design.json"
+            "path": "/tmp/system_design.json"
         }
     }
 ]
@@ -889,4 +904,178 @@ Explanation: to review the code, call ReviewAndRewriteCode.run.
     }
 ]
 ```
+"""
+
+
+WEB_SCRAPING_EXAMPLE = """
+## action 1
+User Requirement: Scrap and list the restaurant names of first page by searching for the keyword `beef` on the website https://www.yelp.com/.
+Explanation: The requirement is to scrape data from a website and extract information about restaurants. The process involves searching for restaurants with a specific keyword, retrieving and presenting the data in a structured format.
+
+```json
+[
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "Navigate to the yelp website.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Search for restaurants with the keyword 'beef'.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "3",
+            "dependent_task_ids": ["2"],
+            "instruction": "View the html content of the search result page before scrap data to understand the structure.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "4",
+            "dependent_task_ids": ["3"],
+            "instruction": "Parse the html content to scrape the restaurant names and print it.",
+            "assignee": "David"
+        }
+    }
+]
+```
+
+## action 2
+Explanation: To search for restaurants, I will now go to the website https://www.yelp.com/ first.
+
+```json
+[
+    {
+        "command_name": "Browser.goto",
+        "args": {
+            "url": "https://www.yelp.com/"
+        }
+    }
+]
+```
+
+## action 3
+Explanation: Since the Browser has successfully navigated to the website, and I find that the element id of the search box is 53. I will finish the current task and then use the Browser tool to type the keyword `beef` in the search box and press enter.
+
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+    {
+        "command_name": "Browser.type",
+        "args": {
+            "element_id": 53,
+            "content": "beef",
+            "press_enter_after": true
+        }
+    }
+]
+```
+
+## action 4
+Explanation: Since the Browser has successfully search the keyword `beef`, I will finish the current task and then write code to view the html content of the page.
+
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+```
+
+## action 5
+Explanation: Since I has successfully viewed the html content in the context, I will first finish the current task and then write code to parse the html content and extract the restaurant names.
+
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+
+...
+"""
+
+
+WEB_SCRAPING_EXAMPLE_SIMPLE = """
+## action 1
+User Requirement: List the restaurant names on the website https://www.yelp.com/search?find_desc=beef&find_loc=New+York%2C+NY.
+Explanation: The requirement is to scrape data from a website and extract information about restaurants. The process involves retrieving and presenting the data in a structured format.
+
+```json
+[
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "View the html content of the page before scrap data to understand the structure.",
+            "assignee": "David"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Parse the html content to scrape the restaurant names and print it.",
+            "assignee": "David"
+        }
+    }
+]
+```
+
+## action 2
+Explanation: To scrap data from the website, I will first view the html content of the page.
+
+```json
+[
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+```
+
+## action 3
+Explanation: Since I has successfully viewed the html content in the context, I will first finish the current task and then write code to parse the html content and extract the restaurant names.
+    
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+    {
+        "command_name": "DataAnalyst.write_and_exec_code",
+        "args": {}
+    }
+]
+```
+...
 """

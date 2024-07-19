@@ -5,11 +5,11 @@
 # @File    : __init__.py
 # @Desc    :
 from metagpt.tools.libs import (
-    # data_preprocess,
-    # feature_engineering,
+    data_preprocess,
+    feature_engineering,
     sd_engine,
     gpt_v_generator,
-    # web_scraping,
+    web_scraping,
     # email_login,
     terminal,
     editor,
@@ -20,11 +20,11 @@ from metagpt.tools.libs import (
 from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description
 
 _ = (
-    # data_preprocess,
-    # feature_engineering,
+    data_preprocess,
+    feature_engineering,
     sd_engine,
     gpt_v_generator,
-    # web_scraping,
+    web_scraping,
     # email_login,
     terminal,
     editor,

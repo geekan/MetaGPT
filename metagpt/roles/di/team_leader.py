@@ -15,7 +15,7 @@ from metagpt.tools.tool_registry import register_tool
 
 @register_tool(include_functions=["publish_team_message"])
 class TeamLeader(RoleZero):
-    name: str = "Tim"
+    name: str = "Mike"
     profile: str = "Team Leader"
     goal: str = "Manage a team to assist users"
     system_msg: list[str] = [SYSTEM_PROMPT]

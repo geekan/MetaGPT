@@ -53,3 +53,9 @@ The current task is about converting image into webpage code. please note the fo
 - Single-Step Code Generation: Execute the entire code generation process in a single step, encompassing HTML, CSS, and JavaScript. Avoid fragmenting the code generation into multiple separate steps to maintain consistency and simplify the development workflow.
 - Save webpages: Be sure to use the save method provided.
 """
+
+# Prompt for taking on "web_scraping" tasks
+WEB_SCRAPING_PROMPT = """
+- Remember to view and print the necessary HTML content in a separate task to understand the structure first before scraping data. Such as `html_content = await view_page_element_to_scrape(...)\nprint(html_content)`.
+- Since the data required by user may not correspond directly to the actual HTML element names, you should thoroughly analyze the HTML structure and meanings of all elements in the executing result first. Ensure the `class_` in your code should derived from the actual HTML structure directly, not based on your knowledge. To ensure it, analyse the most suitable location of the 'class_' in the actual HTML content before code.
+"""

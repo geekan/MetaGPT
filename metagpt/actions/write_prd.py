@@ -211,7 +211,7 @@ class WritePRD(Action):
         context = CONTEXT_TEMPLATE.format(requirements=requirement, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
         node = await WRITE_PRD_NODE.fill(
-            context=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
+            req=context, llm=self.llm, exclude=exclude, schema=self.prompt_schema
         )  # schema=schema
         return node
 
@@ -238,7 +238,7 @@ class WritePRD(Action):
     async def _is_bugfix(self, context: str) -> bool:
         if not self.repo.code_files_exists():
             return False
-        node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
+        node = await WP_ISSUE_TYPE_NODE.fill(req=context, llm=self.llm)
         return node.get("issue_type") == "BUG"
 
     async def get_related_docs(self, req: Document, docs: list[Document]) -> list[Document]:
@@ -248,14 +248,14 @@ class WritePRD(Action):
 
     async def _is_related(self, req: Document, old_prd: Document) -> bool:
         context = NEW_REQ_TEMPLATE.format(old_prd=old_prd.content, requirements=req.content)
-        node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
+        node = await WP_IS_RELATIVE_NODE.fill(req=context, llm=self.llm)
         return node.get("is_relative") == "YES"
 
     async def _merge(self, req: Document, related_doc: Document) -> Document:
         if not self.project_name:
             self.project_name = Path(self.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=req.content, old_prd=related_doc.content)
-        node = await REFINED_PRD_NODE.fill(context=prompt, llm=self.llm, schema=self.prompt_schema)
+        node = await REFINED_PRD_NODE.fill(req=prompt, llm=self.llm, schema=self.prompt_schema)
         related_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return related_doc
@@ -300,23 +300,27 @@ class WritePRD(Action):
             user_requirement=to_markdown_code_block(val=user_requirement),
             extra_info=to_markdown_code_block(val=extra_info),
         )
-        req = Document(content=content)
-        if not legacy_prd_filename:
-            node = await self._new_prd(requirement=req.content)
-            new_prd = Document(content=node.instruct_content.model_dump_json())
-        else:
-            content = await aread(filename=legacy_prd_filename)
-            old_prd = Document(content=content)
-            new_prd = await self._merge(req=req, related_doc=old_prd)
+        async with DocsReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "prd"}, "meta")
+            req = Document(content=content)
+            if not legacy_prd_filename:
+                node = await self._new_prd(requirement=req.content)
+                new_prd = Document(content=node.instruct_content.model_dump_json())
+            else:
+                content = await aread(filename=legacy_prd_filename)
+                old_prd = Document(content=content)
+                new_prd = await self._merge(req=req, related_doc=old_prd)
 
-        if not output_pathname:
-            output_pathname = DEFAULT_WORKSPACE_ROOT / "docs" / "prd.json"
-            output_pathname.mkdir(parents=True, exist_ok=True)
-        elif not Path(output_pathname).is_absolute():
-            output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
-        output_pathname = Path(output_pathname)
-        await awrite(filename=output_pathname, data=new_prd.content)
-        competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
-        await self._save_competitive_analysis(prd_doc=new_prd, output_filename=Path(competitive_analysis_filename))
-        await save_json_to_markdown(content=new_prd.content, output_filename=output_pathname.with_suffix(".md"))
+            if not output_pathname:
+                output_pathname = DEFAULT_WORKSPACE_ROOT / "docs" / "prd.json"
+                output_pathname.mkdir(parents=True, exist_ok=True)
+            elif not Path(output_pathname).is_absolute():
+                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+            output_pathname = Path(output_pathname)
+            await awrite(filename=output_pathname, data=new_prd.content)
+            competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
+            await self._save_competitive_analysis(prd_doc=new_prd, output_filename=Path(competitive_analysis_filename))
+            md_output_filename = output_pathname.with_suffix(".md")
+            await save_json_to_markdown(content=new_prd.content, output_filename=md_output_filename)
+            await reporter.async_report(md_output_filename, "path")
         return f'PRD filename: "{str(output_pathname)}"'

@@ -10,6 +10,9 @@ from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.exp_pool import exp_cache
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
@@ -41,6 +44,7 @@ class RoleZero(Role):
     system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     instruction: str = ROLE_INSTRUCTION
+    task_type_desc: str = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -142,27 +146,50 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
+        instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
-            plan_status=plan_status,
-            current_task=current_task,
             example=example,
             available_commands=tool_info,
-            instruction=self.instruction.strip(),
+            task_type_desc=self.task_type_desc,
+            plan_status=plan_status,
+            current_task=current_task,
+            instruction=instruction,
         )
         memory = self.rc.memory.get(self.memory_k)
+        memory = await self.parse_browser_actions(memory)
+
+        req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "react"})
+            state_data = dict(
+                plan_status=plan_status,
+                current_task=current_task,
+                instruction=instruction,
+            )
+            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+
+        self.rc.memory.add(AIMessage(content=self.command_rsp))
+
+        return True
+
+    @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
+    async def llm_cached_aask(self, *, req: list[dict], system_msgs: list[str], **kwargs) -> str:
+        """Use `exp_cache` to automatically manage experiences.
+
+        The `RoleZeroContextBuilder` attempts to add experiences to `req`.
+        The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
+        """
+
+        return await self.llm.aask(req, system_msgs=system_msgs)
+
+    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
                 if pattern.match(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
-        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
-        # print(*context, sep="\n" + "*" * 5 + "\n")
-        async with ThoughtReporter(enable_llm_stream=True):
-            self.command_rsp = await self.llm.aask(context, system_msgs=self.system_msg)
-        self.rc.memory.add(AIMessage(content=self.command_rsp))
-
-        return True
+        return memory
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
@@ -217,12 +244,13 @@ class RoleZero(Role):
         # routing
         memory = self.get_memories(k=4)
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
-        # print(context)
         rsp = await self.llm.aask(context)
 
         if "yes" in rsp.lower():
             # llm call with the original context
-            answer = await self.llm.aask(self.llm.format_msg(memory))
+            async with ThoughtReporter(enable_llm_stream=True) as reporter:
+                await reporter.async_report({"type": "quick"})
+                answer = await self.llm.aask(self.llm.format_msg(memory))
             self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
             await self.reply_to_human(content=answer)
             rsp_msg = AIMessage(
@@ -246,6 +274,8 @@ class RoleZero(Role):
         """
         try:
             commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            if commands.endswith("]") and not commands.startswith("["):
+                commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError:
             logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
@@ -266,13 +296,15 @@ class RoleZero(Role):
     async def _run_commands(self, commands) -> str:
         outputs = []
         for cmd in commands:
+            output = f"Command {cmd['command_name']} executed"
             # handle special command first
-            if await self._run_special_command(cmd):
+            if self._is_special_command(cmd):
+                special_command_output = await self._run_special_command(cmd)
+                outputs.append(output + ":" + special_command_output)
                 continue
             # run command as specified by tool_execute_map
             if cmd["command_name"] in self.tool_execution_map:
                 tool_obj = self.tool_execution_map[cmd["command_name"]]
-                output = f"Command {cmd['command_name']} executed"
                 try:
                     if inspect.iscoroutinefunction(tool_obj):
                         tool_output = await tool_obj(**cmd["args"])
@@ -293,19 +325,24 @@ class RoleZero(Role):
 
         return outputs
 
-    async def _run_special_command(self, cmd) -> bool:
+    def _is_special_command(self, cmd) -> bool:
+        return cmd["command_name"] in self.special_tool_commands
+
+    async def _run_special_command(self, cmd) -> str:
         """command requiring special check or parsing"""
-        is_special_cmd = cmd["command_name"] in self.special_tool_commands
+        command_output = ""
 
         if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
             # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
             # self.planner.plan.current_task.update_task_result(task_result=task_result)
             self.planner.plan.finish_current_task()
+            command_output = "Current task is finished. "
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
+            command_output = "Everything Done"
 
-        return is_special_cmd
+        return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])

@@ -266,10 +266,6 @@ class ThoughtReporter(ObjectReporter):
 
     block: Literal[BlockType.THOUGHT] = BlockType.THOUGHT
 
-    async def __aenter__(self):
-        await self.async_report({})
-        return await super().__aenter__()
-
 
 class FileReporter(ResourceReporter):
     """File resource callback for reporting complete file paths.

@@ -31,9 +31,9 @@ TOKEN_COSTS = {
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
-    "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4o": {"prompt": 0.005, "completion": 0.015},
     "gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
@@ -147,11 +147,14 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
 
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o": 128000,
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
     "gpt-4-1106-preview": 128000,
     "gpt-4-vision-preview": 128000,
     "gpt-4-1106-vision-preview": 128000,
+    "gpt-4-turbo": 128000,
     "gpt-4": 8192,
     "gpt-4-0613": 8192,
     "gpt-4-32k": 32768,
