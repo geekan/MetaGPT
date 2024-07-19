@@ -72,7 +72,8 @@ Help check if there are any formatting issues with the JSON data? If so, please 
 
 QUICK_THINK_PROMPT = """
 Decide if the latest user message is a quick question.
-Quick questions include common-sense, logical, math questions, greetings, or casual chat that you can answer directly, excluding software development tasks.
-Respond with "#YES#, (then start your actual response to the question...)" if so, otherwise, simply respond with "#NO#".
-Your response:
+Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
+Questions about you or your team info are also quick questions.
+Programming or software development tasks are NOT quick questions except for filling a single function or class. 
+Respond with YES if so, otherwise, NO. Your response:
 """

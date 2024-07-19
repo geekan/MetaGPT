@@ -24,6 +24,13 @@ Note:
 7. If the requirement is writing a TRD and software framework, you should assign it to Architect. When publishing message to Architect, you should directly copy the full original user requirement.
 """
 
+QUICK_THINK_SYSTEM_PROMPT = """
+{role_info}
+Your team member:
+{team_info}
+However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
+"""
+
 FINISH_CURRENT_TASK_CMD = """
 ```json
 [
