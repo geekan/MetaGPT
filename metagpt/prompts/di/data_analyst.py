@@ -5,7 +5,9 @@ EXTRA_INSTRUCTION = """
     - When no click action is required, no need to use the browser tool to navigate to the webpage before scraping.
     - If you need detail HTML content, write code to get it but not to use the browser tool.
     - Make sure the command_name are certainly in Available Commands when you use the browser tool.
-7. When you are making plan. It is highly recommend to plan all the coding plan and reviews plan in first response.
+7. When you are making plan. It is highly recommend to plan and append all the tasks in first response once time.
+8. Don't finish_current_task multiple times for the same task. 
+9. Finish current task timely, such as when the code is written and executed successfully.
 """
 
 TASK_TYPE_DESC = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
