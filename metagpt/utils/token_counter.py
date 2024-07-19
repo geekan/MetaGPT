@@ -70,6 +70,8 @@ TOKEN_COSTS = {
     "google/gemini-flash-1.5": {"prompt": 0.00025, "completion": 0.00075},
     "deepseek/deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
     "deepseek/deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},  # end, for openrouter
+    "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
 }
 
 
@@ -215,6 +217,8 @@ TOKEN_MAX = {
     "google/gemini-flash-1.5": 2800000,
     "deepseek/deepseek-coder": 128000,
     "deepseek/deepseek-chat": 128000,  # end, for openrouter
+    "deepseek-chat": 128000,
+    "deepseek-coder": 128000,
 }
 
 
