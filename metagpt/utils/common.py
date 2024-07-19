@@ -9,6 +9,7 @@
 @Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
         responses.
 """
+
 from __future__ import annotations
 
 import ast
@@ -271,17 +272,18 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, block: str, text: str, lang: str = "", ignore_unmatched_error: bool = False) -> str:
         if block:
             text = cls.parse_block(block, text)
-        pattern = rf"```{lang}.*?\s+(.*?)```"
+        pattern = rf"```{lang}.*?\s+(.*)```"  # greedy match any character between ``` and ```, prevent matching from being interrupted by another ```
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
         else:
-            logger.error(f"{pattern} not match following text:")
-            logger.error(text)
-            # raise Exception
+            if not ignore_unmatched_error:
+                logger.error(f"{pattern} not match following text:")
+                logger.error(text)
+                # raise Exception
             return text  # just assume original text is code
         return code
 
