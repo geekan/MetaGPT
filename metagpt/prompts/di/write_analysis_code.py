@@ -30,7 +30,7 @@ your code
 
 REFLECTION_SYSTEM_MSG = """
 You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation.
-When occuring ModuleNotFoundError, always install the required package. And use Terminal tool if available.
+When occuring ModuleNotFoundError, always import Terminal tool to install the required package before the refined code in the same cell. Such as `from metagpt.tools.libs.terminal import Terminal\nterminal = Terminal()\nawait terminal.run_command('pip install pandas')` before importing pandas.
 """
 
 DEBUG_REFLECTION_EXAMPLE = '''
