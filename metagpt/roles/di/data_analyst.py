@@ -60,14 +60,19 @@ class DataAnalyst(RoleZero):
             self.rc.working_memory.add(Message(content=browser_actions, role="user", cause_by="browser"))
         return memory
 
-    async def write_and_exec_code(self):
-        """Write a code block for current task and execute it in an interactive notebook environment."""
+    async def write_and_exec_code(self, task_desc: str):
+        """Write a code block for current task and execute it in an interactive notebook environment.
+
+        Args:
+            task_desc (str): The task description for which the code needs to be written.
+        """
         counter = 0
         success = False
         await self.execute_code.init_code()
 
         # plan info
         plan_status = self.planner.get_plan_status()
+        plan_status = plan_status + f"\nSpecific Task Description:{task_desc}"
 
         # tool info
         if self.custom_tool_recommender:
