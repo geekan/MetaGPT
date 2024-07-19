@@ -8,7 +8,7 @@ from pydantic import Field, model_validator
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
-from metagpt.prompts.di.data_analyst import BROWSER_INSTRUCTION, TASK_TYPE_DESC, CODE_STATUS, BROWSER_INFO
+from metagpt.prompts.di.data_analyst import EXTRA_INSTRUCTION, TASK_TYPE_DESC, CODE_STATUS, BROWSER_INFO
 from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import TaskResult, Message
@@ -22,7 +22,7 @@ class DataAnalyst(RoleZero):
     name: str = "David"
     profile: str = "DataAnalyst"
     goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, git and github operation, etc."
-    instruction: str = ROLE_INSTRUCTION + BROWSER_INSTRUCTION
+    instruction: str = ROLE_INSTRUCTION + EXTRA_INSTRUCTION
     task_type_desc: str = TASK_TYPE_DESC
 
     tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]

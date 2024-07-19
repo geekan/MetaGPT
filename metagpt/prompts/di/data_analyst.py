@@ -1,7 +1,9 @@
 from metagpt.strategy.task_type import TaskType
 
-BROWSER_INSTRUCTION = """
-4. Carefully choose to use or not use the browser tool to assist you in web tasks. 
+EXTRA_INSTRUCTION = """
+4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
+5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
+6. Carefully choose to use or not use the browser tool to assist you in web tasks. 
     - When no click action is required, no need to use the browser tool to navigate to the webpage before scraping.
     - If you need detail HTML content, write code to get it but not to use the browser tool.
     - Make sure the command_name are certainly in Available Commands when you use the browser tool.
