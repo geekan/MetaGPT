@@ -1,10 +1,10 @@
 import mimetypes
 import os
 from pathlib import Path
+from typing import Union
 
 import aiofiles
 import httpx
-from typing import Union
 
 from metagpt.rag.schema import OmniParsedResult
 
@@ -14,6 +14,7 @@ class OmniParseClient:
     OmniParse Server Client
     OmniParse API Docs: https://docs.cognitivelab.in/api
     """
+
     ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".ppt", ".pptx", ".doc", ".docx"}
     ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".aac"}
     ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mkv", ".avi", ".mov"}
@@ -33,11 +34,16 @@ class OmniParseClient:
         self.parse_website_endpoint = "/parse_website"
         self.parse_document_endpoint = "/parse_document"
 
-    async def __request_parse(
-            self, endpoint: str, method: str = "POST",
-            files: dict = None, params: dict = None,
-            data: dict = None, json: dict = None,
-            headers: dict = None, **kwargs,
+    async def _request_parse(
+        self,
+        endpoint: str,
+        method: str = "POST",
+        files: dict = None,
+        params: dict = None,
+        data: dict = None,
+        json: dict = None,
+        headers: dict = None,
+        **kwargs,
     ) -> dict:
         """
         请求api解析文档
@@ -61,9 +67,15 @@ class OmniParseClient:
         headers.update(**_headers)
         async with httpx.AsyncClient() as client:
             response = await client.request(
-                url=url, method=method,
-                files=files, params=params, json=json, data=data,
-                headers=headers, timeout=self.max_timeout, **kwargs,
+                url=url,
+                method=method,
+                files=files,
+                params=params,
+                json=json,
+                data=data,
+                headers=headers,
+                timeout=self.max_timeout,
+                **kwargs,
             )
             response.raise_for_status()
             return response.json()
@@ -98,9 +110,9 @@ class OmniParseClient:
 
     @staticmethod
     async def get_file_info(
-            filelike: Union[str, bytes, Path],
-            bytes_filename: str = None,
-            only_bytes=True,
+        filelike: Union[str, bytes, Path],
+        bytes_filename: str = None,
+        only_bytes=True,
     ) -> Union[bytes, tuple]:
         """
         获取文件字节信息
@@ -120,7 +132,7 @@ class OmniParseClient:
         """
         if isinstance(filelike, (str, Path)):
             filename = os.path.basename(str(filelike))
-            async with aiofiles.open(filelike, 'rb') as file:
+            async with aiofiles.open(filelike, "rb") as file:
                 file_bytes = await file.read()
 
             if only_bytes:
@@ -154,7 +166,7 @@ class OmniParseClient:
         """
         self.verify_file_ext(filelike, self.ALLOWED_DOCUMENT_EXTENSIONS, bytes_filename)
         file_info = await self.get_file_info(filelike, bytes_filename, only_bytes=False)
-        resp = await self.__request_parse(self.parse_document_endpoint, files={'file': file_info})
+        resp = await self._request_parse(self.parse_document_endpoint, files={"file": file_info})
         data = OmniParsedResult(**resp)
         return data
 
@@ -173,7 +185,7 @@ class OmniParseClient:
         self.verify_file_ext(filelike, {".pdf"})
         file_info = await self.get_file_info(filelike)
         endpoint = f"{self.parse_document_endpoint}/pdf"
-        resp = await self.__request_parse(endpoint=endpoint, files={'file': file_info})
+        resp = await self._request_parse(endpoint=endpoint, files={"file": file_info})
         data = OmniParsedResult(**resp)
         return data
 
@@ -181,17 +193,17 @@ class OmniParseClient:
         """解析视频"""
         self.verify_file_ext(filelike, self.ALLOWED_VIDEO_EXTENSIONS, bytes_filename)
         file_info = await self.get_file_info(filelike, bytes_filename, only_bytes=False)
-        return await self.__request_parse(f"{self.parse_media_endpoint}/video", files={'file': file_info})
+        return await self._request_parse(f"{self.parse_media_endpoint}/video", files={"file": file_info})
 
     async def parse_audio(self, filelike: Union[str, bytes, Path], bytes_filename: str = None) -> dict:
         """解析音频"""
         self.verify_file_ext(filelike, self.ALLOWED_AUDIO_EXTENSIONS, bytes_filename)
         file_info = await self.get_file_info(filelike, bytes_filename, only_bytes=False)
-        return await self.__request_parse(f"{self.parse_media_endpoint}/audio", files={'file': file_info})
+        return await self._request_parse(f"{self.parse_media_endpoint}/audio", files={"file": file_info})
 
     async def parse_website(self, url: str) -> dict:
         """
         解析网站
         fixme:官方api还存在问题
         """
-        return await self.__request_parse(f"{self.parse_website_endpoint}/parse", params={'url': url})
+        return await self._request_parse(f"{self.parse_website_endpoint}/parse", params={"url": url})

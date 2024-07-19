@@ -37,6 +37,10 @@ class TestSimpleEngine:
     def mock_get_response_synthesizer(self, mocker):
         return mocker.patch("metagpt.rag.engines.simple.get_response_synthesizer")
 
+    @pytest.fixture
+    def mock_get_file_extractor(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.SimpleEngine.get_file_extractor")
+
     def test_from_docs(
         self,
         mocker,
@@ -44,6 +48,7 @@ class TestSimpleEngine:
         mock_get_retriever,
         mock_get_rankers,
         mock_get_response_synthesizer,
+        mock_get_file_extractor,
     ):
         # Mock
         mock_simple_directory_reader.return_value.load_data.return_value = [
@@ -53,6 +58,8 @@ class TestSimpleEngine:
         mock_get_retriever.return_value = mocker.MagicMock()
         mock_get_rankers.return_value = [mocker.MagicMock()]
         mock_get_response_synthesizer.return_value = mocker.MagicMock()
+        file_extractor = mocker.MagicMock()
+        mock_get_file_extractor.return_value = file_extractor
 
         # Setup
         input_dir = "test_dir"
@@ -75,7 +82,9 @@ class TestSimpleEngine:
         )
 
         # Assert
-        mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
+        mock_simple_directory_reader.assert_called_once_with(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+        )
         mock_get_retriever.assert_called_once()
         mock_get_rankers.assert_called_once()
         mock_get_response_synthesizer.assert_called_once_with(llm=llm)
