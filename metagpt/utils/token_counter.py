@@ -11,8 +11,13 @@ ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/o
 ref5: https://ai.google.dev/models/gemini
 """
 import tiktoken
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletionChunk
+
+from metagpt.utils.ahttp_client import apost
 
 TOKEN_COSTS = {
+    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-0301": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-0613": {"prompt": 0.0015, "completion": 0.002},
@@ -31,9 +36,11 @@ TOKEN_COSTS = {
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
+    "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4o": {"prompt": 0.005, "completion": 0.015},
     "gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
-    "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
+    "gpt-4o-mini-2024-07-18": {"prompt": 0.00015, "completion": 0.0006},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
@@ -53,6 +60,16 @@ TOKEN_COSTS = {
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
+    "openai/gpt-4": {"prompt": 0.03, "completion": 0.06},  # start, for openrouter
+    "openai/gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
+    "openai/gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "openai/gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
+    "openai/gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
+    "openai/gpt-4o-mini-2024-07-18": {"prompt": 0.00015, "completion": 0.0006},
+    "google/gemini-pro-1.5": {"prompt": 0.0025, "completion": 0.0075},
+    "google/gemini-flash-1.5": {"prompt": 0.00025, "completion": 0.00075},
+    "deepseek/deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek/deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},  # end, for openrouter
 }
 
 
@@ -149,6 +166,8 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
 TOKEN_MAX = {
     "gpt-4o-2024-05-13": 128000,
     "gpt-4o": 128000,
+    "gpt-4o-mini": 128000,
+    "gpt-4o-mini-2024-07-18": 128000,
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
     "gpt-4-1106-preview": 128000,
@@ -185,6 +204,17 @@ TOKEN_MAX = {
     "claude-3-opus-20240229": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
+    "openai/gpt-4": 8192,  # start, for openrouter
+    "openai/gpt-4-turbo": 128000,
+    "openai/gpt-4o": 128000,
+    "openai/gpt-4o-2024-05-13": 128000,
+    "openai/gpt-4o-mini": 128000,
+    "openai/gpt-4o-mini-2024-07-18": 128000,
+    "anthropic/claude-3.5-sonnet": 200000,
+    "google/gemini-pro-1.5": 2800000,
+    "google/gemini-flash-1.5": 2800000,
+    "deepseek/deepseek-coder": 128000,
+    "deepseek/deepseek-chat": 128000,  # end, for openrouter
 }
 
 
@@ -214,6 +244,8 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-1106-vision-preview",
         "gpt-4o-2024-05-13",
         "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-4o-mini-2024-07-18",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
@@ -288,3 +320,22 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     if model not in TOKEN_MAX:
         return default
     return TOKEN_MAX[model] - count_message_tokens(messages) - 1
+
+
+async def get_openrouter_tokens(chunk: ChatCompletionChunk) -> CompletionUsage:
+    """
+    refs to https://openrouter.ai/docs#querying-cost-and-stats
+    Returns the number of tokens used in a chat completion chunk.
+    Args:
+        chunk: The chat completion chunk.
+    Returns:
+         The number of tokens used in the chat completion chunk.
+    """
+    url = f"https://openrouter.ai/api/v1/generation?id={chunk.id}"
+    resp = await apost(url=url, as_json=True)
+    tokens_prompt = resp.get("tokens_prompt", 0)
+    completion_tokens = resp.get("tokens_completion", 0)
+    usage = CompletionUsage(
+        prompt_tokens=tokens_prompt, completion_tokens=completion_tokens, total_tokens=tokens_prompt + completion_tokens
+    )
+    return usage
