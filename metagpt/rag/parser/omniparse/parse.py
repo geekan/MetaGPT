@@ -1,5 +1,6 @@
 import asyncio
 from fileinput import FileInput
+from pathlib import Path
 from typing import List, Union, Optional
 
 from llama_index.core import Document
@@ -10,6 +11,7 @@ from llama_parse import ResultType
 from metagpt.rag.parser.omniparse.client import OmniParseClient
 from metagpt.rag.schema import OmniParseOptions, OmniParseType
 from metagpt.logs import logger
+from metagpt.utils.async_helper import NestAsyncio
 
 
 class OmniParse(BaseReader):
@@ -46,7 +48,7 @@ class OmniParse(BaseReader):
 
     async def _aload_data(
             self,
-            file_path: Union[str, bytes],
+            file_path: Union[str, bytes, Path],
             extra_info: Optional[dict] = None,
     ) -> List[Document]:
         try:
@@ -78,7 +80,7 @@ class OmniParse(BaseReader):
             extra_info: Optional[dict] = None,
     ) -> List[Document]:
         docs = []
-        if isinstance(file_path, (str, bytes)):
+        if isinstance(file_path, (str, bytes, Path)):
             # 处理单个
             docs = await self._aload_data(file_path, extra_info)
         elif isinstance(file_path, list):
@@ -94,4 +96,5 @@ class OmniParse(BaseReader):
             extra_info: Optional[dict] = None,
     ) -> List[Document]:
         """Load data from the input path."""
+        NestAsyncio.apply_once()    # 兼容异步嵌套调用
         return asyncio.run(self.aload_data(file_path, extra_info))

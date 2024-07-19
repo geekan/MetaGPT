@@ -229,7 +229,7 @@ class OmniParseOptions(BaseModel):
     parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse解析类型，默认文档类型")
     max_timeout: Optional[int] = Field(default=120, description="OmniParse服务请求最大超时")
     num_workers: int = Field(
-        default=4,
+        default=5,
         gt=0,
         lt=10,
         description="多文件列表时并发请求数量",
