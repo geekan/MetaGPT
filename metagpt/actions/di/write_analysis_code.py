@@ -31,12 +31,10 @@ class WriteAnalysisCode(Action):
 
         rsp = await self._aask(reflection_prompt, system_msgs=[REFLECTION_SYSTEM_MSG])
         reflection = json.loads(CodeParser.parse_code(text=rsp))
-        try:
-            improved_impl = CodeParser.parse_code(text=reflection["improved_impl"], lang="python")
-        except Exception as e:
-            improved_impl = reflection["improved_impl"]
+        if "```python" in reflection["improved_impl"]:
+            reflection["improved_impl"] = CodeParser.parse_code(text=reflection["improved_impl"], lang="python")
 
-        return improved_impl
+        return reflection["improved_impl"]
 
     async def run(
         self,
