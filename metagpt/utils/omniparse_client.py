@@ -12,7 +12,7 @@ from metagpt.utils.common import aread_bin
 class OmniParseClient:
     """
     OmniParse Server Client
-    This client interacts with the OmniParse server to parse different types of media, documents, and websites.
+    This client interacts with the OmniParse server to parse different types of media, documents.
 
     OmniParse API Documentation: https://docs.cognitivelab.in/api
 
@@ -88,12 +88,12 @@ class OmniParseClient:
             response.raise_for_status()
             return response.json()
 
-    async def parse_document(self, filelike: Union[str, bytes, Path], bytes_filename: str = None) -> OmniParsedResult:
+    async def parse_document(self, file_input: Union[str, bytes, Path], bytes_filename: str = None) -> OmniParsedResult:
         """
         Parse document-type data (supports ".pdf", ".ppt", ".pptx", ".doc", ".docx").
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
             bytes_filename: Filename for byte data, useful for determining MIME type for the HTTP request.
 
         Raises:
@@ -102,18 +102,18 @@ class OmniParseClient:
         Returns:
             OmniParsedResult: The result of the document parsing.
         """
-        self.verify_file_ext(filelike, self.ALLOWED_DOCUMENT_EXTENSIONS, bytes_filename)
-        file_info = await self.get_file_info(filelike, bytes_filename)
+        self.verify_file_ext(file_input, self.ALLOWED_DOCUMENT_EXTENSIONS, bytes_filename)
+        file_info = await self.get_file_info(file_input, bytes_filename)
         resp = await self._request_parse(self.parse_document_endpoint, files={"file": file_info})
         data = OmniParsedResult(**resp)
         return data
 
-    async def parse_pdf(self, filelike: Union[str, bytes, Path]) -> OmniParsedResult:
+    async def parse_pdf(self, file_input: Union[str, bytes, Path]) -> OmniParsedResult:
         """
         Parse pdf document.
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
 
         Raises:
             ValueError: If the file extension is not allowed.
@@ -121,19 +121,19 @@ class OmniParseClient:
         Returns:
             OmniParsedResult: The result of the pdf parsing.
         """
-        self.verify_file_ext(filelike, {".pdf"})
-        file_info = await self.get_file_info(filelike, only_bytes=True)
+        self.verify_file_ext(file_input, {".pdf"})
+        file_info = await self.get_file_info(file_input, only_bytes=True)
         endpoint = f"{self.parse_document_endpoint}/pdf"
         resp = await self._request_parse(endpoint=endpoint, files={"file": file_info})
         data = OmniParsedResult(**resp)
         return data
 
-    async def parse_video(self, filelike: Union[str, bytes, Path], bytes_filename: str = None) -> dict:
+    async def parse_video(self, file_input: Union[str, bytes, Path], bytes_filename: str = None) -> dict:
         """
         Parse video-type data (supports ".mp4", ".mkv", ".avi", ".mov").
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
             bytes_filename: Filename for byte data, useful for determining MIME type for the HTTP request.
 
         Raises:
@@ -142,16 +142,16 @@ class OmniParseClient:
         Returns:
             dict: JSON response data.
         """
-        self.verify_file_ext(filelike, self.ALLOWED_VIDEO_EXTENSIONS, bytes_filename)
-        file_info = await self.get_file_info(filelike, bytes_filename)
+        self.verify_file_ext(file_input, self.ALLOWED_VIDEO_EXTENSIONS, bytes_filename)
+        file_info = await self.get_file_info(file_input, bytes_filename)
         return await self._request_parse(f"{self.parse_media_endpoint}/video", files={"file": file_info})
 
-    async def parse_audio(self, filelike: Union[str, bytes, Path], bytes_filename: str = None) -> dict:
+    async def parse_audio(self, file_input: Union[str, bytes, Path], bytes_filename: str = None) -> dict:
         """
         Parse audio-type data (supports ".mp3", ".wav", ".aac").
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
             bytes_filename: Filename for byte data, useful for determining MIME type for the HTTP request.
 
         Raises:
@@ -160,19 +160,19 @@ class OmniParseClient:
         Returns:
             dict: JSON response data.
         """
-        self.verify_file_ext(filelike, self.ALLOWED_AUDIO_EXTENSIONS, bytes_filename)
-        file_info = await self.get_file_info(filelike, bytes_filename)
+        self.verify_file_ext(file_input, self.ALLOWED_AUDIO_EXTENSIONS, bytes_filename)
+        file_info = await self.get_file_info(file_input, bytes_filename)
         return await self._request_parse(f"{self.parse_media_endpoint}/audio", files={"file": file_info})
 
     @staticmethod
-    def verify_file_ext(filelike: Union[str, bytes, Path], allowed_file_extensions: set, bytes_filename: str = None):
+    def verify_file_ext(file_input: Union[str, bytes, Path], allowed_file_extensions: set, bytes_filename: str = None):
         """
         Verify the file extension.
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
             allowed_file_extensions: Set of allowed file extensions.
-            bytes_filename: Filename to use for verification when `filelike` is byte data.
+            bytes_filename: Filename to use for verification when `file_input` is byte data.
 
         Raises:
             ValueError: If the file extension is not allowed.
@@ -180,9 +180,9 @@ class OmniParseClient:
         Returns:
         """
         verify_file_path = None
-        if isinstance(filelike, (str, Path)):
-            verify_file_path = str(filelike)
-        elif isinstance(filelike, bytes) and bytes_filename:
+        if isinstance(file_input, (str, Path)):
+            verify_file_path = str(file_input)
+        elif isinstance(file_input, bytes) and bytes_filename:
             verify_file_path = bytes_filename
 
         if not verify_file_path:
@@ -195,7 +195,7 @@ class OmniParseClient:
 
     @staticmethod
     async def get_file_info(
-        filelike: Union[str, bytes, Path],
+        file_input: Union[str, bytes, Path],
         bytes_filename: str = None,
         only_bytes: bool = False,
     ) -> Union[bytes, tuple]:
@@ -203,12 +203,12 @@ class OmniParseClient:
         Get file information.
 
         Args:
-            filelike: File path or file byte data.
+            file_input: File path or file byte data.
             bytes_filename: Filename to use when uploading byte data, useful for determining MIME type.
             only_bytes: Whether to return only byte data. Default is False, which returns a tuple.
 
         Raises:
-            ValueError: If bytes_filename is not provided when filelike is bytes or if filelike is not a valid type.
+            ValueError: If bytes_filename is not provided when file_input is bytes or if file_input is not a valid type.
 
         Notes:
             Since `parse_document`,`parse_video`, `parse_audio` supports parsing various file types,
@@ -217,22 +217,22 @@ class OmniParseClient:
         Returns: [bytes, tuple]
             Returns bytes if only_bytes is True, otherwise returns a tuple (filename, file_bytes, mime_type).
         """
-        if isinstance(filelike, (str, Path)):
-            filename = os.path.basename(str(filelike))
-            file_bytes = await aread_bin(filelike)
+        if isinstance(file_input, (str, Path)):
+            filename = os.path.basename(str(file_input))
+            file_bytes = await aread_bin(file_input)
 
             if only_bytes:
                 return file_bytes
 
-            mime_type = mimetypes.guess_type(filelike)[0]
+            mime_type = mimetypes.guess_type(file_input)[0]
             return filename, file_bytes, mime_type
-        elif isinstance(filelike, bytes):
+        elif isinstance(file_input, bytes):
             if only_bytes:
-                return filelike
+                return file_input
             if not bytes_filename:
                 raise ValueError("bytes_filename must be set when passing bytes")
 
             mime_type = mimetypes.guess_type(bytes_filename)[0]
-            return bytes_filename, filelike, mime_type
+            return bytes_filename, file_input, mime_type
         else:
-            raise ValueError("filelike must be a string (file path) or bytes.")
+            raise ValueError("file_input must be a string (file path) or bytes.")

@@ -3,7 +3,7 @@ import asyncio
 from metagpt.config2 import config
 from metagpt.const import EXAMPLE_DATA_PATH
 from metagpt.logs import logger
-from metagpt.rag.parser import OmniParse
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.schema import OmniParseOptions, OmniParseType, ParseResultType
 from metagpt.utils.omniparse_client import OmniParseClient
 
@@ -19,20 +19,20 @@ async def omniparse_client_example():
 
     # docx
     with open(TEST_DOCX, "rb") as f:
-        filelike = f.read()
-    document_parse_ret = await client.parse_document(filelike=filelike, bytes_filename="test_01.docx")
+        file_input = f.read()
+    document_parse_ret = await client.parse_document(file_input=file_input, bytes_filename="test_01.docx")
     logger.info(document_parse_ret)
 
     # pdf
-    pdf_parse_ret = await client.parse_pdf(filelike=TEST_PDF)
+    pdf_parse_ret = await client.parse_pdf(file_input=TEST_PDF)
     logger.info(pdf_parse_ret)
 
     # video
-    video_parse_ret = await client.parse_video(filelike=TEST_VIDEO)
+    video_parse_ret = await client.parse_video(file_input=TEST_VIDEO)
     logger.info(video_parse_ret)
 
     # audio
-    audio_parse_ret = await client.parse_audio(filelike=TEST_AUDIO)
+    audio_parse_ret = await client.parse_audio(file_input=TEST_AUDIO)
     logger.info(audio_parse_ret)
 
 

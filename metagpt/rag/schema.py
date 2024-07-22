@@ -232,7 +232,7 @@ class ParseResultType(str, Enum):
 
 
 class OmniParseOptions(BaseModel):
-    """OmniParse可选配置"""
+    """OmniParse Options config"""
 
     result_type: ParseResultType = Field(default=ParseResultType.MD, description="OmniParse result_type")
     parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse parse_type")

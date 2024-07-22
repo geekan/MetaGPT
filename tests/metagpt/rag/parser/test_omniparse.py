@@ -2,7 +2,7 @@ import pytest
 from llama_index.core import Document
 
 from metagpt.const import EXAMPLE_DATA_PATH
-from metagpt.rag.parser import OmniParse
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.schema import (
     OmniParsedResult,
     OmniParseOptions,
@@ -23,7 +23,7 @@ class TestOmniParseClient:
 
     @pytest.fixture
     def mock_request_parse(self, mocker):
-        return mocker.patch("metagpt.rag.parser.omniparse.OmniParseClient._request_parse")
+        return mocker.patch("metagpt.rag.parsers.omniparse.OmniParseClient._request_parse")
 
     @pytest.mark.asyncio
     async def test_parse_pdf(self, mock_request_parse):
@@ -91,7 +91,7 @@ class TestOmniParse:
 
     @pytest.fixture
     def mock_request_parse(self, mocker):
-        return mocker.patch("metagpt.rag.parser.omniparse.OmniParseClient._request_parse")
+        return mocker.patch("metagpt.rag.parsers.omniparse.OmniParseClient._request_parse")
 
     @pytest.mark.asyncio
     async def test_load_data(self, mock_omniparse, mock_request_parse):
