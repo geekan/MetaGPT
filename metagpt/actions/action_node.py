@@ -510,9 +510,9 @@ class ActionNode:
         import re
         field_name = self.get_field_name()
         prompt = context
-        prompt += "\nPlease wrap the generated code within triple backticks, like this: ```<code>```"
+        # prompt += "\nPlease wrap the generated code within triple backticks, like this: ```<code>```"
         content = await self.llm.aask(prompt, timeout=timeout)
-    
+        
         extracted_code = extract_code_from_response(content)    
         result = {field_name: extracted_code}
         return result
@@ -522,7 +522,7 @@ class ActionNode:
     ):
         """
         参考这个代码，只不过LLM调用方式改成使用；
-        
+        参考
         """
         pass
 

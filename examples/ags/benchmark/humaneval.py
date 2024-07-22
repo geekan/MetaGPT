@@ -3,6 +3,7 @@
 # @Author  : didi
 # @Desc    : test on human eval graph
 
+import os
 import json
 import subprocess
 import sys
@@ -92,12 +93,12 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     jsonl_ranker(result_path, result_path)
     
     if not failed_tasks:
-        
+        # 自动 sanitize
+        result_path = automatic_sanitize(result_path)
         if automatic_evalplus(result_path):
             eval_path = result_path[:-6]+"_eval_results.json"
             unpassed_exapmle = extract_failure_tests(eval_path)
             print(unpassed_exapmle)
-        
     else:
         print(failed_tasks)
 
@@ -136,9 +137,24 @@ async def samples_generate_llm():
     
     write_jsonl("samples.jsonl", sample_list)
 
-def hello():
-    pass
-
+def automatic_sanitize(result_path: str = "samples.jsonl"):
+    """
+    在命令行中自动执行 evalplus.sanitize --samples result_path
+    返回result_path前缀加上"-sanitized.jsonl"
+    """
+    command = ["evalplus.sanitize", "--samples", result_path]
+    
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"执行命令时出错: {e}")
+        return None
+    
+    # 构建sanitized文件路径
+    base_name = os.path.splitext(result_path)[0]
+    sanitized_path = f"{base_name}-sanitized.jsonl"
+    
+    return sanitized_path
 def automatic_evalplus(result_path:str ="samples.jsonl"):
     """
     在命令行中自动执行 evalplus.evaluate --dataset humaneval --samples samples.jsonl --parallel 2 --base-only
