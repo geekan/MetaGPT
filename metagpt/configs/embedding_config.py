@@ -52,8 +52,3 @@ class EmbeddingConfig(YamlModel):
         if v == "":
             return None
         return v
-
-
-class OmniParseConfig(YamlModel):
-    api_key: str = ""
-    base_url: str = ""

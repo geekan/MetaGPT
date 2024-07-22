@@ -14,6 +14,7 @@ from llama_index.core.llms import LLM
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.readers.base import BaseReader
 from llama_index.core.response_synthesizers import (
     BaseSynthesizer,
     get_response_synthesizer,
@@ -27,7 +28,6 @@ from llama_index.core.schema import (
     QueryType,
     TransformComponent,
 )
-from llama_parse import ResultType
 
 from metagpt.config2 import config
 from metagpt.rag.factories import (
@@ -38,7 +38,7 @@ from metagpt.rag.factories import (
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
-from metagpt.rag.parser.omniparse.parse import OmniParse
+from metagpt.rag.parser import OmniParse
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
@@ -46,7 +46,10 @@ from metagpt.rag.schema import (
     BaseRankerConfig,
     BaseRetrieverConfig,
     BM25RetrieverConfig,
-    ObjectNode, OmniParseOptions, OmniParseType,
+    ObjectNode,
+    OmniParseOptions,
+    OmniParseType,
+    ParseResultType,
 )
 from metagpt.utils.common import import_class
 
@@ -77,18 +80,6 @@ class SimpleEngine(RetrieverQueryEngine):
         self._transformations = transformations or self._default_transformations()
 
     @classmethod
-    def get_file_extractor(cls, file_type: str):
-        if not config.omniparse.base_url:
-            return
-        parser = OmniParse(
-            api_key=config.omniparse.api_key,
-            base_url=config.omniparse.base_url,
-            parse_options=OmniParseOptions(parse_type=OmniParseType.PDF, result_type=ResultType.MD)
-        )
-        file_extractor = {file_type: parser}
-        return file_extractor
-
-    @classmethod
     def from_docs(
         cls,
         input_dir: str = None,
@@ -115,7 +106,7 @@ class SimpleEngine(RetrieverQueryEngine):
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        file_extractor = cls.get_file_extractor(file_type=".pdf")
+        file_extractor = cls._get_file_extractor(file_type=".pdf")
         documents = SimpleDirectoryReader(
             input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
         ).load_data()
@@ -319,3 +310,31 @@ class SimpleEngine(RetrieverQueryEngine):
     @staticmethod
     def _default_transformations():
         return [SentenceSplitter()]
+
+    @staticmethod
+    def _get_file_extractor(file_type: str = None) -> dict[str:BaseReader]:
+        """
+        Get the file extractor for a specified file type.
+        If no file type is provided, return all available extractors.
+        Currently, only OmniParse PDF extraction is supported.
+
+        Args:
+            file_type: The type of file for which the extractor is needed. Defaults to None.
+
+        Returns:
+            dict[file_type: BaseReader]
+        """
+        file_extractor_mapping: dict[str:BaseReader] = {}
+        if config.omniparse.base_url:
+            pdf_parser = OmniParse(
+                api_key=config.omniparse.api_key,
+                base_url=config.omniparse.base_url,
+                parse_options=OmniParseOptions(parse_type=OmniParseType.PDF, result_type=ParseResultType.MD),
+            )
+            file_extractor_mapping[".pdf"] = pdf_parser
+
+        if file_type:
+            file_extractor = file_extractor_mapping.get(file_type)
+            return {file_type: file_extractor} if file_extractor else {}
+
+        return file_extractor_mapping

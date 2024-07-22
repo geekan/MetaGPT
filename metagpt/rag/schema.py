@@ -8,7 +8,6 @@ from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
-from llama_parse import ResultType
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from metagpt.config2 import config
@@ -218,23 +217,31 @@ class ObjectNode(TextNode):
 
 
 class OmniParseType(str, Enum):
-    """OmniParse解析类型"""
+    """OmniParseType"""
 
     PDF = "PDF"
     DOCUMENT = "DOCUMENT"
 
 
+class ParseResultType(str, Enum):
+    """The result type for the parser."""
+
+    TXT = "text"
+    MD = "markdown"
+    JSON = "json"
+
+
 class OmniParseOptions(BaseModel):
     """OmniParse可选配置"""
 
-    result_type: ResultType = Field(default=ResultType.MD, description="OmniParse解析返回的结果类型")
-    parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse解析类型，默认文档类型")
-    max_timeout: Optional[int] = Field(default=120, description="OmniParse服务请求最大超时")
+    result_type: ParseResultType = Field(default=ParseResultType.MD, description="OmniParse result_type")
+    parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse parse_type")
+    max_timeout: Optional[int] = Field(default=120, description="Maximum timeout for OmniParse service requests")
     num_workers: int = Field(
         default=5,
         gt=0,
         lt=10,
-        description="多文件列表时并发请求数量",
+        description="Number of concurrent requests for multiple files",
     )
 
 

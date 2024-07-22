@@ -7,6 +7,7 @@ from llama_index.core.llms import MockLLM
 from llama_index.core.schema import Document, NodeWithScore, TextNode
 
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.parser import OmniParse
 from metagpt.rag.retrievers import SimpleHybridRetriever
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.schema import BM25RetrieverConfig, ObjectNode
@@ -39,7 +40,7 @@ class TestSimpleEngine:
 
     @pytest.fixture
     def mock_get_file_extractor(self, mocker):
-        return mocker.patch("metagpt.rag.engines.simple.SimpleEngine.get_file_extractor")
+        return mocker.patch("metagpt.rag.engines.simple.SimpleEngine._get_file_extractor")
 
     def test_from_docs(
         self,
@@ -307,3 +308,17 @@ class TestSimpleEngine:
         # Assert
         assert "obj" in node.node.metadata
         assert node.node.metadata["obj"] == expected_obj
+
+    def test_get_file_extractor(self, mocker):
+        # mock no omniparse config
+        mock_omniparse_config = mocker.patch("metagpt.rag.engines.simple.config.omniparse", autospec=True)
+        mock_omniparse_config.base_url = ""
+
+        file_extractor = SimpleEngine._get_file_extractor()
+        assert file_extractor == {}
+
+        # mock have omniparse config
+        mock_omniparse_config.base_url = "http://localhost:8000"
+        file_extractor = SimpleEngine._get_file_extractor(file_type=".pdf")
+        assert ".pdf" in file_extractor
+        assert isinstance(file_extractor[".pdf"], OmniParse)
