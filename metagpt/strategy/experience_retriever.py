@@ -611,7 +611,7 @@ Explanation: The user is asking for a general update on the project status. Give
 ]
 ```
 
-## example 4
+## example 5
 OBSERVATION : current task is none and all task is finished.
 Explanation: Last task is "Plan.finish_current_task" or 'RoleZero.reply_to_human' and now the current task is none, it means everything is done.Just coutput command "end".
 ```json
@@ -619,6 +619,29 @@ Explanation: Last task is "Plan.finish_current_task" or 'RoleZero.reply_to_human
     {
         "command_name": "end"
     }
+]
+
+## example 6
+OBSERVATION : The previously completed task is identical to the current task.
+Explanation: The current task has been accomplished previously.
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
+]
+```
+
+## example 7
+OBSERVATION : the task assigned to Alice is still ongoing as it has not been marked as finished. The current task in the plan is for Alice to create the PRD.
+Explanation: "I attempted to locate historical records containing 'send to [<all>]', and discovered an entry stating 'PRD is finished and masked.' This indicates that Alice's task has been completed.
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {}
+    },
 ]
 ```
 """

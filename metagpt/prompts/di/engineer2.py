@@ -11,7 +11,11 @@ EXTRA_INSTRUCTION = """
 11. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 12. To modify code in a file, read the entire file, make changes, and update the file with the complete code, ensuring that no line numbers are included in the final write.
 13. When a system design or project schedule is provided, at the end of the plan, add a CodeRview Task for each file; for example, if there are three files, add three CodeRview Tasks. For each CodeRview Task, just call ReviewAndRewriteCode.run.
-14. When you are making plan.it is hightly recommand to plan all the coding plan and reviews plan in first response.
+14. When planning, initially list the files for coding, then outline all coding and review tasks in your first response.
+15. Note 'Task for {file_name} completed.' — signifies the {file_name} coding task is done.
+16. Avoid re-reviewing or re-coding the same code. When you decide to take a write or review action, include the command 'finish current task' in the same response.
+17. When coding JavaScript, avoid using '\'' in strings.
+18. If you plan to read a file, do not include other plans in the same response.
 """
 
 
