@@ -23,8 +23,8 @@ from metagpt.utils.graph_repository import SPO, GraphRepository
 class DiGraphRepository(GraphRepository):
     """Graph repository based on DiGraph."""
 
-    def __init__(self, name: str, **kwargs):
-        super().__init__(name=name, **kwargs)
+    def __init__(self, name: str | Path, **kwargs):
+        super().__init__(name=str(name), **kwargs)
         self._repo = networkx.DiGraph()
 
     async def insert(self, subject: str, predicate: str, object_: str):
@@ -112,8 +112,28 @@ class DiGraphRepository(GraphRepository):
     async def load(self, pathname: str | Path):
         """Load a directed graph repository from a JSON file."""
         data = await aread(filename=pathname, encoding="utf-8")
-        m = json.loads(data)
+        self.load_json(data)
+
+    def load_json(self, val: str):
+        """
+        Loads a JSON-encoded string representing a graph structure and updates
+        the internal repository (_repo) with the parsed graph.
+
+        Args:
+            val (str): A JSON-encoded string representing a graph structure.
+
+        Returns:
+            self: Returns the instance of the class with the updated _repo attribute.
+
+        Raises:
+            TypeError: If val is not a valid JSON string or cannot be parsed into
+                       a valid graph structure.
+        """
+        if not val:
+            return self
+        m = json.loads(val)
         self._repo = networkx.node_link_graph(m)
+        return self
 
     @staticmethod
     async def load_from(pathname: str | Path) -> GraphRepository:
@@ -126,9 +146,7 @@ class DiGraphRepository(GraphRepository):
             GraphRepository: A new instance of the graph repository loaded from the specified JSON file.
         """
         pathname = Path(pathname)
-        name = pathname.with_suffix("").name
-        root = pathname.parent
-        graph = DiGraphRepository(name=name, root=root)
+        graph = DiGraphRepository(name=pathname.stem, root=pathname.parent)
         if pathname.exists():
             await graph.load(pathname=pathname)
         return graph

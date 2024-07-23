@@ -126,6 +126,9 @@ class Team(BaseModel):
             self.run_project(idea=idea, send_to=send_to)
 
         while n_round > 0:
+            if self.env.is_idle:
+                logger.debug("All roles are idle.")
+                break
             n_round -= 1
             self._check_balance()
             await self.env.run()
