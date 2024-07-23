@@ -283,7 +283,10 @@ class ReviewAndRewriteCode(Action):
 
         await awrite(filename=code_path, data=code)
 
-        return code
+        return (
+            f'\nThe "review and rewrite the code {os.path.basename(code_path)}" task has been completed and is now marked as finished.\n'
+            + code
+        )
 
     @staticmethod
     async def _try_aread(input: str) -> str:
