@@ -29,105 +29,96 @@ from metagpt.utils.token_counter import (
 )
 
 @register_provider(LLMType.SHAHE)
+
 class OwnLLM(BaseLLM):
     """
     create your own api
     """
     def __init__(self, config: LLMConfig):
+        self.__init_eb(config)
+        self.client = GeneralAPIRequestor(base_url=config.eb_base_url)
         self.config = config
-        self.use_system_prompt = False  
-        self.__init_ownapi()
-        self.cost_manager = CostManager(token_costs=self.token_costs)
+        self.suffix_url = "/chat/new"
+        self.http_method = "post"
 
+    def __init_eb(self, config: LLMConfig):
+        assert config.eb_base_url, "ernie base url is required!"
+        self.model_id = config.eb_model_id
+        self.user_id = config.eb_user_id
+        self.temperature = config.eb_temperature
 
-    def __init_ownapi(self):
-        # finish your own init
-        
-    def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
-        kwargs = {
-            "messages": messages,
-            "stream": stream,
-        }
-        if self.config.temperature > 0:
-            kwargs["temperature"] = self.config.temperature
-        if self.config.endpoint:
-            kwargs["endpoint"] = self.config.endpoint
-        elif self.config.model:
-            kwargs["model"] = self.config.model
-
-        if self.use_system_prompt:
-            if messages[0]["role"] == "system":
-                kwargs["messages"] = messages[1:]
-                kwargs["system"] = messages[0]["content"]
-        return kwargs
-
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        model_or_endpoint = self.config.model or self.config.endpoint
-        local_calc_usage = model_or_endpoint in self.token_costs
-        super()._update_costs(usage, model_or_endpoint, local_calc_usage)
-
-    def get_choice_text(self, resp: JsonBody) -> str:
-        return resp.get("result", "")
-
-    def request_eb_dynamic_ppo(self, query, history, model_id="", compute_close=False):
-        # here is the example
-        
-        URL = ""  
-        payload = {
-            "text": query,
-            "model_version": "",
-            "session_id": uuid.uuid1().hex,
-            "history": history,
-            "userId": "",
-            "key":"",
-            "model_id": model_id
-        }
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        resp_json = None
-        for i in range(666):
-            try:
-                resp = requests.post(URL, headers=headers, data=json.dumps(payload))
-                # print(query)
-                # print(resp)
-                resp_json = json.loads(resp.text)
-                # print(resp_json)
-                result = resp_json["data"]["result"]
-                return resp_json
-            except:
-                # print(f"Fail to get EB result, try times: {i}")
-                time.sleep(1)
-                resp_json = None
-        return resp_json
-
-    def completion(self, messages: list[dict]) -> JsonBody:
+    def get_payload_for_eb(self, messages, reminder, session_id):
+        prompt = messages[-1]["content"]
         history = []
-        for message in messages:
-            query = message["content"]
-            res = self.request_eb_dynamic_ppo(query, history, model_id="")
-            result = res["data"]["result"]
-            history.insert(0, [query, result])
-        # Here we just return the final response, you can modify it to return all responses if needed
-        return res
+        for i in range(len(messages) - 1, -1, -2):
+            if messages[i]['role'] == 'assistant':
+                answer = messages[i]['content']
+                if i - 1 >= 0 and messages[i - 1]['role'] == 'user':
+                    question = messages[i - 1]['content']
+                    history.append([question, answer])
+        if session_id is None:
+            random_int = random.randint(0, 2**31-1)
+            session_id = f"{reminder}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{random_int}"
+        payload = {
+            "session_id": session_id,
+            "text": prompt,
+            "eb_version": "main",
+            "eda_version": "main",
+            "model_id": self.model_id,
+            "userId": self.user_id,
+            "safe_close": False,
+            "prompt_version": "V3",
+            "temperature": self.temperature,
+            "history": history
+        }
+        return payload
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
-        return self.completion(messages)
+    def get_choice_text(self, resp: dict) -> str:
+        return resp
 
-    async def acompletion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
+    def get_usage(self, resp: dict) -> dict:
+        return {"prompt_tokens": resp.get("prompt_eval_count", 0), "completion_tokens": resp.get("eval_count", 0)}
+
+    def _decode_and_load(self, chunk: bytes, encoding: str = "utf-8") -> dict:
+        chunk = chunk.decode(encoding)
+        return json.loads(chunk)
+
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
+        if messages[0]['role'] == 'system':
+            system_prompt = messages[0]['content']
+            messages = messages[1:]
+            messages[0]['content'] = system_prompt + messages[0]['content']
+        assert len(messages) % 2 == 1 and messages[-1]["role"] == "user"
+
+        payload = self.get_payload_for_eb(messages, reminder=None, session_id=None)
+        success = False
+        request_time = 1
+        resp = None
+        while not success and request_time <= 5:
+            try:
+                resp, _, _ = await self.client.arequest(
+                    method=self.http_method,
+                    url=self.suffix_url,
+                    params=payload,
+                    request_timeout=self.get_timeout(timeout),
+                )
+                resp = self._decode_and_load(resp)
+                if resp["msg"] == "success":
+                    success = True
+                    usage = self.get_usage(resp)
+                    self._update_costs(usage)
+                    resp = resp["data"]["result"]
+                else:
+                    request_time += 1
+                time.sleep(1)
+            except Exception as error:
+                print(f"抓取失败，正在重试{request_time}/{5}，错误信息：{error}")
+                request_time += 1
+            time.sleep(1)
+        return resp if success else None
+
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
-        collected_content = []
-        history = []
-        for message in messages:
-            query = message["content"]
-            res = self.request_eb_dynamic_ppo(query, history, model_id="")
-            content = res["data"]["result"]
-            log_llm_stream(content)
-            collected_content.append(content)
-            log_llm_stream("\n")
-            history.insert(0, [query, content])
-        full_content = "".join(collected_content)
-        return full_content
+        raise NotImplementedError()
