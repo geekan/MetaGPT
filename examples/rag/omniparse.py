@@ -11,7 +11,6 @@ TEST_DOCX = EXAMPLE_DATA_PATH / "omniparse/test01.docx"
 TEST_PDF = EXAMPLE_DATA_PATH / "omniparse/test02.pdf"
 TEST_VIDEO = EXAMPLE_DATA_PATH / "omniparse/test03.mp4"
 TEST_AUDIO = EXAMPLE_DATA_PATH / "omniparse/test04.mp3"
-TEST_WEBSITE_URL = "https://github.com/geekan/MetaGPT"
 
 
 async def omniparse_client_example():

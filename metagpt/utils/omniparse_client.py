@@ -122,6 +122,7 @@ class OmniParseClient:
             OmniParsedResult: The result of the pdf parsing.
         """
         self.verify_file_ext(file_input, {".pdf"})
+        # parse_pdf supports parsing by accepting only the byte data of the file.
         file_info = await self.get_file_info(file_input, only_bytes=True)
         endpoint = f"{self.parse_document_endpoint}/pdf"
         resp = await self._request_parse(endpoint=endpoint, files={"file": file_info})

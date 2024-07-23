@@ -315,7 +315,7 @@ class SimpleEngine(RetrieverQueryEngine):
     def _get_file_extractor() -> dict[str:BaseReader]:
         """
         Get the file extractor.
-        Currently, only PDF use OmniParse
+        Currently, only PDF use OmniParse. Other document types use the built-in reader from llama_index.
 
         Returns:
             dict[file_type: BaseReader]
