@@ -6,10 +6,9 @@ from typing import List, Optional, Union
 from llama_index.core import Document
 from llama_index.core.async_utils import run_jobs
 from llama_index.core.readers.base import BaseReader
-from llama_parse import ResultType
 
 from metagpt.logs import logger
-from metagpt.rag.schema import OmniParseOptions, OmniParseType
+from metagpt.rag.schema import OmniParseOptions, OmniParseType, ParseResultType
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.omniparse_client import OmniParseClient
 
@@ -44,9 +43,9 @@ class OmniParse(BaseReader):
         self.parse_options.parse_type = parse_type
 
     @result_type.setter
-    def result_type(self, result_type: Union[str, ResultType]):
+    def result_type(self, result_type: Union[str, ParseResultType]):
         if isinstance(result_type, str):
-            result_type = ResultType(result_type)
+            result_type = ParseResultType(result_type)
         self.parse_options.result_type = result_type
 
     async def _aload_data(
