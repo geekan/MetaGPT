@@ -10,7 +10,7 @@ Note:
 4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
-# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
+# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
 CMD_PROMPT = """
 # Latest Observation
 {latest_observation}
