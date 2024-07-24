@@ -53,6 +53,8 @@ TOKEN_COSTS = {
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
+    "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
 }
 
 
