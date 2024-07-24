@@ -24,6 +24,3 @@ async def main():
     llm = LLM()
     await ask_and_print("ping?", llm, "Just answer pong when ping.")
 
-
-if __name__ == "__main__":
-    asyncio.run(main())
