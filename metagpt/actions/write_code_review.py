@@ -284,7 +284,7 @@ class ReviewAndRewriteCode(Action):
         await awrite(filename=code_path, data=code)
 
         return (
-            f'\nThe "review and rewrite the code {os.path.basename(code_path)}" task has been completed and is now marked as finished.\n'
+            f"The review and rewriting of the code in the file '{os.path.basename(code_path)}' has been completed."
             + code
         )
 
