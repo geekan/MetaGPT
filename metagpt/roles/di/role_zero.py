@@ -339,7 +339,7 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
-            command_output = " "
+            command_output = ""
 
         return command_output
 

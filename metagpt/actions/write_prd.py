@@ -323,4 +323,4 @@ class WritePRD(Action):
             md_output_filename = output_pathname.with_suffix(".md")
             await save_json_to_markdown(content=new_prd.content, output_filename=md_output_filename)
             await reporter.async_report(md_output_filename, "path")
-        return f'PRD filename: "{str(output_pathname)}". The "Create the PRD" task has been completed and is now marked as finished.'
+        return f'PRD filename: "{str(output_pathname)}". The  product requirement document (PRD) has been completed.'

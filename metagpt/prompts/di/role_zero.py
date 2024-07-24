@@ -12,7 +12,7 @@ Note:
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
-# latest observation
+# Latest Observation
 {latest_observation}
 
 # Data Structure
@@ -50,7 +50,7 @@ In your response, include at least one command.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
-Firstly, describe  the actions you have taken recently.
+Firstly, describe the actions you have taken recently.
 Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
 Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
 Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
