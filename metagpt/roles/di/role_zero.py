@@ -146,7 +146,6 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
-
         memory = self.rc.memory.get(self.memory_k)
         instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
@@ -156,7 +155,7 @@ class RoleZero(Role):
             plan_status=plan_status,
             current_task=current_task,
             instruction=instruction,
-            observation=memory[-1].content,
+            latest_observation=memory[-1].content,
         )
         memory = await self.parse_browser_actions(memory)
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])

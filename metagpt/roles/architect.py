@@ -31,7 +31,7 @@ class Architect(RoleZero):
         "libraries. Use same language as user requirement"
     )
 
-    instruction: str = """Do not output the document directly. Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;"""
+    instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = [
         "Editor:write,read,write_content",

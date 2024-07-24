@@ -22,7 +22,7 @@ Note:
 5. If you think the requirement is not clear or ambiguous, you should ask the user for clarification immediately. Assign tasks only after all info is clear.
 6. It is helpful for Engineer to have both the system design and the project schedule for writing the code, so include paths of both files (if available) and remind Engineer to definitely read them when publishing message to Engineer.
 7. If the requirement is writing a TRD and software framework, you should assign it to Architect. When publishing message to Architect, you should directly copy the full original user requirement.
-8. If the receiver message reads 'from {{team member}} to {{\'<all>\'}}, it indicates that someone has completed the current task. For exmaple,'from Alice(Product Manager) to {{\'<all>\'}} means PDR is created,'from Bob(Architecture) to {{\'<all>\'}} means software architecture is created. Note this in your thoughts.
+8. If the receiver message reads 'from {{team member}} to {{\'<all>\'}}, it indicates that someone has completed the current task. Note this in your thoughts.
 9. Do not use the 'end' command when the current task remains unfinished; instead, use the 'finish_current_task' command to indicate completion before switching to the next task.
 10. If you have made a plan, simply follow it without creating a new one.
 11. Do not use escape characters in json data, particularly within file paths.

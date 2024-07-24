@@ -12,8 +12,8 @@ Note:
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
 CMD_PROMPT = """
-# observation
-{observation}
+# latest observation
+{latest_observation}
 
 # Data Structure
 class Task(BaseModel):
@@ -50,9 +50,9 @@ In your response, include at least one command.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
-Firstly, describe in natural language the actions you have taken recently.
-Secondly, describe in natural language the messages you have received recently, with a particular emphasis on messages from users.
-Thirdly, describe your current task in natural language. Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
+Firstly, describe  the actions you have taken recently.
+Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
+Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
 Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
 ```json
 [
@@ -75,7 +75,7 @@ JSON_REPAIR_PROMPT = """
 ```json
 
 ```
-Do not use escape characters in json_data, particularly within file paths.
+Do not use escape characters in json data, particularly within file paths.
 Help check if there are any formatting issues with the JSON data? If so, please help format it.
 If no issues are detected, the original json data should be returned unchanged.
 Output the JSON data in a format that can be loaded by the json.loads() function.
