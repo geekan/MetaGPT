@@ -7,7 +7,6 @@
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 
-import agentops
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
@@ -15,7 +14,6 @@ from metagpt.roles.role import Role, RoleReactMode
 from metagpt.utils.common import any_to_name
 
 
-@agentops.track_agent(name="ProductManager")
 class ProductManager(Role):
     """
     Represents a Product Manager role responsible for product development and management.
