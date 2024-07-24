@@ -146,6 +146,7 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
+        memory = self.rc.memory.get(self.memory_k)
         instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
             example=example,
@@ -154,10 +155,9 @@ class RoleZero(Role):
             plan_status=plan_status,
             current_task=current_task,
             instruction=instruction,
+            latest_observation=memory[-1].content,
         )
-        memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
-
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
@@ -169,7 +169,6 @@ class RoleZero(Role):
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
 
         self.rc.memory.add(AIMessage(content=self.command_rsp))
-
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -340,7 +339,7 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
-            command_output = "Everything Done"
+            command_output = ""
 
         return command_output
 

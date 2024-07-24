@@ -279,4 +279,4 @@ class WriteDesign(Action):
             md_output_filename = output_pathname.with_suffix(".md")
             await save_json_to_markdown(content=design.content, output_filename=md_output_filename)
             await reporter.async_report(md_output_filename, "path")
-        return f'System Design filename: "{str(output_pathname)}"'
+        return f'System Design filename: "{str(output_pathname)}". \n The System Design has been completed.'
