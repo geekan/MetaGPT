@@ -27,10 +27,10 @@ jobs:
         cache: 'pip'
     - name: Install dependencies
       run: |
-        - python -m pip install --upgrade pip
-        - pip install -e .[test]
-        - npm install -g @mermaid-js/mermaid-cli
-        - playwright install --with-deps
+        python -m pip install --upgrade pip
+        pip install -e .[test]
+        npm install -g @mermaid-js/mermaid-cli
+        playwright install --with-deps
     - name: Test with pytest
       run: |
         export ALLOW_OPENAI_API_CALL=0
