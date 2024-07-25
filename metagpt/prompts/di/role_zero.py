@@ -53,7 +53,7 @@ Some text indicating your thoughts before JSON is required, such as what tasks h
 Output should adhere to the following format.
 Firstly, describe the actions you have taken recently.
 Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
-Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
+Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished. If all tasks are finished and current task is empty, use the end command to terminate.
 Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
 ```json
 [
@@ -83,9 +83,11 @@ Output the JSON data in a format that can be loaded by the json.loads() function
 """
 
 QUICK_THINK_PROMPT = """
-Decide if the latest user message is a quick question.
+Decide if the latest user message previously is a quick question.
 Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
 Questions about you or your team info are also quick questions.
-Programming or software development tasks are NOT quick questions except for filling a single function or class. 
-Respond with YES if so, otherwise, NO. Your response:
+Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions.
+Software development tasks are NOT quick questions.
+However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
+Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO. Your response:
 """
