@@ -2,63 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from github.Issue import Issue
 from github.PullRequest import PullRequest
 
 from metagpt.tools.tool_registry import register_tool
-
-
-@register_tool(tags=["software development", "git", "Push to remote git repository."])
-async def git_push(
-    local_path: Union[str, Path],
-    app_name: str,
-    comments: str = "Commit",
-    new_branch: str = "",
-) -> "GitBranch":
-    """
-    Pushes changes from a local Git repository to its remote counterpart.
-
-    Args:
-        local_path (Union[str, Path]): The absolute path to the local Git repository.
-        app_name (str): The name of the platform hosting the repository (e.g., "github", "gitlab", "bitbucket").
-        comments (str, optional): Comments to be associated with the push. Defaults to "Commit".
-        new_branch (str, optional): The name of the new branch to create and push changes to.
-            If not provided, changes will be pushed to the current branch. Defaults to "".
-
-    Returns:
-        GitBranch: The branch to which the changes were pushed.
-
-    Raises:
-        ValueError: If the provided local_path does not point to a valid Git repository.
-
-    Example:
-        >>> url = "https://github.com/iorisa/snake-game.git"
-        >>> local_path = await git_clone(url=url)
-        >>> app_name = "github"
-        >>> comments = "Commit"
-        >>> new_branch = "feature/new"
-        >>> branch = await git_push(local_path=local_path, app_name=app_name, comments=comments, new_branch=new_branch)
-        >>> base = branch.base
-        >>> head = branch.head
-        >>> repo_name = branch.repo_name
-        >>> print(f"base branch:'{base}', head branch:'{head}', repo_name:'{repo_name}'")
-        base branch:'master', head branch:'feature/new', repo_name:'iorisa/snake-game'
-    """
-
-    from metagpt.tools.libs import get_env
-    from metagpt.utils.git_repository import GitRepository
-
-    if not GitRepository.is_git_dir(local_path):
-        raise ValueError("Invalid local git repository")
-
-    repo = GitRepository(local_path=local_path, auto_init=False)
-    # Read access token from environment variables.
-    access_token = await get_env(key="access_token", app_name=app_name)
-    branch = await repo.push(new_branch=new_branch, comments=comments, access_token=access_token)
-    return branch
 
 
 @register_tool(tags=["software development", "git", "create a git pull request or merge request"])
