@@ -189,6 +189,10 @@ class ElasticsearchKeywordIndexConfig(ElasticsearchIndexConfig):
     _no_embedding: bool = PrivateAttr(default=True)
 
 
+class HydeConfig(BaseRetrieverConfig):
+    """Config for HyDe"""
+
+
 class ObjectNodeMetadata(BaseModel):
     """Metadata of ObjectNode."""
 

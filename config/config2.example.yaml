@@ -20,6 +20,10 @@ embedding:
   embed_batch_size: 100
   dimensions: # output dimension of embedding model
 
+
+hyde:
+  include_original: true
+
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
 proxy: "YOUR_PROXY"  # for tools like requests, playwright, selenium, etc.
