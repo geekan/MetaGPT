@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
+from metagpt.actions.code_sanitize import sanitize
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
@@ -484,6 +485,7 @@ class ActionNode:
     async def code_fill(
         self,
         context,
+        function_name=None,
         timeout=USE_CONFIG_TIMEOUT
     ):
         """
@@ -510,10 +512,10 @@ class ActionNode:
         import re
         field_name = self.get_field_name()
         prompt = context
-        # prompt += "\nPlease wrap the generated code within triple backticks, like this: ```<code>```"
         content = await self.llm.aask(prompt, timeout=timeout)
-        
-        extracted_code = extract_code_from_response(content)    
+        # TODO 在前置逻辑中完成entrypoint的提取就可以
+        extracted_code = sanitize(code=content, entrypoint=function_name)
+        # extracted_code = extract_code_from_response(content)    
         result = {field_name: extracted_code}
         return result
     
@@ -536,6 +538,7 @@ class ActionNode:
         images: Optional[Union[str, list[str]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
         exclude=[],
+        function_name: str = None
     ):
         """Fill the node(s) with mode.
 
@@ -563,7 +566,7 @@ class ActionNode:
             schema = self.schema
 
         if mode == self.MODE_CODE_FILL:
-            result = await self.code_fill(context, timeout)
+            result = await self.code_fill(context, function_name, timeout)
             self.instruct_content = self.create_class()(**result)
             return self
 

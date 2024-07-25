@@ -3,11 +3,6 @@
 # @Author  : didi
 # @Desc    : prompts of operators
 
-# TODO PromptBreeder 评分是怎么做的？
-# TODO 评估案例 GSM-8K 直接拿的DataSet
-# 
-# 
-
 GENERATE_PROMPT = """
 Generate Solution for the following problem: {problem_description}
 """
@@ -35,21 +30,35 @@ You are an expert programmer tasked with solving a coding problem.
 The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
 Please maintain the JSON format in your response.
 ### Your Response: 
-
 """
-GENERATE_CODEBLOCK_PROMPT = """
-You are an expert programmer tasked with solving a coding problem.
+
+# GENERATE_CODEBLOCK_PROMPT = """
+# You are an expert programmer tasked with solving a coding problem.
+
+# ### Problem Description:
+# {problem_description}
+
+# ### Instructions:
+# The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
+# """
+
+GENERATE_CODEBLOCK_REPHRASE_PROMPT = """
+You are given a code contest problem, and a self-reflection on the problem: 
 
 ### Problem Description:
 {problem_description}
 
-### Instructions:
-The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
+### self reflection on the problem
+{rephrase_problem}
+
+=======================
+The above is an incomplete Python code fragment and reflection on it. Return the complete and correct code with no additional text.
 """
 
-# GENERATE_CODE_PROMPT = """
-# Generate Code Solution for the following problem: {problem_description}
-# """
+GENERATE_CODEBLOCK_PROMPT = """
+Please provide a self-contained Python script that solves the following problem in a markdown code block:
+{problem_description}
+"""
 
 REVIEW_PROMPT = """
 For the question described as {problem_description},
@@ -135,3 +144,55 @@ You, as the moderator, will evaluate both sides' answers and determine if there 
             Please strictly output in JSON format, do not output irrelevant content
 """
 
+EXTRACT_CASE_PROMPT = """
+You are given a coding problem, and you need to extract the test cases from the problem description.
+{problem_description}
+
+一个problem中会有多个测试用例，每个测试用例包含三个部分：
+1. 函数名
+2. 输入
+3. 期望输出
+每个测试用例包裹在一个三元组之中，三元组之间用逗号分隔，整体用列表包裹。
+由于结果需要被解析到JSON中，True与False请表示为true, false;
+"""
+
+REPHRASE_ON_PROBLEM_PROMPT = """
+You are given a code contest problem:
+
+### problem
+{problem_description}
+
+### instrcutions
+Given the code contest problem, Your Goal is:
+Reflect on the problem, and describe it in your own words, in bullet points. Pay attention to small details, nuances, notes and examples in the problem description.
+
+"""
+
+REFLECTION_ON_PUBILIC_TEST_PROMPT = """
+
+You are given a code contest problem, and a self-reflection on the problem: 
+### problem
+{problem_description}
+
+### self reflection on the problem
+{rephrase_problem}
+
+=======================
+A Python code solution was generated for the problem:
+### Code Solution
+{code_solution}
+
+=======================
+This section of the code execution result is
+### Execution Result
+{exec_pass}
+
+=======================
+However, when running the following input example, the code solution above failed to produce the expected output:
+#### Failed Test Case
+{test_fail}
+
+Your goal is to analyze the code solution and the error, and propose a fixed code which will produce the expected output for the provided test input.
+The fixed code should keep the solution robust, and work for all other input examples as well.
+Make sure the fixed code has a reasonable runtime - less than three seconds on a modern computer, given the problem constraints for large input.
+"""

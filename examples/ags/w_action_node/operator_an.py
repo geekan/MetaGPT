@@ -42,3 +42,15 @@ class MdEnsembleOp(BaseModel):
         description="The letter of the chosen best solution (only one letter)."
     )
 
+class TestCaseExtractOp(BaseModel):
+    test_cases: list = Field(default=[('<function name>', [5, 8, 7, 1], 12), ('<function name>', [3, 3, 3, 3, 3], 9)],
+                              description="Extracted test cases from the problem description")
+    
+class RephraseOp(BaseModel):
+    rephrased_problem: str = Field(default="", description="Rephrased problem description for this problem")
+
+class ReflectionTestOp(BaseModel):
+    reflection: str = Field(default="", description="对关于代码执行错误或者测试用例失败step by step的思考")
+    refined_solution: str = Field(default="", description="对于代码执行错误或者测试用例失败的修正方案")
+    
+    

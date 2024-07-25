@@ -10,9 +10,11 @@ from collections import Counter
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM 
 
-from examples.ags.w_action_node.operator_an import GenerateOp, GenerateCodeOp, GenerateCodeBlockOp ,ReviewOp, ReviseOp, FuEnsembleOp, MdEnsembleOp
-from examples.ags.w_action_node.prompt import GENERATE_PROMPT, GENERATE_CODE_PROMPT, GENERATE_CODEBLOCK_PROMPT, REVIEW_PROMPT, REVISE_PROMPT, FU_ENSEMBLE_PROMPT, MD_ENSEMBLE_PROMPT, DE_ENSEMBLE_ANGEL_PROMPT, DE_ENSEMBLE_DEVIL_PROMPT, DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT, DE_ENSEMBLE_JUDGE_FINAL_PROMPT
-from examples.ags.w_action_node.prompt import DE_ENSEMBLE_CODE_FORMAT_PROMPT, DE_ENSEMBLE_TXT_FORMAT_PROMPT
+from examples.ags.w_action_node.operator_an import GenerateOp, GenerateCodeOp, GenerateCodeBlockOp ,ReviewOp, ReviseOp, FuEnsembleOp, MdEnsembleOp, ReflectionTestOp, RephraseOp
+from examples.ags.w_action_node.prompt import GENERATE_PROMPT, GENERATE_CODE_PROMPT, GENERATE_CODEBLOCK_PROMPT, REVIEW_PROMPT, REVISE_PROMPT, FU_ENSEMBLE_PROMPT, MD_ENSEMBLE_PROMPT, REFLECTION_ON_PUBILIC_TEST_PROMPT, REPHRASE_ON_PROBLEM_PROMPT, GENERATE_CODEBLOCK_REPHRASE_PROMPT 
+from examples.ags.w_action_node.prompt import DE_ENSEMBLE_CODE_FORMAT_PROMPT, DE_ENSEMBLE_TXT_FORMAT_PROMPT, DE_ENSEMBLE_ANGEL_PROMPT, DE_ENSEMBLE_DEVIL_PROMPT, DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT, DE_ENSEMBLE_JUDGE_FINAL_PROMPT
+from examples.ags.w_action_node.utils import test_cases_2_test_functions
+
 class Operator:
     def __init__(self, name, llm:LLM):
         self.name = name
@@ -47,9 +49,15 @@ class GenerateCodeBlock(Operator):
     def __init__(self, name:str ="Coder", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description):
+    async def __call__(self, problem_description, function_name):
         prompt = GENERATE_CODEBLOCK_PROMPT.format(problem_description=problem_description)
-        node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(context=prompt, llm=self.llm,mode='code_fill')
+        node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(context=prompt, llm=self.llm, mode='code_fill',function_name=function_name)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def rephrase_generate(self, problem_description, rephrase_problem, function_name):
+        prompt = GENERATE_CODEBLOCK_REPHRASE_PROMPT.format(problem_description=problem_description,rephrase_problem=rephrase_problem)
+        node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(context=prompt, llm=self.llm, mode='code_fill', function_name=function_name)
         response = node.instruct_content.model_dump()
         return response
     
@@ -153,7 +161,7 @@ class MdEnsemble(Operator):
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         print(f"most frequent_index: {most_frequent_index}") 
         final_answer = solutions[most_frequent_index]
-        print(f"final answer: {final_answer}")
+        print(f"final answer: \n{final_answer}")
         # final_answer, frequency = self.most_frequent(all_responses)
         return {"final_solution": final_answer}
 
@@ -293,22 +301,67 @@ class DbEnsemble(Operator):
 
 class Rephrase(Operator):
     """
-
-    https://arxiv.org/abs/2404.14963
+    1. AlphaCodium
+    2. https://arxiv.org/abs/2404.14963
     """
-    pass
+    def __init__(self, name:str ="Rephraser", llm: LLM = LLM()):
+        super().__init__(name, llm)
 
+    async def __call__(self, problem_description:str)->str:
+        prompt = REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+        
+class Test(Operator):
+    def __init__(self, name:str ="Tester", llm: LLM = LLM()):
+        super().__init__(name, llm)
+
+    def test_cases_2_assert(self, test_cases):
+        return f"assert {test_cases[0]}({test_cases[1]}) == {test_cases[2]} \n"
+    
+    def exec_code(self, solution, test_cases):
+        solution = solution["final_solution"]
+        pass_case = []
+        fail_case = []
+        for test_case in test_cases:
+            test_code = test_cases_2_test_functions(solution,test_case)
+            try:
+                exec(test_code)
+                pass_case.append(self.test_cases_2_assert(test_case))
+            except AssertionError as e:
+                fail_case.append(self.test_cases_2_assert(test_case))
+            except Exception as e:
+                print(e)
+                return {"error":e}
+        if fail_case != []:
+            return fail_case
+        return []
+
+    async def __call__(self, problem, rephrase_problem, solution, test_cases):
+        result = self.exec_code(solution, test_cases)
+        # 处理通过Public Tests的代码
+        # TODO 这里的问题是，如果Test直接通过了就没有办法Check Multi Tests了
+        if result == []:
+            return solution
+        # 处理代码执行失败的代码
+        elif type(result) == dict:
+            result = result["error"]
+            prompt = REFLECTION_ON_PUBILIC_TEST_PROMPT.format(problem_description=problem, rephrase_problem=rephrase_problem, code_solution=solution, exec_pass=f"executed unsuccessfully, error: \n {result}", test_fail="executed unsucessfully")
+            node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+            response = node.instruct_content.model_dump()
+            return {"final_solution":response["refined_solution"]}
+        else:
+            prompt = REFLECTION_ON_PUBILIC_TEST_PROMPT.format(problem_description=problem, rephrase_problem=rephrase_problem, code_solution=solution, exec_pass="executed successfully", test_fail=result)
+            node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+            response = node.instruct_content.model_dump()
+            return {"final_solution":response["refined_solution"]}
+            
 class FindFact(Operator):
     pass
 
 class SelfAsk(Operator):
     pass
-
-class CodeReflection(Operator):
-    """
-    Interpreter Part
-    We run code here to get error information.
-    """
 
 class Verify(Operator):
     """

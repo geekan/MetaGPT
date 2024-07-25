@@ -17,7 +17,6 @@ from examples.ags.w_action_node.operator import GenerateCode, GenerateCodeBlock
 
 generate_code = GenerateCode(llm=LLM())
 generate_code_block = GenerateCodeBlock(llm=LLM())
-
 solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=5)
 
 async def sample_generate(id, result_path:str="samples.jsonl",mode:str="ags"):
@@ -25,7 +24,10 @@ async def sample_generate(id, result_path:str="samples.jsonl",mode:str="ags"):
     if mode == "ags":
         solution_result = await solver(case['prompt'],ensemble_count=5)
         sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
-    else:
+    elif mode == "alpha":
+        solution_result = await solver.alpha_codium(case['task_id'], case['prompt'], ensemble_count=5)
+        sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
+    elif mode == "llm":
         solution_result =  await generate_code_block(case['prompt'])
         sample_dict = dict(task_id=case['task_id'], solution=solution_result['code_solution'])
     with open(result_path, mode='a') as f:
@@ -39,7 +41,7 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     async def solve_and_write(case, mode):
         try:
             if mode == 'llm':
-                solution_result = await generate_code_block(case['prompt'])
+                solution_result = await generate_code_block(problem_description=case['prompt'], function_name=case['entry_point'])
                 # solution_result = await generate_code(case['prompt'])
                 sample_dict = {
                 'task_id': case['task_id'],
@@ -51,7 +53,13 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
                 'task_id': case['task_id'],
                 'solution': solution_result['final_solution']
                 }
-
+            elif mode == "alpha":
+                solution_result = await solver.alpha_codium(case['task_id'], case['prompt'], ensemble_count=5)
+                sample_dict = {
+                'task_id': case['task_id'],
+                'solution': solution_result['final_solution']
+                }
+            # TODO 解决  final_solution 问题之后就可以开始正式测评了
             async with file_lock:
                 async with aiofiles.open(result_path, mode='a') as f:
                     await f.write(json.dumps(sample_dict) + '\n')
@@ -65,7 +73,6 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
     results = await asyncio.gather(*tasks)
     failed_tasks = [task_id for task_id in results if task_id is not None]
 
-    # TODO 这个地方还是不够自动化
     if failed_tasks:
         print(failed_tasks)
         if mode == 'llm':
@@ -73,7 +80,7 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
                 case = get_human_eval_plus()[task_id]
                 for _ in range(3):
                     try:
-                        solution_result = await generate_code_block(case['prompt'])
+                        solution_result = await generate_code_block(case['prompt'],function_name=case['entry_point'])
                         task_dict = {
                         'task_id': case['task_id'],
                         'solution': solution_result['code_solution']
@@ -84,17 +91,18 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
                         break
                     except Exception as e:
                         print(f"{e} \n failure {task_id}")
-        elif mode == "ags":
+        elif mode == "ags" or mode == "alpha":
             for task_id in failed_tasks:
                 try:
-                    await sample_generate(task_id,result_path) 
+                    await sample_generate(task_id,result_path,mode) 
                 except Exception as e:
                     print(f"failure {task_id}")
+    
     jsonl_ranker(result_path, result_path)
     
     if not failed_tasks:
         # 自动 sanitize
-        result_path = automatic_sanitize(result_path)
+        # result_path = automatic_sanitize(result_path)
         if automatic_evalplus(result_path):
             eval_path = result_path[:-6]+"_eval_results.json"
             unpassed_exapmle = extract_failure_tests(eval_path)
@@ -107,7 +115,7 @@ async def samples_generate_ags():
     cases = list(get_human_eval_plus().values())
     
     async def solve_with_id(case):
-        solution_result = await solver(case['prompt'], ensemble_count=3)
+        solution_result = await solver(case['prompt'], ensemble_count=5)
         return case['task_id'], solution_result['final_solution']
     
     tasks = [solve_with_id(case) for case in cases]
