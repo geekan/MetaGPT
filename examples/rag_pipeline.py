@@ -2,11 +2,13 @@
 
 import asyncio
 
+from llama_index.core.query_engine import TransformQueryEngine
 from pydantic import BaseModel
 
 from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.query_analysis.HyDE import HyDEQueryTransformFactory
 from metagpt.rag.schema import (
     ChromaIndexConfig,
     ChromaRetrieverConfig,
@@ -212,6 +214,22 @@ class RAGExample:
         answer = await engine.aquery(TRAVEL_QUESTION)
         self._print_query_result(answer)
 
+    async def use_HyDe(self):
+        """This example show how to use HyDE: HyDE enhances search results by generating Hypothetical doc(virtual
+        article), for more details please refer to the paper: http://arxiv.org/abs/2212.10496
+        Query Result:
+        Bob likes traveling.
+        """
+        self._print_title("Use HyDE to analysis query")
+        # 1.  save docs
+        engine = SimpleEngine.from_docs(input_files=[TRAVEL_DOC_PATH])
+        # create HyDE query engine
+        hyde_query_transformr = HyDEQueryTransformFactory().create_hyde_query_transform()
+        hyde_query_engine = TransformQueryEngine(engine, hyde_query_transformr)
+        # 3. query
+        answer = await hyde_query_engine.aquery(TRAVEL_QUESTION)
+        self._print_query_result(answer)
+
     @staticmethod
     def _print_title(title):
         logger.info(f"{'#'*30} {title} {'#'*30}")
@@ -254,6 +272,7 @@ async def main():
     await e.init_objects()
     await e.init_and_query_chromadb()
     await e.init_and_query_es()
+    await e.use_HyDe()
 
 
 if __name__ == "__main__":

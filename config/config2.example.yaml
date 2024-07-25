@@ -20,9 +20,9 @@ embedding:
   embed_batch_size: 100
   dimensions: # output dimension of embedding model
 
-
+# RAG Analysis
 hyde:
-  include_original: true
+  include_original: true  # In the query rewrite the content whether to add the original question
 
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
