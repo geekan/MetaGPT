@@ -126,7 +126,7 @@ Thought: All changes have been saved, let's push the code to the remote reposito
 {{
     "command_name": "Bash.run",
     "args": {{
-        "cmd": "git push orign test-fix"
+        "cmd": "git push origin test-fix"
     }}
 }}
 ->
@@ -217,7 +217,7 @@ IMPORTANT_TIPS = """
     - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
 
 13. Save the code change:
-  - If you need to submit changes to the remote repository, first use the regular git commit command to save the changes locally, then select a command from the `Available Commands: [git_create_pull]` to submit the changes to the remote repository.
+  - If you need to submit changes to the remote repository, first use the regular git commit command to save the changes locally, then use git push for pushing, and if requested, `git_create_pull` in Available Commands for creating pull request.
 
   - If you don't need to submit code changes to the remote repository. use the command Bash.run('submit') to commit the changes locally. 
 
