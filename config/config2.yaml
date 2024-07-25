@@ -1,12 +1,6 @@
 # Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
 # Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
-llm:
-  api_type: 'azure'
-  base_url: 'https://deepwisdomai03.openai.azure.com/'
-  api_key: '006a9c24a03e46609f49c84e85e707dd'
-  api_version: '2024-05-01-preview'
-  model: 'gpt-4o'
 
 hyde:
     include_original: true
