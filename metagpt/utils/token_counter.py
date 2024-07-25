@@ -11,10 +11,6 @@ ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/o
 ref5: https://ai.google.dev/models/gemini
 """
 import tiktoken
-from openai.types import CompletionUsage
-from openai.types.chat import ChatCompletionChunk
-
-from metagpt.utils.ahttp_client import apost
 
 TOKEN_COSTS = {
     "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
@@ -324,22 +320,3 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     if model not in TOKEN_MAX:
         return default
     return TOKEN_MAX[model] - count_message_tokens(messages) - 1
-
-
-async def get_openrouter_tokens(chunk: ChatCompletionChunk) -> CompletionUsage:
-    """
-    refs to https://openrouter.ai/docs#querying-cost-and-stats
-    Returns the number of tokens used in a chat completion chunk.
-    Args:
-        chunk: The chat completion chunk.
-    Returns:
-         The number of tokens used in the chat completion chunk.
-    """
-    url = f"https://openrouter.ai/api/v1/generation?id={chunk.id}"
-    resp = await apost(url=url, as_json=True)
-    tokens_prompt = resp.get("tokens_prompt", 0)
-    completion_tokens = resp.get("tokens_completion", 0)
-    usage = CompletionUsage(
-        prompt_tokens=tokens_prompt, completion_tokens=completion_tokens, total_tokens=tokens_prompt + completion_tokens
-    )
-    return usage
