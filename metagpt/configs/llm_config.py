@@ -59,10 +59,8 @@ class LLMConfig(YamlModel):
     access_key: Optional[str] = None
     secret_key: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
-
     # For Tencent Hunyuan
     secret_id: Optional[str] = None
-    secret_key: Optional[str] = None
 
     # For Spark(Xunfei), maybe remove later
     app_id: Optional[str] = None
