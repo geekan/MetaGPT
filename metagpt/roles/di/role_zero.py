@@ -15,10 +15,13 @@ from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
+    ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_THINK_PROMPT,
+    REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
+    THOUGHT_GUIDANCE,
 )
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
@@ -155,6 +158,7 @@ class RoleZero(Role):
             plan_status=plan_status,
             current_task=current_task,
             instruction=instruction,
+            thought_guidance=THOUGHT_GUIDANCE,
             latest_observation=memory[-1].content,
         )
         memory = await self.parse_browser_actions(memory)
@@ -167,6 +171,8 @@ class RoleZero(Role):
                 instruction=instruction,
             )
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+
+        self.command_rsp = await self._check_duplicates(req, self.command_rsp)
 
         self.rc.memory.add(AIMessage(content=self.command_rsp))
         return True
@@ -259,6 +265,25 @@ class RoleZero(Role):
             )
 
         return rsp_msg
+
+    async def _check_duplicates(self, req: list[dict], command_rsp: str):
+        past_rsp = [mem.content for mem in self.rc.memory.get(self.memory_k)]
+        if command_rsp in past_rsp:
+            # Normal response with thought contents are highly unlikely to reproduce
+            # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
+            # In this case, ask human for help and regenerate
+            # TODO: switch to llm_cached_aask
+            logger.warning(f"Duplicate response detected: {command_rsp}")
+            human_rsp = await self.ask_human(
+                question="I'm a little uncertain about the next step, could you provide me with some guidance?"
+            )
+            regenerate_req = req + [
+                AIMessage(content=ASK_HUMAN_COMMAND),
+                UserMessage(content=REGENERATE_PROMPT.format(human_rsp=human_rsp)),
+            ]
+            regenerate_req = self.llm.format_msg(regenerate_req)
+            command_rsp = await self.llm.aask(regenerate_req)
+        return command_rsp
 
     async def _parse_commands(self) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).

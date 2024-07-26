@@ -72,6 +72,9 @@ class TeamLeader(RoleZero):
         Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work.
         DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.
         """
+        self._set_state(-1)  # each time publishing a message, pause to wait for the response
+        if send_to == self.name:
+            return  # Avoid sending message to self
         # Specify the outer send_to to overwrite the default "no one" value. Use UserMessage because message from self is like a user request for others.
         self.publish_message(
             UserMessage(content=content, sent_from=self.name, send_to=send_to, cause_by=RunCommand), send_to=send_to

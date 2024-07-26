@@ -51,10 +51,7 @@ In your response, include at least one command.
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 Output should adhere to the following format.
-Firstly, describe the actions you have taken recently.
-Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
-Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished. If all tasks are finished and current task is empty, use the end command to terminate.
-Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
+{thought_guidance}
 ```json
 [
     {{
@@ -67,7 +64,23 @@ Then, articulate your thoughts and list the commands, adhering closely to the in
 Notice: your output JSON data must be a command list.
 Notice: your output JSON data section must start with **```json [**
 """
-
+THOUGHT_GUIDANCE = """
+Firstly, describe the actions you have taken recently.
+Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
+Thirdly, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
+Fourthly, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task or if you are unsure of the situation encountered or if you need any help from human.
+Fifthly, describe if you should terminate, you should use **end** command to terminate if any of the following is met:
+ - You have completed the overall user requirement
+ - All tasks are finished and current task is empty
+Finally, combine your thoughts, describe what you want to do conscisely in 20 words, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+"""
+REGENERATE_PROMPT = """
+Review the history carefully and consider human's feedback:
+{human_rsp}
+provide different commands.
+Describe if you should terminate using **end** command, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
+Your reflection, then the commands in a json array:
+"""
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
@@ -81,7 +94,6 @@ Help check if there are any formatting issues with the JSON data? If so, please 
 If no issues are detected, the original json data should be returned unchanged.
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
-
 QUICK_THINK_PROMPT = """
 Decide if the latest user message previously is a quick question.
 Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
@@ -90,4 +102,16 @@ Time- or location-sensitive questions such as wheather or news inquiry are NOT q
 Software development tasks are NOT quick questions.
 However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
 Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO. Your response:
+"""
+ASK_HUMAN_COMMAND = """
+```json
+[
+    {
+        "command_name": "RoleZero.ask_human",
+        "args": {
+            "question": "I'm a little uncertain about the next step, could you provide me with some guidance?"
+        }
+    }
+]
+```
 """
