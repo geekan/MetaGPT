@@ -49,6 +49,8 @@ from metagpt.utils.token_counter import (
         LLMType.MISTRAL,
         LLMType.YI,
         LLMType.OPEN_ROUTER,
+        LLMType.DEEPSEEK,
+        LLMType.SILICONFLOW,
     ]
 )
 class OpenAILLM(BaseLLM):

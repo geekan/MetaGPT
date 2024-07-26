@@ -32,6 +32,8 @@ class LLMType(Enum):
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
     OPEN_ROUTER = "open_router"
+    DEEPSEEK = "deepseek"
+    SILICONFLOW = "siliconflow"
 
     def __missing__(self, key):
         return self.OPENAI
