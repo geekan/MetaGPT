@@ -937,7 +937,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
-            "instruction": "View the html content of the search result page before scrap data to understand the structure.",
+            "instruction": "View and print the html content of the search result page before scrap data to understand the structure.",
             "assignee": "David"
         }
     },
@@ -988,7 +988,7 @@ Explanation: Since the Browser has successfully navigated to the website, and I 
 ```
 
 ## action 4
-Explanation: Since the Browser has successfully search the keyword `beef`, I will finish the current task and then write code to view the html content of the page.
+Explanation: Since the Browser has successfully search the keyword `beef`, I will finish the current task and then write code to view and print the html content of the page.
 
 ```json
 [
@@ -1034,7 +1034,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "View the html content of the page before scrap data to understand the structure.",
+            "instruction": "View and print the html content of the page before scrap data to understand the structure.",
             "assignee": "David"
         }
     },
@@ -1051,7 +1051,7 @@ Explanation: The requirement is to scrape data from a website and extract inform
 ```
 
 ## action 2
-Explanation: To scrap data from the website, I will first view the html content of the page.
+Explanation: To scrap data from the website, I will first view and print the html content of the page.
 
 ```json
 [

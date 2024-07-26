@@ -42,7 +42,9 @@ PLAN_STATUS = """
 
 ## Finished Section of Current Task
 ### code
+```python
 {current_task_code}
+```
 ### execution result
 {current_task_result}
 
