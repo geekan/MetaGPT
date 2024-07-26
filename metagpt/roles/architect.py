@@ -11,6 +11,14 @@ from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.software_development import write_trd_and_framework
 from metagpt.utils.common import tool2name
 
+ARCHITECT_INSTRUCTION = """
+Use WriteDesign tool to write a system design document if a system design is required;Use `write_trd_and_framework` tool to write a software framework if a software framework is required;
+
+Note:
+1. When you think, just analyze which tool you should use, and then provide your answer. And your output should contain firstly, secondly, ...
+2. The automated tools at your disposal will generate a document that perfectly meets your requirements. There is no need to do it manually.
+"""
+
 
 class Architect(RoleZero):
     """
@@ -25,13 +33,13 @@ class Architect(RoleZero):
 
     name: str = "Bob"
     profile: str = "Architect"
-    goal: str = "design a concise, usable, complete software system"
+    goal: str = "design a concise, usable, complete software system. Create a System Design Document."
     constraints: str = (
         "make sure the architecture is simple enough and use  appropriate open source "
         "libraries. Use same language as user requirement"
     )
 
-    instruction: str = """Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;"""
+    instruction: str = ARCHITECT_INSTRUCTION
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = [
         "Editor:write,read,write_content",

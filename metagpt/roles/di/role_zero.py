@@ -156,6 +156,7 @@ class RoleZero(Role):
             current_task=current_task,
             instruction=instruction,
             latest_observation=memory[-1].content,
+            user_requirements=self.planner.plan,
         )
         memory = await self.parse_browser_actions(memory)
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
