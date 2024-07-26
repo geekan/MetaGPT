@@ -129,6 +129,7 @@ class ExpCacheHandler(BaseModel):
         """Fetch experiences by query_type."""
 
         self._exps = await self.exp_manager.query_exps(self._req, query_type=self.query_type, tag=self.tag)
+        logger.debug(f"Found {len(self._exps)} experiences for req '{self._req[:10]}...' and tag '{self.tag}'")
 
     async def get_one_perfect_exp(self) -> Optional[Any]:
         """Get a potentially perfect experience, and resolve resp."""
