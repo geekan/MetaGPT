@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2024/7/26 19:25
+@Author  : yingfeng
+@File    : stream_response.py
+"""
 import asyncio
 import json
 from asyncio import CancelledError, Queue
