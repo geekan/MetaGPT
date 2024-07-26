@@ -55,9 +55,22 @@ You are given a code contest problem, and a self-reflection on the problem:
 The above is an incomplete Python code fragment and reflection on it. Return the complete and correct code with no additional text.
 """
 
-GENERATE_CODEBLOCK_PROMPT = """
-Please provide a self-contained Python script that solves the following problem in a markdown code block:
+# GENERATE_CODEBLOCK_PROMPT = """
+# Please provide a self-contained Python script that solves the following problem in a markdown code block:
+# {problem_description}
+# """
+
+GENERATE_CODEBLOCK_PROMPT ="""
+Please provide a self-contained  Python script that solves the following problem in a markdown code block:
+
 {problem_description}
+
+When creating your solution:
+1. Consider all edge cases and boundary conditions.
+2. Consider the order of operations in your solution and how each step affects subsequent steps.
+3. Avoid oversimplification - address all aspects of the problem.
+4. Ensure your logic covers all stated requirements.
+5. Avoid adding additional test cases beyond those provided in the problem description.
 """
 
 REVIEW_PROMPT = """

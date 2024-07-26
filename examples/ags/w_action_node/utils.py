@@ -159,6 +159,7 @@ async def llm_extract_test_case(id, problem_description: str, file_path:str="pub
 import json
 
 def test_cases_2_test_functions(solution: str, test_case: List):
+    print("here",solution)
     function_name = test_case[0]
     
     def format_param(param):
@@ -181,6 +182,7 @@ def test_cases_2_test_functions(solution: str, test_case: List):
     print(type(test_case[2]), test_case[2])
     expected_output = format_param(test_case[2])
     print(expected_output)
+
     
     tester_function = f"""
 {solution}

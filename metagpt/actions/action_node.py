@@ -512,6 +512,7 @@ class ActionNode:
         import re
         field_name = self.get_field_name()
         prompt = context
+        print(f"prompt: \n{prompt}")
         content = await self.llm.aask(prompt, timeout=timeout)
         # TODO 在前置逻辑中完成entrypoint的提取就可以
         extracted_code = sanitize(code=content, entrypoint=function_name)

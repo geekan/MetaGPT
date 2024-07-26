@@ -332,6 +332,8 @@ class Test(Operator):
             except AssertionError as e:
                 fail_case.append(self.test_cases_2_assert(test_case))
             except Exception as e:
+                with open("tester.txt", "a") as f:
+                    f.write(test_case[0] + "\n")
                 print(e)
                 return {"error":e}
         if fail_case != []:

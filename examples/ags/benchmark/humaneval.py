@@ -28,8 +28,9 @@ async def sample_generate(id, result_path:str="samples.jsonl",mode:str="ags"):
         solution_result = await solver.alpha_codium(case['task_id'], case['prompt'], ensemble_count=5)
         sample_dict = dict(task_id=case['task_id'], solution=solution_result['final_solution'])
     elif mode == "llm":
-        solution_result =  await generate_code_block(case['prompt'])
+        solution_result =  await generate_code_block(case['prompt'],case['entry_point'])
         sample_dict = dict(task_id=case['task_id'], solution=solution_result['code_solution'])
+        print(sample_dict)
     with open(result_path, mode='a') as f:
         f.write(json.dumps(sample_dict) + '\n')
     jsonl_ranker(result_path, result_path)
