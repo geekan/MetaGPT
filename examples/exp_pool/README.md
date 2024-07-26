@@ -2,6 +2,7 @@
 
 ## Prerequisites
 - Ensure the RAG module is installed: https://docs.deepwisdom.ai/main/en/guide/in_depth_guides/rag_module.html
+- Set embedding: https://docs.deepwisdom.ai/main/en/guide/in_depth_guides/rag_module.html
 - Set both `enable_read` and `enable_write` to `true` in the `exp_pool` section of `config2.yaml`
 
 ## Example Files
