@@ -675,6 +675,12 @@ class GitRepository:
 
     @property
     def history(self) -> CommitHistory:
+        """
+        Retrieve the commit history of the repository.
+
+        Returns:
+            CommitHistory: The commit history of the repository.
+        """
         branches = self._repository.references
         commits = defaultdict(list)
         for branch in branches:
