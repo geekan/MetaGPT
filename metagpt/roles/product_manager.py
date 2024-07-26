@@ -43,7 +43,7 @@ class ProductManager(RoleZero):
 
     instruction: str = """Use WritePRD tool to write PRD if a PRD is required; Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions;"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WritePRD", Pic2Txt.__name__]
+    tools: list[str] = ["RoleZero", "WritePRD", Pic2Txt.__name__]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
