@@ -660,7 +660,7 @@ def role_raise_decorator(func):
                 if re.match(r"^openai\.", name) or re.match(r"^httpx\.", name):
                     raise last_error
 
-            raise Exception(format_trackback_info(limit=None))
+            raise Exception(format_trackback_info(limit=None)) from e
 
     return wrapper
 
