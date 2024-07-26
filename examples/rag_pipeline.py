@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
-from metagpt.rag.query_analysis.HyDE import HyDEQueryTransformFactory
+from metagpt.rag.factories.HyDEQueryTransformFactory import HyDEQueryTransformFactory
 from metagpt.rag.schema import (
     ChromaIndexConfig,
     ChromaRetrieverConfig,

@@ -1,13 +1,9 @@
 from typing import Dict
 
 from llama_index.core.indices.query.query_transform import HyDEQueryTransform
-from llama_index.core.llms import LLM
 from llama_index.core.schema import QueryBundle
 
-from metagpt.config2 import config
 from metagpt.logs import logger
-from metagpt.rag.factories import get_rag_llm
-from metagpt.rag.factories.base import ConfigBasedFactory
 
 
 class HyDEQuery(HyDEQueryTransform):
@@ -27,17 +23,3 @@ class HyDEQuery(HyDEQueryTransform):
             query_str=query_str,
             custom_embedding_strs=embedding_strs,
         )
-
-
-class HyDEQueryTransformFactory(ConfigBasedFactory):
-    """Factory for creating HyDEQueryTransform instances with LLM configuration."""
-
-    llm: LLM = None
-    hyde_config: dict = None
-
-    def __init__(self):
-        self.hyde_config = config.hyde
-        self.llm = get_rag_llm()
-
-    def create_hyde_query_transform(self) -> HyDEQuery:
-        return HyDEQuery(include_original=self.hyde_config.include_original, llm=self.llm)
