@@ -73,12 +73,10 @@ Fifthly, describe if you should terminate, you should use **end** command to ter
  - You have completed the overall user requirement
  - All tasks are finished and current task is empty
 Finally, combine your thoughts, describe what you want to do conscisely in 20 words, then follow your thoughts to list the commands, adhering closely to the instructions provided.
-"""
+""".strip()
 REGENERATE_PROMPT = """
-Review the history carefully and consider human's feedback:
-{human_rsp}
-provide different commands.
-Describe if you should terminate using **end** command, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
+Review and reflect on the history carefully, provide different commands.
+Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
 Your reflection, then the commands in a json array:
 """
 JSON_REPAIR_PROMPT = """
@@ -102,16 +100,4 @@ Time- or location-sensitive questions such as wheather or news inquiry are NOT q
 Software development tasks are NOT quick questions.
 However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
 Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO. Your response:
-"""
-ASK_HUMAN_COMMAND = """
-```json
-[
-    {
-        "command_name": "RoleZero.ask_human",
-        "args": {
-            "question": "I'm a little uncertain about the next step, could you provide me with some guidance?"
-        }
-    }
-]
-```
 """

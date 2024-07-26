@@ -15,7 +15,6 @@ from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
-    ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_THINK_PROMPT,
@@ -274,13 +273,7 @@ class RoleZero(Role):
             # In this case, ask human for help and regenerate
             # TODO: switch to llm_cached_aask
             logger.warning(f"Duplicate response detected: {command_rsp}")
-            human_rsp = await self.ask_human(
-                question="I'm a little uncertain about the next step, could you provide me with some guidance?"
-            )
-            regenerate_req = req + [
-                AIMessage(content=ASK_HUMAN_COMMAND),
-                UserMessage(content=REGENERATE_PROMPT.format(human_rsp=human_rsp)),
-            ]
+            regenerate_req = req + [UserMessage(content=REGENERATE_PROMPT)]
             regenerate_req = self.llm.format_msg(regenerate_req)
             command_rsp = await self.llm.aask(regenerate_req)
         return command_rsp
