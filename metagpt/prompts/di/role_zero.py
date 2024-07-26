@@ -10,8 +10,11 @@ Note:
 4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
-# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Available Commands".
+# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
 CMD_PROMPT = """
+# Latest Observation
+{latest_observation}
+
 # Data Structure
 class Task(BaseModel):
     task_id: str = ""
@@ -42,10 +45,16 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
-Pay close attention to what you have done. Be different with your previous action.
+Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
+In your response, include at least one command.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
+Output should adhere to the following format.
+Firstly, describe the actions you have taken recently.
+Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
+Thirdly, describe your current task . Review the histroy, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished. If all tasks are finished and current task is empty, use the end command to terminate.
+Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
 ```json
 [
     {{
@@ -67,12 +76,18 @@ JSON_REPAIR_PROMPT = """
 ```json
 
 ```
+Do not use escape characters in json data, particularly within file paths.
 Help check if there are any formatting issues with the JSON data? If so, please help format it.
+If no issues are detected, the original json data should be returned unchanged.
+Output the JSON data in a format that can be loaded by the json.loads() function.
 """
 
 QUICK_THINK_PROMPT = """
-Decide if the latest user message is a quick question.
-Quick questions include common-sense, logical, math questions, greetings, or casual chat that you can answer directly, excluding software development tasks.
-Respond with "#YES#, (then start your actual response to the question...)" if so, otherwise, simply respond with "#NO#".
-Your response:
+Decide if the latest user message previously is a quick question.
+Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
+Questions about you or your team info are also quick questions.
+Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions.
+Software development tasks are NOT quick questions.
+However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
+Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO. Your response:
 """

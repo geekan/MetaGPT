@@ -9,7 +9,7 @@ from metagpt.prompts.di.swe_agent import (
     SWE_AGENT_SYSTEM_TEMPLATE,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.tools.libs.git import git_create_pull, git_push
+from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.terminal import Bash
 
 
@@ -23,7 +23,6 @@ class SWEAgent(RoleZero):
         "Bash",
         "Browser:goto,scroll",
         "RoleZero",
-        "git_push",
         "git_create_pull",
     ]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
@@ -42,7 +41,6 @@ class SWEAgent(RoleZero):
         self.tool_execution_map.update(
             {
                 "Bash.run": self.terminal.run,
-                "git_push": git_push,
                 "git_create_pull": git_create_pull,
             }
         )

@@ -124,12 +124,9 @@ Thought: The bug has been fixed. Let's submit the changes.
 ##### Push the changes from the local repository to the remote repository.
 Thought: All changes have been saved, let's push the code to the remote repository.
 {{
-    "command_name": "git_push",
+    "command_name": "Bash.run",
     "args": {{
-        "local_path": "/workspace/MetaGPT",
-        "app_name": "github",
-        "comments": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType"",
-        "new_branch": "test-fix"
+        "cmd": "git push origin test-fix"
     }}
 }}
 ->
@@ -220,7 +217,7 @@ IMPORTANT_TIPS = """
     - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
 
 13. Save the code change:
-  - If you need to submit changes to the remote repository, first use the regular git commit command to save the changes locally, then select a command from the `Available Commands: [git_push, git_create_pull]` to submit the changes to the remote repository.
+  - If you need to submit changes to the remote repository, first use the regular git commit command to save the changes locally, then use git push for pushing, and if requested, `git_create_pull` in Available Commands for creating pull request.
 
   - If you don't need to submit code changes to the remote repository. use the command Bash.run('submit') to commit the changes locally. 
 

@@ -27,7 +27,8 @@ LOGIC_ANALYSIS = ActionNode(
     key="Logic Analysis",
     expected_type=List[List[str]],
     instruction="Provide a list of files with the classes/methods/functions to be implemented, "
-    "including dependency analysis and imports.",
+    "including dependency analysis and imports."
+    "Ensure consistency between System Design and Logic Analysis; the files must match exactly.",
     example=[
         ["game.py", "Contains Game class and ... functions"],
         ["main.py", "Contains main function, from game import Game"],

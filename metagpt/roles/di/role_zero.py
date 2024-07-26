@@ -146,6 +146,7 @@ class RoleZero(Role):
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
         ### Make Decision Dynamically ###
+        memory = self.rc.memory.get(self.memory_k)
         instruction = self.instruction.strip()
         prompt = self.cmd_prompt.format(
             example=example,
@@ -154,10 +155,9 @@ class RoleZero(Role):
             plan_status=plan_status,
             current_task=current_task,
             instruction=instruction,
+            latest_observation=memory[-1].content,
         )
-        memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
-
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
@@ -169,7 +169,6 @@ class RoleZero(Role):
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
 
         self.rc.memory.add(AIMessage(content=self.command_rsp))
-
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -236,20 +235,21 @@ class RoleZero(Role):
         return rsp  # return output from the last action
 
     async def _quick_think(self) -> Message:
-        msg = self.rc.news[-1]
         rsp_msg = None
-        if msg.cause_by != any_to_str(UserRequirement):
+        if self.rc.news[-1].cause_by != any_to_str(UserRequirement):
             # Agents themselves won't generate quick questions, use this rule to reduce extra llm calls
             return rsp_msg
 
-        context = self.llm.format_msg(self.get_memories(k=4) + [UserMessage(content=QUICK_THINK_PROMPT)])
-        async with ThoughtReporter(enable_llm_stream=True) as reporter:
-            await reporter.async_report({"type": "quick"})
-            rsp = await self.llm.aask(context)
+        # routing
+        memory = self.get_memories(k=4)
+        context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
+        rsp = await self.llm.aask(context)
 
-        pattern = r"#YES#,? ?"
-        if re.search(pattern, rsp):
-            answer = re.sub(pattern, "", rsp).strip()
+        if "yes" in rsp.lower():
+            # llm call with the original context
+            async with ThoughtReporter(enable_llm_stream=True) as reporter:
+                await reporter.async_report({"type": "quick"})
+                answer = await self.llm.aask(self.llm.format_msg(memory))
             self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
             await self.reply_to_human(content=answer)
             rsp_msg = AIMessage(
@@ -339,7 +339,7 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
-            command_output = "Everything Done"
+            command_output = ""
 
         return command_output
 
