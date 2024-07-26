@@ -15,14 +15,6 @@ from metagpt.roles.role import RoleReactMode
 from metagpt.utils.common import any_to_name, any_to_str, tool2name
 from metagpt.utils.git_repository import GitRepository
 
-PRODUCTMANAGER_INSTRUCTION = """
-Use WritePRD tool to write PRD if a PRD is required;
-Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions;
-
-Note:
-1. Consider which tools you need in your thoughts.
-"""
-
 
 class ProductManager(RoleZero):
     """
@@ -41,7 +33,7 @@ class ProductManager(RoleZero):
     constraints: str = "utilize the same language as the user requirements for seamless communication"
     todo_action: str = any_to_name(WritePRD)
 
-    instruction: str = """Use WritePRD tool to write PRD if a PRD is required; Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions;"""
+    instruction: str = """Use WritePRD tool to write PRD if a PRD is required, users may asks for a software without mentioning PRD, but you should output the PRD of that software; Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = ["RoleZero", "WritePRD", Pic2Txt.__name__]
 
