@@ -66,7 +66,6 @@ Output should adhere to the following format.
 ]
 ```
 Notice: your output JSON data section must start with **```json [**
-Notice: Your answer must start with an ordinal number.
 """
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.

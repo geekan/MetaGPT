@@ -71,6 +71,7 @@ class RoleZero(Role):
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
+    requirements_constraints: str = ""  # the constraints in user requirements
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":

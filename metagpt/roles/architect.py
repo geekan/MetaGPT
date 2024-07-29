@@ -12,7 +12,7 @@ from metagpt.tools.libs.software_development import write_trd_and_framework
 from metagpt.utils.common import tool2name
 
 ARCHITECT_INSTRUCTION = """
-Use WriteDesign tool to write a system design document if a system design is required;Use `write_trd_and_framework` tool to write a software framework if a software framework is required;
+Use WriteDesign tool to write a system design document if a system design is required; Use `write_trd_and_framework` tool to write a software framework if a software framework is required;
 
 Note:
 1. When you think, just analyze which tool you should use, and then provide your answer. And your output should contain firstly, secondly, ...
