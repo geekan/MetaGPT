@@ -71,17 +71,12 @@ def parse_python_literal(s):
     except (ValueError, SyntaxError):
         return s
 
-def extract_test_cases_from_jsonl(problem_id:str, file_path:str="public_test.jsonl"):
+def extract_test_cases_from_jsonl(problem_id:str, file_path:str="public_test_reflexion.jsonl"):
     # 保留原有的硬编码测试用例
     hardcoded_cases = {
-        "HumanEval/87": [ ["get_row", [[[1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 1, 6], [1, 2, 3, 4, 5, 1]], 1], [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]], ["get_row", [[], 1], []], ["get_row", [[[], [1], [1, 2, 3]], 3], [(2, 2)]] ],
-        "HumanEval/95": [ ["check_dict_case", [{"a": "apple", "b": "banana"}], True], ["check_dict_case", [{"a": "apple", "A": "banana", "B": "banana"}], False], ["check_dict_case", [{"a": "apple", "8": "banana", "a": "apple"}], False], ["check_dict_case", [{"Name": "John", "Age": "36", "City": "Houston"}], False], ["check_dict_case", [{"STATE": "NC", "ZIP": "12345"}], True] ],
-        "HumanEval/107": [ ["even_odd_palindrome", [3], (1, 2)], ["even_odd_palindrome", [12], (4, 6)] ],
-        "HumanEval/112": [ ["reverse_delete", ["abcde", "ae"], ("bcd", False)], ["reverse_delete", ["abcdef", "b"], ("acdef", False)], ["reverse_delete", ["abcdedcba", "ab"], ("cdedc", True)] ],
-        "HumanEval/127": [ ["intersection", [(1, 2), (2, 3)], "NO"], ["intersection", [(-1, 1), (0, 4)], "NO"], ["intersection", [(-3, -1), (-5, 5)], "YES"] ],
-        "HumanEval/136": [ ["largest_smallest_integers", [2, 4, 1, 3, 5, 7], (None, 1)], ["largest_smallest_integers", [], (None, None)], ["largest_smallest_integers", [0], (None, None)] ],
-        "HumanEval/148": [ ["bf", ["Jupiter", "Neptune"], ("Saturn", "Uranus")], ["bf", ["Earth", "Mercury"], ("Venus",)], ["bf", ["Mercury", "Uranus"], ("Venus", "Earth", "Mars", "Jupiter", "Saturn")], ["bf", ["InvalidPlanet", "Neptune"], ()], ["bf", ["Jupiter", "InvalidPlanet"], ()], ["bf", ["Mercury", "Mercury"], ()] ],
-        "HumanEval/155": [ ["even_odd_count", [-12], (1, 1)], ["even_odd_count", [123], (1, 2)] ]
+        "HumanEval/32": "",
+        "HumanEval/38": "",
+        "HumanEval/50": "",
     }
 
     # 检查是否有硬编码的测试用例
@@ -92,16 +87,8 @@ def extract_test_cases_from_jsonl(problem_id:str, file_path:str="public_test.jso
     with open(file_path, 'r') as file:
         for line in file:
             data = json.loads(line)
-            if problem_id in data:
-                problem_data = data[problem_id]
-                # 处理测试用例
-                for i, test_case in enumerate(problem_data):
-                    # 函数名保持不变
-                    # 参数列表需要解析
-                    test_case[1] = [parse_python_literal(arg) for arg in test_case[1]]
-                    # 预期输出需要解析
-                    test_case[2] = parse_python_literal(test_case[2])
-                return problem_data
+            if data.get("id") == problem_id:
+                return data.get("test")
 
     return None  # 如果没有找到问题，返回 None
 
@@ -158,45 +145,53 @@ async def llm_extract_test_case(id, problem_description: str, file_path:str="pub
 
 import json
 
-def test_cases_2_test_functions(solution: str, test_case: List):
-    print("here",solution)
-    function_name = test_case[0]
+# def test_cases_2_test_functions(solution: str, test_case: List):
+#     print("test_case", test_case)
+#     function_name = test_case[0]
     
-    def format_param(param):
-        if isinstance(param, str):
-            return repr(param)
-        elif isinstance(param, (int, float, bool)):
-            return str(param)
-        elif isinstance(param, list):
-            return '[' + ', '.join(format_param(item) for item in param) + ']'
-        elif isinstance(param, tuple):
-            return '(' + ', '.join(format_param(item) for item in param) + ')'
-        elif isinstance(param, dict):
-            return '{' + ', '.join(f'{format_param(k)}: {format_param(v)}' for k, v in param.items()) + '}'
-        elif isinstance(param, type(None)):
-            return 'None'
-        else:
-            raise ValueError(f"Unsupported parameter type: {type(param)}")
+#     def format_param(param):
+#         if isinstance(param, str):
+#             return repr(param)
+#         elif isinstance(param, (int, float, bool)):
+#             return str(param)
+#         elif isinstance(param, list):
+#             return '[' + ', '.join(format_param(item) for item in param) + ']'
+#         elif isinstance(param, tuple):
+#             return '(' + ', '.join(format_param(item) for item in param) + ')'
+#         elif isinstance(param, dict):
+#             return '{' + ', '.join(f'{format_param(k)}: {format_param(v)}' for k, v in param.items()) + '}'
+#         elif isinstance(param, type(None)):
+#             return 'None'
+#         else:
+#             raise ValueError(f"Unsupported parameter type: {type(param)}")
 
-    parameters = ', '.join(format_param(item) for item in test_case[1])
-    print(type(test_case[2]), test_case[2])
-    expected_output = format_param(test_case[2])
-    print(expected_output)
+#     parameters = ', '.join(format_param(item) for item in test_case[1])
+#     print(test_case[1], parameters)
 
+#     expected_output = format_param(test_case[2])
+#     print(type(test_case[2]), test_case[2], expected_output)
     
+#     tester_function = f"""
+# {solution}
+
+# def check(candidate):
+#     assert candidate({parameters}) == {expected_output}
+
+# check({function_name})
+#     """
+    
+#     print(f"""
+#     Generated test function:
+#     {tester_function}
+#     """)
+    
+#     return tester_function
+    
+
+def test_cases_2_test_functions(solution: str, test_cases: str):
     tester_function = f"""
 {solution}
 
-def check(candidate):
-    assert candidate({parameters}) == {expected_output}
-
-check({function_name})
-    """
-    
-    print(f"""
-    Generated test function:
-    {tester_function}
-    """)
-    
+{test_cases}
+""" 
     return tester_function
-    

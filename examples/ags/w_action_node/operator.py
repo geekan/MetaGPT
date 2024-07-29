@@ -3,6 +3,8 @@
 # @Author  : didi
 # @Desc    : operator demo of ags
 import ast
+import sys
+import traceback
 import random
 from typing import List, Tuple, Any, Dict
 from collections import Counter
@@ -115,6 +117,7 @@ class MdEnsemble(Operator):
         return shuffled_solutions, answer_mapping
 
     async def __call__(self, solution_type:str ,solutions:List[str], problem_description:str):
+        print(solutions)
         all_responses = []
         # 如果Solution方案是Code，我们利用AST去重
         if solution_type == "code":
@@ -132,6 +135,7 @@ class MdEnsemble(Operator):
                         updated_solutions.append(solution)
                 except SyntaxError:
                     # If the solution has a syntax error, we'll skip it
+                    print("here",solution)
                     continue
             solutions = updated_solutions
             updated_length = len(solutions)
@@ -316,44 +320,46 @@ class Rephrase(Operator):
 class Test(Operator):
     def __init__(self, name:str ="Tester", llm: LLM = LLM()):
         super().__init__(name, llm)
-
-    def test_cases_2_assert(self, test_cases):
-        return f"assert {test_cases[0]}({test_cases[1]}) == {test_cases[2]} \n"
     
-    def exec_code(self, solution, test_cases):
+    def exec_code(self, solution, test_cases, problem_id):
+        # TODO 未来还要做修改，最好能做到一个样例一测
         solution = solution["final_solution"]
-        pass_case = []
-        fail_case = []
-        for test_case in test_cases:
-            test_code = test_cases_2_test_functions(solution,test_case)
-            try:
-                exec(test_code)
-                pass_case.append(self.test_cases_2_assert(test_case))
-            except AssertionError as e:
-                fail_case.append(self.test_cases_2_assert(test_case))
-            except Exception as e:
-                with open("tester.txt", "a") as f:
-                    f.write(test_case[0] + "\n")
-                print(e)
-                return {"error":e}
-        if fail_case != []:
-            return fail_case
+        test_code = test_cases_2_test_functions(solution, test_cases)
+        print("test_code", test_code)
+        try:
+            exec(test_code, globals())
+        except AssertionError as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            with open("tester.txt", "a") as f:
+                f.write("test_error" +problem_id + "\n")
+            error_infomation = {"test_fail_case": {
+                "error_type": "AssertionError",
+                "error_message": str(e),
+                "traceback": tb_str
+            }}
+            print("error here", error_infomation)
+            return error_infomation
+        except Exception as e:
+            with open("tester.txt", "a") as f:
+                f.write(problem_id + "\n")
+            return {"exec_fail_case":str(e)}
         return []
 
-    async def __call__(self, problem, rephrase_problem, solution, test_cases):
-        result = self.exec_code(solution, test_cases)
-        # 处理通过Public Tests的代码
-        # TODO 这里的问题是，如果Test直接通过了就没有办法Check Multi Tests了
+    async def __call__(self, problem_id, problem, rephrase_problem, solution, test_cases):
+        result = self.exec_code(solution, test_cases, problem_id)
+        print("result here", result)
         if result == []:
             return solution
         # 处理代码执行失败的代码
-        elif type(result) == dict:
-            result = result["error"]
+        elif "exec_fail_case" in result:
+            result = result["exec_fail_case"]
             prompt = REFLECTION_ON_PUBILIC_TEST_PROMPT.format(problem_description=problem, rephrase_problem=rephrase_problem, code_solution=solution, exec_pass=f"executed unsuccessfully, error: \n {result}", test_fail="executed unsucessfully")
             node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
             response = node.instruct_content.model_dump()
             return {"final_solution":response["refined_solution"]}
         else:
+            result = result["test_fail_case"]
             prompt = REFLECTION_ON_PUBILIC_TEST_PROMPT.format(problem_description=problem, rephrase_problem=rephrase_problem, code_solution=solution, exec_pass="executed successfully", test_fail=result)
             node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
             response = node.instruct_content.model_dump()

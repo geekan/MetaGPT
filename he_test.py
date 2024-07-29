@@ -5,6 +5,7 @@ from evalplus.data import get_human_eval_plus, write_jsonl
 from examples.ags.benchmark.humaneval import sample_generate, samples_generate, extract_failure_tests, automatic_evalplus
 from examples.ags.w_action_node.utils import jsonl_ranker, llm_extract_test_case
 from examples.ags.w_action_node.graph import HumanEvalGraph
+from examples.ags.w_action_node.utils import extract_test_cases_from_jsonl
 # 132 141 136 80 73
 # asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm")) 
 # asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm")) 
@@ -12,7 +13,7 @@ from examples.ags.w_action_node.graph import HumanEvalGraph
 # asyncio.run(sample_generate('HumanEval/67',result_path="llm_based_1000.jsonl",mode="llm"))
 # asyncio.run(sample_generate('HumanEval/108',result_path="llm_based_1000.jsonl",mode="llm"))
 # asyncio.run(sample_generate('HumanEval/110',result_path="llm_based_1000.jsonl",mode="llm"))
-# asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_100.jsonl"))
+asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_104.jsonl"))
 # jsonl_ranker("llm_based_137.jsonl", "llm_based_137.jsonl")
 
 # result_path = "ags_based_6.jsonl"
@@ -47,6 +48,10 @@ from examples.ags.w_action_node.graph import HumanEvalGraph
 # [72, 80, 82, 87, 90, 95, 107, 109, 112, 124, 126, 127, 128, 132, 134, 136, 137, 138, 148, 154, 155]
 
 # TODO 代码问题，改动了一个地方导致Solution 没有了
-case_prompt= get_human_eval_plus()["HumanEval/76"]['prompt']
-solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=1)
-result = asyncio.run(solver.alpha_codium(problem_id="HumanEval/136", problem=case_prompt, ensemble_count=1))
+# case_prompt= get_human_eval_plus()["HumanEval/140"]['prompt']
+# solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=1)
+# result = asyncio.run(solver.alpha_codium(problem_id="HumanEval/140", problem=case_prompt, ensemble_count=1))
+
+# 1. Public Test 数据集不对 
+# 2. 修改两个Prompt的具体内容
+# 3. 尝试增加Test错误之后的修改能力

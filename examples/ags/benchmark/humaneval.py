@@ -3,6 +3,11 @@
 # @Author  : didi
 # @Desc    : test on human eval graph
 
+# 1. 出效果
+# 2. 代码方面，格式问题，很多格式处理 ->增加效果
+# 3. GSM8k -> 
+# 4. 我来写一个GSM8k最基础代码，GSM8k实验代码需要你来改写
+
 import os
 import json
 import subprocess
@@ -17,7 +22,7 @@ from examples.ags.w_action_node.operator import GenerateCode, GenerateCodeBlock
 
 generate_code = GenerateCode(llm=LLM())
 generate_code_block = GenerateCodeBlock(llm=LLM())
-solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=5)
+solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=1)
 
 async def sample_generate(id, result_path:str="samples.jsonl",mode:str="ags"):
     case = get_human_eval_plus()[f"{id}"]
@@ -55,7 +60,7 @@ async def samples_generate(mode:str, result_path:str="samples.jsonl"):
                 'solution': solution_result['final_solution']
                 }
             elif mode == "alpha":
-                solution_result = await solver.alpha_codium(case['task_id'], case['prompt'], ensemble_count=5)
+                solution_result = await solver.alpha_codium(case['task_id'], case['prompt'], ensemble_count=1)
                 sample_dict = {
                 'task_id': case['task_id'],
                 'solution': solution_result['final_solution']
@@ -164,6 +169,7 @@ def automatic_sanitize(result_path: str = "samples.jsonl"):
     sanitized_path = f"{base_name}-sanitized.jsonl"
     
     return sanitized_path
+
 def automatic_evalplus(result_path:str ="samples.jsonl"):
     """
     在命令行中自动执行 evalplus.evaluate --dataset humaneval --samples samples.jsonl --parallel 2 --base-only

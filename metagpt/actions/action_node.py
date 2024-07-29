@@ -512,12 +512,13 @@ class ActionNode:
         import re
         field_name = self.get_field_name()
         prompt = context
-        print(f"prompt: \n{prompt}")
+        # print("generate prompt", "\n", prompt)
         content = await self.llm.aask(prompt, timeout=timeout)
-        # TODO 在前置逻辑中完成entrypoint的提取就可以
+        # print("generate content", "\n", content)
         extracted_code = sanitize(code=content, entrypoint=function_name)
         # extracted_code = extract_code_from_response(content)    
         result = {field_name: extracted_code}
+        # print("final_result", "\n", result)
         return result
     
     async def messages_fill(
