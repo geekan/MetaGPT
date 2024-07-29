@@ -39,6 +39,7 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 # Example
 {example}
 
+
 # Instruction
 {instruction}
 
@@ -47,6 +48,9 @@ You may use any of the available commands to create a plan or update the plan. Y
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 In your response, include at least one command.
+
+# Restrictions
+{requirements_constraints}
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
@@ -61,7 +65,6 @@ Output should adhere to the following format.
     ...
 ]
 ```
-Notice: your output JSON data must be a command list.
 Notice: your output JSON data section must start with **```json [**
 """
 THOUGHT_GUIDANCE = """
@@ -102,7 +105,7 @@ JSON_REPAIR_PROMPT = """
 ```
 Do not use escape characters in json data, particularly within file paths.
 Help check if there are any formatting issues with the JSON data? If so, please help format it.
-If no issues are detected, the original json data should be returned unchanged.
+If no issues are detected, the original json data should be returned unchanged. Do not omit any information.
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
 QUICK_THINK_PROMPT = """

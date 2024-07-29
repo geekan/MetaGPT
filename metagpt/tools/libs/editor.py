@@ -36,7 +36,7 @@ class Editor:
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         # self.resource.report(path, "path")
-        return f"The writing/coding the  of the file {os.path.basename(path)}' is now completed. The file '{os.path.basename(path)}' has been successfully created."
+        return f"The writing/coding the of the file {os.path.basename(path)}' is now completed. The file '{os.path.basename(path)}' has been successfully created."
 
     def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""

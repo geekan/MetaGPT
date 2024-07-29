@@ -9,6 +9,7 @@ from typing import Callable, Dict, List, Literal, Tuple
 from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
+from metagpt.actions.anaylze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
@@ -71,6 +72,7 @@ class RoleZero(Role):
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
+    requirements_constraints: str = ""  # the constraints in user requirements
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -137,6 +139,7 @@ class RoleZero(Role):
 
         if not self.planner.plan.goal:
             self.planner.plan.goal = self.get_memories()[-1].content
+            self.requirements_constraints = await AnalyzeRequirementsRestrictions().run(self.planner.plan.goal)
 
         ### 1. Experience ###
         example = self._retrieve_experience()
@@ -160,6 +163,7 @@ class RoleZero(Role):
             instruction=instruction,
             thought_guidance=THOUGHT_GUIDANCE,
             latest_observation=memory[-1].content,
+            requirements_constraints=self.requirements_constraints,
         )
         memory = await self.parse_browser_actions(memory)
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])

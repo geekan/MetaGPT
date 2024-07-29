@@ -29,7 +29,7 @@ class ProductManager(RoleZero):
 
     name: str = "Alice"
     profile: str = "Product Manager"
-    goal: str = "efficiently create a successful product that meets market demands and user expectations"
+    goal: str = "efficiently create a successful product that meets market demands and user expectations. Create a Product Requirement Document."
     constraints: str = "utilize the same language as the user requirements for seamless communication"
     todo_action: str = any_to_name(WritePRD)
 
