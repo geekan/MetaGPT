@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import re
-from typing import List
-
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.prompts.di.data_analyst import (
-    BROWSER_INFO,
     CODE_STATUS,
     EXTRA_INSTRUCTION,
     TASK_TYPE_DESC,
@@ -51,37 +47,18 @@ class DataAnalyst(RoleZero):
             }
         )
 
-    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
-        memory = await super().parse_browser_actions(memory)
-        browser_actions = []
-        for index, msg in enumerate(memory):
-            if msg.cause_by == "browser":
-                browser_url = re.search("URL: (.*?)\\n", msg.content).group(1)
-                pattern = re.compile(r"Command Browser\.(\w+) executed")
-                browser_actions.append(
-                    {"command": pattern.match(memory[index - 1].content).group(1), "current url": browser_url}
-                )
-        if browser_actions:
-            browser_actions = BROWSER_INFO.format(browser_actions=browser_actions)
-            self.rc.working_memory.add(Message(content=browser_actions, role="user", cause_by="browser"))
-        return memory
-
-    async def write_and_exec_code(self, instruction: str = ""):
-        """Write a code block for current task and execute it in an interactive notebook environment.
-
-        Args:
-            instruction: The specific task description for which the code needs to be written.
-        """
-        if self.planner.plan:
-            logger.info(f"Current task {self.planner.plan.current_task}")
-
+    async def write_and_exec_code(self):
+        """Write a code block for current task step and execute it in an interactive notebook environment."""
         counter = 0
         success = False
         await self.execute_code.init_code()
 
         # plan info
-        plan_status = self.planner.get_plan_status()
-        plan_status = plan_status + f"\nFurther Task Instruction: {instruction}"
+        if self.planner.current_task:
+            # clear task result from plan to save token, since it has been in memory
+            plan_status = self.planner.get_plan_status(exclude=["task_result"])
+        else:
+            return "No current_task found now. Please use command Plan.append_task to add a task first."
 
         # tool info
         if self.custom_tool_recommender:
@@ -102,6 +79,7 @@ class DataAnalyst(RoleZero):
                 tool_info=tool_info,
                 working_memory=self.rc.working_memory.get(),
                 use_reflection=use_reflection,
+                memory=self.rc.memory.get(self.memory_k),
             )
             self.rc.working_memory.add(Message(content=code, role="assistant", cause_by=WriteAnalysisCode))
 

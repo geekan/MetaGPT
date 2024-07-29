@@ -43,6 +43,7 @@ class WriteAnalysisCode(Action):
         tool_info: str = "",
         working_memory: list[Message] = None,
         use_reflection: bool = False,
+        memory: list[Message] = None,
         **kwargs,
     ) -> str:
         structual_prompt = STRUCTUAL_PROMPT.format(
@@ -52,7 +53,8 @@ class WriteAnalysisCode(Action):
         )
 
         working_memory = working_memory or []
-        context = self.llm.format_msg([Message(content=structual_prompt, role="user")] + working_memory)
+        memory = memory or []
+        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
         if use_reflection:
