@@ -16,6 +16,7 @@
 """
 
 import json
+from typing import Optional, Union
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -23,9 +24,9 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
-from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
+from metagpt.const import BUGFIX_FILENAME, MESSAGE_ROUTE_TO_USER, REQUIREMENT_FILENAME
 from metagpt.logs import logger
-from metagpt.schema import CodingContext, Document, RunCodeResult
+from metagpt.schema import CodingContext, Document, Message, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.project_repo import ProjectRepo
 
@@ -82,7 +83,8 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 class WriteCode(Action):
     name: str = "WriteCode"
-    i_context: Document = Field(default_factory=Document)
+    i_context: Optional[Document] = Field(default_factory=Document)
+    msg: Optional[Message] = None  # Not none if only writing code.
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
@@ -90,7 +92,20 @@ class WriteCode(Action):
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
-    async def run(self, *args, **kwargs) -> CodingContext:
+    async def run(self, *args, **kwargs) -> Union[CodingContext, Message]:
+        if self.msg:  # Write code only
+            prompt = PROMPT_TEMPLATE.format(
+                design="",
+                task="",
+                code=self.msg.content,
+                logs="",
+                feedback="",
+                filename="",
+                summary_log="",
+            )
+            code = await self.write_code(prompt)
+            return Message(content=code, cause_by=self, send_to=MESSAGE_ROUTE_TO_USER)
+
         bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
         test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
