@@ -55,7 +55,7 @@ class ExperienceManager(BaseModel):
             self._storage: SimpleEngine = SimpleEngine.from_objs(
                 retriever_configs=retriever_configs, ranker_configs=ranker_configs
             )
-            logger.debug(f"exp_pool config: {self.config.exp_pool}")
+            logger.info(f"exp_pool config: {self.config.exp_pool}")
 
         return self._storage
 
