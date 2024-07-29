@@ -38,7 +38,7 @@ class DataAnalyst(RoleZero):
     @model_validator(mode="after")
     def set_custom_tool(self):
         if self.custom_tools and not self.custom_tool_recommender:
-            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools)
+            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools, force=True)
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(
