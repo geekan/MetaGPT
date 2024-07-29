@@ -566,7 +566,7 @@ Explanation: DON'T decompose requirement if it is a DATA-RELATED task, assign a 
 Conversation History:
 [
     ...,
-    {'role': 'assistant', 'content': 'from Alice(Product Manager) to {'Bob'}: {'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a cli snake game","Project Name":"snake_game","Product Goals":["Develop an intuitive and addictive snake game",...], ...}}}}},
+    {'role': 'assistant', 'content': 'from Alice(Product Manager) to {'<all>'}: Request is completed, with outputs: Command WritePRD executed: PRD filename: "/tmp/workspace/snake_game/docs/prd.json"'},
 ]
 Explanation: You received a message from Alice, the Product Manager, that she has completed the PRD, use Plan.finish_current_task to mark her task as finished and moves the plan to the next task. Based on plan status, next task is for Bob (Architect), publish a message asking him to start. The message content should contain important path info.
 ```json
@@ -578,7 +578,7 @@ Explanation: You received a message from Alice, the Product Manager, that she ha
     {
         "command_name": "TeamLeader.publish_message",
             "args": {
-                "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at 'docs/prd/20240424153821.json'. Include the choice of programming language, libraries, and data flow, etc.",
+                "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at '/tmp/workspace/snake_game/docs/prd.json'. Include the choice of programming language, libraries, and data flow, etc.",
                 "send_to": "Bob"
             }
     },
@@ -820,7 +820,7 @@ editor.read(path="./main.py")
 ENGINEER_EXAMPLE = """
 ## example 1
 User Requirement: Please implement the core game logic for the 2048 game, including tile movements, merging logic, score tracking, and keyboard interaction. Refer to the project schedule located at '/tmp/project_schedule.json' and the system design document at '/tmp/system_design.json' for detailed information.
-Explanation: I will first need to read the system design document and the project schedule to understand the specific requirements and architecture outlined for the game development.
+Explanation: I will first need to read the system design document and the project schedule to understand the specific requirements and architecture outlined for the game development. I should NOT create tasks at this stage.
 
 ```json
 [
@@ -840,7 +840,8 @@ Explanation: I will first need to read the system design document and the projec
 ```
 
 ## example 2
-To achieve the goal of writing a 2048 game using JavaScript and HTML without any frameworks, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. Following the completion of these tasks, I will add a code review task for each file to ensure the implementation aligns with the provided system design and project schedule documents.
+Consider this example only after you have obtained the content of system design and project schedule documents.
+Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. Following the completion of these tasks, I will add a code review task for each file to ensure the implementation aligns with the provided system design and project schedule documents.
 
 Here's the plan:
 
@@ -911,6 +912,25 @@ Let's start by appending the first task to the plan.
 ```
 
 ## example 3
+Explanation: Take on one task, such as writing a file. Upon completion, finish current task
+
+```json
+[
+    {
+        "command_name": "Editor.write",
+        "args": {
+            "path": "/Users/gary/Files/temp/workspace/snake_game/src/index.html",
+            "content": "the code ..."
+        }
+    },
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {{}}
+    }
+]
+```
+
+## example 4
 I will now review the code in `script.js`.
 Explanation: to review the code, call ReviewAndRewriteCode.run.
 
@@ -924,6 +944,10 @@ Explanation: to review the code, call ReviewAndRewriteCode.run.
             "project_schedule_input": "/tmp/docs/project_schedule.json",
             "code_review_k_times": 2
         }
+    },
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {{}}
     }
 ]
 ```

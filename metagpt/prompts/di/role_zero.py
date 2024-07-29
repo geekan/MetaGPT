@@ -54,10 +54,8 @@ In your response, include at least one command.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
-Firstly, pay attention to User Requirements. Provide a complete description of the User Requirements ,pay attention to[User Restrictions] Provide a complete description of constraints, and the current task.
-Secondly, pay attention to the Latest Observation, describing what the latest observation is and any relevant messages.
-Thirdly, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
-Then, articulate your thoughts and list the commands, adhering closely to the instructions provided. you thoughts and cammand must obey [User Restrictions]
+Output should adhere to the following format.
+{thought_guidance}
 ```json
 [
     {{
@@ -70,7 +68,22 @@ Then, articulate your thoughts and list the commands, adhering closely to the in
 Notice: your output JSON data section must start with **```json [**
 Notice: Your answer must start with an ordinal number.
 """
-
+THOUGHT_GUIDANCE = """
+First, describe the actions you have taken recently.
+Second, describe the messages you have received recently, with a particular emphasis on messages from users.
+Third, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
+Fourth, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress if you complete a task or the overall requirement, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task, unsure of the situation encountered, need any help from human, or executing repetitive commands but receiving repetitive feedbacks without making progress.
+Fifth, describe if you should terminate, you should use **end** command to terminate if any of the following is met:
+ - You have completed the overall user requirement
+ - All tasks are finished and current task is empty
+ - You are repetitively replying to human
+Finally, combine your thoughts, describe what you want to do conscisely in 20 words, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+""".strip()
+REGENERATE_PROMPT = """
+Review and reflect on the history carefully, provide a different response.
+Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
+Your reflection, then the commands in a json array:
+"""
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
@@ -84,8 +97,6 @@ Help check if there are any formatting issues with the JSON data? If so, please 
 If no issues are detected, the original json data should be returned unchanged. Do not omit any information.
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
-
-
 QUICK_THINK_PROMPT = """
 Decide if the latest user message previously is a quick question.
 Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
