@@ -31,7 +31,7 @@ class DataAnalyst(RoleZero):
     task_type_desc: str = TASK_TYPE_DESC
 
     tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]
-    custom_tools: list[str] = ["machine learning", "web scraping", "Terminal"]
+    custom_tools: list[str] = ["web scraping", "Terminal"]
     custom_tool_recommender: ToolRecommender = None
     experience_retriever: ExpRetriever = KeywordExpRetriever()
 
@@ -72,6 +72,9 @@ class DataAnalyst(RoleZero):
         Args:
             instruction: The specific task description for which the code needs to be written.
         """
+        if self.planner.plan:
+            logger.info(f"Current task {self.planner.plan.current_task}")
+
         counter = 0
         success = False
         await self.execute_code.init_code()
