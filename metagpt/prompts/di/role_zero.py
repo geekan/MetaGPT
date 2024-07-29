@@ -49,7 +49,7 @@ If you finish current task, you will automatically take the next task in the exi
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 In your response, include at least one command.
 
-# Constraints
+# Restrictions
 {requirements_constraints}
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
