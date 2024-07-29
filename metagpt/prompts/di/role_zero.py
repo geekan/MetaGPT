@@ -76,7 +76,7 @@ Fifth, describe if you should terminate, you should use **end** command to termi
  - You have completed the overall user requirement
  - All tasks are finished and current task is empty
  - You are repetitively replying to human
-Finally, combine your thoughts, describe what you want to do conscisely in 20 words, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 """.strip()
 REGENERATE_PROMPT = """
 Review and reflect on the history carefully, provide a different response.
