@@ -157,6 +157,10 @@ class ToolRecommender(BaseModel):
             ranked_tools = list(ranked_tools.values())[0]
         # -------------结束---------------
 
+        if not isinstance(ranked_tools, list):
+            logger.warning(f"Invalid rank result: {ranked_tools}, will use the recalled tools instead.")
+            ranked_tools = list(available_tools.keys())
+
         valid_tools = validate_tool_names(ranked_tools)
 
         return list(valid_tools.values())[:topk]
