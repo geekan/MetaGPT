@@ -80,6 +80,18 @@ Review and reflect on the history carefully, provide a different response.
 Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
 Your reflection, then the commands in a json array:
 """
+ASK_HUMAN_COMMAND = """
+```json
+[
+    {
+        "command_name": "RoleZero.ask_human",
+        "args": {
+            "question": "I'm a little uncertain about the next step, could you provide me with some guidance?"
+        }
+    }
+]
+```
+"""
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}

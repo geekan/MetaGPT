@@ -15,6 +15,7 @@ from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
+    ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_THINK_PROMPT,
@@ -272,6 +273,11 @@ class RoleZero(Role):
             # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
             # In this case, ask human for help and regenerate
             # TODO: switch to llm_cached_aask
+
+            #  Hard rule to ask human for help
+            if past_rsp.count(command_rsp) >= 3:
+                return ASK_HUMAN_COMMAND
+            # Try correction by self
             logger.warning(f"Duplicate response detected: {command_rsp}")
             regenerate_req = req + [UserMessage(content=REGENERATE_PROMPT)]
             regenerate_req = self.llm.format_msg(regenerate_req)
