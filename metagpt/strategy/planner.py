@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -165,8 +166,9 @@ class Planner(BaseModel):
 
         return context_msg + self.working_memory.get()
 
-    def get_plan_status(self) -> str:
+    def get_plan_status(self, exclude: List[str] = None) -> str:
         # prepare components of a plan status
+        exclude = exclude or []
         finished_tasks = self.plan.get_finished_tasks()
         code_written = [remove_comments(task.code) for task in finished_tasks]
         code_written = "\n\n".join(code_written)
@@ -178,11 +180,11 @@ class Planner(BaseModel):
 
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
-            code_written=code_written,
-            task_results=task_results,
+            code_written=code_written if "code" not in exclude else "omit here",
+            task_results=task_results if "task_result" not in exclude else "omit here",
             current_task=self.current_task.instruction,
-            current_task_code=self.current_task.code if self.current_task.code else "",
-            current_task_result=self.current_task.result if self.current_task.result else "",
+            current_task_code=self.current_task.code if "code" not in exclude else "omit here",
+            current_task_result=self.current_task.result if "task_result" not in exclude else "omit here",
             guidance=guidance,
         )
 

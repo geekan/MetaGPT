@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
@@ -56,13 +54,11 @@ class DataAnalyst(RoleZero):
         await self.execute_code.init_code()
 
         # plan info
-        try:
-            plan_status = self.planner.get_plan_status()
-            plan_status = re.sub(
-                r"### execution result.*?(?=## Current Task|## Task Guidance)", "", plan_status, flags=re.DOTALL
-            )
-        except AttributeError as e:
-            return "All tasks have been completed. Please check to end or append task first before writing code."
+        if self.planner.current_task:
+            # clear task result from plan to save token, since it has been in memory
+            plan_status = self.planner.get_plan_status(exclude=["task_result"])
+        else:
+            return "No current_task found now. Please use command Plan.append_task to add a task first."
 
         # tool info
         if self.custom_tool_recommender:
