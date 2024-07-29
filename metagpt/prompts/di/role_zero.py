@@ -10,7 +10,7 @@ Note:
 4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
-# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# User Requirements".
+# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
 CMD_PROMPT = """
 # Latest Observation
 {latest_observation}
@@ -39,8 +39,6 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 # Example
 {example}
 
-# User Requirements
-{user_requirements}
 
 # Instruction
 {instruction}
@@ -51,12 +49,15 @@ If you finish current task, you will automatically take the next task in the exi
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 In your response, include at least one command.
 
+# Constraints
+{requirements_constraints}
+
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
-Firstly, pay attention to User Requirements and it's constraints. Provide a complete description of the User Requirements and the current task.
+Firstly, pay attention to User Requirements. Provide a complete description of the User Requirements ,pay attention to[User Restrictions] Provide a complete description of constraints, and the current task.
 Secondly, pay attention to the Latest Observation, describing what the latest observation is and any relevant messages.
 Thirdly, if you find that the current task is identical to a previously completed one, it indicates that the current task has already been accomplished.
-Then, articulate your thoughts and list the commands, adhering closely to the instructions provided.
+Then, articulate your thoughts and list the commands, adhering closely to the instructions provided. you thoughts and cammand must obey [User Restrictions]
 ```json
 [
     {{
@@ -68,7 +69,6 @@ Then, articulate your thoughts and list the commands, adhering closely to the in
 ```
 Notice: your output JSON data section must start with **```json [**
 Notice: Your answer must start with an ordinal number.
-Notice: The response and arguments must be in the language specified in the User Requirements.
 """
 
 JSON_REPAIR_PROMPT = """

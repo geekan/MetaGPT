@@ -34,7 +34,7 @@ class TestRoleZeroContextBuilder:
         result = context_builder.replace_example_content("Original text", "New example content")
         assert result == "Replaced content"
         context_builder.replace_content_between_markers.assert_called_once_with(
-            "Original text", "# Example", "# User Requirements", "New example content"
+            "Original text", "# Example", "# Instruction", "New example content"
         )
 
     def test_replace_content_between_markers(self):
