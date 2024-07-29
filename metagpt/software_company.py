@@ -3,6 +3,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import Union
 
 import agentops
 import typer
@@ -26,7 +27,8 @@ def generate_repo(
     reqa_file="",
     max_auto_summarize_code=0,
     recover_path=None,
-) -> ProjectRepo:
+    write_code=False,
+) -> Union[ProjectRepo, str]:
     """Run the startup logic. Can be called from CLI or other Python scripts."""
     from metagpt.config2 import config
     from metagpt.context import Context
@@ -47,18 +49,19 @@ def generate_repo(
 
     if not recover_path:
         company = Team(context=ctx)
-        company.hire(
-            [
-                ProductManager(),
-                Architect(),
-                ProjectManager(),
-            ]
-        )
+        if not write_code:
+            company.hire(
+                [
+                    ProductManager(),
+                    Architect(),
+                    ProjectManager(),
+                ]
+            )
 
-        if implement or code_review:
+        if write_code or implement or code_review:
             company.hire([Engineer(n_borg=5, use_code_review=code_review)])
 
-        if run_tests:
+        if not write_code and run_tests:
             company.hire([QaEngineer()])
     else:
         stg_path = Path(recover_path)
@@ -69,13 +72,13 @@ def generate_repo(
         idea = company.idea
 
     company.invest(investment)
-    company.run_project(idea)
-    asyncio.run(company.run(n_round=n_round))
+    company.run_project(idea, send_to="Alex" if write_code else "")
+    msgs = asyncio.run(company.run(n_round=n_round))
 
     if config.agentops_api_key != "":
         agentops.end_session("Success")
 
-    return ctx.repo
+    return ctx.repo or (msgs and msgs[-1].content)
 
 
 @app.command("", help="Start a new project.")
@@ -102,6 +105,7 @@ def startup(
     ),
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
     init_config: bool = typer.Option(default=False, help="Initialize the configuration file for MetaGPT."),
+    write_code: bool = typer.Option(default=False, help="Write code only."),
 ):
     """Run a startup. Be a boss."""
     if init_config:
@@ -125,6 +129,7 @@ def startup(
         reqa_file,
         max_auto_summarize_code,
         recover_path,
+        write_code,
     )
 
 
