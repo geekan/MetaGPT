@@ -108,7 +108,7 @@ class WritePRD(Action):
 
         Example:
             # Write a new PRD (Product Requirement Document)
-            >>> user_requirement = "Write PRD for a snake game"
+            >>> user_requirement = "Write a snake game"
             >>> output_pathname = "snake_game/docs/prd.json"
             >>> extra_info = "YOUR EXTRA INFO, if any"
             >>> write_prd = WritePRD()
