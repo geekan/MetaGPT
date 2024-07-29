@@ -169,6 +169,7 @@ class Planner(BaseModel):
     def get_plan_status(self, exclude: List[str] = None) -> str:
         # prepare components of a plan status
         exclude = exclude or []
+        exclude_prompt = "omit here"
         finished_tasks = self.plan.get_finished_tasks()
         code_written = [remove_comments(task.code) for task in finished_tasks]
         code_written = "\n\n".join(code_written)
@@ -180,11 +181,11 @@ class Planner(BaseModel):
 
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
-            code_written=code_written if "code" not in exclude else "omit here",
-            task_results=task_results if "task_result" not in exclude else "omit here",
+            code_written=code_written if "code" not in exclude else exclude_prompt,
+            task_results=task_results if "task_result" not in exclude else exclude_prompt,
             current_task=self.current_task.instruction,
-            current_task_code=self.current_task.code if "code" not in exclude else "omit here",
-            current_task_result=self.current_task.result if "task_result" not in exclude else "omit here",
+            current_task_code=self.current_task.code if "code" not in exclude else exclude_prompt,
+            current_task_result=self.current_task.result if "task_result" not in exclude else exclude_prompt,
             guidance=guidance,
         )
 
