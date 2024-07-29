@@ -65,17 +65,18 @@ Notice: your output JSON data must be a command list.
 Notice: your output JSON data section must start with **```json [**
 """
 THOUGHT_GUIDANCE = """
-Firstly, describe the actions you have taken recently.
-Secondly, describe the messages you have received recently, with a particular emphasis on messages from users.
-Thirdly, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
-Fourthly, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task or if you are unsure of the situation encountered or if you need any help from human.
-Fifthly, describe if you should terminate, you should use **end** command to terminate if any of the following is met:
+First, describe the actions you have taken recently.
+Second, describe the messages you have received recently, with a particular emphasis on messages from users.
+Third, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
+Fourth, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress if you complete a task or the overall requirement, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task, unsure of the situation encountered, need any help from human, or executing repetitive commands but receiving repetitive feedbacks without making progress.
+Fifth, describe if you should terminate, you should use **end** command to terminate if any of the following is met:
  - You have completed the overall user requirement
  - All tasks are finished and current task is empty
+ - You are repetitively replying to human
 Finally, combine your thoughts, describe what you want to do conscisely in 20 words, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 """.strip()
 REGENERATE_PROMPT = """
-Review and reflect on the history carefully, provide different commands.
+Review and reflect on the history carefully, provide a different response.
 Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
 Your reflection, then the commands in a json array:
 """
