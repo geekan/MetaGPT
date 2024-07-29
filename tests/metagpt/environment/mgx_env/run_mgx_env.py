@@ -28,7 +28,7 @@ async def main(requirement="", enable_human_input=False, use_fixed_sop=False, al
             ProjectManager(use_fixed_sop=use_fixed_sop),
             engineer,
             # QaEngineer(),
-            DataAnalyst(tools=["<all>"]),
+            DataAnalyst(),
             SWEAgent(),
         ]
     )
