@@ -44,7 +44,7 @@ class TutorialParameter(BaseModel):
     prompt: str = Field(default="Write a tutorial about MySQL", description="The prompt for the tutorial")
 
 
-@app.get("/api/v1/write_tutorial")
+@app.post("/api/v1/write_tutorial")
 async def write_tutorial(parameter: TutorialParameter):
     queue = Queue()
     asyncio.create_task(write_task(queue, parameter.prompt))
@@ -64,7 +64,12 @@ async def write_tutorial(parameter: TutorialParameter):
             logger.error(f"Server error: {e}")
             yield json.dumps({"data": "server error"}, ensure_ascii=False)
 
-    return EventSourceResponse(event_generator())
+    headers = {
+        "Cache-Control": "no-cache",
+        "Content-Type": "text/event-stream",
+        "X-Accel-Buffering": "no",
+    }
+    return EventSourceResponse(event_generator(), media_type="text/event-stream", headers=headers)
 
 
 if __name__ == "__main__":
