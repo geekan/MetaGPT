@@ -24,6 +24,7 @@ Outputs:
 [User Restrictions] : Do not write PRD.
 [Language Restrictions] : The response, message and instruction must be in the language specified by English.
 [Programming Language] : Python
+
 Example 2
 Requirements: 
 创建一个贪吃蛇，只需要给出设计文档和代码
