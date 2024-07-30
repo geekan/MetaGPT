@@ -108,9 +108,10 @@ Help check if there are any formatting issues with the JSON data? If so, please 
 If no issues are detected, the original json data should be returned unchanged. Do not omit any information.
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
+
 QUICK_THINK_PROMPT = """
 Decide if the latest user message previously is a quick question.
-Quick questions include common-sense, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
+Quick questions include common-sense, legal, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
 Questions about you or your team info are also quick questions.
 Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions.
 Software development tasks are NOT quick questions.

@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game.",
+            "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game.Using Python as the programming language.",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Design the software architecture for the CLI snake game, including the choice of programming language, libraries, and data flow.",
+            "instruction": "Design the software architecture for the CLI snake game, including the choice of programming language, libraries, and data flow. Using Python as the programming language.",
             "assignee": "Bob"
         }
     },
@@ -506,14 +506,14 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
-            "instruction": "Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
+            "instruction": "Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking. Using Python as the programming language.",
             "assignee": "Alex"
         }
     },
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Create a cli snake game using Python",
+            "content": "Create a cli snake game. Using Python as the programming language.",
             "send_to": "Alice"
         }
     },
@@ -528,6 +528,7 @@ Explanation: The requirement is about software development. Assign each tasks to
     }
 ]
 ```
+
 
 ## example 2
 User Requirement: Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy.

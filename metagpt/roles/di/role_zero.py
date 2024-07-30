@@ -214,7 +214,7 @@ class RoleZero(Role):
         self.rc.memory.add(UserMessage(content=outputs))
 
         return AIMessage(
-            content=f"Complete run with outputs: {outputs}",
+            content=f"{self.name} has finished the task, mark it as finished. Complete run with outputs: {outputs}",
             sent_from=self.name,
             cause_by=RunCommand,
         )
