@@ -19,12 +19,11 @@ Follow the instructions and output format. Do not include any additional content
 EXAMPLES = """
 Example 1
 Requirements:
-Create 2048 game. Do not write PRD.
+Create 2048 game using Python. Do not write PRD.
 Outputs:
 [User Restrictions] : Do not write PRD.
 [Language Restrictions] : The response, message and instruction must be in the language specified by English.
-[Programming Language] : HTML (*.html), CSS (*.css), and JavaScript (*.js)
-
+[Programming Language] : Python
 Example 2
 Requirements: 
 创建一个贪吃蛇，只需要给出设计文档和代码
