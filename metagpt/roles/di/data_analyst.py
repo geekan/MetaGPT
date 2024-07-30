@@ -38,7 +38,7 @@ class DataAnalyst(RoleZero):
     @model_validator(mode="after")
     def set_custom_tool(self):
         if self.custom_tools and not self.custom_tool_recommender:
-            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools)
+            self.custom_tool_recommender = BM25ToolRecommender(tools=self.custom_tools, force=True)
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(
@@ -48,7 +48,10 @@ class DataAnalyst(RoleZero):
         )
 
     async def write_and_exec_code(self):
-        """Write a code block for current task step and execute it in an interactive notebook environment."""
+        """Write a code block for current task and execute it in an interactive notebook environment. No argument is needed."""
+        if self.planner.plan:
+            logger.info(f"Current task {self.planner.plan.current_task}")
+
         counter = 0
         success = False
         await self.execute_code.init_code()
