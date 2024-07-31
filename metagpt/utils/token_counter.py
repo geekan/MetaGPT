@@ -215,6 +215,7 @@ TOKEN_MAX = {
     "deepseek/deepseek-chat": 128000,  # end, for openrouter
     "deepseek-chat": 128000,
     "deepseek-coder": 128000,
+    "deepseek-ai/DeepSeek-Coder-V2-Instruct": 32000,  # siliconflow
 }
 
 
@@ -319,4 +320,4 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     """
     if model not in TOKEN_MAX:
         return default
-    return TOKEN_MAX[model] - count_message_tokens(messages) - 1
+    return TOKEN_MAX[model] - count_message_tokens(messages, model) - 1

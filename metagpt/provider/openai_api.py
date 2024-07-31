@@ -300,3 +300,9 @@ class OpenAILLM(BaseLLM):
             img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
             imgs.append(decode_image(img_url_or_b64))
         return imgs
+
+    def count_tokens(self, messages: list[dict]) -> int:
+        try:
+            return count_message_tokens(messages, self.config.model)
+        except:
+            return super().count_tokens(messages)
