@@ -41,7 +41,6 @@ class MockBaseLLM(BaseLLM):
         return default_resp_cont
 
 
-@pytest.mark.skip
 def test_base_llm():
     message = Message(role="user", content="hello")
     assert "role" in message.to_dict()
@@ -93,7 +92,6 @@ def test_base_llm():
     # assert resp == default_resp_cont
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_async_base_llm():
     base_llm = MockBaseLLM()
@@ -147,3 +145,19 @@ def test_compress_messages_long(compress_type):
     assert len(compressed) < len(messages)
     assert compressed[0]["role"] == "system" and compressed[1]["role"] == "system"
     assert compressed[2]["role"] != "system"
+
+
+@pytest.mark.parametrize(
+    "compress_type", ["post_cut_by_msg", "post_cut_by_token", "pre_cut_by_msg", "pre_cut_by_token"]
+)
+def test_compress_messages_long_no_sys_msg(compress_type):
+    base_llm = MockBaseLLM()
+    base_llm.config.model = "test_llm"
+    max_token_limit = 100
+
+    messages = [{"role": "user", "content": "1" * 10000}]
+    compressed = base_llm.compress_messages(messages, compress_type=compress_type, max_token=max_token_limit)
+
+    print(compressed)
+    assert compressed
+    assert len(compressed[0]["content"]) < len(messages[0]["content"])
