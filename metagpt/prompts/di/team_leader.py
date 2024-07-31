@@ -27,7 +27,7 @@ Note:
 9. Do not use the 'end' command when the current task remains unfinished; instead, use the 'finish_current_task' command to indicate completion before switching to the next task.
 10. Do not use escape characters in json data, particularly within file paths.
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
-13. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
+12. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
 """
 TL_THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
