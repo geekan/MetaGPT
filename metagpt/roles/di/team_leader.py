@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.prompts.di.role_zero import THOUGHT_GUIDANCE
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     QUICK_THINK_SYSTEM_PROMPT,
@@ -56,7 +57,7 @@ class TeamLeader(RoleZero):
 
     async def _think(self) -> bool:
         self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
-        self.thought_guidance = TL_THOUGHT_GUIDANCE
+        self.thought_guidance = THOUGHT_GUIDANCE + TL_THOUGHT_GUIDANCE
         return await super()._think()
 
     def publish_message(self, msg: Message, send_to="no one"):

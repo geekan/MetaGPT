@@ -56,6 +56,7 @@ In your response, include at least one command.
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 Output should adhere to the following format.
 {thought_guidance}
+Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 ```json
 [
     {{
@@ -76,8 +77,8 @@ Fifth, describe if you should terminate, you should use **end** command to termi
  - You have completed the overall user requirement
  - All tasks are finished and current task is empty
  - You are repetitively replying to human
-Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 """.strip()
+
 REGENERATE_PROMPT = """
 Review and reflect on the history carefully, provide a different response.
 Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
