@@ -9,7 +9,7 @@ from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 class Engineer2(RoleZero):
     name: str = "Alex"
     profile: str = "Engineer"
-    goal: str = "Take on game, app, and web development"
+    goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
 
     tools: list[str] = ["Plan", "Editor:write,read", "RoleZero", "ReviewAndRewriteCode"]

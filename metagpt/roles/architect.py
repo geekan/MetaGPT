@@ -33,7 +33,7 @@ class Architect(RoleZero):
 
     name: str = "Bob"
     profile: str = "Architect"
-    goal: str = "design a concise, usable, complete software system."
+    goal: str = "design a concise, usable, complete software system. ouput the system design and software framework."
     constraints: str = (
         "make sure the architecture is simple enough and use  appropriate open source "
         "libraries. Use same language as user requirement"

@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game.Using Python as the programming language.",
+            "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game. Using Python as the programming language.",
             "assignee": "Alice"
         }
     },
