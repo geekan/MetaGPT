@@ -39,6 +39,7 @@ Fifth, describe if you should terminate, you should use **end** command to termi
  - All tasks are finished and current task is empty
  - You are repetitively replying to human
 Sixth, when planning, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
+Seventh, describe the technologies you must use.
 Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 """
 QUICK_THINK_SYSTEM_PROMPT = """

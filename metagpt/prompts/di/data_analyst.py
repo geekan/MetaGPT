@@ -10,6 +10,7 @@ EXTRA_INSTRUCTION = """
 7. When you are making plan. It is highly recommend to plan and append all the tasks in first response once time.
 8. Don't finish_current_task multiple times for the same task. 
 9. Finish current task timely, such as when the code is written and executed successfully.
+10. When using the command 'end', add the command 'finish_current_task' before it.
 """
 
 TASK_TYPE_DESC = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])

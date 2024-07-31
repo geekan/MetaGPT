@@ -26,3 +26,13 @@ class Engineer2(RoleZero):
 
     def _retrieve_experience(self) -> str:
         return ENGINEER_EXAMPLE
+
+    async def _run_special_command(self, cmd) -> str:
+        """command requiring special check or parsing."""
+        # finish current task before end.
+        command_output = ""
+        if cmd["command_name"] == "end" and not self.planner.plan.is_plan_finished():
+            self.planner.plan.finish_current_task()
+            command_output += "Current task is finished. \n"
+        command_output += await super()._run_special_command(cmd)
+        return command_output

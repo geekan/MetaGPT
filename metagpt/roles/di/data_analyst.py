@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.actions.di.write_analysis_code import WriteAnalysisCode, CheckData
+from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.prompts.di.data_analyst import (
     CODE_STATUS,
@@ -111,15 +111,11 @@ class DataAnalyst(RoleZero):
         return output
 
     async def _check_data(self):
-        if (
-            not self.planner.plan.get_finished_tasks()
-            or self.planner.plan.current_task.task_type
-            not in [
-                TaskType.DATA_PREPROCESS.type_name,
-                TaskType.FEATURE_ENGINEERING.type_name,
-                TaskType.MODEL_TRAIN.type_name,
-            ]
-        ):
+        if not self.planner.plan.get_finished_tasks() or self.planner.plan.current_task.task_type not in [
+            TaskType.DATA_PREPROCESS.type_name,
+            TaskType.FEATURE_ENGINEERING.type_name,
+            TaskType.MODEL_TRAIN.type_name,
+        ]:
             return
         logger.info("Check updated data")
         code = await CheckData().run(self.planner.plan)
@@ -130,3 +126,13 @@ class DataAnalyst(RoleZero):
             print(result)
             data_info = DATA_INFO.format(info=result)
             self.rc.working_memory.add(Message(content=data_info, role="user", cause_by=CheckData))
+
+    async def _run_special_command(self, cmd) -> str:
+        """command requiring special check or parsing."""
+        # finish current task before end.
+        command_output = ""
+        if cmd["command_name"] == "end" and not self.planner.plan.is_plan_finished():
+            self.planner.plan.finish_current_task()
+            command_output += "Current task is finished. \n"
+        command_output += await super()._run_special_command(cmd)
+        return command_output
