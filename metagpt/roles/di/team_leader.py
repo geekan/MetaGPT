@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from metagpt.actions.di.run_command import RunCommand
-from metagpt.prompts.di.role_zero import THOUGHT_GUIDANCE
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     QUICK_THINK_SYSTEM_PROMPT,
@@ -21,7 +20,7 @@ class TeamLeader(RoleZero):
     profile: str = "Team Leader"
     goal: str = "Manage a team to assist users"
     system_msg: list[str] = [SYSTEM_PROMPT]
-
+    thought_guidance: str = TL_THOUGHT_GUIDANCE
     # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
     max_react_loop: int = 3
 
@@ -57,7 +56,6 @@ class TeamLeader(RoleZero):
 
     async def _think(self) -> bool:
         self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
-        self.thought_guidance = THOUGHT_GUIDANCE + TL_THOUGHT_GUIDANCE
         return await super()._think()
 
     def publish_message(self, msg: Message, send_to="no one"):

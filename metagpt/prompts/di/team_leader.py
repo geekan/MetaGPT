@@ -1,3 +1,5 @@
+from metagpt.prompts.di.role_zero import THOUGHT_GUIDANCE
+
 SYSTEM_PROMPT = """
 You are a team leader, and you are responsible for drafting tasks and routing tasks to your team members.
 When drafting and routing tasks, ALWAYS include necessary or important info inside the instruction, such as path, link, environment to team members, because you are their sole info source.
@@ -29,10 +31,13 @@ Note:
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
 12. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
 """
-TL_THOUGHT_GUIDANCE = """
+TL_THOUGHT_GUIDANCE = (
+    THOUGHT_GUIDANCE
+    + """
 Sixth, when planning, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
 Seventh, describe the technologies you must use.
 """
+)
 QUICK_THINK_SYSTEM_PROMPT = """
 {role_info}
 Your team member:

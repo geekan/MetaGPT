@@ -32,7 +32,7 @@ class Engineer2(RoleZero):
         # finish current task before end.
         command_output = ""
         if cmd["command_name"] == "end" and not self.planner.plan.is_plan_finished():
-            self.planner.plan.finish_all_task()
+            self.planner.plan.finish_all_tasks()
             command_output += "All tasks are finished.\n"
         command_output += await super()._run_special_command(cmd)
         return command_output
