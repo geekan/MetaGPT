@@ -27,9 +27,20 @@ Note:
 9. Do not use the 'end' command when the current task remains unfinished; instead, use the 'finish_current_task' command to indicate completion before switching to the next task.
 10. Do not use escape characters in json data, particularly within file paths.
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
-12. If the requirement is to develop software and does not specify a programming language, use the default web technologies: HTML (`*.html`), CSS (`*.css`), and JavaScript (`*.js`). You must add this to the requirements.
+13. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
 """
-
+TL_THOUGHT_GUIDANCE = """
+First, describe the actions you have taken recently.
+Second, describe the messages you have received recently, with a particular emphasis on messages from users.
+Third, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
+Fourth, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress if you complete a task or the overall requirement, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task, unsure of the situation encountered, need any help from human, or executing repetitive commands but receiving repetitive feedbacks without making progress.
+Fifth, describe if you should terminate, you should use **end** command to terminate if any of the following is met:
+ - You have completed the overall user requirement
+ - All tasks are finished and current task is empty
+ - You are repetitively replying to human
+Sixth, when planning, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
+Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+"""
 QUICK_THINK_SYSTEM_PROMPT = """
 {role_info}
 Your team member:

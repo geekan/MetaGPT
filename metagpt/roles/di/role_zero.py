@@ -9,7 +9,7 @@ from typing import Callable, Dict, List, Literal, Tuple
 from pydantic import model_validator
 
 from metagpt.actions import Action, UserRequirement
-from metagpt.actions.anaylze_requirements import AnalyzeRequirementsRestrictions
+from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
@@ -47,6 +47,7 @@ class RoleZero(Role):
     goal: str = ""
     system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
+    thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
     task_type_desc: str = None
 
@@ -161,7 +162,7 @@ class RoleZero(Role):
             plan_status=plan_status,
             current_task=current_task,
             instruction=instruction,
-            thought_guidance=THOUGHT_GUIDANCE,
+            thought_guidance=self.thought_guidance,
             latest_observation=memory[-1].content,
             requirements_constraints=self.requirements_constraints,
         )
@@ -214,7 +215,7 @@ class RoleZero(Role):
         self.rc.memory.add(UserMessage(content=outputs))
 
         return AIMessage(
-            content=f"{self.name} has finished the task, mark it as finished. Complete run with outputs: {outputs}",
+            content=f"I have finished the task, please mark my task as finished. Outputs: {outputs}",
             sent_from=self.name,
             cause_by=RunCommand,
         )

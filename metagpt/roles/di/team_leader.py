@@ -6,6 +6,7 @@ from metagpt.prompts.di.team_leader import (
     QUICK_THINK_SYSTEM_PROMPT,
     SYSTEM_PROMPT,
     TL_INSTRUCTION,
+    TL_THOUGHT_GUIDANCE,
 )
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import AIMessage, Message, UserMessage
@@ -55,6 +56,7 @@ class TeamLeader(RoleZero):
 
     async def _think(self) -> bool:
         self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
+        self.thought_guidance = TL_THOUGHT_GUIDANCE
         return await super()._think()
 
     def publish_message(self, msg: Message, send_to="no one"):
