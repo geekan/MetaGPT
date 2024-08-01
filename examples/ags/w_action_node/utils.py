@@ -20,7 +20,7 @@ def extract_task_id(task_id: str) -> int:
     return int(match.group(1)) if match else 0
 
 
-def sort_json_by_task_id(input_file: str, output_file: str):
+def sort_json_by_key(input_file: str, output_file: str, key: str = "task_id"):
     """
     Read a JSONL file, sort the entries based on task_id, and write to a new JSONL file.
 
@@ -32,7 +32,7 @@ def sort_json_by_task_id(input_file: str, output_file: str):
         data = [json.loads(line) for line in f]
 
     # Sort the data based on the numeric part of task_id
-    sorted_data = sorted(data, key=lambda x: extract_task_id(x["task_id"]))
+    sorted_data = sorted(data, key=lambda x: extract_task_id(x[key]))
 
     # Write the sorted data to a new JSONL file
     with open(output_file, "w") as f:

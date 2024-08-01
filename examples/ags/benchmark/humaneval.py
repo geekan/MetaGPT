@@ -15,7 +15,7 @@ from evalplus.data import get_human_eval_plus
 
 from examples.ags.w_action_node.graph import HumanEvalGraph
 from examples.ags.w_action_node.operator import GenerateCode, GenerateCodeBlock
-from examples.ags.w_action_node.utils import sort_json_by_task_id
+from examples.ags.w_action_node.utils import sort_json_by_key
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import add_jsonl_file, read_json_file
@@ -64,20 +64,18 @@ async def route_generate(mode: ModeType, id: str):
 async def sample_generate(id, result_path: str = "samples.jsonl", mode: ModeType = "ags"):
     sample_dict = await route_generate(mode, id)
     add_jsonl_file(result_path, [sample_dict])
-    sort_json_by_task_id(result_path, result_path)
+    sort_json_by_key(result_path, result_path)
 
 
 async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl"):
     ids = list(get_human_eval_plus().keys())
     file_lock = asyncio.Lock()
 
-    @handle_exception(
-        exception_type=Exception,
-        exception_msg="Error in solve_and_write function",
-        default_return=lambda id, *args, **kwargs: id,
-    )
     async def solve_and_write(id: str, mode: ModeType) -> Optional[str]:
-        sample_dict = await route_generate(mode, id)
+        try:
+            sample_dict = await route_generate(mode, id)
+        except Exception as e:
+            return id
         async with file_lock:
             async with aiofiles.open(result_path, mode="a") as f:
                 await f.write(json.dumps(sample_dict) + "\n")
@@ -96,7 +94,7 @@ async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl"):
             except Exception:
                 logger.error(f"{task_id} fail")
 
-    sort_json_by_task_id(result_path, result_path)
+    sort_json_by_key(result_path, result_path)
 
     if not failed_tasks:
         if automatic_evalplus(result_path):
