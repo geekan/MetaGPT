@@ -9,7 +9,7 @@ from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 class Engineer2(RoleZero):
     name: str = "Alex"
     profile: str = "Engineer"
-    goal: str = "Take on game, app, and web development"
+    goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
 
     tools: list[str] = ["Plan", "Editor:write,read", "RoleZero", "ReviewAndRewriteCode"]
@@ -26,3 +26,13 @@ class Engineer2(RoleZero):
 
     def _retrieve_experience(self) -> str:
         return ENGINEER_EXAMPLE
+
+    async def _run_special_command(self, cmd) -> str:
+        """command requiring special check or parsing."""
+        # finish current task before end.
+        command_output = ""
+        if cmd["command_name"] == "end" and not self.planner.plan.is_plan_finished():
+            self.planner.plan.finish_all_tasks()
+            command_output += "All tasks are finished.\n"
+        command_output += await super()._run_special_command(cmd)
+        return command_output

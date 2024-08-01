@@ -4,6 +4,8 @@ ANALYZE_REQUIREMENTS = """
 # Example
 {examples}
 
+----------------
+
 # Requirements
 {requirements}
 
@@ -18,20 +20,20 @@ Follow the instructions and output format. Do not include any additional content
 
 EXAMPLES = """
 Example 1
-Requirements:
-Create 2048 game using Python. Do not write PRD.
-Outputs:
-[User Restrictions] : Do not write PRD.
-[Language Restrictions] : The response, message and instruction must be in the language specified by English.
-[Programming Language] : Python
-
-Example 2
 Requirements: 
 创建一个贪吃蛇，只需要给出设计文档和代码
 Outputs:
 [User Restrictions] : 只需要给出设计文档和代码.
 [Language Restrictions] : The response, message and instruction must be in the language specified by Chinese.
 [Programming Language] : HTML (*.html), CSS (*.css), and JavaScript (*.js)
+
+Example 2
+Requirements:
+Create 2048 game using Python. Do not write PRD.
+Outputs:
+[User Restrictions] : Do not write PRD.
+[Language Restrictions] : The response, message and instruction must be in the language specified by English.
+[Programming Language] : Python
 
 Example 3
 Requirements:
@@ -44,7 +46,7 @@ Outputs:
 
 INSTRUCTIONS = """
 You must output in the same language as the Requirements.
-First, This language should be consistent with the language used in the requirement description. determine the natural language you must respond in. The default language is English
+First, This language should be consistent with the language used in the requirement description. determine the natural language you must respond in. If the requirements specify a special language, follow those instructions. The default language for responses is English.
 Second, extract the restrictions in the requirements, specifically the steps. Do not include detailed demand descriptions; focus only on the restrictions.
 Third, if the requirements is a software development, extract the program language. If If no specific programming language is required, Use HTML (*.html), CSS (*.css), and JavaScript (*.js)
 

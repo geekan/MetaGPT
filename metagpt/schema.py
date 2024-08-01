@@ -657,6 +657,11 @@ class Plan(BaseModel):
             self.current_task.is_finished = True
             self._update_current_task()  # set to next task
 
+    def finish_all_tasks(self):
+        "Finish all tasks."
+        while self.current_task:
+            self.finish_current_task()
+
     def is_plan_finished(self) -> bool:
         """Check if all tasks are finished"""
         return all(task.is_finished for task in self.tasks)
@@ -669,14 +674,16 @@ class Plan(BaseModel):
         """
         return [task for task in self.tasks if task.is_finished]
 
-    def append_task(self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""):
+    def append_task(
+        self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""
+    ):
         """Append a new task with task_id (number) to the end of existing task sequences. If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list. Note that the assignee should be the 'name' of the role."""
         new_task = Task(
             task_id=task_id,
             dependent_task_ids=dependent_task_ids,
             instruction=instruction,
             assignee=assignee,
-            task_type=task_type
+            task_type=task_type,
         )
         return self._append_task(new_task)
 
