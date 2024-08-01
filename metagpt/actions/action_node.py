@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
+from metagpt.actions.code_sanitize import sanitize
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
@@ -37,9 +38,11 @@ class ReviseMode(Enum):
 
 
 TAG = "CONTENT"
+MODE_CODE_FILL = "code_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
+
 
 SIMPLE_TEMPLATE = """
 ## context
@@ -464,6 +467,41 @@ class ActionNode:
 
         return self
 
+    def get_field_name(self):
+        """
+        Get the field name from the Pydantic model associated with this ActionNode.
+        """
+        model_class = self.create_class()
+        fields = model_class.model_fields
+
+        # Assuming there's only one field in the model
+        if len(fields) == 1:
+            return next(iter(fields))
+
+        # If there are multiple fields, we might want to use self.key to find the right one
+        return self.key
+
+    async def code_fill(self, context, function_name=None, timeout=USE_CONFIG_TIMEOUT):
+        """
+        fill CodeBlock Node
+        """
+
+        field_name = self.get_field_name()
+        prompt = context
+        content = await self.llm.aask(prompt, timeout=timeout)
+        extracted_code = sanitize(code=content, entrypoint=function_name)
+        result = {field_name: extracted_code}
+        return result
+
+    async def messages_fill(
+        self,
+    ):
+        """
+        参考这个代码，只不过LLM调用方式改成使用；
+        参考
+        """
+        pass
+
     async def fill(
         self,
         context,
@@ -474,6 +512,7 @@ class ActionNode:
         images: Optional[Union[str, list[str]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
         exclude=[],
+        function_name: str = None,
     ):
         """Fill the node(s) with mode.
 
@@ -499,6 +538,11 @@ class ActionNode:
         self.set_context(context)
         if self.schema:
             schema = self.schema
+
+        if mode == MODE_CODE_FILL:
+            result = await self.code_fill(context, function_name, timeout)
+            self.instruct_content = self.create_class()(**result)
+            return self
 
         if strgy == "simple":
             return await self.simple_fill(schema=schema, mode=mode, images=images, timeout=timeout, exclude=exclude)
