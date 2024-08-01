@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Coroutine, Optional, Union
 
 from pydantic import TypeAdapter, model_validator
 
@@ -160,7 +160,7 @@ class CollectLinks(Action):
             A list of ranked URLs.
         """
         max_results = max(num_results * 2, 6)
-        results = await self.search_engine.run(query, max_results=max_results, as_string=False)
+        results = await self._search_urls(query, max_results=max_results)
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
         prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results)
         logger.debug(prompt)
@@ -175,6 +175,9 @@ class CollectLinks(Action):
         if self.rank_func:
             results = self.rank_func(results)
         return [i["link"] for i in results[:num_results]]
+
+    async def _search_urls(self, query: str, max_results: int) -> list[str]:
+        return await self.search_engine.run(query, max_results=max_results, as_string=False)
 
 
 class WebBrowseAndSummarize(Action):
@@ -202,6 +205,7 @@ class WebBrowseAndSummarize(Action):
         *urls: str,
         query: str,
         system_text: str = RESEARCH_BASE_SYSTEM,
+        use_concurrent_summarization: bool = False,
     ) -> dict[str, str]:
         """Run the action to browse the web and provide summaries.
 
@@ -210,6 +214,7 @@ class WebBrowseAndSummarize(Action):
             urls: Additional URLs to browse.
             query: The research question.
             system_text: The system text.
+            use_concurrent_summarization: Whether to concurrently summarize the content of the webpage by LLM.
 
         Returns:
             A dictionary containing the URLs as keys and their summaries as values.
@@ -218,31 +223,47 @@ class WebBrowseAndSummarize(Action):
         if not urls:
             contents = [contents]
 
-        summaries = {}
+        all_urls = [url] + list(urls)
+        summarize_tasks = [
+            self._summarize_content(url, content, query, system_text) for url, content in zip(all_urls, contents)
+        ]
+
+        summaries = await self._execute_summarize_tasks(summarize_tasks, use_concurrent_summarization)
+
+        return dict(summaries)
+
+    async def _summarize_content(self, url: str, content: str, query: str, system_text: str) -> tuple[str, str]:
         prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
-        for u, content in zip([url, *urls], contents):
-            content = content.inner_text
-            chunk_summaries = []
-            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
-                logger.debug(prompt)
-                summary = await self._aask(prompt, [system_text])
-                if summary == "Not relevant.":
-                    continue
-                chunk_summaries.append(summary)
 
-            if not chunk_summaries:
-                summaries[u] = None
-                continue
-
-            if len(chunk_summaries) == 1:
-                summaries[u] = chunk_summaries[0]
-                continue
-
-            content = "\n".join(chunk_summaries)
-            prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
+        content = content.inner_text
+        chunk_summaries = []
+        for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
+            logger.debug(prompt)
             summary = await self._aask(prompt, [system_text])
-            summaries[u] = summary
-        return summaries
+            if summary == "Not relevant.":
+                continue
+            chunk_summaries.append(summary)
+
+        if not chunk_summaries:
+            return url, None
+
+        if len(chunk_summaries) == 1:
+            return url, chunk_summaries[0]
+
+        content = "\n".join(chunk_summaries)
+        prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
+        summary = await self._aask(prompt, [system_text])
+        return url, summary
+
+    async def _execute_summarize_tasks(
+        self, tasks: list[Coroutine[Any, Any, tuple[str, str]]], use_concurrent: bool
+    ) -> list[tuple[str, str]]:
+        """Execute summarize tasks either concurrently or sequentially."""
+
+        if use_concurrent:
+            return await asyncio.gather(*tasks)
+
+        return [await task for task in tasks]
 
 
 class ConductResearch(Action):

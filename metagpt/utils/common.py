@@ -15,6 +15,7 @@ import ast
 import base64
 import contextlib
 import csv
+import functools
 import importlib
 import inspect
 import json
@@ -23,7 +24,10 @@ import os
 import platform
 import re
 import sys
+import time
 import traceback
+from asyncio import iscoroutinefunction
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
@@ -1044,3 +1048,35 @@ def tool2name(cls, methods: List[str], entry) -> Dict[str, Any]:
     if len(mappings) < 2:
         mappings[class_name] = entry
     return mappings
+
+
+def log_time(method):
+    """A time-consuming decorator for printing execution duration."""
+
+    def before_call():
+        start_time, cpu_start_time = time.perf_counter(), time.process_time()
+        logger.info(f"[{method.__name__}] started at: " f"{datetime.now().strftime('%Y-%m-%d %H:%m:%S')}")
+        return start_time, cpu_start_time
+
+    def after_call(start_time, cpu_start_time):
+        end_time, cpu_end_time = time.perf_counter(), time.process_time()
+        logger.info(
+            f"[{method.__name__}] ended. "
+            f"Time elapsed: {end_time - start_time:.4} sec, CPU elapsed: {cpu_end_time - cpu_start_time:.4} sec"
+        )
+
+    @functools.wraps(method)
+    def timeit_wrapper(*args, **kwargs):
+        start_time, cpu_start_time = before_call()
+        result = method(*args, **kwargs)
+        after_call(start_time, cpu_start_time)
+        return result
+
+    @functools.wraps(method)
+    async def timeit_wrapper_async(*args, **kwargs):
+        start_time, cpu_start_time = before_call()
+        result = await method(*args, **kwargs)
+        after_call(start_time, cpu_start_time)
+        return result
+
+    return timeit_wrapper_async if iscoroutinefunction(method) else timeit_wrapper
