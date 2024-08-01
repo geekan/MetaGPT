@@ -38,6 +38,7 @@ class ReviseMode(Enum):
 
 
 TAG = "CONTENT"
+MODE_CODE_FILL = "code_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
@@ -148,8 +149,6 @@ class ActionNode:
     # For ActionGraph
     prevs: List["ActionNode"]  # previous nodes
     nexts: List["ActionNode"]  # next nodes
-
-    MODE_CODE_FILL = "code_fill"
 
     def __init__(
         self,
