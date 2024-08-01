@@ -7,45 +7,22 @@ GENERATE_PROMPT = """
 Generate Solution for the following problem: {problem_description}
 """
 
-# GENERATE_CODE_PROMPT = """
-# Below is an instruction that describes a task, paired with an input that provides further context.
-# Write a response that appropriately completes the request.
-
-# ### Instruction:
-# Write a program to perform the given task.
-
-# Input:
-# {problem_description}
-
-# ### Response:
-# """
-
 GENERATE_CODE_PROMPT = """
 You are an expert programmer tasked with solving a coding problem.
 
-### Problem Description:
+### Problem Description
 {problem_description}
 
-### Instructions:
+### Instructions
 The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
 Please maintain the JSON format in your response.
-### Your Response: 
+### Your Response 
 """
-
-# GENERATE_CODEBLOCK_PROMPT = """
-# You are an expert programmer tasked with solving a coding problem.
-
-# ### Problem Description:
-# {problem_description}
-
-# ### Instructions:
-# The above is an incomplete Python code fragment. Return the complete and correct code with no additional text.
-# """
 
 GENERATE_CODEBLOCK_REPHRASE_PROMPT = """
 Please provide a self-contained  Python script that solves the following problem in a markdown code block:
 
-### Problem Description:
+### Problem Description
 {problem_description}
 
 ### self reflection on the problem
@@ -58,12 +35,7 @@ When creating your solution:
 4. Avoid adding additional test cases beyond those provided in the problem description.
 """
 
-# GENERATE_CODEBLOCK_PROMPT = """
-# Please provide a self-contained Python script that solves the following problem in a markdown code block:
-# {problem_description}
-# """
-
-GENERATE_CODEBLOCK_PROMPT ="""
+GENERATE_CODEBLOCK_PROMPT = """
 Please provide a self-contained  Python script that solves the following problem in a markdown code block:
 
 {problem_description}
@@ -127,10 +99,10 @@ Please strictly output in JSON format, do not output irrelevant content. """
 
 DE_ENSEMBLE_CODE_FORMAT_PROMPT = """
 Now please output your answer in json format, with the format as follows:
-{{
-    "reason":"<为什么要这样做>",
-    "code_solution":"<你觉得合适的solution，用代码表示出来>"
-}}
+{
+    "reason":"<why do it this way>",
+    "code_solution":"<the solution you think is appropriate, expressed in code>"
+}
 Please strictly output in JSON format, do not output irrelevant content. """
 
 DE_ENSEMBLE_ANGEL_PROMPT = """
@@ -159,18 +131,6 @@ You, as the moderator, will evaluate both sides' answers and determine if there 
             Please strictly output in JSON format, do not output irrelevant content
 """
 
-EXTRACT_CASE_PROMPT = """
-You are given a coding problem, and you need to extract the test cases from the problem description.
-{problem_description}
-
-一个problem中会有多个测试用例，每个测试用例包含三个部分：
-1. 函数名
-2. 输入
-3. 期望输出
-每个测试用例包裹在一个三元组之中，三元组之间用逗号分隔，整体用列表包裹。
-由于结果需要被解析到JSON中，True与False请表示为true, false;
-"""
-
 REPHRASE_ON_PROBLEM_PROMPT = """
 You are given a code contest problem:
 
@@ -183,26 +143,26 @@ Reflect on the problem, and describe it in your own words, in bullet points. Pay
 
 """
 
-REFLECTION_ON_PUBILIC_TEST_PROMPT = """
-
+REFLECTION_ON_PUBLIC_TEST_PROMPT = """
 You are given a code contest problem, and a self-reflection on the problem: 
 ### problem
 {problem_description}
 
+
 ### self reflection on the problem
 {rephrase_problem}
 
-=======================
+
 A Python code solution was generated for the problem:
 ### Code Solution
 {code_solution}
 
-=======================
+
 This section of the code execution result is
 ### Execution Result
 {exec_pass}
 
-=======================
+
 However, when running the following input example, the code solution above failed to produce the expected output:
 #### Failed Test Case
 {test_fail}
@@ -210,4 +170,31 @@ However, when running the following input example, the code solution above faile
 Your goal is to analyze the code solution and the error, and propose a fixed code which will produce the expected output for the provided test input.
 The fixed code should keep the solution robust, and work for all other input examples as well.
 Make sure the fixed code has a reasonable runtime - less than three seconds on a modern computer, given the problem constraints for large input.
+"""
+
+EXTRACT_CASE_PROMPT = """
+You are given a coding problem, and you need to extract the test cases from the problem description.
+
+## Problem Description
+{problem_description}
+
+Your task is to extract test cases from the above description and convert them into Python assert statements (as strings). These statements should be returned in a list for testing purposes.
+
+Example:
+Input:
+>>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+False
+>>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+True
+
+Output:
+[
+    "assert candidate([1.0, 2.0, 3.0], 0.5) == False",
+    "assert candidate([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3) == True"
+]
+
+Please ensure that:
+1. Each test case is converted to a separate assert statement.
+2. The function name in the original example (e.g., 'has_close_elements') is replaced with 'candidate'.
+3. The assert statements are returned as strings in a list.
 """

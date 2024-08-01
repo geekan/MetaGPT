@@ -1,21 +1,19 @@
 import asyncio
-import json
-from metagpt.llm import LLM
-from evalplus.data import get_human_eval_plus, write_jsonl
-from examples.ags.benchmark.humaneval import sample_generate, samples_generate, extract_failure_tests, automatic_evalplus
-from examples.ags.w_action_node.utils import jsonl_ranker, llm_extract_test_case
-from examples.ags.w_action_node.graph import HumanEvalGraph
-from examples.ags.w_action_node.utils import extract_test_cases_from_jsonl
-# 132 141 136 80 73
-# asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm")) 
-# asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm")) 
-# asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm")) 
+
+from examples.ags.benchmark.humaneval import sample_generate, samples_generate
+
+asyncio.run(sample_generate("HumanEval/0", result_path="llm_based_1000.jsonl", mode="llm"))
+asyncio.run(samples_generate(mode="alpha_codium", result_path="alpha_based_1000.jsonl"))
+
+# asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm"))
+# asyncio.run(sample_generate('HumanEval/140',result_path="llm_based_1000.jsonl",mode="llm"))
 # asyncio.run(sample_generate('HumanEval/67',result_path="llm_based_1000.jsonl",mode="llm"))
 # asyncio.run(sample_generate('HumanEval/108',result_path="llm_based_1000.jsonl",mode="llm"))
 # asyncio.run(sample_generate('HumanEval/110',result_path="llm_based_1000.jsonl",mode="llm"))
-asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_104.jsonl"))
-# jsonl_ranker("llm_based_137.jsonl", "llm_based_137.jsonl")
+# asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_108.jsonl"))
+# sort_json_by_key("alpha_based_108.jsonl", "alpha_based_108.jsonl")
 
+# 64 84 160 148 109
 # result_path = "ags_based_6.jsonl"
 # if automatic_evalplus(result_path):
 #     unpassed_exapmle = extract_failure_tests(result_path[:-6]+"_eval_results.json")
@@ -26,9 +24,6 @@ asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_104.jsonl"))
 
 # for example in failure_list:
 #     asyncio.run(sample_generate(example))
-
-# TODO 抽取Public Test没搞完，先用几个测试跑一下流程
-# from evalplus.data import get_human_eval_plus
 
 # id_list = [87, 95, 107, 112, 127, 136, 148, 155]
 # id_list = [155]
@@ -52,6 +47,6 @@ asyncio.run(samples_generate(mode='alpha',result_path="alpha_based_104.jsonl"))
 # solver = HumanEvalGraph(name="solver", llm=LLM(), criteria='correctness, efficiency, readability', vote_count=1)
 # result = asyncio.run(solver.alpha_codium(problem_id="HumanEval/140", problem=case_prompt, ensemble_count=1))
 
-# 1. Public Test 数据集不对 
+# 1. Public Test 数据集不对
 # 2. 修改两个Prompt的具体内容
 # 3. 尝试增加Test错误之后的修改能力
