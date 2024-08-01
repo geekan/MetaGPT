@@ -74,7 +74,7 @@ async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl"):
     async def solve_and_write(id: str, mode: ModeType) -> Optional[str]:
         try:
             sample_dict = await route_generate(mode, id)
-        except Exception as e:
+        except Exception:
             return id
         async with file_lock:
             async with aiofiles.open(result_path, mode="a") as f:

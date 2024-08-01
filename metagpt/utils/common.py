@@ -602,7 +602,7 @@ def add_jsonl_file(jsonl_file: str, data: list[dict], encoding: str = None):
 
     with open(jsonl_file, "a", encoding=encoding) as fout:
         for json_item in data:
-            fout.write(json.dumps(json_item) + '\n')
+            fout.write(json.dumps(json_item) + "\n")
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
