@@ -71,13 +71,11 @@ async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl"):
     ids = list(get_human_eval_plus().keys())
     file_lock = asyncio.Lock()
 
-    @handle_exception(
-        exception_type=Exception,
-        exception_msg="Error in solve_and_write function",
-        default_return=lambda id, *args, **kwargs: id,
-    )
     async def solve_and_write(id: str, mode: ModeType) -> Optional[str]:
-        sample_dict = await route_generate(mode, id)
+        try:
+            sample_dict = await route_generate(mode, id)
+        except Exception:
+            return id
         async with file_lock:
             async with aiofiles.open(result_path, mode="a") as f:
                 await f.write(json.dumps(sample_dict) + "\n")

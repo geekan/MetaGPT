@@ -539,7 +539,7 @@ class ActionNode:
         if self.schema:
             schema = self.schema
 
-        if mode == self.MODE_CODE_FILL:
+        if mode == MODE_CODE_FILL:
             result = await self.code_fill(context, function_name, timeout)
             self.instruct_content = self.create_class()(**result)
             return self

@@ -595,15 +595,14 @@ def read_jsonl_file(jsonl_file: str, encoding="utf-8") -> list[dict]:
     return datas
 
 
-def add_jsonl_file(jsonl_file: str, data: list[dict], encoding: str = None, indent: int = 4):
+def add_jsonl_file(jsonl_file: str, data: list[dict], encoding: str = None):
     folder_path = Path(jsonl_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(jsonl_file, "a", encoding=encoding) as fout:
         for json_item in data:
-            json_str = json.dumps(json_item, indent=indent)
-            fout.write(json_str + "\n")
+            fout.write(json.dumps(json_item) + "\n")
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
