@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/1 11:59
-@Author  : alexanderwu
-@File    : const.py
-@Modified By: mashenquan, 2023-11-1. According to Section 2.2.1 and 2.2.2 of RFC 116, added key definitions for
-        common properties in the Message.
-@Modified By: mashenquan, 2023-11-27. Defines file repository paths according to Section 2.2.3.4 of RFC 135.
-@Modified By: mashenquan, 2023/12/5. Add directories for code summarization..
-"""
+
 import os
 from pathlib import Path
 

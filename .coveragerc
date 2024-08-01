@@ -1,0 +1,7 @@
+[run]
+source = 
+    ./metagpt/
+omit = 
+    */metagpt/environment/android/*
+    */metagpt/ext/android_assistant/*
+    */metagpt/ext/werewolf/*
