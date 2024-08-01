@@ -219,20 +219,25 @@ class WebBrowseAndSummarize(Action):
         Returns:
             A dictionary containing the URLs as keys and their summaries as values.
         """
-        contents = await self.web_browser_engine.run(url, *urls)
-        if not urls:
-            contents = [contents]
+        contents = await self._fetch_web_contents(url, *urls)
 
         all_urls = [url] + list(urls)
-        summarize_tasks = [
-            self._summarize_content(url, content, query, system_text) for url, content in zip(all_urls, contents)
-        ]
-
+        summarize_tasks = [self._summarize_content(content, query, system_text) for content in contents]
         summaries = await self._execute_summarize_tasks(summarize_tasks, use_concurrent_summarization)
+        result = {url: summary for url, summary in zip(all_urls, summaries) if summary is not None}
 
-        return dict(summaries)
+        return result
 
-    async def _summarize_content(self, url: str, content: str, query: str, system_text: str) -> tuple[str, str]:
+    async def _fetch_web_contents(self, url: str, *urls: str) -> list[str]:
+        """Fetch web contents from given URLs."""
+
+        contents = await self.web_browser_engine.run(url, *urls)
+
+        return [contents] if not urls else contents
+
+    async def _summarize_content(self, content: str, query: str, system_text: str) -> tuple[str, str]:
+        """Summarize web content."""
+
         prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
 
         content = content.inner_text
@@ -245,19 +250,17 @@ class WebBrowseAndSummarize(Action):
             chunk_summaries.append(summary)
 
         if not chunk_summaries:
-            return url, None
+            return None
 
         if len(chunk_summaries) == 1:
-            return url, chunk_summaries[0]
+            return chunk_summaries[0]
 
         content = "\n".join(chunk_summaries)
         prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
         summary = await self._aask(prompt, [system_text])
-        return url, summary
+        return summary
 
-    async def _execute_summarize_tasks(
-        self, tasks: list[Coroutine[Any, Any, tuple[str, str]]], use_concurrent: bool
-    ) -> list[tuple[str, str]]:
+    async def _execute_summarize_tasks(self, tasks: list[Coroutine[Any, Any, str]], use_concurrent: bool) -> list[str]:
         """Execute summarize tasks either concurrently or sequentially."""
 
         if use_concurrent:
