@@ -147,6 +147,13 @@ def test_compress_messages_long(compress_type):
     assert compressed[2]["role"] != "system"
 
 
+def test_long_messages_no_compress():
+    base_llm = MockBaseLLM()
+    messages = [{"role": "user", "content": "1" * 10000}] * 10000
+    compressed = base_llm.compress_messages(messages)
+    assert len(compressed) == len(messages)
+
+
 @pytest.mark.parametrize(
     "compress_type", ["post_cut_by_msg", "post_cut_by_token", "pre_cut_by_msg", "pre_cut_by_token"]
 )

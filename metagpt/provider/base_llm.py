@@ -148,7 +148,7 @@ class BaseLLM(ABC):
         else:
             message.extend(msg)
         logger.debug(message)
-        compressed_message = self.compress_messages(message, compress_type="post_cut_by_token")
+        compressed_message = self.compress_messages(message, compress_type=self.config.compress_type)
         rsp = await self.acompletion_text(compressed_message, stream=stream, timeout=self.get_timeout(timeout))
         # rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp

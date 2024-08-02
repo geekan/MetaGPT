@@ -86,6 +86,9 @@ class LLMConfig(YamlModel):
     # Cost Control
     calc_usage: bool = True
 
+    # Compress request messages under token limit
+    compress_type: str = ""
+
     @field_validator("api_key")
     @classmethod
     def check_llm_key(cls, v):
