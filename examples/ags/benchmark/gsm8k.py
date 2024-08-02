@@ -16,6 +16,7 @@ from examples.ags.w_action_node.operator import GenerateCode, GenerateCodeBlock
 from deepeval.benchmarks import GSM8K
 from deepeval.benchmarks.gsm8k.template import GSM8KTemplate
 import pandas as pd
+from tqdm.asyncio import tqdm_asyncio
 
 solver = Gsm8kGraph(name="solver", llm=LLM())
 
@@ -43,40 +44,60 @@ class OpenAI(DeepEvalBaseLLM):
     def get_model_name(self):
         return "Custom Azure OpenAI Model"
 
-async def async_evaluate_problem(model, golden, benchmark):
+
+import asyncio
+
+async def async_evaluate_problem(model, golden, benchmark, semaphore):
     prompt = GSM8KTemplate.generate_output(
         train_set=benchmark.shots_dataset,
         input=golden.input,
         n_shots=benchmark.n_shots,
         enable_cot=benchmark.enable_cot,
     )
-    prediction = await model.a_generate(prompt)
-    score = benchmark.scorer.exact_match_score(golden.expected_output, prediction)
+
+    max_retries = 5
+    retries = 0
+
+    async with semaphore:
+        while retries < max_retries:
+            try:
+                prediction = await model.a_generate(prompt)
+                score = benchmark.scorer.exact_match_score(golden.expected_output, prediction)
+                break
+
+            except Exception as e:
+                retries += 1
+                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+
+                if retries == max_retries:
+                    print("Maximum retries reached. Skipping this sample.")
+                    prediction = None
+                    score = 0
+                    break
+
     return golden.input, prediction, golden.expected_output, score
 
 
-async def evaluate_benchmark(benchmark, model):
+async def evaluate_benchmark(benchmark, model, max_concurrent_tasks=20):
+    semaphore = asyncio.Semaphore(max_concurrent_tasks)
     goldens = benchmark.load_benchmark_dataset()[:benchmark.n_problems]
-    tasks = [async_evaluate_problem(model, golden, benchmark) for golden in goldens]
-    results = await asyncio.gather(*tasks)
+    tasks = [async_evaluate_problem(model, golden, benchmark, semaphore) for golden in goldens]
+    results = await tqdm_asyncio.gather(*tasks)
 
     overall_correct_predictions = sum(score for _, _, _, score in results)
     overall_total_predictions = benchmark.n_problems
     overall_accuracy = overall_correct_predictions / overall_total_predictions
 
-    predictions_row = [(input, prediction, expected_output, score) for input, prediction, expected_output, score in
-                       results]
-    benchmark.predictions = pd.DataFrame(predictions_row,
-                                         columns=["Input", "Prediction", "Expected Output", "Correct"])
+    predictions_row = [(input, prediction, expected_output, score) for input, prediction, expected_output, score in results]
+    benchmark.predictions = pd.DataFrame(predictions_row, columns=['input', 'prediction', 'expected output', 'score'])
     benchmark.overall_score = overall_accuracy
 
-    now = datetime.datetime.now().time()
+    now = datetime.datetime.now()
     now_time = now.strftime("%Y-%m-%d_%H-%M-%S").replace(':', '_')
 
-    # Save the detailed data to a CSV file
     benchmark.predictions.to_csv(f'gsm8k_{overall_accuracy}_{now_time}.csv', index=False)
 
-    print(f"Overall GSM8K Accuracy: {overall_accuracy}")
+    print(f"整体GSM8K准确率: {overall_accuracy}")
     return overall_accuracy
 
 if __name__ == '__main__':
@@ -86,7 +107,7 @@ if __name__ == '__main__':
 
     # 定义 benchmark,problems代表测试问题数,注释掉就可以完整测试,n_shot设置为0当前为zero shot,enable_cot是官方的COT的Prompt，建议关闭，用我们自己的graph实现
     benchmark = GSM8K(
-        n_problems=10,
+        # n_problems=100,
         n_shots=0,
         enable_cot=False
     )

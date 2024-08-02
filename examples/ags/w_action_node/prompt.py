@@ -200,7 +200,28 @@ Please ensure that:
 """
 
 MATH_GENERATE_PROMPT = """
-Generate Solution for the following problem: {problem_description}
+{problem_description}
+
+### Instructions
+Please extract the core question, only the most comprehensive and detailed one!
+extract the problem-solving information related to the core question , Only extract the most useful information, list them one by one!
+Please understand the Hint and question information, then solve the question step by step and show the answer.
+
+Please provide the solution without using any backslash (\) characters (such as LaTeX formatting) or other special symbols that may cause formatting issues in JSON.
+"""
+
+MATH_CORE_PROMPT = """
+### Problem
+{problem_description}
+
+Please extract the core question, only the most comprehensive and detailed one!
+"""
+
+MATH_EXTRACT_PROMPT = """
+### Problem
+{problem_description}
+
+Note: Please extract the problem-solving information related to the core question [Core Question info], Only extract the most useful information, list them one by one!
 """
 
 MATH_REPHRASE_ON_PROBLEM_PROMPT = """

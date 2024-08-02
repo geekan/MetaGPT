@@ -111,12 +111,43 @@ class Gsm8kGraph(Graph):
         super().__init__(name, llm)
         self.generate = Generate(llm=llm)
         self.rephrase = Rephrase(llm=llm)
+        self.fuensemble = FuEnsemble(llm=llm)
+
 
     async def __call__(self, problem: str):
         formatted_problem = await self.rephrase.math_rephrase(problem)
         solution = await self.generate.math_generate(formatted_problem)  # 等待 generate 方法完成
         solution0 = solution['solution']
         formatted_solution = await self.generate.math_answer_format(solution0)
+        return formatted_solution
+
+    async def cot_ensemble(self, problem: str, ensemble_count: int = 1):
+
+        solution_list = []
+        for _ in range(ensemble_count):
+            core = await self.rephrase.math_core(problem)
+            extract = await self.rephrase.math_extract(problem)
+            formatted_problem = f"### Problem\n{problem}\n### Problem-Solving Info\n{extract}\n### Core Question\n{core}\n"
+            solution = await self.generate.math_generate(formatted_problem)  # 等待 generate 方法完成
+            # solution = await self.generate_code_block(problem)
+            solution0 = solution.get("solution")
+            solution_list.append(solution0)
+        solution = await self.fuensemble(solution_list, problem)
+        solution0 = solution['solution']
+        formatted_solution = await self.generate.math_answer_format(solution0)
+
+        return formatted_solution
+
+    async def cot(self, problem: str):
+
+        core = await self.rephrase.math_core(problem)
+        extract = await self.rephrase.math_extract(problem)
+        formatted_problem = f"### Problem\n{problem}\n### Problem-Solving Info\n{extract}\n### Core Question\n{core}\n"
+        solution = await self.generate.math_generate(formatted_problem)  # 等待 generate 方法完成
+        # solution = await self.generate_code_block(problem)
+        solution0 = solution.get("solution")
+        formatted_solution = await self.generate.math_answer_format(solution0)
+
         return formatted_solution
 
 

@@ -41,7 +41,9 @@ from examples.ags.w_action_node.prompt import (
     REVISE_PROMPT,
     MATH_GENERATE_PROMPT,
     MATH_REPHRASE_ON_PROBLEM_PROMPT,
-    MATH_ANSWER_FORMAT_PROMPT
+    MATH_ANSWER_FORMAT_PROMPT,
+    MATH_CORE_PROMPT,
+    MATH_EXTRACT_PROMPT
 )
 from examples.ags.w_action_node.utils import test_cases_2_test_functions
 from metagpt.actions.action_node import ActionNode
@@ -371,6 +373,18 @@ class Rephrase(Operator):
 
     async def math_rephrase(self, problem_description: str) -> str:
         prompt = MATH_REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+
+    async def math_core(self, problem_description: str) -> str:
+        prompt = MATH_CORE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+
+    async def math_extract(self, problem_description: str) -> str:
+        prompt = MATH_EXTRACT_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response["rephrased_problem"]
