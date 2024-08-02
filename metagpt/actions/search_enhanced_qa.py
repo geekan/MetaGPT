@@ -37,7 +37,7 @@ I will provide you with a question. Your task is to provide a better search quer
 Format: Just print the result in json format like **Format Example**.
 
 ## Action
-Follow instructions, generate output and make sure it follows the **Constraint**.
+Follow **Instructions**, generate output and make sure it follows the **Constraint**.
 """
 
 SEARCH_ENHANCED_QA_SYSTEM_PROMPT = """
