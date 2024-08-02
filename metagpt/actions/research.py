@@ -13,6 +13,7 @@ from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import OutputParser
+from metagpt.utils.parse_html import WebPage
 from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
 
 LANG_PROMPT = "Please respond in {language}."
@@ -226,26 +227,28 @@ class WebBrowseAndSummarize(Action):
         all_urls = [url] + list(urls)
         summarize_tasks = [self._summarize_content(content, query, system_text) for content in contents]
         summaries = await self._execute_summarize_tasks(summarize_tasks, use_concurrent_summarization)
-        result = {url: summary for url, summary in zip(all_urls, summaries) if summary is not None}
+        result = {url: summary for url, summary in zip(all_urls, summaries) if summary}
 
         return result
 
-    async def _fetch_web_contents(self, url: str, *urls: str, per_page_timeout: Optional[float] = None) -> list[str]:
+    async def _fetch_web_contents(
+        self, url: str, *urls: str, per_page_timeout: Optional[float] = None
+    ) -> list[WebPage]:
         """Fetch web contents from given URLs."""
 
         contents = await self.web_browser_engine.run(url, *urls, per_page_timeout=per_page_timeout)
 
         return [contents] if not urls else contents
 
-    async def _summarize_content(self, content: str, query: str, system_text: str) -> str:
+    async def _summarize_content(self, page: WebPage, query: str, system_text: str) -> str:
         """Summarize web content."""
         try:
             prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
 
-            content = content.inner_text
+            content = page.inner_text
 
             if self._is_content_invalid(content):
-                logger.warning(f"Invalid content detected: {content[:10]}...")
+                logger.warning(f"Invalid content detected for URL {page.url}: {content[:10]}...")
                 return None
 
             chunk_summaries = []
