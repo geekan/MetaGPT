@@ -8,6 +8,7 @@
 
 import pytest
 
+from metagpt.configs.compress_msg_config import CompressType
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message
@@ -106,9 +107,7 @@ async def test_async_base_llm():
     # assert resp == default_resp_cont
 
 
-@pytest.mark.parametrize(
-    "compress_type", ["post_cut_by_msg", "post_cut_by_token", "pre_cut_by_msg", "pre_cut_by_token"]
-)
+@pytest.mark.parametrize("compress_type", list(CompressType))
 def test_compress_messages_no_effect(compress_type):
     base_llm = MockBaseLLM()
     messages = [
@@ -123,9 +122,7 @@ def test_compress_messages_no_effect(compress_type):
     assert compressed == messages
 
 
-@pytest.mark.parametrize(
-    "compress_type", ["post_cut_by_msg", "post_cut_by_token", "pre_cut_by_msg", "pre_cut_by_token"]
-)
+@pytest.mark.parametrize("compress_type", CompressType.cut_types())
 def test_compress_messages_long(compress_type):
     base_llm = MockBaseLLM()
     base_llm.config.model = "test_llm"
@@ -142,7 +139,7 @@ def test_compress_messages_long(compress_type):
 
     print(compressed)
     print(len(compressed))
-    assert len(compressed) < len(messages)
+    assert 3 <= len(compressed) < len(messages)
     assert compressed[0]["role"] == "system" and compressed[1]["role"] == "system"
     assert compressed[2]["role"] != "system"
 
@@ -154,9 +151,7 @@ def test_long_messages_no_compress():
     assert len(compressed) == len(messages)
 
 
-@pytest.mark.parametrize(
-    "compress_type", ["post_cut_by_msg", "post_cut_by_token", "pre_cut_by_msg", "pre_cut_by_token"]
-)
+@pytest.mark.parametrize("compress_type", CompressType.cut_types())
 def test_compress_messages_long_no_sys_msg(compress_type):
     base_llm = MockBaseLLM()
     base_llm.config.model = "test_llm"

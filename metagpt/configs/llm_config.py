@@ -10,6 +10,7 @@ from typing import Optional
 
 from pydantic import field_validator
 
+from metagpt.configs.compress_msg_config import CompressType
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.utils.yaml_model import YamlModel
 
@@ -87,7 +88,7 @@ class LLMConfig(YamlModel):
     calc_usage: bool = True
 
     # Compress request messages under token limit
-    compress_type: str = ""
+    compress_type: CompressType = CompressType.NO_COMPRESS
 
     @field_validator("api_key")
     @classmethod
@@ -100,3 +101,8 @@ class LLMConfig(YamlModel):
     @classmethod
     def check_timeout(cls, v):
         return v or LLM_API_TIMEOUT
+
+    @field_validator("compress_type")
+    @classmethod
+    def check_compress_type(cls, v):
+        return CompressType.get_type(v)

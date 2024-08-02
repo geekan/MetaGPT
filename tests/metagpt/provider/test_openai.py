@@ -9,6 +9,7 @@ from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
+from metagpt.configs.compress_msg_config import CompressType
 from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -202,7 +203,7 @@ def test_count_tokens_long():
 async def test_aask_long():
     llm = LLM()
     llm.config.model = "deepseek-ai/DeepSeek-Coder-V2-Instruct"  # deepseek-coder on siliconflow, limit 32k
-    llm.config.compress_type = "post_cut_by_token"
+    llm.config.compress_type = CompressType.POST_CUT_BY_TOKEN
     test_msg_content = " ".join([str(i) for i in range(100000)])  # corresponds to ~300k tokens
     messages = [
         llm._system_msg("You are a helpful assistant"),
