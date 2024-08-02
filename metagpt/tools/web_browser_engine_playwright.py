@@ -42,7 +42,10 @@ class PlaywrightWrapper(BaseModel):
         if "ignore_https_errors" in kwargs:
             self.context_kwargs["ignore_https_errors"] = kwargs["ignore_https_errors"]
 
-    async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
+        if "java_script_enabled" in kwargs:
+            self.context_kwargs["java_script_enabled"] = kwargs["java_script_enabled"]
+
+    async def run(self, url: str, *urls: str, per_page_timeout: float = None) -> WebPage | list[WebPage]:
         async with async_playwright() as ap:
             browser_type = getattr(ap, self.browser_type)
             await self._run_precheck(browser_type)
@@ -50,11 +53,17 @@ class PlaywrightWrapper(BaseModel):
             _scrape = self._scrape
 
             if urls:
-                return await asyncio.gather(_scrape(browser, url), *(_scrape(browser, i) for i in urls))
-            return await _scrape(browser, url)
+                return await asyncio.gather(
+                    _scrape(browser, url, per_page_timeout), *(_scrape(browser, i, per_page_timeout) for i in urls)
+                )
+            return await _scrape(browser, url, per_page_timeout)
 
-    async def _scrape(self, browser, url):
+    async def _scrape(self, browser, url, timeout: float = None):
         context = await browser.new_context(**self.context_kwargs)
+
+        if timeout is not None:
+            context.set_default_timeout(timeout * 1000)  # playwright uses milliseconds.
+
         page = await context.new_page()
         async with page:
             try:
