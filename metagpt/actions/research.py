@@ -206,6 +206,7 @@ class WebBrowseAndSummarize(Action):
         query: str,
         system_text: str = RESEARCH_BASE_SYSTEM,
         use_concurrent_summarization: bool = False,
+        per_page_timeout: Optional[float] = None,
     ) -> dict[str, str]:
         """Run the action to browse the web and provide summaries.
 
@@ -215,11 +216,12 @@ class WebBrowseAndSummarize(Action):
             query: The research question.
             system_text: The system text.
             use_concurrent_summarization: Whether to concurrently summarize the content of the webpage by LLM.
+            per_page_timeout: The maximum time for fetching a single page in seconds.
 
         Returns:
             A dictionary containing the URLs as keys and their summaries as values.
         """
-        contents = await self._fetch_web_contents(url, *urls)
+        contents = await self._fetch_web_contents(url, *urls, per_page_timeout=per_page_timeout)
 
         all_urls = [url] + list(urls)
         summarize_tasks = [self._summarize_content(content, query, system_text) for content in contents]
@@ -228,37 +230,52 @@ class WebBrowseAndSummarize(Action):
 
         return result
 
-    async def _fetch_web_contents(self, url: str, *urls: str) -> list[str]:
+    async def _fetch_web_contents(self, url: str, *urls: str, per_page_timeout: Optional[float] = None) -> list[str]:
         """Fetch web contents from given URLs."""
 
-        contents = await self.web_browser_engine.run(url, *urls)
+        contents = await self.web_browser_engine.run(url, *urls, per_page_timeout=per_page_timeout)
 
         return [contents] if not urls else contents
 
-    async def _summarize_content(self, content: str, query: str, system_text: str) -> tuple[str, str]:
+    async def _summarize_content(self, content: str, query: str, system_text: str) -> str:
         """Summarize web content."""
+        try:
+            prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
 
-        prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
+            content = content.inner_text
 
-        content = content.inner_text
-        chunk_summaries = []
-        for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
-            logger.debug(prompt)
+            if self._is_content_invalid(content):
+                logger.warning(f"Invalid content detected: {content[:10]}...")
+                return None
+
+            chunk_summaries = []
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
+                logger.debug(prompt)
+                summary = await self._aask(prompt, [system_text])
+                if summary == "Not relevant.":
+                    continue
+                chunk_summaries.append(summary)
+
+            if not chunk_summaries:
+                return None
+
+            if len(chunk_summaries) == 1:
+                return chunk_summaries[0]
+
+            content = "\n".join(chunk_summaries)
+            prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
             summary = await self._aask(prompt, [system_text])
-            if summary == "Not relevant.":
-                continue
-            chunk_summaries.append(summary)
-
-        if not chunk_summaries:
+            return summary
+        except Exception as e:
+            logger.error(f"Error summarizing content: {e}")
             return None
 
-        if len(chunk_summaries) == 1:
-            return chunk_summaries[0]
+    def _is_content_invalid(self, content: str) -> bool:
+        """Check if the content is invalid based on specific starting phrases."""
 
-        content = "\n".join(chunk_summaries)
-        prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
-        summary = await self._aask(prompt, [system_text])
-        return summary
+        invalid_starts = ["Fail to load page", "Access Denied"]
+
+        return any(content.strip().startswith(phrase) for phrase in invalid_starts)
 
     async def _execute_summarize_tasks(self, tasks: list[Coroutine[Any, Any, str]], use_concurrent: bool) -> list[str]:
         """Execute summarize tasks either concurrently or sequentially."""

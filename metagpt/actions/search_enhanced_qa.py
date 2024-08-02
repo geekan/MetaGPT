@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
 from metagpt.logs import logger
+from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import CodeParser
 
 REWRITE_QUERY_PROMPT = """
@@ -62,9 +63,26 @@ class SearchEnhancedQA(Action):
         default=CollectLinks(), description="Action to collect relevant links from a search engine."
     )
     web_browse_and_summarize_action: WebBrowseAndSummarize = Field(
-        default=WebBrowseAndSummarize(),
+        default=None,
         description="Action to explore the web and provide summaries of articles and webpages.",
     )
+    per_page_timeout: float = Field(
+        default=10, description="The maximum time for fetching a single page is in seconds. Defaults to 10s."
+    )
+    java_script_enabled: bool = Field(
+        default=False, description="Whether or not to enable JavaScript in the web browser context. Defaults to False."
+    )
+
+    @model_validator(mode="after")
+    def initialize(self):
+        if self.web_browse_and_summarize_action is None:
+            self.web_browser_engine = WebBrowserEngine.from_browser_config(
+                self.config.browser, proxy=self.config.proxy, java_script_enabled=self.java_script_enabled
+            )
+
+            self.web_browse_and_summarize_action = WebBrowseAndSummarize(web_browser_engine=self.web_browser_engine)
+
+        return self
 
     async def run(self, query: str, rewrite_query: bool = True) -> str:
         """Answer a query by leveraging web search results.
@@ -202,7 +220,9 @@ class SearchEnhancedQA(Action):
             dict[str, str]: Mapping of URLs to their summaries.
         """
 
-        return await self.web_browse_and_summarize_action.run(*urls, query=query, use_concurrent_summarization=True)
+        return await self.web_browse_and_summarize_action.run(
+            *urls, query=query, use_concurrent_summarization=True, per_page_timeout=self.per_page_timeout
+        )
 
     async def _generate_answer(self, query: str, context: str) -> str:
         """Generate an answer using the query and context.
