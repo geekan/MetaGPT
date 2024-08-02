@@ -37,7 +37,7 @@ from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_outpu
 from metagpt.utils.report import ThoughtReporter
 
 
-@register_tool(include_functions=["ask_human", "reply_to_human", "Bash.run"])
+@register_tool(include_functions=["ask_human", "reply_to_human"])
 class RoleZero(Role):
     """A role who can think and act dynamically"""
 
