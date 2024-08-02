@@ -113,8 +113,11 @@ class Gsm8kGraph(Graph):
         self.rephrase = Rephrase(llm=llm)
 
     async def __call__(self, problem: str):
-        solution = self.generate(problem)
-        return solution
+        formatted_problem = await self.rephrase.math_rephrase(problem)
+        solution = await self.generate.math_generate(formatted_problem)  # 等待 generate 方法完成
+        solution0 = solution['solution']
+        formatted_solution = await self.generate.math_answer_format(solution0)
+        return formatted_solution
 
 
 class HotpotQAGraph(Graph):

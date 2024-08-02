@@ -11,14 +11,12 @@ import sys
 import asyncio
 import aiofiles
 from metagpt.llm import LLM
-from examples.ags.w_action_node.math_graph import Gsm8kGraph
+from examples.ags.w_action_node.graph import Gsm8kGraph
 from examples.ags.w_action_node.operator import GenerateCode, GenerateCodeBlock
 from deepeval.benchmarks import GSM8K
 from deepeval.benchmarks.gsm8k.template import GSM8KTemplate
 import pandas as pd
 
-generate_code = GenerateCode(llm=LLM())
-generate_code_block = GenerateCodeBlock(llm=LLM())
 solver = Gsm8kGraph(name="solver", llm=LLM())
 
 from deepeval.models.base_model import DeepEvalBaseLLM
