@@ -70,3 +70,5 @@ qianfan==0.3.2
 dashscope==1.14.1
 rank-bm25==0.2.2  # for tool recommendation
 jieba==0.42.1  # for tool recommendation
+# llama-index-vector-stores-elasticsearch~=0.2.5 # Used by `metagpt/memory/longterm_memory.py`
+# llama-index-vector-stores-chroma~=0.1.10 # Used by `metagpt/memory/longterm_memory.py`
