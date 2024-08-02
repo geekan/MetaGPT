@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # 申明模型
     openai = OpenAI()
 
-    # Define benchmark,problems代表测试问题数,n_shot设置为0当前为zero shot,enable_cot是官方的COT的Prompt，建议关闭，用我们自己的graph实现
+    # 定义 benchmark,problems代表测试问题数,注释掉就可以完整测试,n_shot设置为0当前为zero shot,enable_cot是官方的COT的Prompt，建议关闭，用我们自己的graph实现
     benchmark = GSM8K(
         n_problems=10,
         n_shots=0,
