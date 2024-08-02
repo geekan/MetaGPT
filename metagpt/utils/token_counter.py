@@ -32,6 +32,8 @@ TOKEN_COSTS = {
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
+    "gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
@@ -154,6 +156,8 @@ TOKEN_MAX = {
     "gpt-4-0613": 8192,
     "gpt-4-32k": 32768,
     "gpt-4-32k-0613": 32768,
+    "gpt-4o-mini": 128000,
+    "gpt-4o": 128000,
     "gpt-3.5-turbo-0125": 16385,
     "gpt-3.5-turbo": 16385,
     "gpt-3.5-turbo-1106": 16385,
@@ -207,6 +211,8 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-1106-preview",
         "gpt-4-vision-preview",
         "gpt-4-1106-vision-preview",
+        "gpt-4o",
+        "gpt-4o-mini",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
