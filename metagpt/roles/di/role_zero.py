@@ -59,7 +59,7 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     tool_execution_map: dict[str, Callable] = {}
-    special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
@@ -370,6 +370,16 @@ class RoleZero(Role):
             self._set_state(-1)
             command_output = ""
 
+        # output from bash.run may be empty, add decorations to the output to ensure visibility.
+        elif cmd["command_name"] == "Bash.run":
+            tool_obj = self.tool_execution_map[cmd["command_name"]]
+            tool_output = await tool_obj(**cmd["args"])
+            if len(tool_output) <= 10:
+                command_output += (
+                    f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output} (pay attention to this.)"
+                )
+            else:
+                command_output += f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output}"
         return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:
