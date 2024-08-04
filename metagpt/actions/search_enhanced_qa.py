@@ -11,6 +11,7 @@ from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
 from metagpt.logs import logger
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import ThoughtReporter
 
 REWRITE_QUERY_PROMPT = """
 Role: You are a highly efficient assistant that provide a better search query for web search engine to answer the given question.
@@ -237,4 +238,8 @@ class SearchEnhancedQA(Action):
 
         system_prompt = SEARCH_ENHANCED_QA_SYSTEM_PROMPT.format(context=context)
 
-        return await self._aask(query, [system_prompt])
+        async with ThoughtReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "quick"})
+            rsp = await self._aask(query, [system_prompt])
+
+        return rsp

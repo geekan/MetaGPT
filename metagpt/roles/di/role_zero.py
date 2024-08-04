@@ -11,6 +11,7 @@ from pydantic import model_validator
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
@@ -196,7 +197,7 @@ class RoleZero(Role):
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
-                if pattern.match(msg.content):
+                if pattern.search(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
         return memory
@@ -225,7 +226,7 @@ class RoleZero(Role):
         self._set_state(0)
 
         # problems solvable by quick thinking doesn't need to a formal think-act cycle
-        quick_rsp = await self._quick_think()
+        quick_rsp, _ = await self._quick_think()
         if quick_rsp:
             return quick_rsp
 
@@ -245,22 +246,28 @@ class RoleZero(Role):
             actions_taken += 1
         return rsp  # return output from the last action
 
-    async def _quick_think(self) -> Message:
+    async def _quick_think(self) -> Tuple[Message, str]:
+        answer = ""
         rsp_msg = None
         if self.rc.news[-1].cause_by != any_to_str(UserRequirement):
             # Agents themselves won't generate quick questions, use this rule to reduce extra llm calls
-            return rsp_msg
+            return rsp_msg, ""
 
         # routing
-        memory = self.get_memories(k=4)
+        memory = self.get_memories(k=4)  # FIXME: A magic number for two rounds of Q&A
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
-        rsp = await self.llm.aask(context)
+        intent_result = await self.llm.aask(context)
 
-        if "yes" in rsp.lower():
+        if "YES" in intent_result:
             # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))
+        elif "SEARCH" in intent_result:
+            query = "\n".join(str(msg) for msg in memory)
+            answer = await SearchEnhancedQA().run(query)
+
+        if answer:
             self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
             await self.reply_to_human(content=answer)
             rsp_msg = AIMessage(
@@ -269,7 +276,7 @@ class RoleZero(Role):
                 cause_by=RunCommand,
             )
 
-        return rsp_msg
+        return rsp_msg, intent_result
 
     async def _check_duplicates(self, req: list[dict], command_rsp: str):
         past_rsp = [mem.content for mem in self.rc.memory.get(self.memory_k)]

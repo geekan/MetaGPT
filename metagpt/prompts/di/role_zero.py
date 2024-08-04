@@ -114,8 +114,8 @@ QUICK_THINK_PROMPT = """
 Decide if the latest user message previously is a quick question.
 Quick questions include common-sense, legal, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
 Questions about you or your team info are also quick questions.
-Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions.
+Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions. Moreover, you should output a keyword SEARCH to indicate the need for a google search.
 Software development tasks are NOT quick questions.
 However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
-Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO. Your response:
+Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO or a SEARCH. Your response:
 """
