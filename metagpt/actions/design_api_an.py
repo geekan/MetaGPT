@@ -45,6 +45,7 @@ REFINED_FILE_LIST = ActionNode(
     example=["main.py", "game.py", "new_feature.py"],
 )
 
+#optional,because low success reproduction of class diagram in non py project.
 DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     key="Data structures and interfaces",
     expected_type=Optional[str],
