@@ -64,7 +64,6 @@ class RoleZero(Role):
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
-    # terminal: Terminal = Terminal()  # FIXME: TypeError: cannot pickle '_thread.lock' object
 
     # Experience
     experience_retriever: ExpRetriever = DummyExpRetriever()
