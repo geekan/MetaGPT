@@ -28,7 +28,7 @@ NORMAL_QUESTION = [
     checkout a branch named test-fix, commit your changes, push, and create a PR to the master branch of https://github.com/iorisa/langchain
     """,
     "Open this link and make a sumamry: https://github.com/geekan/MetaGPT",  # should not confuse with searching
-    "清查看这个网页https://platform.openai.com/docs/models",  # should not confuse with searching
+    "请查看这个网页https://platform.openai.com/docs/models",  # should not confuse with searching
 ]
 
 
