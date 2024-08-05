@@ -11,6 +11,7 @@ from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
 from metagpt.logs import logger
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import CodeParser
+from metagpt.utils.parse_html import WebPage
 
 REWRITE_QUERY_PROMPT = """
 Role: You are a highly efficient assistant that provide a better search query for web search engine to answer the given question.
@@ -71,6 +72,13 @@ class SearchEnhancedQA(Action):
     )
     java_script_enabled: bool = Field(
         default=False, description="Whether or not to enable JavaScript in the web browser context. Defaults to False."
+    )
+    max_chars_per_webpage_summary: int = Field(
+        default=4000, description="Maximum summary length for each web page content."
+    )
+    max_search_results: int = Field(
+        default=10,
+        description="Maximum number of search results (links) to collect using the collect_links_action. This controls the number of potential sources for answering the question.",
     )
 
     @model_validator(mode="after")
@@ -188,7 +196,7 @@ class SearchEnhancedQA(Action):
 
         logger.info(f"The Relevant links are: {relevant_urls}")
 
-        web_summaries = await self._summarize_web_content(relevant_urls, query)
+        web_summaries = await self._summarize_web_content(relevant_urls)
         if not web_summaries:
             logger.warning(f"No summaries generated for query: {query}")
             return []
@@ -207,21 +215,38 @@ class SearchEnhancedQA(Action):
             list[str]: Ranked list of relevant URLs.
         """
 
-        return await self.collect_links_action._search_and_rank_urls(topic=query, query=query)
+        return await self.collect_links_action._search_and_rank_urls(
+            topic=query, query=query, max_num_results=self.max_search_results
+        )
 
-    async def _summarize_web_content(self, urls: list[str], query: str) -> dict[str, str]:
+    async def _summarize_web_content(self, urls: list[str]) -> dict[str, str]:
         """Fetch and summarize content from given URLs.
 
         Args:
             urls (list[str]): List of URLs to summarize.
-            query (str): The original query for context.
 
         Returns:
             dict[str, str]: Mapping of URLs to their summaries.
         """
+        contents = await self._fetch_web_contents(urls)
 
-        return await self.web_browse_and_summarize_action.run(
-            *urls, query=query, use_concurrent_summarization=True, per_page_timeout=self.per_page_timeout
+        summaries = {}
+        for content in contents:
+            url = content.url
+            inner_text = content.inner_text.replace("\n", "")
+
+            if self.web_browse_and_summarize_action._is_content_invalid(inner_text):
+                logger.warning(f"Invalid content detected for URL {url}: {inner_text[:10]}...")
+                continue
+
+            summary = inner_text[: self.max_chars_per_webpage_summary]
+            summaries[url] = summary
+
+        return summaries
+
+    async def _fetch_web_contents(self, urls: list[str]) -> list[WebPage]:
+        return await self.web_browse_and_summarize_action._fetch_web_contents(
+            *urls, per_page_timeout=self.per_page_timeout
         )
 
     async def _generate_answer(self, query: str, context: str) -> str:
