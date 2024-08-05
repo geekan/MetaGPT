@@ -368,6 +368,9 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
+            # When all the plans have been completed, clear the plan's goal and wait for the next requirements.
+            if self.planner.current_task is None:
+                self.planner.plan.goal = ""
             command_output = ""
 
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
@@ -376,10 +379,10 @@ class RoleZero(Role):
             tool_output = await tool_obj(**cmd["args"])
             if len(tool_output) <= 10:
                 command_output += (
-                    f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output} (pay attention to this.)"
+                    f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output} (pay attention to this.)"
                 )
             else:
-                command_output += f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output}"
+                command_output += f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output}"
         return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:

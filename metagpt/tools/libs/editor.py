@@ -25,7 +25,7 @@ class Editor:
         self.resource = EditorReporter()
 
     def write(self, path: str, content: str):
-        """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""
+        """Write the whole content to a file. The path must be a file path with a specific file extension. When used, make sure content arg contains the full content of the file."""
         if "\n" not in content and "\\n" in content:
             # A very raw rule to correct the content: If 'content' lacks actual newlines ('\n') but includes '\\n', consider
             # replacing them with '\n' to potentially correct mistaken representations of newline characters.

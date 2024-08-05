@@ -98,7 +98,7 @@ class WritePRD(Action):
 
         Args:
             user_requirement (str): A string detailing the user's requirements.
-            output_pathname (str, optional): The path name of file that the output document should be saved to. Defaults to "".
+            output_pathname (str, optional): The path name of file that the output document should be saved to. The path name must must end with '.json'. Defaults to "".
             legacy_prd_filename (str, optional): The file path of the legacy Product Requirement Document to use as a reference. Defaults to "".
             extra_info (str, optional): Additional information to include in the document. Defaults to "".
             **kwargs: Additional keyword arguments.
