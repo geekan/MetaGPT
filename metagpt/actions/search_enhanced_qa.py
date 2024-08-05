@@ -228,6 +228,7 @@ class SearchEnhancedQA(Action):
         Returns:
             dict[str, str]: Mapping of URLs to their summaries.
         """
+
         contents = await self._fetch_web_contents(urls)
 
         summaries = {}
