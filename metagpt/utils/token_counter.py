@@ -143,6 +143,14 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
+# https://console.volcengine.com/ark/region:ark+cn-beijing/model
+DOUBAO_TOKEN_COSTS = {
+    "doubao-lite": {"prompt": 0.0003, "completion": 0.0006},
+    "doubao-lite-128k": {"prompt": 0.0008, "completion": 0.0010},
+    "doubao-pro": {"prompt": 0.0008, "completion": 0.0020},
+    "doubao-pro-128k": {"prompt": 0.0050, "completion": 0.0090},
+}
+
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
     "gpt-4-0125-preview": 128000,

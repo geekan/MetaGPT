@@ -31,6 +31,7 @@ class LLMType(Enum):
     MOONSHOT = "moonshot"
     MISTRAL = "mistral"
     YI = "yi"  # lingyiwanwu
+    ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
 
     def __missing__(self, key):
         return self.OPENAI
