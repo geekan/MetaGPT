@@ -5,6 +5,22 @@ from metagpt.configs.llm_config import LLMType
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 
 
+def mock_azure_embedding(mocker):
+    return mocker.patch("metagpt.rag.factories.embedding.AzureOpenAIEmbedding")
+
+
+def mock_gemini_embedding(mocker):
+    return mocker.patch("metagpt.rag.factories.embedding.GeminiEmbedding")
+
+
+def mock_ollama_embedding(mocker):
+    return mocker.patch("metagpt.rag.factories.embedding.OllamaEmbedding")
+
+
+def mock_openai_embedding(mocker):
+    return mocker.patch("metagpt.rag.factories.embedding.OpenAIEmbedding")
+
+
 class TestRAGEmbeddingFactory:
     @pytest.fixture(autouse=True)
     def mock_embedding_factory(self):
@@ -13,22 +29,6 @@ class TestRAGEmbeddingFactory:
     @pytest.fixture
     def mock_config(self, mocker):
         return mocker.patch("metagpt.rag.factories.embedding.config")
-
-    @staticmethod
-    def mock_openai_embedding(mocker):
-        return mocker.patch("metagpt.rag.factories.embedding.OpenAIEmbedding")
-
-    @staticmethod
-    def mock_azure_embedding(mocker):
-        return mocker.patch("metagpt.rag.factories.embedding.AzureOpenAIEmbedding")
-
-    @staticmethod
-    def mock_gemini_embedding(mocker):
-        return mocker.patch("metagpt.rag.factories.embedding.GeminiEmbedding")
-
-    @staticmethod
-    def mock_ollama_embedding(mocker):
-        return mocker.patch("metagpt.rag.factories.embedding.OllamaEmbedding")
 
     @pytest.mark.parametrize(
         ("mock_func", "embedding_type"),
@@ -53,7 +53,7 @@ class TestRAGEmbeddingFactory:
 
     def test_get_rag_embedding_default(self, mocker, mock_config):
         # Mock
-        mock_openai_embedding = self.mock_openai_embedding(mocker)
+        mock_openai_emb = mock_openai_embedding(mocker)
 
         mock_config.embedding.api_type = None
         mock_config.llm.api_type = LLMType.OPENAI
@@ -62,7 +62,7 @@ class TestRAGEmbeddingFactory:
         self.embedding_factory.get_rag_embedding()
 
         # Assert
-        mock_openai_embedding.assert_called_once()
+        mock_openai_emb.assert_called_once()
 
     @pytest.mark.parametrize(
         "model, embed_batch_size, expected_params",
