@@ -188,7 +188,6 @@ class WriteTasks(Action):
 
             if not output_pathname:
                 output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
-                output_pathname.mkdir(parents=True, exist_ok=True)
             elif not Path(output_pathname).is_absolute():
                 output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
             output_pathname = Path(output_pathname)
