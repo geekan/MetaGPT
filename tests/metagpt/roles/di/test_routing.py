@@ -19,17 +19,40 @@ NORMAL_QUESTION = [
     and save it to a csv file. paper title must include `multiagent` or `large language model`. *notice: print key variables*
     """,
     """
+    Get products data from website https://scrapeme.live/shop/ and save it as a csv file.
+    The first page product name, price, product URL, and image URL must be saved in the csv;**
+    """,
+    """
     Write a fix for this issue: https://github.com/langchain-ai/langchain/issues/20453, 
     you can fix it on this repo https://github.com/garylin2099/langchain,
     checkout a branch named test-fix, commit your changes, push, and create a PR to the master branch of https://github.com/iorisa/langchain
     """,
-    ## info searching ##
-    """When is the Olympic football final this year, where will it be held, and where can I buy tickets? If possible, please provide me with a link to buy tickets""",
-    """Help me search for Inter Miami CF home games in the next 2 months and give me the link to buy tickets""",
-    """请为我查找位于深圳大学附近1000米范围内，价格适中（性价比最高），且晚上关门时间晚于22:00的健身房。""",
-    "今天的天气怎样",
-    "奥运会的开幕式是什么时候",
+    "Open this link and make a sumamry: https://github.com/geekan/MetaGPT",  # should not confuse with searching
+    "请查看这个网页https://platform.openai.com/docs/models",  # should not confuse with searching
 ]
+
+
+SEARCH_QUESTION = [
+    "今天的天气怎样？",
+    "全球智能手机市场份额排名是什么？前三名的品牌各占多少百分比？",
+    "中国股市上市公司数量是多少？",
+    "奥运会将在哪里举行？有哪些新增的比赛项目？",
+    "最近一周全球原油价格的走势如何？",
+    "当前全球碳排放量最大的三个国家是哪些？",
+    "当前全球碳排放量最大的三个国家各占多少比例",
+    "最新的全球教育质量排名中，前五名的国家是哪些？",
+    "当前全球最大的几家电动汽车制造商是哪些？",
+    "奥运会的开幕式是什么时候",
+    "Recommend some gyms near Shenzhen University",
+    "Which university tops QS ranking?",
+    "Which university tops QS ranking this year?",
+    "The stock price of Nvidia?",
+    # longer questions
+    "请为我查找位于深圳大学附近1000米范围内，价格适中（性价比最高），且晚上关门时间晚于22:00的健身房。",
+    "When is the Olympic football final this year, where will it be held, and where can I buy tickets? If possible, please provide me with a link to buy tickets",
+    "Help me search for Inter Miami CF home games in the next 2 months and give me the link to buy tickets",
+]
+
 
 QUICK_QUESTION = [
     ## general knowledge qa, logical, math ##
@@ -102,22 +125,28 @@ async def test_routing_acc():
     for q in QUICK_QUESTION:
         msg = Message(content=q)
         role.put_message(msg)
-        # await env.run()
         await role._observe()
-        rsp = await role._quick_think()
+        rsp, intent_result = await role._quick_think()
         role.rc.memory.clear()
-        if not rsp:
+        if "YES" not in intent_result:
             logger.error(f"Quick question failed: {q}")
-        # assert rsp
+
+    for q in SEARCH_QUESTION:
+        msg = Message(content=q)
+        role.put_message(msg)
+        await role._observe()
+        rsp, intent_result = await role._quick_think()
+        role.rc.memory.clear()
+        if "SEARCH" not in intent_result:
+            logger.error(f"Search question failed: {q}")
 
     for q in NORMAL_QUESTION:
         msg = Message(content=q)
         role.put_message(msg)
         await role._observe()
-        rsp = await role._quick_think()
+        rsp, intent_result = await role._quick_think()
         role.rc.memory.clear()
-        # assert not rsp
-        if rsp:
+        if "NO" not in intent_result:
             logger.error(f"Normal question failed: {q}")
 
 
