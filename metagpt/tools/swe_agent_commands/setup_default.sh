@@ -17,8 +17,3 @@ source $REPO_ROOT_DIR/metagpt/tools/swe_agent_commands/search.sh
 source $REPO_ROOT_DIR/metagpt/tools/swe_agent_commands/edit_linting.sh
 
 echo "SWE_CMD_WORK_DIR: $SWE_CMD_WORK_DIR"
-
-# 检查 SWE_CMD_WORK_DIR 路径是否已存在，不存在则创建
-if [ ! -d "$SWE_CMD_WORK_DIR" ]; then
-    mkdir -p $SWE_CMD_WORK_DIR
-fi
