@@ -313,7 +313,6 @@ class WritePRD(Action):
 
             if not output_pathname:
                 output_pathname = DEFAULT_WORKSPACE_ROOT / "docs" / "prd.json"
-                output_pathname.parent.mkdir(parents=True, exist_ok=True)
             elif not Path(output_pathname).is_absolute():
                 output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
             output_pathname = Path(output_pathname)
