@@ -149,18 +149,21 @@ class CollectLinks(Action):
             ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
         return ret
 
-    async def _search_and_rank_urls(self, topic: str, query: str, num_results: int = 4) -> list[str]:
+    async def _search_and_rank_urls(
+        self, topic: str, query: str, num_results: int = 4, max_num_results: int = None
+    ) -> list[str]:
         """Search and rank URLs based on a query.
 
         Args:
             topic: The research topic.
             query: The search query.
             num_results: The number of URLs to collect.
+            max_num_results: The max number of URLs to collect.
 
         Returns:
             A list of ranked URLs.
         """
-        max_results = max(num_results * 2, 6)
+        max_results = max_num_results or max(num_results * 2, 6)
         results = await self._search_urls(query, max_results=max_results)
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
         prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results)
