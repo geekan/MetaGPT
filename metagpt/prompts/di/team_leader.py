@@ -37,7 +37,6 @@ TL_THOUGHT_GUIDANCE = (
     + """
 Sixth, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
 Seventh, describe the technologies you must use.  
-Eight, if the current task is None and no messages have been received so far, use 'reply to human' to respond to the human's requirements. and then use command 'end' in one respond.
 """
 )
 QUICK_THINK_SYSTEM_PROMPT = """

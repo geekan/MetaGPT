@@ -75,9 +75,9 @@ class WriteTasks(Action):
             >>> output_pathname = "/absolute/path/to/snake_game/docs/project_schedule.json"
             >>> user_requirement = "Write project schedule for a snake game following these requirements:..."
             >>> action = WriteTasks()
-            >>> result = await action.run(user_requirement=user_requirement,design_filename=design_filename, output_pathname=output_pathname)
+            >>> result = await action.run(user_requirement=user_requirement, design_filename=design_filename, output_pathname=output_pathname)
             >>> print(result)
-            The project schedule is at /absolute/path/to/在nake_game/docs/project_schedule.json
+            The project schedule is at /absolute/path/to/nake_game/docs/project_schedule.json
 
             # Write a project schedule with a user requirement.
             >>> user_requirement = "Write project schedule for a snake game following these requirements: ..."
