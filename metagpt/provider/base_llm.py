@@ -65,7 +65,7 @@ class BaseLLM(ABC):
             # image url or image base64
             url = image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
             # it can with multiple-image inputs
-            content.append({"type": "image_url", "image_url": url})
+            content.append({"type": "image_url", "image_url": {"url": url}})
         return {"role": "user", "content": content}
 
     def _assistant_msg(self, msg: str) -> dict[str, str]:
@@ -112,7 +112,7 @@ class BaseLLM(ABC):
         model = model or self.pricing_plan
         model = model or self.model
         usage = usage.model_dump() if isinstance(usage, BaseModel) else usage
-        if calc_usage and self.cost_manager:
+        if calc_usage and self.cost_manager and usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
@@ -132,7 +132,7 @@ class BaseLLM(ABC):
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
-        stream=True,
+        stream=None,
     ) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs)
@@ -146,6 +146,8 @@ class BaseLLM(ABC):
             message.append(self._user_msg(msg, images=images))
         else:
             message.extend(msg)
+        if stream is None:
+            stream = self.config.stream
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp

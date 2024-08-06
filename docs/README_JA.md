@@ -298,13 +298,12 @@ Hugging Face Space で試す
 研究論文でMetaGPTやData Interpreterを使用する場合は、以下のように当社の作業を引用してください：
 
 ```bibtex
-@misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework}, 
-      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Ceyao Zhang and Jinlin Wang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and Jürgen Schmidhuber},
-      year={2023},
-      eprint={2308.00352},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
+@inproceedings{hong2024metagpt,
+      title={Meta{GPT}: Meta Programming for A Multi-Agent Collaborative Framework},
+      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and J{\"u}rgen Schmidhuber},
+      booktitle={The Twelfth International Conference on Learning Representations},
+      year={2024},
+      url={https://openreview.net/forum?id=VtmBAGCN7o}
 }
 @misc{hong2024data,
       title={Data Interpreter: An LLM Agent For Data Science}, 

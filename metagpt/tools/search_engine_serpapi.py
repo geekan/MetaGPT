@@ -87,8 +87,11 @@ class SerpAPIWrapper(BaseModel):
         get_focused = lambda x: {i: j for i, j in x.items() if i in focus}
 
         if "error" in res.keys():
-            raise ValueError(f"Got error from SerpAPI: {res['error']}")
-        if "answer_box" in res.keys() and "answer" in res["answer_box"].keys():
+            if res["error"] == "Google hasn't returned any results for this query.":
+                toret = "No good search result found"
+            else:
+                raise ValueError(f"Got error from SerpAPI: {res['error']}")
+        elif "answer_box" in res.keys() and "answer" in res["answer_box"].keys():
             toret = res["answer_box"]["answer"]
         elif "answer_box" in res.keys() and "snippet" in res["answer_box"].keys():
             toret = res["answer_box"]["snippet"]

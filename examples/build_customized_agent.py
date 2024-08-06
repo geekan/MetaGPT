@@ -17,7 +17,7 @@ from metagpt.schema import Message
 
 class SimpleWriteCode(Action):
     PROMPT_TEMPLATE: str = """
-    Write a python function that can {instruction} and provide two runnnable test cases.
+    Write a python function that can {instruction} and provide two runnable test cases.
     Return ```python your_code_here ``` with NO other texts,
     your code:
     """

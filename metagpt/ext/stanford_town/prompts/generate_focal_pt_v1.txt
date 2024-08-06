@@ -1,0 +1,11 @@
+generate_focal_pt_v1.txt
+
+Variables: 
+!<INPUT 0>! -- Event/thought statements 
+!<INPUT 1>! -- Count 
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!
+
+Given only the information above, what are !<INPUT 1>! most salient high-level questions we can answer about the subjects grounded in the statements?
+1)

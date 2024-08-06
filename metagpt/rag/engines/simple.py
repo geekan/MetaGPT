@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+from llama_index.core import SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.embeddings.mock_embed_model import MockEmbedding
@@ -14,6 +14,7 @@ from llama_index.core.llms import LLM
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.readers.base import BaseReader
 from llama_index.core.response_synthesizers import (
     BaseSynthesizer,
     get_response_synthesizer,
@@ -28,6 +29,7 @@ from llama_index.core.schema import (
     TransformComponent,
 )
 
+from metagpt.config2 import config
 from metagpt.rag.factories import (
     get_index,
     get_rag_embedding,
@@ -36,6 +38,7 @@ from metagpt.rag.factories import (
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
@@ -44,6 +47,9 @@ from metagpt.rag.schema import (
     BaseRetrieverConfig,
     BM25RetrieverConfig,
     ObjectNode,
+    OmniParseOptions,
+    OmniParseType,
+    ParseResultType,
 )
 from metagpt.utils.common import import_class
 
@@ -63,7 +69,7 @@ class SimpleEngine(RetrieverQueryEngine):
         response_synthesizer: Optional[BaseSynthesizer] = None,
         node_postprocessors: Optional[list[BaseNodePostprocessor]] = None,
         callback_manager: Optional[CallbackManager] = None,
-        index: Optional[BaseIndex] = None,
+        transformations: Optional[list[TransformComponent]] = None,
     ) -> None:
         super().__init__(
             retriever=retriever,
@@ -71,7 +77,7 @@ class SimpleEngine(RetrieverQueryEngine):
             node_postprocessors=node_postprocessors,
             callback_manager=callback_manager,
         )
-        self.index = index
+        self._transformations = transformations or self._default_transformations()
 
     @classmethod
     def from_docs(
@@ -100,15 +106,23 @@ class SimpleEngine(RetrieverQueryEngine):
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
+        file_extractor = cls._get_file_extractor()
+        documents = SimpleDirectoryReader(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+        ).load_data()
         cls._fix_document_metadata(documents)
 
-        index = VectorStoreIndex.from_documents(
-            documents=documents,
-            transformations=transformations or [SentenceSplitter()],
-            embed_model=cls._resolve_embed_model(embed_model, retriever_configs),
+        transformations = transformations or cls._default_transformations()
+        nodes = run_transformations(documents, transformations=transformations)
+
+        return cls._from_nodes(
+            nodes=nodes,
+            transformations=transformations,
+            embed_model=embed_model,
+            llm=llm,
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
         )
-        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
     @classmethod
     def from_objs(
@@ -137,12 +151,15 @@ class SimpleEngine(RetrieverQueryEngine):
             raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
-        index = VectorStoreIndex(
+
+        return cls._from_nodes(
             nodes=nodes,
-            transformations=transformations or [SentenceSplitter()],
-            embed_model=cls._resolve_embed_model(embed_model, retriever_configs),
+            transformations=transformations,
+            embed_model=embed_model,
+            llm=llm,
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
         )
-        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
     @classmethod
     def from_index(
@@ -161,6 +178,13 @@ class SimpleEngine(RetrieverQueryEngine):
         """Inplement tools.SearchInterface"""
         return await self.aquery(content)
 
+    def retrieve(self, query: QueryType) -> list[NodeWithScore]:
+        query_bundle = QueryBundle(query) if isinstance(query, str) else query
+
+        nodes = super().retrieve(query_bundle)
+        self._try_reconstruct_obj(nodes)
+        return nodes
+
     async def aretrieve(self, query: QueryType) -> list[NodeWithScore]:
         """Allow query to be str."""
         query_bundle = QueryBundle(query) if isinstance(query, str) else query
@@ -176,7 +200,7 @@ class SimpleEngine(RetrieverQueryEngine):
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
         self._fix_document_metadata(documents)
 
-        nodes = run_transformations(documents, transformations=self.index._transformations)
+        nodes = run_transformations(documents, transformations=self._transformations)
         self._save_nodes(nodes)
 
     def add_objs(self, objs: list[RAGObject]):
@@ -193,6 +217,29 @@ class SimpleEngine(RetrieverQueryEngine):
         self._persist(str(persist_dir), **kwargs)
 
     @classmethod
+    def _from_nodes(
+        cls,
+        nodes: list[BaseNode],
+        transformations: Optional[list[TransformComponent]] = None,
+        embed_model: BaseEmbedding = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ) -> "SimpleEngine":
+        embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
+        llm = llm or get_rag_llm()
+
+        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
+        rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
+
+        return cls(
+            retriever=retriever,
+            node_postprocessors=rankers,
+            response_synthesizer=get_response_synthesizer(llm=llm),
+            transformations=transformations,
+        )
+
+    @classmethod
     def _from_index(
         cls,
         index: BaseIndex,
@@ -201,6 +248,7 @@ class SimpleEngine(RetrieverQueryEngine):
         ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         llm = llm or get_rag_llm()
+
         retriever = get_retriever(configs=retriever_configs, index=index)  # Default index.as_retriever
         rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
 
@@ -208,7 +256,6 @@ class SimpleEngine(RetrieverQueryEngine):
             retriever=retriever,
             node_postprocessors=rankers,
             response_synthesizer=get_response_synthesizer(llm=llm),
-            index=index,
         )
 
     def _ensure_retriever_modifiable(self):
@@ -259,3 +306,27 @@ class SimpleEngine(RetrieverQueryEngine):
             return MockEmbedding(embed_dim=1)
 
         return embed_model or get_rag_embedding()
+
+    @staticmethod
+    def _default_transformations():
+        return [SentenceSplitter()]
+
+    @staticmethod
+    def _get_file_extractor() -> dict[str:BaseReader]:
+        """
+        Get the file extractor.
+        Currently, only PDF use OmniParse. Other document types use the built-in reader from llama_index.
+
+        Returns:
+            dict[file_type: BaseReader]
+        """
+        file_extractor: dict[str:BaseReader] = {}
+        if config.omniparse.base_url:
+            pdf_parser = OmniParse(
+                api_key=config.omniparse.api_key,
+                base_url=config.omniparse.base_url,
+                parse_options=OmniParseOptions(parse_type=OmniParseType.PDF, result_type=ParseResultType.MD),
+            )
+            file_extractor[".pdf"] = pdf_parser
+
+        return file_extractor

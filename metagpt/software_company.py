@@ -4,6 +4,7 @@
 import asyncio
 from pathlib import Path
 
+import agentops
 import typer
 
 from metagpt.const import CONFIG_ROOT
@@ -38,6 +39,9 @@ def generate_repo(
     )
     from metagpt.team import Team
 
+    if config.agentops_api_key != "":
+        agentops.init(config.agentops_api_key, tags=["software_company"])
+
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
     ctx = Context(config=config)
 
@@ -67,6 +71,9 @@ def generate_repo(
     company.invest(investment)
     company.run_project(idea)
     asyncio.run(company.run(n_round=n_round))
+
+    if config.agentops_api_key != "":
+        agentops.end_session("Success")
 
     return ctx.repo
 
@@ -123,9 +130,10 @@ def startup(
 
 DEFAULT_CONFIG = """# Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
+# Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
 llm:
-  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
-  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  api_type: "openai"  # or azure / ollama / groq etc.
+  model: "gpt-4-turbo"  # or gpt-3.5-turbo
   base_url: "https://api.openai.com/v1"  # or forward url / other llm url
   api_key: "YOUR_API_KEY"
 """

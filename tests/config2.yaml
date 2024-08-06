@@ -1,7 +1,7 @@
 llm:
   base_url: "https://api.openai.com/v1"
   api_key: "sk-xxx"
-  model: "gpt-3.5-turbo-1106"
+  model: "gpt-3.5-turbo"
 
 search:
   api_type: "serpapi"
