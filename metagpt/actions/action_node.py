@@ -236,19 +236,12 @@ class ActionNode:
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v2的模型动态生成，用来检验结果类型正确性"""
 
-        def is_optional_type(tp):
-            if typing.get_origin(tp) is Union:
-                args = typing.get_args(tp)
-                non_none_types = [arg for arg in args if arg is not type(None)]
-                return len(non_none_types) == 1 and len(args) == 2
-            return False
-
         def check_fields(cls, values):
             all_fields = set(mapping.keys())
             required_fields = set()
             for k, v in mapping.items():
                 type_v, field_info = v
-                if is_optional_type(type_v):
+                if ActionNode.is_optional_type(type_v):
                     continue
                 required_fields.add(k)
 
@@ -732,3 +725,12 @@ class ActionNode:
             root_node.add_child(child_node)
 
         return root_node
+
+    @staticmethod
+    def is_optional_type(tp) -> bool:
+        """Return True if `tp` is `typing.Optional[...]`"""
+        if typing.get_origin(tp) is Union:
+            args = typing.get_args(tp)
+            non_none_types = [arg for arg in args if arg is not type(None)]
+            return len(non_none_types) == 1 and len(args) == 2
+        return False
