@@ -84,7 +84,7 @@ class WriteTasks(Action):
 
     async def _update_requirements(self, doc):
         m = json.loads(doc.content)
-        packages = set(m.get("Required Python packages", set()))
+        packages = set(m.get("Required packages", set()))
         requirement_doc = await self.repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
             requirement_doc = Document(filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content="")

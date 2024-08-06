@@ -19,6 +19,7 @@ assignees: ''
 - LLM type and model name:
 - System version:
 - Python version:
+- MetaGPT version or branch:
 
 <!-- Dependent packagess：the packages version cause the bug(like `pydantic 1.10.8`), installation method（like `pip install metagpt` or `pip install from source` or `run in docker`） -->
 

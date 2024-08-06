@@ -18,11 +18,11 @@ class EnvAPIAbstract(BaseModel):
 class EnvAPIRegistry(BaseModel):
     """the registry to store environment w&r api/interface"""
 
-    registry: dict[str, dict[str, Union[dict, Any, str]]] = Field(default=dict(), exclude=True)
+    registry: dict[str, Callable] = Field(default=dict(), exclude=True)
 
     def get(self, api_name: str):
         if api_name not in self.registry:
-            raise ValueError
+            raise KeyError(f"api_name: {api_name} not found")
         return self.registry.get(api_name)
 
     def __getitem__(self, api_name: str) -> Callable:

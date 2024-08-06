@@ -8,12 +8,14 @@
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
+from metagpt.configs.models_config import ModelsConfig
 from metagpt.context_mixin import ContextMixin
+from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.schema import (
     CodePlanAndChangeContext,
     CodeSummarizeContext,
@@ -35,6 +37,19 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
+    # The model name or API type of LLM of the `models` in the `config2.yaml`;
+    #   Using `None` to use the `llm` configuration in the `config2.yaml`.
+    llm_name_or_type: Optional[str] = None
+
+    @model_validator(mode="after")
+    @classmethod
+    def _update_private_llm(cls, data: Any) -> Any:
+        config = ModelsConfig.default().get(data.llm_name_or_type)
+        if config:
+            llm = create_llm_instance(config)
+            llm.cost_manager = data.llm.cost_manager
+            data.llm = llm
+        return data
 
     @property
     def repo(self) -> ProjectRepo:
