@@ -16,4 +16,4 @@ source $REPO_ROOT_DIR/metagpt/tools/swe_agent_commands/defaults.sh
 source $REPO_ROOT_DIR/metagpt/tools/swe_agent_commands/search.sh
 source $REPO_ROOT_DIR/metagpt/tools/swe_agent_commands/edit_linting.sh
 
-export SWE_CMD_WORK_DIR="$REPO_ROOT_DIR/workspace/swe_agent_workdir"
+echo "SWE_CMD_WORK_DIR: $SWE_CMD_WORK_DIR"

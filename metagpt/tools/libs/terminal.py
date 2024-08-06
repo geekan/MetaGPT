@@ -1,9 +1,10 @@
 import asyncio
+import os
 from asyncio import Queue
 from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_CMD_WORK_DIR, SWE_SETUP_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
@@ -28,7 +29,7 @@ class Terminal:
     async def _start_process(self):
         # Start a persistent shell process
         self.process = await asyncio.create_subprocess_exec(
-            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash"
+            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash", env=os.environ.copy()
         )
         await self._check_state()
 
@@ -150,6 +151,10 @@ class Bash(Terminal):
 
     def __init__(self):
         """init"""
+        if not SWE_CMD_WORK_DIR.exists():
+            SWE_CMD_WORK_DIR.mkdir(parents=True)
+
+        os.environ["SWE_CMD_WORK_DIR"] = str(SWE_CMD_WORK_DIR)
         super().__init__()
         self.start_flag = False
 
