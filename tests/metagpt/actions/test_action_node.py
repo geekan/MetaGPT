@@ -306,6 +306,7 @@ def test_optional():
     mapping = {
         "Logic Analysis": (Optional[List[Tuple[str, str]]], Field(default=None)),
         "Task list": (Optional[List[str]], None),
+        "Plan": (Optional[str], ""),
         "Anything UNCLEAR": (Optional[str], None),
     }
     m = {"Anything UNCLEAR": "a"}
