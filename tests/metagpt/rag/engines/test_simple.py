@@ -7,6 +7,7 @@ from llama_index.core.llms import MockLLM
 from llama_index.core.schema import Document, NodeWithScore, TextNode
 
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.retrievers import SimpleHybridRetriever
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.schema import BM25RetrieverConfig, ObjectNode
@@ -37,6 +38,10 @@ class TestSimpleEngine:
     def mock_get_response_synthesizer(self, mocker):
         return mocker.patch("metagpt.rag.engines.simple.get_response_synthesizer")
 
+    @pytest.fixture
+    def mock_get_file_extractor(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.SimpleEngine._get_file_extractor")
+
     def test_from_docs(
         self,
         mocker,
@@ -44,6 +49,7 @@ class TestSimpleEngine:
         mock_get_retriever,
         mock_get_rankers,
         mock_get_response_synthesizer,
+        mock_get_file_extractor,
     ):
         # Mock
         mock_simple_directory_reader.return_value.load_data.return_value = [
@@ -53,6 +59,8 @@ class TestSimpleEngine:
         mock_get_retriever.return_value = mocker.MagicMock()
         mock_get_rankers.return_value = [mocker.MagicMock()]
         mock_get_response_synthesizer.return_value = mocker.MagicMock()
+        file_extractor = mocker.MagicMock()
+        mock_get_file_extractor.return_value = file_extractor
 
         # Setup
         input_dir = "test_dir"
@@ -75,7 +83,9 @@ class TestSimpleEngine:
         )
 
         # Assert
-        mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
+        mock_simple_directory_reader.assert_called_once_with(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+        )
         mock_get_retriever.assert_called_once()
         mock_get_rankers.assert_called_once()
         mock_get_response_synthesizer.assert_called_once_with(llm=llm)
@@ -298,3 +308,17 @@ class TestSimpleEngine:
         # Assert
         assert "obj" in node.node.metadata
         assert node.node.metadata["obj"] == expected_obj
+
+    def test_get_file_extractor(self, mocker):
+        # mock no omniparse config
+        mock_omniparse_config = mocker.patch("metagpt.rag.engines.simple.config.omniparse", autospec=True)
+        mock_omniparse_config.base_url = ""
+
+        file_extractor = SimpleEngine._get_file_extractor()
+        assert file_extractor == {}
+
+        # mock have omniparse config
+        mock_omniparse_config.base_url = "http://localhost:8000"
+        file_extractor = SimpleEngine._get_file_extractor()
+        assert ".pdf" in file_extractor
+        assert isinstance(file_extractor[".pdf"], OmniParse)

@@ -2,7 +2,7 @@
 
 import asyncio
 
-from examples.rag_pipeline import DOC_PATH, QUESTION
+from examples.rag.rag_pipeline import DOC_PATH, QUESTION
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.roles import Sales
