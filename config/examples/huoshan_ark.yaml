@@ -1,0 +1,5 @@
+llm:
+  api_type: "ark"  
+  model: ""  # your model endpoint like ep-xxx
+  base_url: "https://ark.cn-beijing.volces.com/api/v3"  
+  api_key: "" # your api-key like ey……

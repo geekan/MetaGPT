@@ -722,7 +722,10 @@ def list_files(root: str | Path) -> List[Path]:
 
 
 def parse_json_code_block(markdown_text: str) -> List[str]:
-    json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
+    json_blocks = (
+        re.findall(r"```json(.*?)```", markdown_text, re.DOTALL) if "```json" in markdown_text else [markdown_text]
+    )
+
     return [v.strip() for v in json_blocks]
 
 
@@ -838,3 +841,21 @@ def get_markdown_codeblock_type(filename: str) -> str:
         "application/sql": "sql",
     }
     return mappings.get(mime_type, "text")
+
+
+def download_model(file_url: str, target_folder: Path) -> Path:
+    file_name = file_url.split("/")[-1]
+    file_path = target_folder.joinpath(f"{file_name}")
+    if not file_path.exists():
+        file_path.mkdir(parents=True, exist_ok=True)
+        try:
+            response = requests.get(file_url, stream=True)
+            response.raise_for_status()  # 检查请求是否成功
+            # 保存文件
+            with open(file_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                logger.info(f"权重文件已下载并保存至 {file_path}")
+        except requests.exceptions.HTTPError as err:
+            logger.info(f"权重文件下载过程中发生错误: {err}")
+    return file_path

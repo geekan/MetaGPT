@@ -7,6 +7,7 @@ from llama_index.core.llms import MockLLM
 from llama_index.core.schema import Document, NodeWithScore, TextNode
 
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.retrievers import SimpleHybridRetriever
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.schema import BM25RetrieverConfig, ObjectNode
@@ -26,10 +27,6 @@ class TestSimpleEngine:
         return mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
 
     @pytest.fixture
-    def mock_vector_store_index(self, mocker):
-        return mocker.patch("metagpt.rag.engines.simple.VectorStoreIndex.from_documents")
-
-    @pytest.fixture
     def mock_get_retriever(self, mocker):
         return mocker.patch("metagpt.rag.engines.simple.get_retriever")
 
@@ -41,14 +38,18 @@ class TestSimpleEngine:
     def mock_get_response_synthesizer(self, mocker):
         return mocker.patch("metagpt.rag.engines.simple.get_response_synthesizer")
 
+    @pytest.fixture
+    def mock_get_file_extractor(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.SimpleEngine._get_file_extractor")
+
     def test_from_docs(
         self,
         mocker,
         mock_simple_directory_reader,
-        mock_vector_store_index,
         mock_get_retriever,
         mock_get_rankers,
         mock_get_response_synthesizer,
+        mock_get_file_extractor,
     ):
         # Mock
         mock_simple_directory_reader.return_value.load_data.return_value = [
@@ -58,6 +59,8 @@ class TestSimpleEngine:
         mock_get_retriever.return_value = mocker.MagicMock()
         mock_get_rankers.return_value = [mocker.MagicMock()]
         mock_get_response_synthesizer.return_value = mocker.MagicMock()
+        file_extractor = mocker.MagicMock()
+        mock_get_file_extractor.return_value = file_extractor
 
         # Setup
         input_dir = "test_dir"
@@ -80,12 +83,11 @@ class TestSimpleEngine:
         )
 
         # Assert
-        mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
-        mock_vector_store_index.assert_called_once()
-        mock_get_retriever.assert_called_once_with(
-            configs=retriever_configs, index=mock_vector_store_index.return_value
+        mock_simple_directory_reader.assert_called_once_with(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
         )
-        mock_get_rankers.assert_called_once_with(configs=ranker_configs, llm=llm)
+        mock_get_retriever.assert_called_once()
+        mock_get_rankers.assert_called_once()
         mock_get_response_synthesizer.assert_called_once_with(llm=llm)
         assert isinstance(engine, SimpleEngine)
 
@@ -119,7 +121,7 @@ class TestSimpleEngine:
 
         # Assert
         assert isinstance(engine, SimpleEngine)
-        assert engine.index is not None
+        assert engine._transformations is not None
 
     def test_from_objs_with_bm25_config(self):
         # Setup
@@ -137,6 +139,7 @@ class TestSimpleEngine:
     def test_from_index(self, mocker, mock_llm, mock_embedding):
         # Mock
         mock_index = mocker.MagicMock(spec=VectorStoreIndex)
+        mock_index.as_retriever.return_value = "retriever"
         mock_get_index = mocker.patch("metagpt.rag.engines.simple.get_index")
         mock_get_index.return_value = mock_index
 
@@ -149,7 +152,7 @@ class TestSimpleEngine:
 
         # Assert
         assert isinstance(engine, SimpleEngine)
-        assert engine.index is mock_index
+        assert engine._retriever == "retriever"
 
     @pytest.mark.asyncio
     async def test_asearch(self, mocker):
@@ -200,14 +203,11 @@ class TestSimpleEngine:
 
         mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
 
-        mock_index = mocker.MagicMock(spec=VectorStoreIndex)
-        mock_index._transformations = mocker.MagicMock()
-
         mock_run_transformations = mocker.patch("metagpt.rag.engines.simple.run_transformations")
         mock_run_transformations.return_value = ["node1", "node2"]
 
         # Setup
-        engine = SimpleEngine(retriever=mock_retriever, index=mock_index)
+        engine = SimpleEngine(retriever=mock_retriever)
         input_files = ["test_file1", "test_file2"]
 
         # Exec
@@ -230,7 +230,7 @@ class TestSimpleEngine:
                 return ""
 
         objs = [CustomTextNode(text=f"text_{i}", metadata={"obj": f"obj_{i}"}) for i in range(2)]
-        engine = SimpleEngine(retriever=mock_retriever, index=mocker.MagicMock())
+        engine = SimpleEngine(retriever=mock_retriever)
 
         # Exec
         engine.add_objs(objs=objs)
@@ -308,3 +308,17 @@ class TestSimpleEngine:
         # Assert
         assert "obj" in node.node.metadata
         assert node.node.metadata["obj"] == expected_obj
+
+    def test_get_file_extractor(self, mocker):
+        # mock no omniparse config
+        mock_omniparse_config = mocker.patch("metagpt.rag.engines.simple.config.omniparse", autospec=True)
+        mock_omniparse_config.base_url = ""
+
+        file_extractor = SimpleEngine._get_file_extractor()
+        assert file_extractor == {}
+
+        # mock have omniparse config
+        mock_omniparse_config.base_url = "http://localhost:8000"
+        file_extractor = SimpleEngine._get_file_extractor()
+        assert ".pdf" in file_extractor
+        assert isinstance(file_extractor[".pdf"], OmniParse)

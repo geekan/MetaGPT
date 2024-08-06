@@ -1,0 +1,30 @@
+Variables: 
+!<INPUT 0>! -- Persona name
+!<INPUT 1>! -- Persona's current arena
+!<INPUT 2>! -- Persona's current sector
+!<INPUT 3>! -- Persona name
+!<INPUT 4>! -- target sector
+!<INPUT 5>! -- Persona's sector's all arenas (minus no access)
+!<INPUT 6>! -- Curr action seq
+!<INPUT 7>! -- Persona name
+!<INPUT 8>! -- Persona's current sector
+
+<commentblockmarker>###</commentblockmarker>
+Jane Anderson is in kitchen in Jane Anderson's house.
+Jane Anderson is going to Jane Anderson's house that has the following areas: {kitchen,  bedroom, bathroom}
+Stay in the current area if the activity can be done there. Never go into other people's rooms unless necessary.
+For cooking, Jane Anderson should go to the following area in Jane Anderson's house:
+Answer: {kitchen}
+---
+Tom Watson is in common room in Tom Watson's apartment. 
+Tom Watson is going to Hobbs Cafe that has the following areas: {cafe}
+Stay in the current area if the activity can be done there. Never go into other people's rooms unless necessary.
+For getting coffee, Tom Watson should go to the following area in Hobbs Cafe:
+Answer: {cafe}
+---
+
+!<INPUT 0>! is going to !<INPUT 1>! that has the following areas: {!<INPUT 2>!}
+* Stay in the current area if the activity can be done there. 
+* NEVER go into other people's rooms unless necessary.
+!<INPUT 3>! is !<INPUT 4>!. For !<INPUT 5>!, !<INPUT 6>! should go to the following area in !<INPUT 7>! (MUST pick one of {!<INPUT 8>!}):
+Answer: {

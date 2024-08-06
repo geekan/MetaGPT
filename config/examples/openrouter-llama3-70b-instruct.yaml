@@ -1,0 +1,5 @@
+llm:
+  api_type: openrouter
+  base_url: "https://openrouter.ai/api/v1"
+  api_key: "YOUR_API_KEY"
+  model: meta-llama/llama-3-70b-instruct
