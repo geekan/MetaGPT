@@ -20,7 +20,7 @@ def _paragraphs(n):
 
 
 @pytest.mark.parametrize(
-    "msgs, model_name, system_text, reserved, expected",
+    "msgs, model, system_text, reserved, expected",
     [
         (_msgs(), "gpt-3.5-turbo-0613", "System", 1500, 1),
         (_msgs(), "gpt-3.5-turbo-16k", "System", 3000, 6),
@@ -37,7 +37,7 @@ def test_reduce_message_length(msgs, model_name, system_text, reserved, expected
 
 
 @pytest.mark.parametrize(
-    "text, prompt_template, model_name, system_text, reserved, expected",
+    "text, prompt_template, model, system_text, reserved, expected",
     [
         (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-0613", "System", 1500, 2),
         (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-16k", "System", 3000, 1),

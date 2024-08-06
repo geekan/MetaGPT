@@ -50,6 +50,9 @@ class QianFanLLM(BaseLLM):
         else:
             raise ValueError("Set the `access_key`&`secret_key` or `api_key`&`secret_key` first")
 
+        if self.config.base_url:
+            os.environ.setdefault("QIANFAN_BASE_URL", self.config.base_url)
+
         support_system_pairs = [
             ("ERNIE-Bot-4", "completions_pro"),  # (model, corresponding-endpoint)
             ("ERNIE-Bot-8k", "ernie_bot_8k"),

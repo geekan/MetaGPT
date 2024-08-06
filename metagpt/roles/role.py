@@ -336,6 +336,11 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.llm.cost_manager = self.context.cost_manager
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
+    @property
+    def name(self):
+        """Get the role name"""
+        return self._setting.name
+
     def _get_prefix(self):
         """Get the role prefix"""
         if self.desc:
@@ -365,6 +370,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self._set_state(self.rc.state)  # action to run from recovered state
             self.recovered = False  # avoid max_react_loop out of work
             return True
+
+        if self.rc.react_mode == RoleReactMode.BY_ORDER:
+            if self.rc.max_react_loop != len(self.actions):
+                self.rc.max_react_loop = len(self.actions)
+            self._set_state(self.rc.state + 1)
+            return self.rc.state >= 0 and self.rc.state < len(self.actions)
 
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
@@ -402,7 +413,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response, role=self.profile, cause_by=self.rc.todo, sent_from=self)
+            msg = Message(content=response or "", role=self.profile, cause_by=self.rc.todo, sent_from=self)
         self.rc.memory.add(msg)
 
         return msg
@@ -456,22 +467,13 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
-            await self._think()
-            if self.rc.todo is None:
+            todo = await self._think()
+            if not todo:
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()
             actions_taken += 1
-        return rsp  # return output from the last action
-
-    async def _act_by_order(self) -> Message:
-        """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
-        start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
-        rsp = Message(content="No actions taken yet")  # return default message if actions=[]
-        for i in range(start_idx, len(self.states)):
-            self._set_state(i)
-            rsp = await self._act()
         return rsp  # return output from the last action
 
     async def _plan_and_act(self) -> Message:
@@ -514,10 +516,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
-        if self.rc.react_mode == RoleReactMode.REACT:
+        if self.rc.react_mode == RoleReactMode.REACT or self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._react()
-        elif self.rc.react_mode == RoleReactMode.BY_ORDER:
-            rsp = await self._act_by_order()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
             rsp = await self._plan_and_act()
         else:

@@ -10,7 +10,6 @@ import json
 import pytest
 
 from metagpt.actions import WritePRD
-from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.context import Context
 from metagpt.logs import logger
@@ -30,11 +29,7 @@ async def test_product_manager(new_filename):
         rsp = await product_manager.run(MockMessages.req)
         assert context.git_repo
         assert context.repo
-        assert rsp.cause_by == any_to_str(PrepareDocuments)
         assert REQUIREMENT_FILENAME in context.repo.docs.changed_files
-
-        # write prd
-        rsp = await product_manager.run(rsp)
         assert rsp.cause_by == any_to_str(WritePRD)
         logger.info(rsp)
         assert len(rsp.content) > 0

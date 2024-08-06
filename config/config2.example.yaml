@@ -1,17 +1,24 @@
 llm:
-  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  api_type: "openai"  # or azure / ollama / groq etc.
   base_url: "YOUR_BASE_URL"
   api_key: "YOUR_API_KEY"
-  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  model: "gpt-4-turbo"  # or gpt-3.5-turbo
   proxy: "YOUR_PROXY"  # for LLM API requests
   # timeout: 600 # Optional. If set to 0, default value is 300.
-  pricing_plan: "" # Optional. If invalid, it will be automatically filled in with the value of the `model`.
-  # Azure-exclusive pricing plan mappings：
-  # - gpt-3.5-turbo 4k: "gpt-3.5-turbo-1106"
-  # - gpt-4-turbo: "gpt-4-turbo-preview"
-  # - gpt-4-turbo-vision: "gpt-4-vision-preview"
-  # - gpt-4 8k: "gpt-4"
-  # See for more: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+  # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+  pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+
+
+# RAG Embedding.
+# For backward compatibility, if the embedding is not set and the llm's api_type is either openai or azure, the llm's config will be used. 
+embedding:
+  api_type: "" # openai / azure / gemini / ollama etc. Check EmbeddingType for more options.
+  base_url: ""
+  api_key: ""
+  model: ""
+  api_version: ""
+  embed_batch_size: 100
+  dimensions: # output dimension of embedding model
 
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
@@ -28,7 +35,7 @@ browser:
 
 mermaid:
   engine: "pyppeteer"
-  path: "/Applications/Google Chrome.app"
+  pyppeteer_path: "/Applications/Google Chrome.app"
 
 redis:
   host: "YOUR_HOST"
@@ -52,3 +59,27 @@ iflytek_api_key: "YOUR_API_KEY"
 iflytek_api_secret: "YOUR_API_SECRET"
 
 metagpt_tti_url: "YOUR_MODEL_URL"
+
+omniparse:
+    api_key: "YOUR_API_KEY"
+    base_url: "YOUR_BASE_URL"
+
+models:
+#  "YOUR_MODEL_NAME_1 or YOUR_API_TYPE_1": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
+#    api_type: "openai"  # or azure / ollama / groq etc.
+#    base_url: "YOUR_BASE_URL"
+#    api_key: "YOUR_API_KEY"
+#    proxy: "YOUR_PROXY"  # for LLM API requests
+#    # timeout: 600 # Optional. If set to 0, default value is 300.
+#    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+#    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+#  "YOUR_MODEL_NAME_2 or YOUR_API_TYPE_2": # api_type: "openai"  # or azure / ollama / groq etc.
+#    api_type: "openai"  # or azure / ollama / groq etc.
+#    base_url: "YOUR_BASE_URL"
+#    api_key: "YOUR_API_KEY"
+#    proxy: "YOUR_PROXY"  # for LLM API requests
+#    # timeout: 600 # Optional. If set to 0, default value is 300.
+#    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+#    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+
+agentops_api_key: "YOUR_AGENTOPS_API_KEY" # get key from https://app.agentops.ai/settings/projects

@@ -31,26 +31,14 @@ class Researcher(Role):
     goal: str = "Gather information and conduct research"
     constraints: str = "Ensure accuracy and relevance of information"
     language: str = "en-us"
+    enable_concurrency: bool = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.set_actions(
-            [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
-        )
-        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
+        self.set_actions([CollectLinks, WebBrowseAndSummarize, ConductResearch])
+        self._set_react_mode(RoleReactMode.BY_ORDER.value, len(self.actions))
         if self.language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
-
-    async def _think(self) -> bool:
-        if self.rc.todo is None:
-            self._set_state(0)
-            return True
-
-        if self.rc.state + 1 < len(self.states):
-            self._set_state(self.rc.state + 1)
-        else:
-            self.set_todo(None)
-            return False
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
@@ -70,8 +58,13 @@ class Researcher(Role):
             )
         elif isinstance(todo, WebBrowseAndSummarize):
             links = instruct_content.links
-            todos = (todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items())
-            summaries = await asyncio.gather(*todos)
+            todos = (
+                todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items() if url
+            )
+            if self.enable_concurrency:
+                summaries = await asyncio.gather(*todos)
+            else:
+                summaries = [await i for i in todos]
             summaries = list((url, summary) for i in summaries for (url, summary) in i.items() if summary)
             ret = Message(
                 content="", instruct_content=Report(topic=topic, summaries=summaries), role=self.profile, cause_by=todo
@@ -119,8 +112,8 @@ class Researcher(Role):
 if __name__ == "__main__":
     import fire
 
-    async def main(topic: str, language="en-us"):
-        role = Researcher(language=language)
+    async def main(topic: str, language: str = "en-us", enable_concurrency: bool = True):
+        role = Researcher(language=language, enable_concurrency=enable_concurrency)
         await role.run(topic)
 
     fire.Fire(main)
