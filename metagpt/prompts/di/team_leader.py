@@ -30,13 +30,14 @@ Note:
 10. Do not use escape characters in json data, particularly within file paths.
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
 12. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
-13. If you find there are no specific tasks or user requirements, you must ask a human for advice on what to do next.
+13. If the the user message is a question. use 'reply to human' to respond to the question, and then end end.
 """
 TL_THOUGHT_GUIDANCE = (
     THOUGHT_GUIDANCE
     + """
-Sixth, when planning, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
-Seventh, describe the technologies you must use.
+Sixth, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
+Seventh, describe the technologies you must use.  
+Eight, if the current task is None and no messages have been received so far, use 'reply to human' to respond to the human's requirements. and then use command 'end' in one respond.
 """
 )
 QUICK_THINK_SYSTEM_PROMPT = """

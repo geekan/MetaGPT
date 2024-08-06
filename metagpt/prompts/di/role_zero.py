@@ -70,7 +70,7 @@ Notice: your output JSON data section must start with **```json [**
 """
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
-Second, describe the messages you have received recently, with a particular emphasis on messages from users.
+Second, describe the messages you have received recently, with a particular emphasis on messages from users. If necessary, develop a plan to address the new user requirements.
 Third, describe the plan status and the current task. Review the histroy, if `Current Task` has been undertaken and completed by you or anyone, you MUST use the **Plan.finish_current_task** command to finish it first before taking any action, the command will automatically move you to the next task.
 Fourth, describe any necessary human interaction. Use **RoleZero.reply_to_human** to report your progress if you complete a task or the overall requirement, pay attention to the history, DON'T repeat reporting. Use **RoleZero.ask_human** if you failed the current task, unsure of the situation encountered, need any help from human, or executing repetitive commands but receiving repetitive feedbacks without making progress.
 Fifth, describe if you should terminate, you should use **end** command to terminate if any of the following is met:

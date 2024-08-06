@@ -62,7 +62,7 @@ class WriteTasks(Action):
 
         Args:
             user_requirement (str, optional): A string specifying the user's requirements. Defaults to an empty string.
-            design_filename (str): The filename of the project system design file. The path name must must end with '.json'. Defaults to an empty string.
+            design_filename (str): The output file path of the document. Defaults to an empty string.
             output_pathname (str, optional): The output path name of file that the project schedule should be saved to.
             **kwargs: Additional keyword arguments.
 
