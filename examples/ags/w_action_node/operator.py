@@ -40,7 +40,7 @@ from examples.ags.w_action_node.prompt import (
     REVIEW_PROMPT,
     REVISE_PROMPT,
 )
-from examples.ags.w_action_node.utils import test_cases_2_test_functions
+from examples.ags.w_action_node.utils import test_case_2_test_function
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -165,6 +165,7 @@ class MdEnsemble(Operator):
     async def __call__(self, solution_type: str, solutions: List[str], problem_description: str):
         all_responses = []
         # 当Ensmeble方案是Code类型时，我们使用AST进行去重
+        # TODO AgentLess + 尝试权重
         if solution_type == "code":
             unique_structures = {}
             updated_solutions = []
@@ -207,6 +208,10 @@ class MdEnsemble(Operator):
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         final_answer = solutions[most_frequent_index]
         return {"final_solution": final_answer}
+
+
+class Md_Ensmble:
+    pass
 
 
 class ScEnsemble(Operator):
@@ -359,34 +364,66 @@ class Test(Operator):
     def __init__(self, name: str = "Test", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    def exec_code(self, solution, test_cases, problem_id):
-        # TODO
-        # 1. 获取更加详细的Test error信息
-        # 2. 更换Public Test数据集，当前使用的数据存在Label Leak(使用的Reflexion的数据集) -> 这个问题使用LLM抽取解决，直接生成为assert代码串
-        # 3. 实现单独测试每一个test case -> 1
-        solution = solution["final_solution"]
-        test_code = test_cases_2_test_functions(solution, test_cases)
-        try:
-            exec(test_code, globals())
-        except AssertionError as e:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            with open("tester.txt", "a") as f:
-                f.write("test_error" + problem_id + "\n")
-            error_infomation = {
-                "test_fail_case": {"error_type": "AssertionError", "error_message": str(e), "traceback": tb_str}
-            }
-            logger.info(f"test error: {error_infomation}")
-            return error_infomation
-        except Exception as e:
-            with open("tester.txt", "a") as f:
-                f.write(problem_id + "\n")
-            return {"exec_fail_case": str(e)}
-        return []
+    # def exec_code(self, solution, test_cases, problem_id):
+    #     # TODO
+    #     # 1. 获取更加详细的Test error信息
+    #     # 2. 更换Public Test数据集，当前使用的数据存在Label Leak(使用的Reflexion的数据集) -> 这个问题使用LLM抽取解决，直接生成为assert代码串
+    #     # 3. 实现单独测试每一个test case -> 1
+    #     solution = solution["final_solution"]
+    #     test_code = test_cases_2_test_functions(solution, test_cases)
+    #     fail_case = []
+    #     try:
+    #         exec(test_code, globals())
+    #     except AssertionError as e:
+    #         exc_type, exc_value, exc_traceback = sys.exc_info()
+    #         tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+    #         with open("tester.txt", "a") as f:
+    #             f.write("test_error" + problem_id + "\n")
+    #         error_infomation = {
+    #             "test_fail_case": {"error_type": "AssertionError", "error_message": str(e), "traceback": tb_str}
+    #         }
+    #         logger.info(f"test error: {error_infomation}")
+    #         return error_infomation
+    #     except Exception as e:
+    #         with open("tester.txt", "a") as f:
+    #             f.write(problem_id + "\n")
+    #         return {"exec_fail_case": str(e)}
+    #     return []
 
-    async def __call__(self, problem_id, problem, rephrase_problem, solution, test_cases):
-        result = self.exec_code(solution, test_cases, problem_id)
-        if result == []:
+    def exec_code(self, solution, test_cases, problem_id, entry_point):
+        solution = solution["final_solution"]
+        fail_cases = []
+        for test_case in test_cases:
+            test_code = test_case_2_test_function(solution, test_case, entry_point)
+            try:
+                exec(test_code, globals())
+            except AssertionError as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                with open("tester.txt", "a") as f:
+                    f.write("test_error" + problem_id + "\n")
+                error_infomation = {
+                    "test_fail_case": {
+                        "test_case": test_case,
+                        "error_type": "AssertionError",
+                        "error_message": str(e),
+                        "traceback": tb_str,
+                    }
+                }
+                fail_cases.append(error_infomation)
+                logger.info(f"test error: {error_infomation}")
+            except Exception as e:
+                with open("tester.txt", "a") as f:
+                    f.write(problem_id + "\n")
+                return {"exec_fail_case": str(e)}
+        if fail_cases != []:
+            return fail_cases
+        else:
+            return "no error"
+
+    async def __call__(self, problem_id, problem, rephrase_problem, solution, test_cases, entry_point):
+        result = self.exec_code(solution, test_cases, problem_id, entry_point)
+        if result == "no error":
             return solution
         elif "exec_fail_case" in result:
             result = result["exec_fail_case"]
@@ -401,7 +438,6 @@ class Test(Operator):
             response = node.instruct_content.model_dump()
             return {"final_solution": response["refined_solution"]}
         else:
-            result = result["test_fail_case"]
             prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
                 problem_description=problem,
                 rephrase_problem=rephrase_problem,

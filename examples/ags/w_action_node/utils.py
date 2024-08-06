@@ -47,7 +47,9 @@ def parse_python_literal(s):
         return s
 
 
-def extract_test_cases_from_jsonl(problem_id: str, file_path: str = "public_test_reflexion.jsonl"):
+def extract_test_cases_from_jsonl(
+    problem_id: str, file_path: str = "examples/ags/benchmark/data/humaneval_public_test.jsonl"
+):
     # 保留原有的硬编码测试用例
     hardcoded_cases = {
         "HumanEval/32": "",
@@ -63,7 +65,7 @@ def extract_test_cases_from_jsonl(problem_id: str, file_path: str = "public_test
     with open(file_path, "r") as file:
         for line in file:
             data = json.loads(line)
-            if data.get("id") == problem_id:
+            if data.get("task_id") == problem_id:
                 return data.get("test")
 
     return None  # 如果没有找到问题，返回 None
@@ -126,5 +128,21 @@ def test_cases_2_test_functions(solution: str, test_cases: str):
 {solution}
 
 {test_cases}
+"""
+    return tester_function
+
+
+def test_case_2_test_function(solution: str, test_case: str, entry_point: str):
+    tester_function = f"""
+{solution}
+
+
+def check(candidate):
+    {test_case}
+
+def test_check():
+    check({entry_point})
+
+test_check()
 """
     return tester_function

@@ -47,10 +47,10 @@ class HumanEvalGraph(Graph):
         self.fuensemble = FuEnsemble(llm=llm)
         self.mdensemble = MdEnsemble(llm=llm, vote_count=vote_count)
 
-    async def __call__(self, problem: str, ensemble_count: int = 3):
+    async def __call__(self, problem: str, function_name: str, ensemble_count: int = 3):
         solution_list = []
         for _ in range(ensemble_count):
-            solution = await self.generate_code_block(problem)
+            solution = await self.generate_code_block(problem, function_name)
             solution = solution.get("code_solution")
             solution_list.append(solution)
         solution = await self.mdensemble("code", solution_list, problem)
@@ -73,7 +73,7 @@ class HumanEvalGraph(Graph):
             solution = solution.get("code_solution")
             solution_list.append(solution)
         solution = await self.mdensemble("code", solution_list, problem)
-        solution = await self.tester(problem_id, problem, rephrase_problem, solution, test_cases)
+        solution = await self.tester(problem_id, problem, rephrase_problem, solution, test_cases, entry_point)
         return solution
 
     async def review_revise_ensemble(self, problem: str, ensemble_count: int = 2, revise_round: int = 3):
