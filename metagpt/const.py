@@ -152,3 +152,4 @@ AGENT = "agent"
 
 # SWE agent
 SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/setup_default.sh"
+SWE_CMD_WORK_DIR = DEFAULT_WORKSPACE_ROOT / "swe_agent_workdir"
