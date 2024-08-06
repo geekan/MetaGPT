@@ -83,7 +83,7 @@ class WriteDesign(Action):
             prd_filename (str, optional): The filename of the Product Requirement Document (PRD).
             legacy_design_filename (str, optional): The filename of the legacy design document.
             extra_info (str, optional): Additional information to be included in the system design.
-            output_pathname (str, optional): The output path name of file that the system design should be saved to.
+            output_pathname (str, optional): The output file path of the document.
 
         Returns:
             str: The file path of the generated system design.
