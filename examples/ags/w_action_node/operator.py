@@ -7,7 +7,7 @@ import random
 import sys
 import traceback
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 from tenacity import retry, stop_after_attempt
 
@@ -39,6 +39,11 @@ from examples.ags.w_action_node.prompt import (
     REPHRASE_ON_PROBLEM_PROMPT,
     REVIEW_PROMPT,
     REVISE_PROMPT,
+    MATH_GENERATE_PROMPT,
+    MATH_REPHRASE_ON_PROBLEM_PROMPT,
+    MATH_ANSWER_FORMAT_PROMPT,
+    MATH_CORE_PROMPT,
+    MATH_EXTRACT_PROMPT
 )
 from examples.ags.w_action_node.utils import test_cases_2_test_functions
 from metagpt.actions.action_node import ActionNode
@@ -61,6 +66,18 @@ class Generate(Operator):
 
     async def __call__(self, problem_description):
         prompt = GENERATE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def math_generate(self, problem_description):
+        prompt = MATH_GENERATE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def math_answer_format(self, problem_description: str) -> dict:
+        prompt = MATH_ANSWER_FORMAT_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
@@ -353,6 +370,25 @@ class Rephrase(Operator):
         node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response["rephrased_problem"]
+
+    async def math_rephrase(self, problem_description: str) -> str:
+        prompt = MATH_REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+
+    async def math_core(self, problem_description: str) -> str:
+        prompt = MATH_CORE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+
+    async def math_extract(self, problem_description: str) -> str:
+        prompt = MATH_EXTRACT_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+
 
 
 class Test(Operator):

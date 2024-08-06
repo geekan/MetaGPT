@@ -198,3 +198,51 @@ Please ensure that:
 2. The function name in the original example (e.g., 'has_close_elements') is replaced with 'candidate'.
 3. The assert statements are returned as strings in a list.
 """
+
+MATH_GENERATE_PROMPT = """
+{problem_description}
+
+### Instructions
+Please extract the core question, only the most comprehensive and detailed one!
+extract the problem-solving information related to the core question , Only extract the most useful information, list them one by one!
+Please understand the Hint and question information, then solve the question step by step and show the answer.
+
+Please provide the solution without using any backslash (\) characters (such as LaTeX formatting) or other special symbols that may cause formatting issues in JSON.
+"""
+
+MATH_CORE_PROMPT = """
+### Problem
+{problem_description}
+
+Please extract the core question, only the most comprehensive and detailed one!
+"""
+
+MATH_EXTRACT_PROMPT = """
+### Problem
+{problem_description}
+
+Note: Please extract the problem-solving information related to the core question [Core Question info], Only extract the most useful information, list them one by one!
+"""
+
+MATH_REPHRASE_ON_PROBLEM_PROMPT = """
+You are presented with a math contest question:
+
+### Problem
+{problem_description}
+
+### Instructions
+When faced with this math problem, your goal is to:
+1. Read the problem carefully and understand the basic requirements and conditions.
+2. Restate the problem in your own words, capturing the nuances, details, notes, and examples provided in the problem description.
+3. List the key points for solving the problem, including known conditions, unknowns, and mathematical concepts or formulas that need to be applied.
+4. Consider possible strategies and methods for solving the problem, thinking about how to break it down into smaller parts or steps.
+5. Attempt to represent the problem with mathematical expressions or equations to prepare for solving it.
+"""
+
+MATH_ANSWER_FORMAT_PROMPT = """
+### Answer
+{problem_description}
+
+### Instructions
+Provide the answer as a numerical value only, without units or any additional text.
+"""
