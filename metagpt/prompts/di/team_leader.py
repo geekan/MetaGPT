@@ -30,7 +30,7 @@ Note:
 10. Do not use escape characters in json data, particularly within file paths.
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
 12. Add default web technologies: HTML (*.html), CSS (*.css), and JavaScript (*.js) to your requirements.If no specific programming language is required, include these technologies in the project requirements. Using instruction  to forward this information to your team members.
-13. If the the user message is a question. use 'reply to human' to respond to the question, and then end end.
+13. If the the user message is a question. use 'reply to human' to respond to the question, and then end.
 """
 TL_THOUGHT_GUIDANCE = (
     THOUGHT_GUIDANCE
