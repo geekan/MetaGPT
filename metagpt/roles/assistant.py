@@ -136,4 +136,4 @@ class Assistant(Role):
         try:
             self.memory = BrainMemory(**m)
         except Exception as e:
-            logger.exception(f"load error:{e}, data:{jsn}")
+            logger.exception(f"load error:{e}, data:{m}")

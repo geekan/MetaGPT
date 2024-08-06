@@ -34,13 +34,24 @@ from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
-    count_message_tokens,
-    count_string_tokens,
+    count_input_tokens,
+    count_output_tokens,
     get_max_completion_tokens,
+    get_openrouter_tokens,
 )
 
 
-@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT, LLMType.MISTRAL, LLMType.YI])
+@register_provider(
+    [
+        LLMType.OPENAI,
+        LLMType.FIREWORKS,
+        LLMType.OPEN_LLM,
+        LLMType.MOONSHOT,
+        LLMType.MISTRAL,
+        LLMType.YI,
+        LLMType.OPENROUTER,
+    ]
+)
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
@@ -89,12 +100,18 @@ class OpenAILLM(BaseLLM):
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
             if finish_reason:
-                if hasattr(chunk, "usage"):
+                if hasattr(chunk, "usage") and chunk.usage is not None:
                     # Some services have usage as an attribute of the chunk, such as Fireworks
-                    usage = CompletionUsage(**chunk.usage)
+                    if isinstance(chunk.usage, CompletionUsage):
+                        usage = chunk.usage
+                    else:
+                        usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
+                elif "openrouter.ai" in self.config.base_url:
+                    # due to it get token cost from api
+                    usage = await get_openrouter_tokens(chunk)
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
@@ -238,8 +255,8 @@ class OpenAILLM(BaseLLM):
             return usage
 
         try:
-            usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
-            usage.completion_tokens = count_string_tokens(rsp, self.pricing_plan)
+            usage.prompt_tokens = count_input_tokens(messages, self.pricing_plan)
+            usage.completion_tokens = count_output_tokens(rsp, self.pricing_plan)
         except Exception as e:
             logger.warning(f"usage calculation failed: {e}")
 

@@ -55,29 +55,29 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
         await page.goto(mermaid_html_url)
 
         await page.querySelector("div#container")
-        # mermaid_config = {}
+        mermaid_config = {}
         background_color = "#ffffff"
-        # my_css = ""
+        my_css = ""
         await page.evaluate(f'document.body.style.background = "{background_color}";')
 
-        # metadata = await page.evaluate(
-        #     """async ([definition, mermaidConfig, myCSS, backgroundColor]) => {
-        #     const { mermaid, zenuml } = globalThis;
-        #     await mermaid.registerExternalDiagrams([zenuml]);
-        #     mermaid.initialize({ startOnLoad: false, ...mermaidConfig });
-        #     const { svg } = await mermaid.render('my-svg', definition, document.getElementById('container'));
-        #     document.getElementById('container').innerHTML = svg;
-        #     const svgElement = document.querySelector('svg');
-        #     svgElement.style.backgroundColor = backgroundColor;
-        #
-        #     if (myCSS) {
-        #         const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-        #         style.appendChild(document.createTextNode(myCSS));
-        #         svgElement.appendChild(style);
-        #     }
-        # }""",
-        #     [mermaid_code, mermaid_config, my_css, background_color],
-        # )
+        await page.evaluate(
+            """async ([definition, mermaidConfig, myCSS, backgroundColor]) => {
+            const { mermaid, zenuml } = globalThis;
+            await mermaid.registerExternalDiagrams([zenuml]);
+            mermaid.initialize({ startOnLoad: false, ...mermaidConfig });
+            const { svg } = await mermaid.render('my-svg', definition, document.getElementById('container'));
+            document.getElementById('container').innerHTML = svg;
+            const svgElement = document.querySelector('svg');
+            svgElement.style.backgroundColor = backgroundColor;
+        
+            if (myCSS) {
+                const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                style.appendChild(document.createTextNode(myCSS));
+                svgElement.appendChild(style);
+            }
+        }""",
+            [mermaid_code, mermaid_config, my_css, background_color],
+        )
 
         if "svg" in suffixes:
             svg_xml = await page.evaluate(

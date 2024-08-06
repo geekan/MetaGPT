@@ -1,0 +1,11 @@
+whisper_inner_thought_v1.txt
+
+Variables: 
+!<INPUT 0>! -- init persona name
+!<INPUT 1>! -- whisper
+
+<commentblockmarker>###</commentblockmarker>
+Translate the following thought into a statement about !<INPUT 0>!. 
+
+Thought: "!<INPUT 1>!"
+Statement: "
