@@ -28,9 +28,9 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 
 def test_roles(context):
     role_a = RoleA()
-    assert len(role_a.rc.watch) == 1
+    assert len(role_a.rc.watch) == 2
     role_b = RoleB()
-    assert len(role_a.rc.watch) == 1
+    assert len(role_a.rc.watch) == 2
     assert len(role_b.rc.watch) == 1
 
     role_d = RoleD(actions=[ActionOK()])
