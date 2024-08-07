@@ -6,7 +6,7 @@
 @File    : test_action_node.py
 """
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
@@ -302,6 +302,19 @@ def test_action_node_from_pydantic_and_print_everything():
     assert "tasks" in code, "tasks should be in code"
 
 
+def test_optional():
+    mapping = {
+        "Logic Analysis": (Optional[List[Tuple[str, str]]], Field(default=None)),
+        "Task list": (Optional[List[str]], None),
+        "Plan": (Optional[str], ""),
+        "Anything UNCLEAR": (Optional[str], None),
+    }
+    m = {"Anything UNCLEAR": "a"}
+    t = ActionNode.create_model_class("test_class_1", mapping)
+
+    t1 = t(**m)
+    assert t1
+
+
 if __name__ == "__main__":
-    test_create_model_class()
-    test_create_model_class_with_mapping()
+    pytest.main([__file__, "-s"])
