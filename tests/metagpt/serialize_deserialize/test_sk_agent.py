@@ -15,3 +15,7 @@ async def test_sk_agent_serdeser():
     new_role = SkAgent(**ser_role_dict)
     assert new_role.name == "Sunshine"
     assert len(new_role.actions) == 1
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
