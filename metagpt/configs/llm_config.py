@@ -33,7 +33,7 @@ class LLMType(Enum):
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
-    ARK = "ark"
+    ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
 
     def __missing__(self, key):
         return self.OPENAI
