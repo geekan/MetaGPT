@@ -29,3 +29,7 @@ def div(a: int, b: int = 0):
 
     assert new_action.name == "WriteCodeReview"
     await new_action.run()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

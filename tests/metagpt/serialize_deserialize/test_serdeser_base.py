@@ -8,9 +8,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.actions.action_node import ActionNode
-from metagpt.actions.add_requirement import UserRequirement
+from metagpt.actions.fix_bug import FixBug
 from metagpt.roles.role import Role, RoleReactMode
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
@@ -68,7 +68,7 @@ class RoleA(Role):
     def __init__(self, **kwargs):
         super(RoleA, self).__init__(**kwargs)
         self.set_actions([ActionPass])
-        self._watch([UserRequirement])
+        self._watch([FixBug, UserRequirement])
 
 
 class RoleB(Role):
@@ -93,7 +93,7 @@ class RoleC(Role):
     def __init__(self, **kwargs):
         super(RoleC, self).__init__(**kwargs)
         self.set_actions([ActionOK, ActionRaise])
-        self._watch([UserRequirement])
+        self._watch([FixBug, UserRequirement])
         self.rc.react_mode = RoleReactMode.BY_ORDER
         self.rc.memory.ignore_id = True
 
