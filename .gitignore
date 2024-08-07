@@ -189,3 +189,4 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
+tests/data/requirements/*.jpg

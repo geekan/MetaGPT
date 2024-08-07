@@ -1,7 +1,7 @@
 from metagpt.roles.di.data_analyst import DataAnalyst
 
-HOUSE_PRICE_TRAIN_PATH = '/data/house-prices-advanced-regression-techniques/split_train.csv'
-HOUSE_PRICE_EVAL_PATH = '/data/house-prices-advanced-regression-techniques/split_eval.csv'
+HOUSE_PRICE_TRAIN_PATH = "/data/house-prices-advanced-regression-techniques/split_train.csv"
+HOUSE_PRICE_EVAL_PATH = "/data/house-prices-advanced-regression-techniques/split_eval.csv"
 HOUSE_PRICE_REQ = f"""
 This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{HOUSE_PRICE_TRAIN_PATH}', eval data path: '{HOUSE_PRICE_EVAL_PATH}'.
 """
