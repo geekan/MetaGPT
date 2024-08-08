@@ -163,16 +163,13 @@ class RoleZero(Role):
         )
         guidance_system_msgs = [instruction_system_prpomt]
         if self.system_msg:
-            guidance_system_msgs = self.system_msg + guidance_system_msgs
+            guidance_system_msgs = [self.system_msg[0] + guidance_system_msgs[0]]
 
-        # print(("\n"+"="*10+"\n").join(guidance_system_msgs))
         ### Make Decision Dynamically ###
         memory = self.rc.memory.get(self.memory_k)
         prompt = self.cmd_prompt.format(
             plan_status=plan_status,
             current_task=current_task,
-            # thought_guidance=self.thought_guidance,
-            # latest_observation=memory[-1].content,
             requirements_constraints=self.requirements_constraints,
         )
         memory = await self.parse_browser_actions(memory)
