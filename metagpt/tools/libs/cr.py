@@ -85,7 +85,7 @@ class CodeReview:
                     if pre:
                         patch_file_content = pre.text
         else:
-            async with aiofiles.open(patch_path) as f:
+            async with aiofiles.open(patch_path, encoding="utf-8") as f:
                 patch_file_content = await f.read()
                 await EditorReporter().async_report(patch_path)
 
