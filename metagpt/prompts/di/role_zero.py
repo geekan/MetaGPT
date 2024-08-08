@@ -11,9 +11,14 @@ Note:
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
-CMD_PROMPT = """
+
+####################
 # Latest Observation
-{latest_observation}
+# {latest_observation}
+
+
+###########################
+INSTRUCTION_GUIDANCE = """
 
 # Data Structure
 class Task(BaseModel):
@@ -30,11 +35,6 @@ class Task(BaseModel):
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
 
-# Current Plan
-{plan_status}
-
-# Current Task
-{current_task}
 
 # Example
 {example}
@@ -42,6 +42,22 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 
 # Instruction
 {instruction}
+"""
+
+
+# {thought_guidance}
+# Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+
+CMD_PROMPT = """
+# Current Plan
+{plan_status}
+
+# Current Task
+{current_task}
+
+# Restrictions
+{requirements_constraints}
+
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
@@ -49,14 +65,9 @@ If you finish current task, you will automatically take the next task in the exi
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 In your response, include at least one command.
 
-# Restrictions
-{requirements_constraints}
-
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 Output should adhere to the following format.
-{thought_guidance}
-Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 ```json
 [
     {{
@@ -68,6 +79,7 @@ Finally, combine your thoughts, describe what you want to do conscisely in 20 wo
 ```
 Notice: your output JSON data section must start with **```json [**
 """
+
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
 Second, describe the messages you have received recently, with a particular emphasis on messages from users. If necessary, develop a plan to address the new user requirements.

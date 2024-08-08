@@ -19,6 +19,7 @@ from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
+    INSTRUCTION_GUIDANCE,
     JSON_REPAIR_PROMPT,
     QUICK_THINK_PROMPT,
     REGENERATE_PROMPT,
@@ -47,6 +48,7 @@ class RoleZero(Role):
     profile: str = "RoleZero"
     goal: str = ""
     system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
+    instruction_system_prpomt: str = INSTRUCTION_GUIDANCE
     cmd_prompt: str = CMD_PROMPT
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
@@ -152,18 +154,25 @@ class RoleZero(Role):
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
-        ### Make Decision Dynamically ###
-        memory = self.rc.memory.get(self.memory_k)
         instruction = self.instruction.strip()
-        prompt = self.cmd_prompt.format(
+        instruction_system_prpomt = self.instruction_system_prpomt.format(
             example=example,
             available_commands=tool_info,
+            instruction=instruction,
             task_type_desc=self.task_type_desc,
+        )
+        guidance_system_msgs = [instruction_system_prpomt]
+        if self.system_msg:
+            guidance_system_msgs = self.system_msg + guidance_system_msgs
+
+        # print(("\n"+"="*10+"\n").join(guidance_system_msgs))
+        ### Make Decision Dynamically ###
+        memory = self.rc.memory.get(self.memory_k)
+        prompt = self.cmd_prompt.format(
             plan_status=plan_status,
             current_task=current_task,
-            instruction=instruction,
-            thought_guidance=self.thought_guidance,
-            latest_observation=memory[-1].content,
+            # thought_guidance=self.thought_guidance,
+            # latest_observation=memory[-1].content,
             requirements_constraints=self.requirements_constraints,
         )
         memory = await self.parse_browser_actions(memory)
@@ -175,7 +184,9 @@ class RoleZero(Role):
                 current_task=current_task,
                 instruction=instruction,
             )
-            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+            self.command_rsp = await self.llm_cached_aask(
+                req=req, system_msgs=guidance_system_msgs, state_data=state_data
+            )
 
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
 
