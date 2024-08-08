@@ -224,6 +224,8 @@ IMPORTANT_TIPS = """
 14. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
 
 15. When the edit fails, try to enlarge the starting line.
+
+16. Once again, and this is critical: YOU CAN ONLY ENTER ONE COMMAND AT A TIME.
 """
 
 NEXT_STEP_TEMPLATE = f"""
