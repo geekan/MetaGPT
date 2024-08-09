@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import base64
 import contextlib
 import csv
@@ -870,7 +871,10 @@ async def get_mime_type(filename: str | Path, force_read: bool = False) -> str:
     }
 
     try:
-        stdout, _, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        stdout, stderr, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        if stderr:
+            logger.debug(f"file:{filename}, error:{stderr}")
+            return guess_mime_type
         ix = stdout.rfind(" ")
         mime_type = stdout[ix:].strip()
         if mime_type == "text/plain" and guess_mime_type in text_set:
@@ -1066,6 +1070,32 @@ def tool2name(cls, methods: List[str], entry) -> Dict[str, Any]:
     if len(mappings) < 2:
         mappings[class_name] = entry
     return mappings
+
+
+def run_coroutine_sync(coroutine, *args, **kwargs):
+    """
+    Runs a coroutine function synchronously by encapsulating its invocation as a non-coroutine function call.
+
+    Args:
+        coroutine: The coroutine function to be encapsulated.
+        *args: Positional arguments to be passed to the coroutine.
+        **kwargs: Keyword arguments to be passed to the coroutine.
+
+    Returns:
+        The return value of the coroutine.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # No running event loop
+        loop = None
+
+    if loop and loop.is_running():
+        # The event loop is already running
+        future = asyncio.run_coroutine_threadsafe(coroutine(*args, **kwargs), loop)
+        return future.result()
+    else:
+        # The event loop is not running
+        return asyncio.run(coroutine(*args, **kwargs))
 
 
 def log_time(method):

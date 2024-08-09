@@ -62,7 +62,7 @@ class WriteTasks(Action):
 
         Args:
             user_requirement (str, optional): A string specifying the user's requirements. Defaults to an empty string.
-            design_filename (str): The filename of the project system design file. Defaults to an empty string.
+            design_filename (str): The output file path of the document. Defaults to an empty string.
             output_pathname (str, optional): The output path name of file that the project schedule should be saved to.
             **kwargs: Additional keyword arguments.
 
@@ -73,8 +73,9 @@ class WriteTasks(Action):
             # Write a project schedule with a given system design.
             >>> design_filename = "/absolute/path/to/snake_game/docs/system_design.json"
             >>> output_pathname = "/absolute/path/to/snake_game/docs/project_schedule.json"
+            >>> user_requirement = "Write project schedule for a snake game following these requirements:..."
             >>> action = WriteTasks()
-            >>> result = await action.run(design_filename=design_filename, output_pathname=output_pathname)
+            >>> result = await action.run(user_requirement=user_requirement, design_filename=design_filename, output_pathname=output_pathname)
             >>> print(result)
             The project schedule is at /absolute/path/to/snake_game/docs/project_schedule.json
 

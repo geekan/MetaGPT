@@ -7,7 +7,7 @@
 @Desc: Implement `get_env`. RFC 216 2.4.2.4.2.
 """
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 
 class EnvKeyNotFoundError(Exception):
@@ -15,14 +15,26 @@ class EnvKeyNotFoundError(Exception):
         super().__init__(info)
 
 
+def to_app_key(key: str, app_name: str = None) -> str:
+    return f"{app_name}-{key}" if app_name else key
+
+
+def split_app_key(app_key: str) -> (str, str):
+    if "-" not in app_key:
+        return "", app_key
+    app_name, key = app_key.split("-", 1)
+    return app_name, key
+
+
 async def default_get_env(key: str, app_name: str = None) -> str:
-    if key in os.environ:
-        return os.environ[key]
+    app_key = to_app_key(key=key, app_name=app_name)
+    if app_key in os.environ:
+        return os.environ[app_key]
 
     from metagpt.context import Context
 
     context = Context()
-    val = context.kwargs.get(key, None)
+    val = context.kwargs.get(app_key, None)
     if val is not None:
         return val
 
@@ -32,14 +44,16 @@ async def default_get_env(key: str, app_name: str = None) -> str:
 async def default_get_env_description() -> Dict[str, str]:
     result = {}
     for k in os.environ.keys():
-        call = f'await get_env(key="{k}", app_name="")'
+        app_name, key = split_app_key(k)
+        call = f'await get_env(key="{key}", app_name="{app_name}")'
         result[call] = f"Return the value of environment variable `{k}`."
 
     from metagpt.context import Context
 
     context = Context()
     for k in context.kwargs.__dict__.keys():
-        call = f'await get_env(key="{k}", app_name="")'
+        app_name, key = split_app_key(k)
+        call = f'await get_env(key="{key}", app_name="{app_name}")'
         result[call] = f"Get the value of environment variable `{k}`."
     return result
 
@@ -82,6 +96,37 @@ async def get_env(key: str, app_name: str = None) -> str:
         return await _get_env_entry(key=key, app_name=app_name)
 
     return await default_get_env(key=key, app_name=app_name)
+
+
+async def get_env_default(key: str, app_name: str = None, default_value: str = None) -> Optional[str]:
+    """
+    Retrieves the value for the specified environment variable key. If the key is not found,
+    returns the default value.
+
+    Args:
+        key (str): The name of the environment variable to retrieve.
+        app_name (str, optional): The name of the application or component to associate with the environment variable.
+        default_value (str, optional): The default value to return if the environment variable is not found.
+
+    Returns:
+        str or None: The value of the environment variable if found, otherwise the default value.
+
+    Example:
+        >>> from metagpt.tools.libs.env import get_env
+        >>> api_key = await get_env_default(key="NOT_EXISTS_API_KEY", default_value="<API_KEY>")
+        >>> print(api_key)
+        <API_KEY>
+
+        >>> from metagpt.tools.libs.env import get_env
+        >>> api_key = await get_env_default(key="NOT_EXISTS_API_KEY", app_name="GITHUB", default_value="<API_KEY>")
+        >>> print(api_key)
+        <API_KEY>
+
+    """
+    try:
+        return await get_env(key=key, app_name=app_name)
+    except EnvKeyNotFoundError:
+        return default_value
 
 
 async def get_env_description() -> Dict[str, str]:

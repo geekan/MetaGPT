@@ -383,10 +383,10 @@ class RoleZero(Role):
             tool_output = await tool_obj(**cmd["args"])
             if len(tool_output) <= 10:
                 command_output += (
-                    f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output} (pay attention to this.)"
+                    f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output} (pay attention to this.)"
                 )
             else:
-                command_output += f"\n[command]: {cmd['args']['cmd']} \n [command output] : {tool_output}"
+                command_output += f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output}"
         return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:

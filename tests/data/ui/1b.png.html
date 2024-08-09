@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法务小超人</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            background-color: #f8f8f8;
+            padding: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #fff;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .header img {
+            height: 24px;
+        }
+        .header .menu-icons {
+            display: flex;
+            gap: 10px;
+        }
+        .header .menu-icons img {
+            height: 24px;
+        }
+        .search-section {
+            background-image: url('background-image.jpg'); /* Replace with actual background image */
+            background-size: cover;
+            color: white;
+            padding: 40px 20px;
+        }
+        .search-section h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .search-input {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .search-input input {
+            width: 300px;
+            padding: 10px;
+            border-radius: 5px 0 0 5px;
+            border: none;
+        }
+        .search-input button {
+            padding: 10px 20px;
+            border-radius: 0 5px 5px 0;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        .search-result-count {
+            margin: 10px 0;
+        }
+        .qa-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: -20px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .qa-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .qa-item:last-child {
+            border-bottom: none;
+        }
+        .qa-item a {
+            text-decoration: none;
+            color: #333;
+        }
+        .qa-item img {
+            height: 20px;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            background-color: #fff;
+            border-top: 1px solid #e6e6e6;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        .footer img {
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="logo.png" alt="法务小超人"> <!-- Replace with actual logo -->
+            </div>
+            <div class="menu-icons">
+                <img src="menu-icon.png" alt="Menu"> <!-- Replace with actual menu icon -->
+                <img src="more-icon.png" alt="More"> <!-- Replace with actual more icon -->
+            </div>
+        </div>
+        <div class="search-section">
+            <h1>法律意见查询</h1>
+            <div class="search-input">
+                <input type="text" placeholder="输入国家名查询法律意见">
+                <button>
+                    <img src="search-icon.png" alt="Search"> <!-- Replace with actual search icon -->
+                </button>
+            </div>
+            <div class="search-result-count">
+                已收录法律意见8394篇
+            </div>
+        </div>
+        <div class="qa-section">
+            <h2>法务 Q&A</h2>
+            <div class="qa-item">
+                <a href="#">国际法务接口人</a>
+                <img src="arrow.png" alt="Arrow"> <!-- Replace with actual arrow icon -->
+            </div>
+            <div class="qa-item">
+                <a href="#">国内法务接口人</a>
+                <img src="arrow.png" alt="Arrow"> <!-- Replace with actual arrow icon -->
+            </div>
+            <div class="qa-item">
+                <a href="#">国际法律协议合同办理指引</a>
+                <img src="arrow.png" alt="Arrow"> <!-- Replace with actual arrow icon -->
+            </div>
+            <div class="qa-item">
+                <a href="#">国内法律协议合同办理指引</a>
+                <img src="arrow.png" alt="Arrow"> <!-- Replace with actual arrow icon -->
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-item">
+                <img src="home-icon.png" alt="首页"> <!-- Replace with actual home icon -->
+                <div>首页</div>
+            </div>
+            <div class="footer-item">
+                <img src="template-icon.png" alt="模板"> <!-- Replace with actual template icon -->
+                <div>模板</div>
+            </div>
+            <div class="footer-item">
+                <img src="my-icon.png" alt="我的"> <!-- Replace with actual my icon -->
+                <div>我的</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

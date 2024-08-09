@@ -12,7 +12,7 @@ from metagpt.actions.action_node import ActionNode
 REQUIRED_PYTHON_PACKAGES = ActionNode(
     key="Required Python packages",
     expected_type=List[str],
-    instruction="Provide required Python packages in requirements.txt format.",
+    instruction="Provide required Python packages in requirements.txt format. The response language should correspond to the context and requirements.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
 

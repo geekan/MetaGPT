@@ -124,7 +124,9 @@ class MGXEnv(Environment):
         if converted_msg.role not in ["system", "user", "assistant"]:
             converted_msg.role = "assistant"
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
-        converted_msg.content = f"from {sent_from} to {converted_msg.send_to}: {converted_msg.content}"
+        converted_msg.content = (
+            f"[Message] from {sent_from if sent_from else 'User'} to {converted_msg.send_to}: {converted_msg.content}"
+        )
         return converted_msg
 
     def __repr__(self):
