@@ -74,6 +74,14 @@ class SearchEnhancedQA(Action):
     java_script_enabled: bool = Field(
         default=False, description="Whether or not to enable JavaScript in the web browser context. Defaults to False."
     )
+    user_agent: str = Field(
+        default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.81",
+        description="Specific user agent to use in browser",
+    )
+    extra_http_headers: dict = Field(
+        default={"sec-ch-ua": 'Chromium";v="125", "Not.A/Brand";v="24'},
+        description="An object containing additional HTTP headers to be sent with every request.",
+    )
     max_chars_per_webpage_summary: int = Field(
         default=4000, description="Maximum summary length for each web page content."
     )
@@ -86,7 +94,11 @@ class SearchEnhancedQA(Action):
     def initialize(self):
         if self.web_browse_and_summarize_action is None:
             self.web_browser_engine = WebBrowserEngine.from_browser_config(
-                self.config.browser, proxy=self.config.proxy, java_script_enabled=self.java_script_enabled
+                self.config.browser,
+                proxy=self.config.proxy,
+                java_script_enabled=self.java_script_enabled,
+                extra_http_headers=self.extra_http_headers,
+                user_agent=self.user_agent,
             )
 
             self.web_browse_and_summarize_action = WebBrowseAndSummarize(web_browser_engine=self.web_browser_engine)
