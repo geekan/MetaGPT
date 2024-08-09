@@ -1,0 +1,38 @@
+[
+    {
+        "task_id": "1",
+        "dependent_task_ids": [],
+        "instruction": "基于用户提供的事故要点信息，写一份事故报告的第一自然段。",
+        "task_type": "first_paragraph"
+    },
+    {
+        "task_id": "2",
+        "dependent_task_ids": ["1"],
+        "instruction": "详细准确书写事故发生单位及事发工地概况章节内容。",
+        "task_type": "second_paragraph"
+    },
+    {
+        "task_id": "3",
+        "dependent_task_ids": ["1"],
+        "instruction": "详细准确书写事故发生经过和应急处置情况及评估章节内容。",
+        "task_type": "third_paragraph"
+    },
+    {
+        "task_id": "4",
+        "dependent_task_ids": ["3"],
+        "instruction": "详细准确书写事故发生的原因和事故性质章节内容。",
+        "task_type": "forth_paragraph"
+    },
+    {
+        "task_id": "5",
+        "dependent_task_ids": ["3","4"],
+        "instruction": "详细准确书写事故责任的认定及处理建议章节内容。",
+        "task_type": "fifth_paragraph"
+    },
+    {
+        "task_id": "6",
+        "dependent_task_ids": ["1","2","3","4","5"],
+        "instruction": "详细准确书写事故整改及防范措施章节内容。",
+        "task_type": "last_paragraph"
+    }
+]
