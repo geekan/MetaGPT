@@ -141,9 +141,10 @@ def test_new_content_format_issue(test_file):
         TEST_DATA_PATH / "movie/trailer.mp4",
     ],
 )
-def test_read_files(filename):
+@pytest.mark.asyncio
+async def test_read_files(filename):
     editor = Editor()
-    file_block = editor.read(filename)
+    file_block = await editor.read(filename)
     assert file_block
     assert file_block.file_path
     if filename.suffix not in [".png", ".mp3", ".mp4"]:
