@@ -75,6 +75,7 @@ s3:
   bucket: "test"
 
 exp_pool:
+  enabled: false
   enable_read: false 
   enable_write: false
   persist_path: .chroma_exp_data # The directory.
