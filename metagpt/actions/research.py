@@ -181,7 +181,7 @@ class CollectLinks(Action):
         return [i["link"] for i in results[:num_results]]
 
     async def _search_urls(self, query: str, max_results: int) -> list[dict[str, str]]:
-        """Use search_engine to get urls
+        """Use search_engine to get urls.
 
         Returns:
             e.g. [{"title": "...", "link": "...", "snippet", "..."}]
