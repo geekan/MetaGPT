@@ -6,13 +6,17 @@
 
 from typing import List
 
+from pydantic import BaseModel
+
 from metagpt.actions import WritePRD
 from metagpt.actions.action_node import ActionNode
 from metagpt.schema import Message
 from metagpt.utils.serialize import (
     actionoutout_schema_to_mapping,
     deserialize_message,
+    deserialize_model,
     serialize_message,
+    serialize_model,
 )
 
 
@@ -66,3 +70,35 @@ def test_serialize_and_deserialize_message():
     assert new_message.content == message.content
     assert new_message.cause_by == message.cause_by
     assert new_message.instruct_content.field1 == out_data["field1"]
+
+
+class TestUserModel(BaseModel):
+    name: str
+    value: int
+
+
+def test_serialize_model(mocker):
+    model = TestUserModel(name="test", value=42)
+    file_path = "test.json"
+    mock_write_json_file = mocker.patch("metagpt.utils.serialize.write_json_file")
+
+    # Test without remove_unserializable
+    serialize_model(model, file_path)
+    mock_write_json_file.assert_called_once_with(file_path, model.model_dump())
+
+    # Test with remove_unserializable
+    def remove_unserializable(data: dict):
+        data.pop("value", None)
+
+    serialize_model(model, file_path, remove_unserializable)
+    mock_write_json_file.assert_called_with(file_path, {"name": "test"})
+
+
+def test_deserialize_model(mocker):
+    file_path = "test.json"
+    data = {"name": "test", "value": 42}
+    mock_read_json_file = mocker.patch("metagpt.utils.serialize.read_json_file", return_value=data)
+
+    model = deserialize_model(TestUserModel, file_path)
+    mock_read_json_file.assert_called_once_with(file_path)
+    assert model == TestUserModel(**data)

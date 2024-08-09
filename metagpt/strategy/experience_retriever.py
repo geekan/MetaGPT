@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class ExpRetriever(BaseModel):
     """interface for experience retriever"""
 
-    def retrieve(self, context: str) -> str:
+    def retrieve(self, context: str = "") -> str:
         raise NotImplementedError
 
 

@@ -2,9 +2,8 @@ import os
 import shutil
 import subprocess
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import EditorReporter
 
@@ -17,12 +16,12 @@ class FileBlock(BaseModel):
 
 
 @register_tool()
-class Editor:
+class Editor(BaseModel):
     """A tool for reading, understanding, writing, and editing files"""
 
-    def __init__(self) -> None:
-        print(f"Editor initialized with root path at: {DEFAULT_WORKSPACE_ROOT}")
-        self.resource = EditorReporter()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    resource: EditorReporter = EditorReporter()
 
     def write(self, path: str, content: str):
         """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""

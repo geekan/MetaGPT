@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 from pydantic import Field
 
@@ -17,7 +18,7 @@ class SWEAgent(RoleZero):
     name: str = "Swen"
     profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue or bug in any existing codebase"
-    system_msg: str = [SWE_AGENT_SYSTEM_TEMPLATE]
+    system_msg: Optional[list[str]] = [SWE_AGENT_SYSTEM_TEMPLATE]
     _instruction: str = NEXT_STEP_TEMPLATE
     tools: list[str] = [
         "Bash",

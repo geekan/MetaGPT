@@ -4,7 +4,7 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Dict, List, Literal, Tuple
+from typing import Callable, Dict, List, Literal, Optional, Tuple
 
 from pydantic import model_validator
 
@@ -46,11 +46,11 @@ class RoleZero(Role):
     name: str = "Zero"
     profile: str = "RoleZero"
     goal: str = ""
-    system_msg: list[str] = None  # Use None to conform to the default value at llm.aask
+    system_msg: Optional[list[str]] = None  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
-    task_type_desc: str = None
+    task_type_desc: Optional[str] = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -58,7 +58,7 @@ class RoleZero(Role):
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = None
+    tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: dict[str, Callable] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
     # Equipped with three basic tools by default for optional use
@@ -74,6 +74,7 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
+    unserializable_fields: list[str] = ["tool_execution_map", "experience_retriever"]
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
