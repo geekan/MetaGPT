@@ -17,7 +17,7 @@ from metagpt.tools.libs import (
     deployer,
     git,
 )
-from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description
+from metagpt.tools.libs.env import get_env, set_get_env_entry, default_get_env, get_env_description, get_env_default
 
 _ = (
     data_preprocess,
@@ -32,6 +32,7 @@ _ = (
     deployer,
     git,
     get_env,
+    get_env_default,
     get_env_description,
     set_get_env_entry,
     default_get_env,
