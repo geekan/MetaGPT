@@ -12,13 +12,16 @@ Note:
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
 
-####################
+########################## ignore guidance
+
 # Latest Observation
 # {latest_observation}
 
+# {thought_guidance}
+# Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 
 ###########################
-INSTRUCTION_GUIDANCE = """
+SYSTEM_PROMPT = """
 
 # Data Structure
 class Task(BaseModel):
@@ -44,10 +47,6 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 {instruction}
 """
 
-
-# {thought_guidance}
-# Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
-
 CMD_PROMPT = """
 # Current Plan
 {plan_status}
@@ -57,7 +56,6 @@ CMD_PROMPT = """
 
 # Restrictions
 {requirements_constraints}
-
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
@@ -111,6 +109,9 @@ ASK_HUMAN_COMMAND = """
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
+
+## json decode error
+{json_decode_error}
 
 ## Output Format
 ```json

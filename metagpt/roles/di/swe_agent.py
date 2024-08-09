@@ -3,11 +3,7 @@ import json
 from pydantic import Field
 
 from metagpt.logs import logger
-from metagpt.prompts.di.swe_agent import (
-    MINIMAL_EXAMPLE,
-    NEXT_STEP_TEMPLATE,
-    SWE_AGENT_SYSTEM_TEMPLATE,
-)
+from metagpt.prompts.di.swe_agent import MINIMAL_EXAMPLE, NEXT_STEP_TEMPLATE
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.terminal import Bash
@@ -17,7 +13,6 @@ class SWEAgent(RoleZero):
     name: str = "Swen"
     profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue or bug in any existing codebase"
-    system_msg: str = [SWE_AGENT_SYSTEM_TEMPLATE]
     _instruction: str = NEXT_STEP_TEMPLATE
     tools: list[str] = [
         "Bash",
