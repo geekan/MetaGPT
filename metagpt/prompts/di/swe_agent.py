@@ -239,6 +239,6 @@ Avoid repeating the same command. Instead, please think about the current situat
 CURRENT_BASH_STATE = """
 # Output Next Step
 The current bash state is:
-(Open file: {{open_file}})
-(Current directory: {{working_dir}})
+(Open file: {open_file})
+(Current directory: {working_dir})
 """

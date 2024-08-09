@@ -53,7 +53,7 @@ class SWEAgent(RoleZero):
         """
         state_output = await self.terminal.run("state")
         bash_state = json.loads(state_output)
-        self.cmd_prompt_current_state = CURRENT_BASH_STATE.formate(**bash_state).strip()
+        self.cmd_prompt_current_state = CURRENT_BASH_STATE.format(**bash_state).strip()
 
     async def _parse_commands_for_eval(self):
         """
