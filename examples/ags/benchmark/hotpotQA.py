@@ -1,18 +1,20 @@
-from typing import Literal, Optional
 import asyncio
 import json
+import os
 import re
 import string
-import aiofiles
-import os
+from typing import Literal, Optional
 
+import aiofiles
+
+from examples.ags.w_action_node.graph import HotpotQAGraph
+from examples.ags.w_action_node.operator import Format, GenerateOnContext
+from examples.ags.w_action_node.utils import get_hotpotqa
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from examples.ags.w_action_node.graph import HotpotQAGraph
-from examples.ags.w_action_node.operator import GenerateOnContext, Format
-from examples.ags.w_action_node.utils import get_hotpotqa
 
 HOTPOTQA_PATH = "hotpotqa_1000.jsonl"
+
 
 def sort_json_by_key(input_path, output_path):
     with open(input_path) as f:
@@ -21,28 +23,42 @@ def sort_json_by_key(input_path, output_path):
     with open(output_path, "w") as f:
         for line in data:
             f.write(json.dumps(line) + "\n")
-    
-extract_supporting_sentences = GenerateOnContext(llm=LLM(), requirement="supporting sentences to get the final answers (split by newline)")
+
+
+extract_supporting_sentences = GenerateOnContext(
+    llm=LLM(), requirement="supporting sentences to get the final answers (split by newline)"
+)
 generate_on_context = GenerateOnContext(llm=LLM(), requirement="a concise answer without additional context")
 format = Format(llm=LLM())
-solver = HotpotQAGraph(name="solver", llm=LLM(), criteria= "correctness, only concise answer, without additional context", HOTPOTQA_PATH=HOTPOTQA_PATH)
+solver = HotpotQAGraph(
+    name="solver",
+    llm=LLM(),
+    criteria="correctness, only concise answer, without additional context",
+    HOTPOTQA_PATH=HOTPOTQA_PATH,
+)
 
 ModeType = Literal["ags", "alpha_codium", "llm"]
 
+
 async def llm_generate(id):
     dp = get_hotpotqa(HOTPOTQA_PATH)[id]
-    paragraphs = [item[1] for item in dp['context'] if isinstance(item[1], list)]
+    paragraphs = [item[1] for item in dp["context"] if isinstance(item[1], list)]
     context_str = "\n".join(" ".join(paragraph) for paragraph in paragraphs)
 
-    supporting_sentences = await extract_supporting_sentences(dp['question'], context_str)
+    supporting_sentences = await extract_supporting_sentences(dp["question"], context_str)
     supporting_sentences_str = "\n".join(supporting_sentences.get("solution"))
 
-    answer_result = await generate_on_context(dp['question'], supporting_sentences_str)
+    answer_result = await generate_on_context(dp["question"], supporting_sentences_str)
     answer_result = answer_result.get("solution")
 
-    answer_formated = await format(dp['question'], answer_result)
-    sample_dict = dict(task_id=id, answer=answer_formated.get("solution"), supporting_sentences=supporting_sentences.get("solution").split("\n"))
+    answer_formated = await format(dp["question"], answer_result)
+    sample_dict = dict(
+        task_id=id,
+        answer=answer_formated.get("solution"),
+        supporting_sentences=supporting_sentences.get("solution").split("\n"),
+    )
     return sample_dict
+
 
 async def route_generate(mode: ModeType, id):
     if mode == "ags":
@@ -51,8 +67,9 @@ async def route_generate(mode: ModeType, id):
         sample_dict = await llm_generate(id)
     else:
         raise ValueError(f"Invalid mode: {mode}")
-    
+
     return sample_dict
+
 
 async def sample_generate(id, result_path: str = "samples.jsonl", mode: ModeType = "llm"):
     sample_dict = await route_generate(mode, id)
@@ -60,7 +77,10 @@ async def sample_generate(id, result_path: str = "samples.jsonl", mode: ModeType
         await f.write(json.dumps(sample_dict) + "\n")
     # sort_json_by_key(result_path, result_path)
 
-async def samples_generate(mode: ModeType, data_path: str = HOTPOTQA_PATH, result_path: str = "samples.jsonl", max_concurrency: int = 50):
+
+async def samples_generate(
+    mode: ModeType, data_path: str = HOTPOTQA_PATH, result_path: str = "samples.jsonl", max_concurrency: int = 50
+):
     ids = list(get_hotpotqa(HOTPOTQA_PATH).keys())
 
     file_lock = asyncio.Lock()
@@ -96,17 +116,17 @@ async def samples_generate(mode: ModeType, data_path: str = HOTPOTQA_PATH, resul
         eval_path = result_path[:-6] + "_eval.json"
         logger.info(eval(result_path, data_path, eval_path))
 
-def normalize_answer(s):
 
+def normalize_answer(s):
     def remove_articles(text):
-        return re.sub(r'\b(a|an|the)\b', ' ', text)
+        return re.sub(r"\b(a|an|the)\b", " ", text)
 
     def white_space_fix(text):
-        return ' '.join(text.split())
+        return " ".join(text.split())
 
     def remove_punc(text):
         exclude = set(string.punctuation)
-        return ''.join(ch for ch in text if ch not in exclude)
+        return "".join(ch for ch in text if ch not in exclude)
 
     def lower(text):
         return text.lower()
@@ -115,7 +135,8 @@ def normalize_answer(s):
 
 
 def exact_match_score(prediction, ground_truth):
-    return (normalize_answer(prediction) == normalize_answer(ground_truth))
+    return normalize_answer(prediction) == normalize_answer(ground_truth)
+
 
 def eval(prediction_file, gold_file, eval_file):
     # if existing eval file
@@ -133,19 +154,20 @@ def eval(prediction_file, gold_file, eval_file):
 
     with open(gold_file) as f:
         golds = [json.loads(line) for line in f]
-    
+
     eval_results = []
     em = 0
     for prediction, gold in zip(predictions, golds):
-        if(prediction["task_id"] != gold["_id"]):
+        if prediction["task_id"] != gold["_id"]:
             raise ValueError(f"Task ID {gold['_id']} do not match")
         result = exact_match_score(prediction["answer"], gold["answer"])
         em += result
-        eval_results.append({"task_id": prediction["task_id"], "solution":prediction["answer"], "answer": gold['answer'], "em": result})
-    
+        eval_results.append(
+            {"task_id": prediction["task_id"], "solution": prediction["answer"], "answer": gold["answer"], "em": result}
+        )
+
     with open(eval_file, "w") as f:
         for line in eval_results:
             f.write(json.dumps(line) + "\n")
 
     logger.info(f"EM: {em/len(predictions)}")
-    

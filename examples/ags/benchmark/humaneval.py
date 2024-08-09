@@ -69,7 +69,8 @@ async def sample_generate(id, result_path: str = "samples.jsonl", mode: ModeType
 async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl", max_concurrency: int = 50):
     ids = list(get_human_eval_plus().keys())
     file_lock = asyncio.Lock()
-    semaphore = asyncio.Semaphore(max_concurrency)  
+    semaphore = asyncio.Semaphore(max_concurrency)
+
     async def solve_and_write(id: str, mode: ModeType) -> Optional[str]:
         async with semaphore:
             try:
@@ -87,7 +88,7 @@ async def samples_generate(mode: ModeType, result_path: str = "samples.jsonl", m
 
     if failed_tasks:
         logger.info(failed_tasks)
-        
+
         async def retry_failed_task(task_id):
             try:
                 await sample_generate(task_id, result_path, mode)

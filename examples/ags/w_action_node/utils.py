@@ -19,9 +19,9 @@ def extract_task_id(task_id: str) -> int:
     match = re.search(r"/(\d+)", task_id)
     return int(match.group(1)) if match else 0
 
-def get_hotpotqa(path: str):
 
-    #Parses each jsonl line and yields it as a dictionary
+def get_hotpotqa(path: str):
+    # Parses each jsonl line and yields it as a dictionary
     def parse_jsonl(path):
         with open(path) as f:
             for line in f:
@@ -29,6 +29,7 @@ def get_hotpotqa(path: str):
 
     datas = list(parse_jsonl(path))
     return {data["_id"]: data for data in datas}
+
 
 def sort_json_by_key(input_file: str, output_file: str, key: str = "task_id"):
     """

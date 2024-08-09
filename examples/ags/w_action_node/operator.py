@@ -12,16 +12,16 @@ from typing import Dict, List, Tuple
 from tenacity import retry, stop_after_attempt
 
 from examples.ags.w_action_node.operator_an import (
+    FormatOp,
     FuEnsembleOp,
     GenerateCodeBlockOp,
+    GenerateCodeSolution,
     GenerateOp,
     MdEnsembleOp,
     ReflectionTestOp,
     RephraseOp,
     ReviewOp,
     ReviseOp,
-    GenerateCodeSolution,
-    FormatOp
 )
 from examples.ags.w_action_node.prompt import (
     DE_ENSEMBLE_ANGEL_PROMPT,
@@ -30,24 +30,24 @@ from examples.ags.w_action_node.prompt import (
     DE_ENSEMBLE_JUDGE_FINAL_PROMPT,
     DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT,
     DE_ENSEMBLE_TXT_FORMAT_PROMPT,
+    FORMAT_PROMPT,
     FU_ENSEMBLE_PROMPT,
-    GENERATE_ON_CONTEXT_PROMPT,
     GENERATE_CODE_SOLUTION_PROMPT,
     GENERATE_CODEBLOCK_PROMPT,
     GENERATE_CODEBLOCK_REPHRASE_PROMPT,
+    GENERATE_ON_CONTEXT_PROMPT,
     GENERATE_PROMPT,
-    MD_ENSEMBLE_PROMPT,
-    REFLECTION_ON_PUBLIC_TEST_PROMPT,
-    REPHRASE_ON_PROBLEM_PROMPT,
-    REPHRASE_ON_CODE_PROMPT,
-    REVIEW_PROMPT,
-    REVISE_PROMPT,
-    MATH_GENERATE_PROMPT,
-    MATH_REPHRASE_ON_PROBLEM_PROMPT,
     MATH_ANSWER_FORMAT_PROMPT,
     MATH_CORE_PROMPT,
     MATH_EXTRACT_PROMPT,
-    FORMAT_PROMPT,
+    MATH_GENERATE_PROMPT,
+    MATH_REPHRASE_ON_PROBLEM_PROMPT,
+    MD_ENSEMBLE_PROMPT,
+    REFLECTION_ON_PUBLIC_TEST_PROMPT,
+    REPHRASE_ON_CODE_PROMPT,
+    REPHRASE_ON_PROBLEM_PROMPT,
+    REVIEW_PROMPT,
+    REVISE_PROMPT,
 )
 from examples.ags.w_action_node.utils import test_case_2_test_function
 from metagpt.actions.action_node import ActionNode
@@ -68,6 +68,7 @@ class Generate(Operator):
     """
     基于Action Node Fill Function的 Generate 算子
     """
+
     def __init__(self, name: str = "Generate", llm: LLM = LLM()):
         super().__init__(name, llm)
 
@@ -82,18 +83,21 @@ class Generate(Operator):
         node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
-    
-    async def code_solution_generate(self, problem_description:str, rephrase_problem:str):
-        prompt = GENERATE_CODE_SOLUTION_PROMPT.format(problem_description=problem_description, rephrase_problem=rephrase_problem)
+
+    async def code_solution_generate(self, problem_description: str, rephrase_problem: str):
+        prompt = GENERATE_CODE_SOLUTION_PROMPT.format(
+            problem_description=problem_description, rephrase_problem=rephrase_problem
+        )
         node = await ActionNode.from_pydantic(GenerateCodeSolution).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
-    
+
     async def context_solution_generate(self, question, context):
         prompt = GENERATE_ON_CONTEXT_PROMPT.format(problem_description=question, context=context)
         node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
+
 
 class GenerateCodeBlock(Operator):
     def __init__(self, name: str = "GenerateCodeBlock", llm: LLM = LLM()):
@@ -110,18 +114,17 @@ class GenerateCodeBlock(Operator):
 
     @retry(stop=stop_after_attempt(3))
     async def rephrase_generate(self, problem_description, thought, function_name):
-        prompt = GENERATE_CODEBLOCK_REPHRASE_PROMPT.format(
-            problem_description=problem_description, thought=thought
-        )
+        prompt = GENERATE_CODEBLOCK_REPHRASE_PROMPT.format(problem_description=problem_description, thought=thought)
         node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
         return response
-    
+
+
 class Format(Operator):
     def __init__(self, name: str = "Format", llm: LLM = LLM()):
-        super().__init__(name, llm) 
+        super().__init__(name, llm)
 
     async def __call__(self, problem_description, solution):
         prompt = FORMAT_PROMPT.format(problem_description=problem_description, solution=solution)
@@ -135,7 +138,7 @@ class Format(Operator):
         response = node.instruct_content.model_dump()
         return response
 
-    
+
 class Review(Operator):
     def __init__(self, criteria, name: str = "Review", llm: LLM = LLM()):
         self.criteria = criteria
@@ -237,33 +240,30 @@ class CodeEnsmble(Operator):
 
     async def __call__(self, solutions: List[str], problem_description: str):
         all_responses = []
-        
+
         unique_structures = {}
         unique_structures_count = {}
-        
+
         valid_solutions_count = 0  # 添加计数器来跟踪有效的解决方案数量
-        
+
         for solution in solutions:
             try:
                 tree = ast.parse(solution)
                 structure_key = ast.dump(tree, annotate_fields=False, include_attributes=False)
-                
+
                 if structure_key not in unique_structures:
                     unique_structures[structure_key] = solution
                     unique_structures_count[structure_key] = 1
                 else:
                     unique_structures_count[structure_key] += 1
-                
+
                 valid_solutions_count += 1  # 增加有效解决方案的计数
             except SyntaxError:
                 # 剔除语法错误的代码
                 continue
 
         solutions = [
-            {
-                "code": unique_structures[structure_key],
-                "weight": count / valid_solutions_count  # 使用有效解决方案的数量来计算权重
-            }
+            {"code": unique_structures[structure_key], "weight": count / valid_solutions_count}  # 使用有效解决方案的数量来计算权重
             for structure_key, count in unique_structures_count.items()
         ]
 
@@ -278,7 +278,9 @@ class CodeEnsmble(Operator):
             for index, solution in enumerate(shuffled_solutions):
                 weight = str(solution["weight"])
                 code = solution["code"]
-                solution_text += f"{chr(65 + index)}: \n weight(proportion of occurrences in all solutions):{weight} \n{code}\n\n\n"
+                solution_text += (
+                    f"{chr(65 + index)}: \n weight(proportion of occurrences in all solutions):{weight} \n{code}\n\n\n"
+                )
 
             prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
             node = await ActionNode.from_pydantic(MdEnsembleOp).fill(context=prompt, llm=self.llm)
@@ -447,7 +449,7 @@ class Rephrase(Operator):
         node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response["rephrased_problem"]
-        
+
     async def math_rephrase(self, problem_description: str) -> str:
         prompt = MATH_REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
@@ -546,4 +548,3 @@ class SelfAsk(Operator):
 class Verify(Operator):
     def __init__(self, name: str = "Verify", llm: LLM = LLM()):
         super().__init__(name, llm)
-

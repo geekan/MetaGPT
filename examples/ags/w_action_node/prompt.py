@@ -306,4 +306,3 @@ MATH_ANSWER_FORMAT_PROMPT = """
 ### Instructions
 Provide the answer as a numerical value only, without units or any additional text.
 """
-
