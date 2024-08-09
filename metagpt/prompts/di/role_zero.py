@@ -109,13 +109,55 @@ Help check if there are any formatting issues with the JSON data? If so, please 
 If no issues are detected, the original json data should be returned unchanged. Do not omit any information.
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
+QUICK_THINK_SYSTEM_PROMPT = """
+{role_info}
+Your team member:
+{team_info}
+However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
+"""
+
+QUICK_THINK_PROMPT_V2 = """
+Determine if the latest user message qualifies as a "quick question." Quick questions include:
+
+- Common-sense inquiries (e.g., general knowledge, factual information)
+- Legal, logical, or math-related questions
+- Multiple-choice questions
+- Greetings or casual chat
+- Questions about you or your team
+
+## Exclusions:
+- Time- or location-sensitive questions (e.g., weather, news inquiries) are NOT quick questions.
+- Software development tasks are NOT quick questions, except for:
+
+    - Writing trivial code snippets (fewer than 30 lines)
+    - Completing a single function or class
+    - Explaining concepts, writing tutorials, or creating documentation
+    
+Respond with a concise thought followed by "YES" if the question is a quick question. Otherwise, respond with "NO." Your response:
+"""
 
 QUICK_THINK_PROMPT = """
 Decide if the latest user message previously is a quick question.
 Quick questions include common-sense, legal, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
 Questions about you or your team info are also quick questions.
-Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions. Moreover, you should output a keyword SEARCH to indicate the need for a google search.
 Software development tasks are NOT quick questions. Code execution, however trivial, is NOT a quick question.
 However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
-Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO or a SEARCH. Your response:
+Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions. Moreover, you should output a keyword SEARCH to indicate the need for a google search.
+If the query is ambiguous, you should output OOD (Out of Domain) to indicate the question is out of the domain.
+
+Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO, a SEARCH, or an OOD. Your response:
 """
+
+QUICK_THINK_EXAMPLES ="""
+# Example
+
+1. Given the request: [{"role": "user", "content": {"instruction": "Determine if the latest user message qualifies as a quick question.", "request": "How to design an online document editing platform that supports real-time collaboration? Please answer me directly."}}], We can get the response:  (It requires an direct answer) should be answered with "YES.", which scored: 10.
+2. Given the request: [{"role": "user", "content": {"instruction": "Determine if the latest user message qualifies as a quick question.", "request": "Help me find some of the latest research papers on deep learning."}}], We can get the response: (This is a time-sensitive question) should be answered with "SEARCH.", which scored: 10.
+3. Given the request: [{"role": "user", "content": {"instruction": "Determine if the latest user message qualifies as a quick question.", "request": "Tell me the difference between supervised learning and unsupervised learning in machine learning."}}], We can get the response:  (This is a general knowledge question) should be answered with "YES.", which scored: 10.
+4. Given the request: [{"role": "user", "content": {"instruction": "Determine if the latest user message qualifies as a quick question.", "request": "Recommend some programming practice websites suitable for beginners."}}], We can get the response: (This is a general knowledge question) should be answered with "YES.", which scored: 10.
+5. Given the request: [{"role": "user", "content": {"instruction": "Determine if the latest user message qualifies as a quick question.", "request": "Make a personal website that runs Game of Life."}}], We can get the response:  (This is a software development task) should be answered with "NO.", which scored: 10.
+
+# Instruction
+"""
+
+QUICK_THINK_PROMPT = QUICK_THINK_EXAMPLES + QUICK_THINK_PROMPT
