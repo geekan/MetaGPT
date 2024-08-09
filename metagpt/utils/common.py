@@ -579,27 +579,29 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
+def handle_unknown_serialization(x: Any) -> str:
+    """For `to_jsonable_python` debug, unknown values will be logged instead of raising an exception."""
+
+    if inspect.ismethod(x):
+        logger.error(f"Method: {x.__self__.__class__.__name__}.{x.__func__.__name__}")
+    elif inspect.isfunction(x):
+        logger.error(f"Function: {x.__name__}")
+    elif hasattr(x, "__class__"):
+        logger.error(f"Instance of: {x.__class__.__name__}")
+    elif hasattr(x, "__name__"):
+        logger.error(f"Class or module: {x.__name__}")
+    else:
+        logger.error(f"Unknown type: {type(x)}")
+
+    return f"<Unserializable {type(x).__name__} object>"
+
+
 def write_json_file(json_file: str, data: Any, encoding: str = None, indent: int = 4, use_fallback: bool = False):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
-    # For debug, if use_fallback, unknown values will be logged instead of raising an exception.
-    def fallback(x: Any) -> str:
-        tip = f"PydanticSerializationError occurred while processing file '{json_file}'"
-
-        if inspect.ismethod(x):
-            logger.error(f"{tip}, Method: {x.__self__.__class__.__name__}.{x.__func__.__name__}")
-        elif inspect.isfunction(x):
-            logger.error(f"{tip}, Function: {x.__name__}")
-        elif hasattr(x, "__class__"):
-            logger.error(f"{tip}, Instance of: {x.__class__.__name__}")
-        elif hasattr(x, "__name__"):
-            logger.error(f"{tip}, Class or module: {x.__name__}")
-        else:
-            logger.error(f"{tip}, Unknown type: {type(x)}")
-
-    custom_default = partial(to_jsonable_python, fallback=fallback if use_fallback else None)
+    custom_default = partial(to_jsonable_python, fallback=handle_unknown_serialization if use_fallback else None)
 
     with open(json_file, "w", encoding=encoding) as fout:
         json.dump(data, fout, ensure_ascii=False, indent=indent, default=custom_default)
