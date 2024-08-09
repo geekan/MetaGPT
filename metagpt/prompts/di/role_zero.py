@@ -48,6 +48,8 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 """
 
 CMD_PROMPT = """
+{current_state}
+
 # Current Plan
 {plan_status}
 

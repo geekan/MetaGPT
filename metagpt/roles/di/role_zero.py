@@ -49,6 +49,7 @@ class RoleZero(Role):
     goal: str = ""
     system_prompt: str = SYSTEM_PROMPT  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
+    cmd_prompt_current_state: str = ""
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
     task_type_desc: str = None
@@ -161,6 +162,7 @@ class RoleZero(Role):
 
         ### Make Decision Dynamically ###
         prompt = self.cmd_prompt.format(
+            current_state=self.cmd_prompt_current_state,
             plan_status=plan_status,
             current_task=current_task,
             requirements_constraints=self.requirements_constraints,

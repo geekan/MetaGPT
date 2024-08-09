@@ -3,7 +3,11 @@ import json
 from pydantic import Field
 
 from metagpt.logs import logger
-from metagpt.prompts.di.swe_agent import MINIMAL_EXAMPLE, NEXT_STEP_TEMPLATE
+from metagpt.prompts.di.swe_agent import (
+    CURRENT_BASH_STATE,
+    MINIMAL_EXAMPLE,
+    NEXT_STEP_TEMPLATE,
+)
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.terminal import Bash
@@ -49,7 +53,7 @@ class SWEAgent(RoleZero):
         """
         state_output = await self.terminal.run("state")
         bash_state = json.loads(state_output)
-        self.instruction = self._instruction.format(**bash_state).strip()
+        self.cmd_prompt_current_state = CURRENT_BASH_STATE.formate(**bash_state).strip()
 
     async def _parse_commands_for_eval(self):
         """

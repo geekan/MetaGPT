@@ -233,10 +233,12 @@ These examples are provided to demonstrate the output style that expected to be 
 # IMPORTANT TIPS
 {IMPORTANT_TIPS}
 
+
+Avoid repeating the same command. Instead, please think about the current situation and provide the next bash command to execute in JSON format:"
+"""
+CURRENT_BASH_STATE = """
 # Output Next Step
 The current bash state is:
 (Open file: {{open_file}})
 (Current directory: {{working_dir}})
-
-Avoid repeating the same command. Instead, please think about the current situation and provide the next bash command to execute in JSON format:"
 """
