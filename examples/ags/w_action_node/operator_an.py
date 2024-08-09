@@ -7,15 +7,17 @@ from pydantic import BaseModel, Field
 
 
 class GenerateOp(BaseModel):
-    solution: str = Field(default="", description="Your Solution for this problem")
-
-
-class GenerateCodeOp(BaseModel):
-    code_solution: str = Field(default="", description="Complete and correct code here.")
-
+    solution: str = Field(default="", description="Your solution for this problem")
 
 class GenerateCodeBlockOp(BaseModel):
     code_solution: str = Field(default="", description="Your complete code solution for this problem")
+
+class GenerateCodeSolution(BaseModel):
+    content: str = Field(default="", description="A description of the solution")
+    thought: str = Field(default="", description="Shortly explain why this solution correctly solves the problem. Be specific and detailed regarding the problem rules and goals.")
+
+class FormatOp(BaseModel):
+    solution: str = Field(default="", description="Your formatted answer for this problem")
 
 
 class ReviewOp(BaseModel):
@@ -27,7 +29,6 @@ class ReviewOp(BaseModel):
         default="",
         description="Your FeedBack for this problem based on the criteria. If the review result is true, you can put it 'nothing here'.",
     )
-
 
 class ReviseOp(BaseModel):
     revised_solution: str = Field(default="", description="Based on the feedback, revised solution for this problem")

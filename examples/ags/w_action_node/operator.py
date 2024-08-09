@@ -7,20 +7,21 @@ import random
 import sys
 import traceback
 from collections import Counter
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple
 
 from tenacity import retry, stop_after_attempt
 
 from examples.ags.w_action_node.operator_an import (
     FuEnsembleOp,
     GenerateCodeBlockOp,
-    GenerateCodeOp,
     GenerateOp,
     MdEnsembleOp,
     ReflectionTestOp,
     RephraseOp,
     ReviewOp,
     ReviseOp,
+    GenerateCodeSolution,
+    FormatOp
 )
 from examples.ags.w_action_node.prompt import (
     DE_ENSEMBLE_ANGEL_PROMPT,
@@ -30,22 +31,25 @@ from examples.ags.w_action_node.prompt import (
     DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT,
     DE_ENSEMBLE_TXT_FORMAT_PROMPT,
     FU_ENSEMBLE_PROMPT,
-    GENERATE_CODE_PROMPT,
+    GENERATE_ON_CONTEXT_PROMPT,
+    GENERATE_CODE_SOLUTION_PROMPT,
     GENERATE_CODEBLOCK_PROMPT,
     GENERATE_CODEBLOCK_REPHRASE_PROMPT,
     GENERATE_PROMPT,
     MD_ENSEMBLE_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
     REPHRASE_ON_PROBLEM_PROMPT,
+    REPHRASE_ON_CODE_PROMPT,
     REVIEW_PROMPT,
     REVISE_PROMPT,
     MATH_GENERATE_PROMPT,
     MATH_REPHRASE_ON_PROBLEM_PROMPT,
     MATH_ANSWER_FORMAT_PROMPT,
     MATH_CORE_PROMPT,
-    MATH_EXTRACT_PROMPT
+    MATH_EXTRACT_PROMPT,
+    FORMAT_PROMPT,
 )
-from examples.ags.w_action_node.utils import test_cases_2_test_functions
+from examples.ags.w_action_node.utils import test_case_2_test_function
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -61,6 +65,9 @@ class Operator:
 
 
 class Generate(Operator):
+    """
+    基于Action Node Fill Function的 Generate 算子
+    """
     def __init__(self, name: str = "Generate", llm: LLM = LLM()):
         super().__init__(name, llm)
 
@@ -75,24 +82,18 @@ class Generate(Operator):
         node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
-
-    async def math_answer_format(self, problem_description: str) -> dict:
-        prompt = MATH_ANSWER_FORMAT_PROMPT.format(problem_description=problem_description)
+    
+    async def code_solution_generate(self, problem_description:str, rephrase_problem:str):
+        prompt = GENERATE_CODE_SOLUTION_PROMPT.format(problem_description=problem_description, rephrase_problem=rephrase_problem)
+        node = await ActionNode.from_pydantic(GenerateCodeSolution).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+    
+    async def context_solution_generate(self, question, context):
+        prompt = GENERATE_ON_CONTEXT_PROMPT.format(problem_description=question, context=context)
         node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
-
-
-class GenerateCode(Operator):
-    def __init__(self, name: str = "GenerateCode", llm: LLM = LLM()):
-        super().__init__(name, llm)
-
-    async def __call__(self, problem_description):
-        prompt = GENERATE_CODE_PROMPT.format(problem_description=problem_description)
-        node = await ActionNode.from_pydantic(GenerateCodeOp).fill(context=prompt, llm=self.llm)
-        response = node.instruct_content.model_dump()
-        return response
-
 
 class GenerateCodeBlock(Operator):
     def __init__(self, name: str = "GenerateCodeBlock", llm: LLM = LLM()):
@@ -108,17 +109,33 @@ class GenerateCodeBlock(Operator):
         return response
 
     @retry(stop=stop_after_attempt(3))
-    async def rephrase_generate(self, problem_description, rephrase_problem, function_name):
+    async def rephrase_generate(self, problem_description, thought, function_name):
         prompt = GENERATE_CODEBLOCK_REPHRASE_PROMPT.format(
-            problem_description=problem_description, rephrase_problem=rephrase_problem
+            problem_description=problem_description, thought=thought
         )
         node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
         return response
+    
+class Format(Operator):
+    def __init__(self, name: str = "Format", llm: LLM = LLM()):
+        super().__init__(name, llm) 
 
+    async def __call__(self, problem_description, solution):
+        prompt = FORMAT_PROMPT.format(problem_description=problem_description, solution=solution)
+        node = await ActionNode.from_pydantic(FormatOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
 
+    async def math_answer_format(self, problem_description: str) -> dict:
+        prompt = MATH_ANSWER_FORMAT_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(FormatOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    
 class Review(Operator):
     def __init__(self, criteria, name: str = "Review", llm: LLM = LLM()):
         self.criteria = criteria
@@ -179,28 +196,9 @@ class MdEnsemble(Operator):
         answer_mapping = {chr(65 + i): solutions.index(solution) for i, solution in enumerate(shuffled_solutions)}
         return shuffled_solutions, answer_mapping
 
-    async def __call__(self, solution_type: str, solutions: List[str], problem_description: str):
+    async def __call__(self, solutions: List[str], problem_description: str):
+        print(f"solution count: {len(solutions)}")
         all_responses = []
-        # 当Ensmeble方案是Code类型时，我们使用AST进行去重
-        if solution_type == "code":
-            unique_structures = {}
-            updated_solutions = []
-
-            for solution in solutions:
-                try:
-                    tree = ast.parse(solution)
-                    structure_key = ast.dump(tree, annotate_fields=False, include_attributes=False)
-
-                    if structure_key not in unique_structures:
-                        unique_structures[structure_key] = solution
-                        updated_solutions.append(solution)
-                except SyntaxError:
-                    # If the solution has a syntax error, we'll skip it
-                    continue
-            solutions = updated_solutions
-            updated_length = len(solutions)
-            if updated_length == 1:
-                return {"final_solution": solutions[0]}
 
         for _ in range(self.vote_count):
             shuffled_solutions, answer_mapping = self.shuffle_answers(solutions)
@@ -218,11 +216,84 @@ class MdEnsemble(Operator):
 
             if answer in answer_mapping:
                 original_index = answer_mapping[answer]
-                # print(f"original index: {original_index}")
                 all_responses.append(original_index)
 
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         final_answer = solutions[most_frequent_index]
+        return {"final_solution": final_answer}
+
+
+class CodeEnsmble(Operator):
+    def __init__(self, name: str = "CodeEnsemble", llm: LLM = LLM(), vote_count: int = 3):
+        super().__init__(name, llm)
+        self.vote_count = vote_count
+
+    @staticmethod
+    def shuffle_answers(solutions: List[dict]) -> Tuple[List[str], Dict[str, str]]:
+        shuffled_solutions = solutions.copy()
+        random.shuffle(shuffled_solutions)
+        answer_mapping = {chr(65 + i): solutions.index(solution) for i, solution in enumerate(shuffled_solutions)}
+        return shuffled_solutions, answer_mapping
+
+    async def __call__(self, solutions: List[str], problem_description: str):
+        all_responses = []
+        
+        unique_structures = {}
+        unique_structures_count = {}
+        
+        valid_solutions_count = 0  # 添加计数器来跟踪有效的解决方案数量
+        
+        for solution in solutions:
+            try:
+                tree = ast.parse(solution)
+                structure_key = ast.dump(tree, annotate_fields=False, include_attributes=False)
+                
+                if structure_key not in unique_structures:
+                    unique_structures[structure_key] = solution
+                    unique_structures_count[structure_key] = 1
+                else:
+                    unique_structures_count[structure_key] += 1
+                
+                valid_solutions_count += 1  # 增加有效解决方案的计数
+            except SyntaxError:
+                # 剔除语法错误的代码
+                continue
+
+        solutions = [
+            {
+                "code": unique_structures[structure_key],
+                "weight": count / valid_solutions_count  # 使用有效解决方案的数量来计算权重
+            }
+            for structure_key, count in unique_structures_count.items()
+        ]
+
+        updated_length = len(solutions)
+        if updated_length == 1:
+            return {"final_solution": solutions[0]["code"]}
+
+        for _ in range(self.vote_count):
+            shuffled_solutions, answer_mapping = self.shuffle_answers(solutions)
+
+            solution_text = ""
+            for index, solution in enumerate(shuffled_solutions):
+                weight = str(solution["weight"])
+                code = solution["code"]
+                solution_text += f"{chr(65 + index)}: \n weight(proportion of occurrences in all solutions):{weight} \n{code}\n\n\n"
+
+            prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+            node = await ActionNode.from_pydantic(MdEnsembleOp).fill(context=prompt, llm=self.llm)
+            response = node.instruct_content.model_dump()
+
+            answer = response.get("solution_letter", "")
+            answer = answer.strip().upper()
+
+            if answer in answer_mapping:
+                original_index = answer_mapping[answer]
+                # print(f"original index: {original_index}")
+                all_responses.append(original_index)
+
+        most_frequent_index = Counter(all_responses).most_common(1)[0][0]
+        final_answer = solutions[most_frequent_index]["code"]
         return {"final_solution": final_answer}
 
 
@@ -371,6 +442,12 @@ class Rephrase(Operator):
         response = node.instruct_content.model_dump()
         return response["rephrased_problem"]
 
+    async def code_rephrase(self, problem_description: str) -> str:
+        prompt = REPHRASE_ON_CODE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response["rephrased_problem"]
+        
     async def math_rephrase(self, problem_description: str) -> str:
         prompt = MATH_REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
@@ -390,64 +467,70 @@ class Rephrase(Operator):
         return response["rephrased_problem"]
 
 
-
 class Test(Operator):
     def __init__(self, name: str = "Test", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    def exec_code(self, solution, test_cases, problem_id):
-        # TODO
-        # 1. 获取更加详细的Test error信息
-        # 2. 更换Public Test数据集，当前使用的数据存在Label Leak(使用的Reflexion的数据集) -> 这个问题使用LLM抽取解决，直接生成为assert代码串
-        # 3. 实现单独测试每一个test case -> 1
+    def exec_code(self, solution, test_cases, problem_id, entry_point):
         solution = solution["final_solution"]
-        test_code = test_cases_2_test_functions(solution, test_cases)
-        try:
-            exec(test_code, globals())
-        except AssertionError as e:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            with open("tester.txt", "a") as f:
-                f.write("test_error" + problem_id + "\n")
-            error_infomation = {
-                "test_fail_case": {"error_type": "AssertionError", "error_message": str(e), "traceback": tb_str}
-            }
-            logger.info(f"test error: {error_infomation}")
-            return error_infomation
-        except Exception as e:
-            with open("tester.txt", "a") as f:
-                f.write(problem_id + "\n")
-            return {"exec_fail_case": str(e)}
-        return []
-
-    async def __call__(self, problem_id, problem, rephrase_problem, solution, test_cases):
-        result = self.exec_code(solution, test_cases, problem_id)
-        if result == []:
-            return solution
-        elif "exec_fail_case" in result:
-            result = result["exec_fail_case"]
-            prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
-                problem_description=problem,
-                rephrase_problem=rephrase_problem,
-                code_solution=solution,
-                exec_pass=f"executed unsuccessfully, error: \n {result}",
-                test_fail="executed unsucessfully",
-            )
-            node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
-            response = node.instruct_content.model_dump()
-            return {"final_solution": response["refined_solution"]}
+        fail_cases = []
+        for test_case in test_cases:
+            test_code = test_case_2_test_function(solution, test_case, entry_point)
+            try:
+                exec(test_code, globals())
+            except AssertionError as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                with open("tester.txt", "a") as f:
+                    f.write("test_error" + problem_id + "\n")
+                error_infomation = {
+                    "test_fail_case": {
+                        "test_case": test_case,
+                        "error_type": "AssertionError",
+                        "error_message": str(e),
+                        "traceback": tb_str,
+                    }
+                }
+                fail_cases.append(error_infomation)
+                logger.info(f"test error: {error_infomation}")
+            except Exception as e:
+                with open("tester.txt", "a") as f:
+                    f.write(problem_id + "\n")
+                return {"exec_fail_case": str(e)}
+        if fail_cases != []:
+            return fail_cases
         else:
-            result = result["test_fail_case"]
-            prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
-                problem_description=problem,
-                rephrase_problem=rephrase_problem,
-                code_solution=solution,
-                exec_pass="executed successfully",
-                test_fail=result,
-            )
-            node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
-            response = node.instruct_content.model_dump()
-            return {"final_solution": response["refined_solution"]}
+            return "no error"
+
+    async def __call__(self, problem_id, problem, rephrase_problem, solution, test_cases, entry_point, test_loop):
+        for _ in range(test_loop):
+            result = self.exec_code(solution, test_cases, problem_id, entry_point)
+            if result == "no error":
+                return solution
+            elif "exec_fail_case" in result:
+                result = result["exec_fail_case"]
+                prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
+                    problem_description=problem,
+                    rephrase_problem=rephrase_problem,
+                    code_solution=solution,
+                    exec_pass=f"executed unsuccessfully, error: \n {result}",
+                    test_fail="executed unsucessfully",
+                )
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+                response = node.instruct_content.model_dump()
+                solution = response["refined_solution"]
+            else:
+                prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
+                    problem_description=problem,
+                    rephrase_problem=rephrase_problem,
+                    code_solution=solution,
+                    exec_pass="executed successfully",
+                    test_fail=result,
+                )
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+                response = node.instruct_content.model_dump()
+                solution = response["refined_solution"]
+        return {"final_solution": solution}
 
 
 class FindFact(Operator):
@@ -463,3 +546,4 @@ class SelfAsk(Operator):
 class Verify(Operator):
     def __init__(self, name: str = "Verify", llm: LLM = LLM()):
         super().__init__(name, llm)
+
