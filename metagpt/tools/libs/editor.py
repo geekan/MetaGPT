@@ -11,7 +11,7 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
-from metagpt.utils.common import aread_bin, awrite_bin, run_coroutine_sync
+from metagpt.utils.common import aread_bin, awrite_bin
 from metagpt.utils.repo_to_markdown import is_text_file
 from metagpt.utils.report import EditorReporter
 
@@ -45,13 +45,13 @@ class Editor:
         # self.resource.report(path, "path")
         return f"The writing/coding the of the file {os.path.basename(path)}' is now completed. The file '{os.path.basename(path)}' has been successfully created."
 
-    def read(self, path: str) -> FileBlock:
+    async def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
-        is_text, mime_type = run_coroutine_sync(is_text_file, path)
+        is_text, mime_type = await is_text_file(path)
         if is_text:
             lines = self._read_text(path)
         elif mime_type == "application/pdf":
-            lines = self._read_pdf(path)
+            lines = await self._read_pdf(path)
         elif mime_type in {
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -59,7 +59,7 @@ class Editor:
             "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
             "application/vnd.ms-word.template.macroEnabled.12",
         }:
-            lines = self._read_docx(path)
+            lines = await self._read_docx(path)
         else:
             return FileBlock(file_path=str(path), block_content="")
         self.resource.report(str(path), "path")
@@ -225,8 +225,8 @@ class Editor:
         return lines
 
     @staticmethod
-    def _read_pdf(path: Union[str, Path]) -> List[str]:
-        result = run_coroutine_sync(Editor._omniparse_read_file, path)
+    async def _read_pdf(path: Union[str, Path]) -> List[str]:
+        result = await Editor._omniparse_read_file(path)
         if result:
             return result
 
@@ -237,8 +237,8 @@ class Editor:
         return [i.text for i in lines]
 
     @staticmethod
-    def _read_docx(path: Union[str, Path]) -> List[str]:
-        result = run_coroutine_sync(Editor._omniparse_read_file, path)
+    async def _read_docx(path: Union[str, Path]) -> List[str]:
+        result = await Editor._omniparse_read_file(path)
         if result:
             return result
         return read_docx(str(path))
