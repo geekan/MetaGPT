@@ -76,7 +76,7 @@ class SearchEnhancedQA(Action):
     )
     user_agent: str = Field(
         default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.81",
-        description="Specific user agent to use in browser",
+        description="Specific user agent to use in browser.",
     )
     extra_http_headers: dict = Field(
         default={"sec-ch-ua": 'Chromium";v="125", "Not.A/Brand";v="24'},
