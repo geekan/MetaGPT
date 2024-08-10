@@ -20,7 +20,7 @@ from metagpt.utils.common import parse_json_code_block
 CODE_REVIEW_PROMPT_TEMPLATE = """
 NOTICE
 Let's think and work step by step.
-With the given pull-request(PR) Patch, and referenced Points(Code Standards), you should compare each point with the code one-by-one.
+With the given pull-request(PR) Patch, and referenced Points(Code Standards), you should compare each point with the code one-by-one within 4000 tokens.
 
 The Patch code has added line number at the first character each line for reading, but the review should focus on new added code inside the `Patch` (lines starting with line number and '+').
 Each point is start with a line number and follows with the point description.
@@ -48,14 +48,16 @@ Each point is start with a line number and follows with the point description.
 
 CodeReview guidelines:
 - Generate code `comment` that do not meet the point description.
-- Each `comment` should be restricted inside the `commented_file`
+- Each `comment` should be restricted inside the `commented_file`.
 - Try to provide diverse and insightful comments across different `commented_file`.
 - Don't suggest to add docstring unless it's necessary indeed.
 - If the same code error occurs multiple times, it cannot be omitted, and all places need to be identified.But Don't duplicate at the same place with the same comment!
 - Every line of code in the patch needs to be carefully checked, and laziness cannot be omitted. It is necessary to find out all the places.
 - The `comment` and `point_id` in the Output must correspond to and belong to the same one `Point`.
 
+Strictly Observe:
 Just print the PR Patch comments in json format like **Output Format**.
+And the output JSON must be able to be parsed by json.loads() without any errors.
 """
 
 CODE_REVIEW_COMFIRM_SYSTEM_PROMPT = """
@@ -128,38 +130,43 @@ class CodeReview(Action):
         points_dict = {point.id: point for point in points}
         new_comments = []
         for cmt in comments:
-            point = points_dict[cmt.get("point_id")]
+            try:
+                point = points_dict[cmt.get("point_id")]
 
-            code_start_line = cmt.get("code_start_line")
-            code_end_line = cmt.get("code_end_line")
-            # 如果代码位置为空的话，那么就将这条记录丢弃掉
-            if not code_start_line or not code_end_line:
-                logger.info("False")
-                continue
+                code_start_line = cmt.get("code_start_line")
+                code_end_line = cmt.get("code_end_line")
+                # 如果代码位置为空的话，那么就将这条记录丢弃掉
+                if not code_start_line or not code_end_line:
+                    logger.info("False")
+                    continue
 
-            # 代码增加上下文，提升confirm的准确率
-            code = get_code_block_from_patch(patch, str(max(1, int(code_start_line) - 3)), str(int(code_end_line) + 3))
-            pattern = r"^[ \t\n\r(){}[\];,]*$"
-            if re.match(pattern, code):
+                # 代码增加上下文，提升confirm的准确率
                 code = get_code_block_from_patch(
-                    patch, str(max(1, int(code_start_line) - 5)), str(int(code_end_line) + 5)
+                    patch, str(max(1, int(code_start_line) - 3)), str(int(code_end_line) + 3)
                 )
-            code_language = "Java"
-            code_file_ext = cmt.get("commented_file", ".java").split(".")[-1]
-            if code_file_ext == ".java":
+                pattern = r"^[ \t\n\r(){}[\];,]*$"
+                if re.match(pattern, code):
+                    code = get_code_block_from_patch(
+                        patch, str(max(1, int(code_start_line) - 5)), str(int(code_end_line) + 5)
+                    )
                 code_language = "Java"
-            elif code_file_ext == ".py":
-                code_language = "Python"
-            prompt = CODE_REVIEW_COMFIRM_TEMPLATE.format(
-                code=code,
-                comment=cmt.get("comment"),
-                desc=point.text,
-                example=point.yes_example + "\n" + point.no_example,
-            )
-            system_prompt = [CODE_REVIEW_COMFIRM_SYSTEM_PROMPT.format(code_language=code_language)]
-            resp = await self.llm.aask(prompt, system_msgs=system_prompt)
-            if "True" in resp or "true" in resp:
-                new_comments.append(cmt)
+                code_file_ext = cmt.get("commented_file", ".java").split(".")[-1]
+                if code_file_ext == ".java":
+                    code_language = "Java"
+                elif code_file_ext == ".py":
+                    code_language = "Python"
+                prompt = CODE_REVIEW_COMFIRM_TEMPLATE.format(
+                    code=code,
+                    comment=cmt.get("comment"),
+                    desc=point.text,
+                    example=point.yes_example + "\n" + point.no_example,
+                )
+                system_prompt = [CODE_REVIEW_COMFIRM_SYSTEM_PROMPT.format(code_language=code_language)]
+                resp = await self.llm.aask(prompt, system_msgs=system_prompt)
+                if "True" in resp or "true" in resp:
+                    new_comments.append(cmt)
+            except Exception:
+                logger.info("False")
         logger.info(f"original comments num: {len(comments)}, confirmed comments num: {len(new_comments)}")
         return new_comments
 

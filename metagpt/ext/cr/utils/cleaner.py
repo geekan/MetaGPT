@@ -10,7 +10,7 @@ def rm_patch_useless_part(patch: PatchSet, used_suffix: list[str] = ["java", "py
     useless_files = []
     for pfile in patch:
         suffix = str(pfile.target_file).split(".")[-1]
-        if suffix not in used_suffix or pfile.is_removed_file or "test" in pfile.target_file.casefold():
+        if suffix not in used_suffix or pfile.is_removed_file:
             useless_files.append(pfile.path)
             continue
         new_patch.append(pfile)
