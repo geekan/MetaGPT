@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta
 from operator import itemgetter
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
@@ -27,6 +27,7 @@ from metagpt.environment.stanford_town.env_space import (
     EnvObsParams,
     EnvObsType,
 )
+from metagpt.environment.stanford_town.stanford_town_env import StanfordTownEnv
 from metagpt.ext.stanford_town.actions.dummy_action import DummyAction, DummyMessage
 from metagpt.ext.stanford_town.actions.inner_voice_action import (
     AgentWhisperThoughtAction,
@@ -49,27 +50,14 @@ from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
 
-if TYPE_CHECKING:
-    from metagpt.environment.stanford_town.stanford_town_env import (  # noqa: F401
-        StanfordTownEnv,
-    )
-
 
 class STRoleContext(RoleContext):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    env: "StanfordTownEnv" = Field(default=None, exclude=True)
+    env: StanfordTownEnv = Field(default=None, exclude=True)
     memory: AgentMemory = Field(default_factory=AgentMemory)
     scratch: Scratch = Field(default_factory=Scratch)
     spatial_memory: MemoryTree = Field(default_factory=MemoryTree)
-
-    @classmethod
-    def model_rebuild(cls, **kwargs):
-        from metagpt.environment.stanford_town.stanford_town_env import (  # noqa: F401
-            StanfordTownEnv,
-        )
-
-        super(RoleContext, cls).model_rebuild(**kwargs)
 
 
 class STRole(Role):
@@ -635,6 +623,3 @@ class STRole(Role):
 
         time.sleep(0.5)
         return DummyMessage()
-
-
-STRoleContext.model_rebuild()
