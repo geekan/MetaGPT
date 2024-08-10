@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import contextlib
 import inspect
 import os
 from collections import defaultdict
@@ -99,7 +100,9 @@ def register_tool(tags: list[str] = None, schema_path: str = "", **kwargs):
         if "metagpt" in file_path:
             # split to handle ../metagpt/metagpt/tools/... where only metapgt/tools/... is needed
             file_path = "metagpt" + file_path.split("metagpt")[-1]
-        source_code = inspect.getsource(cls)
+        source_code = ""
+        with contextlib.suppress(OSError):
+            source_code = inspect.getsource(cls)
 
         TOOL_REGISTRY.register_tool(
             tool_name=cls.__name__,
