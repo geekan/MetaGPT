@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional, Set, Union
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
@@ -99,7 +99,7 @@ class Engineer(Role):
         m = json.loads(task_msg.content)
         return m.get(TASK_LIST.key) or m.get(REFINED_TASK_LIST.key)
 
-    async def _act_sp_with_cr(self, review=False) -> Set[str]:
+    async def _act_sp_with_cr(self, review=False) -> Union[Set[str], Message]:
         changed_files = set()
         for todo in self.code_todos:
             """
@@ -110,6 +110,8 @@ class Engineer(Role):
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
             coding_context = await todo.run()
+            if isinstance(coding_context, Message):
+                return coding_context
             # Code review
             if review:
                 action = WriteCodeReview(i_context=coding_context, context=self.context, llm=self.llm)
@@ -154,6 +156,8 @@ class Engineer(Role):
 
     async def _act_write_code(self):
         changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+        if isinstance(changed_files, Message):
+            return changed_files
         return Message(
             content="\n".join(changed_files),
             role=self.profile,
@@ -239,6 +243,10 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
+        if not self.git_repo:
+            self.code_todos.append(WriteCode(msg=self.rc.news[0]))
+            self.set_todo(self.code_todos[0])
+            return self.rc.todo
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
