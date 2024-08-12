@@ -8,7 +8,6 @@
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.tools.libs.software_development import write_trd_and_framework
 from metagpt.utils.common import tool2name
 
 ARCHITECT_INSTRUCTION = """
@@ -33,7 +32,7 @@ class Architect(RoleZero):
 
     name: str = "Bob"
     profile: str = "Architect"
-    goal: str = "design a concise, usable, complete software system. ouput the system design or software framework."
+    goal: str = "design a concise, usable, complete software system. output the system design."
     constraints: str = (
         "make sure the architecture is simple enough and use  appropriate open source "
         "libraries. Use same language as user requirement"
@@ -45,7 +44,6 @@ class Architect(RoleZero):
         "Editor:write,read,write_content",
         "RoleZero",
         "WriteDesign",
-        write_trd_and_framework.__name__,
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -64,7 +62,6 @@ class Architect(RoleZero):
         self.tool_execution_map.update(tool2name(WriteDesign, ["run"], write_design.run))
         self.tool_execution_map.update(
             {
-                write_trd_and_framework.__name__: write_trd_and_framework,
                 "run": write_design.run,  # alias
             }
         )
