@@ -13,7 +13,7 @@ from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
 from metagpt.exp_pool import exp_cache
-from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder, SimpleContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
@@ -127,7 +127,17 @@ class RoleZero(Role):
 
     def _update_tool_execution(self):
         pass
-
+    
+    def _get_team_info(self) -> str:
+        if not self.rc.env:
+            return ""
+        team_info = ""
+        for role in self.rc.env.roles.values():
+            # if role.profile == "Team Leader":
+            #     continue
+            team_info += f"{role.name}: {role.profile}, {role.goal}\n"
+        return team_info
+    
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         # Compatibility
@@ -189,9 +199,8 @@ class RoleZero(Role):
         The `RoleZeroContextBuilder` attempts to add experiences to `req`.
         The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
         """
-
         return await self.llm.aask(req, system_msgs=system_msgs)
-
+                      
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
@@ -257,7 +266,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "YES" in intent_result:
+        if "QUICK" in intent_result:
             # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
@@ -265,6 +274,12 @@ class RoleZero(Role):
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
+        elif "OOD" or "AMBIGUOUS " in intent_result:
+            # TODO: out of domain, ask human for help
+            pass
+        else:
+            # TODO: TASK question
+            pass
 
         if answer:
             self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
