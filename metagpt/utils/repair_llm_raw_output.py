@@ -347,3 +347,27 @@ def extract_state_value_from_output(content: str) -> str:
     matches = list(set(matches))
     state = matches[0] if len(matches) > 0 else "-1"
     return state
+
+
+def repair_escape_error(commands):
+    """
+    Repaires escape errors in command responses.
+    When role-zero parses a command, the command may contain unknown escape characters.
+    """
+    escape_repair_map = {
+        "\a": "\\\\a",
+        "\b": "\\\\b",
+        "\f": "\\\\f",
+        "\r": "\\\\r",
+        "\t": "\\\\t",
+        "\v": "\\\\v",
+    }
+    new_command = ""
+    for index, ch in enumerate(commands):
+        if ch == "\\" and index + 1 < len(commands):
+            if commands[index + 1] not in ["n", '"', " "]:
+                new_command += "\\"
+        elif ch in escape_repair_map:
+            ch = escape_repair_map[ch]
+        new_command += ch
+    return new_command

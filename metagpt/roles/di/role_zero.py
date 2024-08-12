@@ -35,7 +35,11 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, any_to_str
-from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
+from metagpt.utils.repair_llm_raw_output import (
+    RepairType,
+    repair_escape_error,
+    repair_llm_raw_output,
+)
 from metagpt.utils.report import ThoughtReporter
 
 
@@ -326,7 +330,7 @@ class RoleZero(Role):
             except json.JSONDecodeError:
                 # repair escape error of code and math
                 commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
-                new_command = self.repair_escape_error(commands)
+                new_command = repair_escape_error(commands)
                 commands = json.loads(
                     repair_llm_raw_output(output=new_command, req_keys=[None], repair_type=RepairType.JSON)
                 )
@@ -341,26 +345,6 @@ class RoleZero(Role):
         if isinstance(commands, dict):
             commands = commands["commands"] if "commands" in commands else [commands]
         return commands, True
-
-    def repair_escape_error(self, commands):
-        """Repaires escape errors in command responses"""
-        escape_repair_map = {
-            "\a": "\\\\a",
-            "\b": "\\\\b",
-            "\f": "\\\\f",
-            "\r": "\\\\r",
-            "\t": "\\\\t",
-            "\v": "\\\\v",
-        }
-        new_command = ""
-        for index, ch in enumerate(commands):
-            if ch == "\\" and index + 1 < len(commands):
-                if commands[index + 1] not in ["n", '"', " "]:
-                    new_command += "\\"
-            elif ch in escape_repair_map:
-                ch = escape_repair_map[ch]
-            new_command += ch
-        return commands
 
     async def _run_commands(self, commands) -> str:
         outputs = []
