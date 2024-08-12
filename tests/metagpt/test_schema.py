@@ -9,13 +9,15 @@
 """
 
 import json
+from typing import Annotated
 
 import pytest
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
+from metagpt.const import SERDESER_PATH, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.schema import (
     AIMessage,
     CodeSummarizeContext,
@@ -23,6 +25,7 @@ from metagpt.schema import (
     Message,
     MessageQueue,
     Plan,
+    SerializationMixin,
     SystemMessage,
     Task,
     UMLClassAttribute,
@@ -396,6 +399,65 @@ async def test_parse_resources(context, content: str, key_descriptions):
 def test_create_instruct_value(name, value):
     obj = Message.create_instruct_value(kvs=value, class_name=name)
     assert obj.model_dump() == value
+
+
+class TestUserModel(SerializationMixin, BaseModel):
+    name: str
+    value: int
+
+
+class TestUserModelWithExclude(TestUserModel):
+    age: Annotated[int, Field(exclude=True)]
+
+
+class TestSerializationMixin:
+    @pytest.fixture
+    def mock_write_json_file(self, mocker):
+        return mocker.patch("metagpt.schema.write_json_file")
+
+    @pytest.fixture
+    def mock_read_json_file(self, mocker):
+        return mocker.patch("metagpt.schema.read_json_file")
+
+    @pytest.fixture
+    def mock_user_model(self):
+        return TestUserModel(name="test", value=42)
+
+    def test_serialize(self, mock_write_json_file, mock_user_model):
+        file_path = "test.json"
+
+        mock_user_model.serialize(file_path)
+
+        mock_write_json_file.assert_called_once_with(file_path, mock_user_model.model_dump())
+
+    def test_deserialize(self, mock_read_json_file):
+        file_path = "test.json"
+        data = {"name": "test", "value": 42}
+        mock_read_json_file.return_value = data
+
+        model = TestUserModel.deserialize(file_path)
+
+        mock_read_json_file.assert_called_once_with(file_path)
+        assert model == TestUserModel(**data)
+
+    def test_serialize_with_exclude(self, mock_write_json_file):
+        model = TestUserModelWithExclude(name="test", value=42, age=10)
+        file_path = "test.json"
+
+        model.serialize(file_path)
+
+        expected_data = {
+            "name": "test",
+            "value": 42,
+            "__module_class_name": "tests.metagpt.test_schema.TestUserModelWithExclude",
+        }
+
+        mock_write_json_file.assert_called_once_with(file_path, expected_data)
+
+    def test_get_serialization_path(self):
+        expected_path = str(SERDESER_PATH / "TestUserModel.json")
+
+        assert TestUserModel.get_serialization_path() == expected_path
 
 
 if __name__ == "__main__":
