@@ -23,6 +23,7 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
+    SYSTEM_PROMPT,
     THOUGHT_GUIDANCE,
 )
 from metagpt.roles import Role
@@ -47,7 +48,9 @@ class RoleZero(Role):
     profile: str = "RoleZero"
     goal: str = ""
     system_msg: Optional[list[str]] = None  # Use None to conform to the default value at llm.aask
+    system_prompt: str = SYSTEM_PROMPT  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
+    cmd_prompt_current_state: str = ""
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
     task_type_desc: Optional[str] = None
@@ -152,21 +155,24 @@ class RoleZero(Role):
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
 
-        ### Make Decision Dynamically ###
-        memory = self.rc.memory.get(self.memory_k)
+        ### Role Instruction ###
         instruction = self.instruction.strip()
+        system_prompt = self.system_prompt.format(
+            task_type_desc=self.task_type_desc, available_commands=tool_info, example=example, instruction=instruction
+        )
+
+        ### Make Decision Dynamically ###
         prompt = self.cmd_prompt.format(
-            example=example,
-            available_commands=tool_info,
-            task_type_desc=self.task_type_desc,
+            current_state=self.cmd_prompt_current_state,
             plan_status=plan_status,
             current_task=current_task,
-            instruction=instruction,
-            thought_guidance=self.thought_guidance,
-            latest_observation=memory[-1].content,
             requirements_constraints=self.requirements_constraints,
         )
+
+        ### Recent Observation ###
+        memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
@@ -175,7 +181,7 @@ class RoleZero(Role):
                 current_task=current_task,
                 instruction=instruction,
             )
-            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=self.system_msg, state_data=state_data)
+            self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
 
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
 
@@ -189,7 +195,6 @@ class RoleZero(Role):
         The `RoleZeroContextBuilder` attempts to add experiences to `req`.
         The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
         """
-
         return await self.llm.aask(req, system_msgs=system_msgs)
 
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
@@ -257,8 +262,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "YES" in intent_result:
-            # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))

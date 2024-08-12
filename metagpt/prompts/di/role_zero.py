@@ -11,9 +11,17 @@ Note:
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
 # To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
-CMD_PROMPT = """
+
+########################## ignore guidance
+
 # Latest Observation
-{latest_observation}
+# {latest_observation}
+
+# {thought_guidance}
+# Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
+
+###########################
+SYSTEM_PROMPT = """
 
 # Data Structure
 class Task(BaseModel):
@@ -30,11 +38,6 @@ class Task(BaseModel):
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
 
-# Current Plan
-{plan_status}
-
-# Current Task
-{current_task}
 
 # Example
 {example}
@@ -42,6 +45,19 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 
 # Instruction
 {instruction}
+"""
+
+CMD_PROMPT = """
+{current_state}
+
+# Current Plan
+{plan_status}
+
+# Current Task
+{current_task}
+
+# Restrictions
+{requirements_constraints}
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
@@ -49,14 +65,9 @@ If you finish current task, you will automatically take the next task in the exi
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 In your response, include at least one command.
 
-# Restrictions
-{requirements_constraints}
-
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 Output should adhere to the following format.
-{thought_guidance}
-Finally, combine your thoughts, describe what you want to do conscisely in 20 words, including which process you will taked and whether you will end, then follow your thoughts to list the commands, adhering closely to the instructions provided.
 ```json
 [
     {{
@@ -68,6 +79,7 @@ Finally, combine your thoughts, describe what you want to do conscisely in 20 wo
 ```
 Notice: your output JSON data section must start with **```json [**
 """
+
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
 Second, describe the messages you have received recently, with a particular emphasis on messages from users. If necessary, develop a plan to address the new user requirements.
@@ -100,6 +112,9 @@ JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
 
+## json decode error
+{json_decode_error}
+
 ## Output Format
 ```json
 
@@ -111,11 +126,68 @@ Output the JSON data in a format that can be loaded by the json.loads() function
 """
 
 QUICK_THINK_PROMPT = """
-Decide if the latest user message previously is a quick question.
-Quick questions include common-sense, legal, logical, math, multiple-choice questions, greetings, or casual chat that you can answer directly.
-Questions about you or your team info are also quick questions.
-Time- or location-sensitive questions such as wheather or news inquiry are NOT quick questions. Moreover, you should output a keyword SEARCH to indicate the need for a google search.
-Software development tasks are NOT quick questions. Code execution, however trivial, is NOT a quick question.
-However, these programming-related tasks are quick questions: writing trivial code snippets (fewer than 30 lines), filling a single function or class, explaining concepts, writing tutorials and documentation.
-Respond with a concise thought then a YES if the question is a quick question, otherwise, a NO or a SEARCH. Your response:
+# Response Categories
+## QUICK: 
+For straightforward questions or requests that can be answered directly. This includes common-sense inquiries, legal or logical questions, basic math, short coding tasks, multiple-choice questions, greetings, casual chat, and inquiries about you or your team.
+
+## SEARCH
+For queries that require retrieving up-to-date or detailed information. This includes time-sensitive or location-specific questions like current events or weather. Use this only if the information isn't readily available.
+
+## TASK
+For complex requests that involve multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires a sequence of actions.
+
+## AMBIGUOUS
+For requests that are unclear, lack sufficient detail, or are outside the system's capabilities. Common characteristics of AMBIGUOUS requests:
+
+- Incomplete Information: Requests that imply complex tasks but lack critical details  (e.g., "Redesign this logo" without providing the original logo or specifying design requirements).
+- Vagueness: Broad, unspecified, or unclear requests that make it difficult to provide a precise answer. 
+- Out of Expertise: Requests for specialized advice (e.g., medical or legal advice) or highly technical tasks beyond the model's scope.
+- Unrealistic Scope: Overly broad requests that are impossible to address meaningfully in a single response (e.g., "Tell me everything about...").
+
+**Note:** Before categorizing a request as TASK, consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files, it should fall under AMBIGUOUS.
+
+{examples}
+
+Respond with a concise thought, then provide the appropriate response category: QUICK, SEARCH, TASK, or AMBIGUOUS. Your response:
 """
+
+
+QUICK_THINK_EXAMPLES ="""
+# Example
+
+1. Request: "How do I design an online document editing platform that supports real-time collaboration?"
+Thought: This is a direct query about platform design, answerable without additional resources. 
+Response Category: QUICK.
+
+2. Request: "What's the difference between supervised and unsupervised learning in machine learning?"
+Thought: This is a general knowledge question that can be answered concisely. 
+Response Category: QUICK.
+
+3. Request: "Can you help me plan a healthy diet for a week?"
+Thought: The user is requesting a simple plan that can be provided immediately. 
+Response Category: QUICK.
+
+4. Request: "Can you help me find the latest research papers on deep learning?"
+Thought: The user needs current research, requiring a search for the most recent sources. 
+Response Category: SEARCH.
+
+5. Request: "Build a personal website that runs the Game of Life simulation."
+Thought: This is a detailed software development task that requires multiple steps. 
+Response Category: TASK.
+
+6. Request: "Summarize this document for me."
+Thought: The request mentions summarizing a document but doesn't provide the document itself, making it impossible to fulfill. 
+Response Category: AMBIGUOUS.
+
+7. Request: "Optimize this process." 
+Thought: The request is vague and lacks specifics, requiring clarification on the process to optimize.
+Response Category: AMBIGUOUS.
+
+8. Request: "Create a poster for our upcoming event." 
+Thought: Critical details like event theme, date, and location are missing, making it impossible to complete the task.
+Response Category: AMBIGUOUS.
+
+# Instruction
+"""
+
+QUICK_THINK_PROMPT = QUICK_THINK_PROMPT.format(examples=QUICK_THINK_EXAMPLES)

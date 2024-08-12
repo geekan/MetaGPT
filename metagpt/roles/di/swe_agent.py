@@ -1,13 +1,12 @@
 import json
-from typing import Optional
 
 from pydantic import Field
 
 from metagpt.logs import logger
 from metagpt.prompts.di.swe_agent import (
+    CURRENT_BASH_STATE,
     MINIMAL_EXAMPLE,
     NEXT_STEP_TEMPLATE,
-    SWE_AGENT_SYSTEM_TEMPLATE,
 )
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.git import git_create_pull
@@ -18,7 +17,6 @@ class SWEAgent(RoleZero):
     name: str = "Swen"
     profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue or bug in any existing codebase"
-    system_msg: Optional[list[str]] = [SWE_AGENT_SYSTEM_TEMPLATE]
     _instruction: str = NEXT_STEP_TEMPLATE
     tools: list[str] = [
         "Bash",
@@ -55,7 +53,7 @@ class SWEAgent(RoleZero):
         """
         state_output = await self.terminal.run("state")
         bash_state = json.loads(state_output)
-        self.instruction = self._instruction.format(**bash_state).strip()
+        self.cmd_prompt_current_state = CURRENT_BASH_STATE.format(**bash_state).strip()
 
     async def _parse_commands_for_eval(self):
         """
