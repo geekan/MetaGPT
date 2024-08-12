@@ -4,9 +4,9 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Dict, List, Literal, Optional, Tuple
+from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
@@ -59,14 +59,14 @@ class RoleZero(Role):
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
-    tool_execution_map: dict[str, Callable] = {}
+    tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
 
     # Experience
-    experience_retriever: ExpRetriever = DummyExpRetriever()
+    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = DummyExpRetriever()
 
     # Others
     command_rsp: str = ""  # the raw string containing the commands
@@ -74,7 +74,6 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
-    unserializable_fields: list[str] = ["tool_execution_map", "experience_retriever"]
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":

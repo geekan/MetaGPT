@@ -125,15 +125,3 @@ class MGXEnv(Environment, SerializationMixin):
 
     def __repr__(self):
         return "MGXEnv()"
-
-    def remove_unserializable(self, data: dict):
-        """Removes unserializable content from the data dictionary.
-
-        Args:
-            data (dict): The data dictionary to clean, obtained from Pydantic's model_dump method.
-        """
-
-        roles = data.get("roles", {})
-
-        for role in roles.values():
-            [role.pop(key, None) for key in role.get("unserializable_fields", [])]

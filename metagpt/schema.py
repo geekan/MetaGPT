@@ -146,7 +146,6 @@ class SerializationMixin(BaseModel, extra="forbid"):
         file_path = file_path or self.get_serialization_path()
 
         serialized_data = self.model_dump()
-        self.remove_unserializable(serialized_data)
 
         write_json_file(file_path, serialized_data)
         logger.info(f"{self.__class__.__qualname__} serialization successful. File saved at: {file_path}")
@@ -189,17 +188,6 @@ class SerializationMixin(BaseModel, extra="forbid"):
         """
 
         return str(SERDESER_PATH / f"{cls.__qualname__}.json")
-
-    def remove_unserializable(self, data: dict):
-        """Removes unserializable content from the data dictionary.
-
-        This method removes keys specified in the "unserializable_fields" list from the provided data dictionary.
-        It is intended to clean the dictionary obtained from Pydantic's `model_dump` method by removing fields
-        that cannot be serialized.
-        """
-
-        for key in data.get("unserializable_fields", []):
-            data.pop(key, None)
 
 
 class SimpleMessage(BaseModel):
