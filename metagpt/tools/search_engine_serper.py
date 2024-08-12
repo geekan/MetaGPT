@@ -34,6 +34,7 @@ class SerperWrapper(BaseModel):
                 "To use serper search engine, make sure you provide the `api_key` when constructing an object. You can obtain "
                 "an API key from https://serper.dev/."
             )
+
         return values
 
     async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
@@ -56,7 +57,7 @@ class SerperWrapper(BaseModel):
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get.post(self.url, data=payloads, headers=headers, proxy=self.proxy) as response:
+            async with self.aiosession.post(self.url, data=payloads, headers=headers, proxy=self.proxy) as response:
                 response.raise_for_status()
                 res = await response.json()
 
