@@ -1,23 +1,24 @@
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
-from metagpt.roles.product_manager import ProductManager
 
 
 def main():
     """Demonstrates serialization and deserialization using SerializationMixin.
 
-    This example creates an instance of ProductManager, serializes it to a file,
+    This example creates an instance of MGXEnv, serializes it to a file,
     and then deserializes it back to an instance.
 
     If executed correctly, the following log messages will be output:
-        ProductManager serialization successful. File saved at: /data/hjt/gitlab_metagpt/workspace/storage/ProductManager.json
-        ProductManager deserialization successful. Instance created from file: /data/hjt/gitlab_metagpt/workspace/storage/ProductManager.json
-        The role is Product Manager
+        MGXEnv serialization successful. File saved at: /.../workspace/storage/MGXEnv.json
+        MGXEnv deserialization successful. Instance created from file: /.../workspace/storage/MGXEnv.json
+        The object is MGXEnv()
     """
-    role = ProductManager()
-    role.serialize()
 
-    role: ProductManager = ProductManager.deserialize()
-    logger.info(f"The role is {role.profile}")
+    env = MGXEnv()
+    env.serialize()
+
+    env: MGXEnv = MGXEnv.deserialize()
+    logger.info(f"The object is {repr(env)}")
 
 
 if __name__ == "__main__":
