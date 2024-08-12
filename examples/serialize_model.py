@@ -11,14 +11,14 @@ def main():
     If executed correctly, the following log messages will be output:
         MGXEnv serialization successful. File saved at: /.../workspace/storage/MGXEnv.json
         MGXEnv deserialization successful. Instance created from file: /.../workspace/storage/MGXEnv.json
-        The object is MGXEnv()
+        The instance is MGXEnv()
     """
 
     env = MGXEnv()
     env.serialize()
 
     env: MGXEnv = MGXEnv.deserialize()
-    logger.info(f"The object is {repr(env)}")
+    logger.info(f"The instance is {repr(env)}")
 
 
 if __name__ == "__main__":
