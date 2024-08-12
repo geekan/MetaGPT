@@ -4,11 +4,8 @@
 
 import copy
 import pickle
-from typing import Callable, Optional, Type
 
-from pydantic import BaseModel
-
-from metagpt.utils.common import import_class, read_json_file, write_json_file
+from metagpt.utils.common import import_class
 
 
 def actionoutout_schema_to_mapping(schema: dict) -> dict:
@@ -84,36 +81,3 @@ def deserialize_message(message_ser: str) -> "Message":
         message.instruct_content = ic_new
 
     return message
-
-
-def serialize_model(model: BaseModel, file_path: str, remove_unserializable: Optional[Callable[[dict], None]] = None):
-    """Serializes a Pydantic model to a JSON file.
-
-    Args:
-        model (BaseModel): The Pydantic model to serialize.
-        file_path (str): The path to the JSON file where the model will be saved.
-        remove_unserializable (Optional[Callable[[dict], None]]): Optional function to remove unserializable content from the serialized data.
-    """
-
-    serialized_data = model.model_dump()
-
-    if remove_unserializable:
-        remove_unserializable(serialized_data)
-
-    write_json_file(file_path, serialized_data)
-
-
-def deserialize_model(cls: Type[BaseModel], file_path: str) -> BaseModel:
-    """Deserializes a JSON file to a Pydantic model.
-
-    Args:
-        cls (Type[BaseModel]): The Pydantic model class to deserialize into.
-        file_path (str): The path to the JSON file to read from.
-
-    Returns:
-        BaseModel: An instance of the Pydantic model.
-    """
-
-    data: dict = read_json_file(file_path)
-
-    return cls(**data)
