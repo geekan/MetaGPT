@@ -39,11 +39,9 @@ class PlaywrightWrapper(BaseModel):
             if not any(str.startswith(i, "--proxy-server=") for i in args):
                 launch_kwargs["proxy"] = {"server": self.proxy}
 
-        if "ignore_https_errors" in kwargs:
-            self.context_kwargs["ignore_https_errors"] = kwargs["ignore_https_errors"]
-
-        if "java_script_enabled" in kwargs:
-            self.context_kwargs["java_script_enabled"] = kwargs["java_script_enabled"]
+        for key in ["ignore_https_errors", "java_script_enabled", "extra_http_headers", "user_agent"]:
+            if key in kwargs:
+                self.context_kwargs[key] = kwargs[key]
 
     async def run(self, url: str, *urls: str, per_page_timeout: float = None) -> WebPage | list[WebPage]:
         async with async_playwright() as ap:

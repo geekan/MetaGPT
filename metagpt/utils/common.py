@@ -852,7 +852,10 @@ async def get_mime_type(filename: str | Path, force_read: bool = False) -> str:
     }
 
     try:
-        stdout, _, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        stdout, stderr, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        if stderr:
+            logger.debug(f"file:{filename}, error:{stderr}")
+            return guess_mime_type
         ix = stdout.rfind(" ")
         mime_type = stdout[ix:].strip()
         if mime_type == "text/plain" and guess_mime_type in text_set:

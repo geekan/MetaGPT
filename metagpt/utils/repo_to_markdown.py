@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 
 from gitignore_parser import parse_gitignore
 
@@ -82,7 +82,7 @@ async def _write_files(repo_path, gitignore_rules=None) -> str:
 
 
 async def _write_file(filename: Path, repo_path: Path) -> str:
-    is_text, mime_type = await _is_text_file(filename)
+    is_text, mime_type = await is_text_file(filename)
     if not is_text:
         logger.info(f"Ignore content: {filename}")
         return ""
@@ -100,7 +100,17 @@ async def _write_file(filename: Path, repo_path: Path) -> str:
         return ""
 
 
-async def _is_text_file(filename: Path) -> Tuple[bool, str]:
+async def is_text_file(filename: Union[str, Path]) -> Tuple[bool, str]:
+    """
+    Determines if the specified file is a text file based on its MIME type.
+
+    Args:
+        filename (Union[str, Path]): The path to the file.
+
+    Returns:
+        Tuple[bool, str]: A tuple where the first element indicates if the file is a text file
+        (True for text file, False otherwise), and the second element is the MIME type of the file.
+    """
     pass_set = {
         "application/json",
         "application/vnd.chipnuts.karaoke-mmd",
@@ -129,7 +139,7 @@ async def _is_text_file(filename: Path) -> Tuple[bool, str]:
         "image/vnd.microsoft.icon",
         "video/mp4",
     }
-    mime_type = await get_mime_type(filename, force_read=True)
+    mime_type = await get_mime_type(Path(filename), force_read=True)
     v = "text/" in mime_type or mime_type in pass_set
     if v:
         return True, mime_type

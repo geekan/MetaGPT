@@ -159,7 +159,7 @@ class TestExpCache:
 
     @pytest.mark.asyncio
     async def test_exp_cache_disabled(self, mock_config, mock_exp_manager):
-        mock_config.exp_pool.enable_read = False
+        mock_config.exp_pool.enabled = False
 
         @exp_cache(manager=mock_exp_manager)
         async def test_func(req):

@@ -50,7 +50,7 @@ def exp_cache(
     """
 
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
-        if not config.exp_pool.enable_read:
+        if not config.exp_pool.enabled:
             return func
 
         @functools.wraps(func)
