@@ -64,6 +64,10 @@ class ToolRecommender(BaseModel):
     @field_validator("tools", mode="before")
     @classmethod
     def validate_tools(cls, v: list[str]) -> dict[str, Tool]:
+        # If `v` is already a dictionary (e.g., during deserialization), return it as is.
+        if isinstance(v, dict):
+            return v
+
         # One can use special symbol ["<all>"] to indicate use of all registered tools
         if v == ["<all>"]:
             return TOOL_REGISTRY.get_all_tools()
