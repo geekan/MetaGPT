@@ -13,7 +13,7 @@ from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
 from metagpt.exp_pool import exp_cache
-from metagpt.exp_pool.context_builders import RoleZeroContextBuilder, SimpleContextBuilder
+from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
@@ -127,17 +127,7 @@ class RoleZero(Role):
 
     def _update_tool_execution(self):
         pass
-    
-    def _get_team_info(self) -> str:
-        if not self.rc.env:
-            return ""
-        team_info = ""
-        for role in self.rc.env.roles.values():
-            # if role.profile == "Team Leader":
-            #     continue
-            team_info += f"{role.name}: {role.profile}, {role.goal}\n"
-        return team_info
-    
+        
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         # Compatibility
