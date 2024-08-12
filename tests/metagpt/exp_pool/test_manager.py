@@ -10,7 +10,7 @@ from metagpt.exp_pool.schema import QueryType
 class TestExperienceManager:
     @pytest.fixture
     def mock_config(self):
-        return Config(llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True))
+        return Config(llm=LLMConfig(), exp_pool=ExperiencePoolConfig(enable_write=True, enable_read=True, enabled=True))
 
     @pytest.fixture
     def mock_storage(self, mocker):
