@@ -129,7 +129,7 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 - Out of Expertise: Requests for specialized advice (e.g., medical or legal advice) or highly technical tasks beyond the model's scope.
 - Unrealistic Scope: Overly broad requests that are impossible to address meaningfully in a single response (e.g., "Tell me everything about...").
 
-**Note:** Before categorizing a request as TASK, consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details, it may fall under AMBIGUOUS.
+**Note:** Before categorizing a request as TASK, consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files, it should fall under AMBIGUOUS.
 
 {examples}
 

@@ -256,17 +256,13 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "QUICK" in intent_result:
-            # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:            # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
-        elif "AMBIGUOUS " in intent_result:
-            # TODO: out of domain, ask human for help
-            pass
 
         if answer:
             self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
