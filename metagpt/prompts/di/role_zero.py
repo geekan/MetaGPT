@@ -100,6 +100,9 @@ JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}
 
+## json decode error
+{json_decode_error}
+
 ## Output Format
 ```json
 
