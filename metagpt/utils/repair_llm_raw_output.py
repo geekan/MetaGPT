@@ -353,6 +353,23 @@ def repair_escape_error(commands):
     """
     Repaires escape errors in command responses.
     When role-zero parses a command, the command may contain unknown escape characters.
+
+    This function has two steps:
+    1. Transform unescaped substrings like "\d" and "\(" to "\\\\d" and "\\\\(".
+    2. Transform escaped characters like '\f' to substrings like "\\\\f".
+
+    Example:
+        When the original JSON string is " {"content":"\\\\( \\\\frac{1}{2} \\\\)"} ",
+        The "content" will be parsed correctly to "\( \frac{1}{2} \)".
+
+        When there is a wrong JSON string like: " {"content":"\( \frac{1}{2} \)"}",
+        It will cause a parsing error.
+
+        To repair the wrong JSON string, the following transformations will be used:
+        "\("   --->  "\\\\("
+        '\f'   --->  "\\\\f"
+        "\)"   --->  "\\\\)"
+
     """
     escape_repair_map = {
         "\a": "\\\\a",
