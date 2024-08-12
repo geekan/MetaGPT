@@ -74,7 +74,7 @@ class ExperienceManager(BaseModel):
             exp (Experience): The experience to add.
         """
 
-        if not self.config.exp_pool.enable_write:
+        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_write:
             return
 
         self.storage.add_objs([exp])
@@ -92,7 +92,7 @@ class ExperienceManager(BaseModel):
             list[Experience]: A list of experiences that match the args.
         """
 
-        if not self.config.exp_pool.enable_read:
+        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_read:
             return []
 
         nodes = await self.storage.aretrieve(req)

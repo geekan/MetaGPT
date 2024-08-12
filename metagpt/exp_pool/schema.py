@@ -1,5 +1,5 @@
 """Experience schema."""
-
+import time
 from enum import Enum
 from typing import Optional
 
@@ -67,6 +67,7 @@ class Experience(BaseModel):
     entry_type: EntryType = Field(default=EntryType.AUTOMATIC, description="Type of entry: Manual or Automatic.")
     tag: str = Field(default="", description="Tagging experience.")
     traj: Optional[Trajectory] = Field(default=None, description="Trajectory.")
+    timestamp: Optional[float] = Field(default_factory=time.time)
 
     def rag_key(self):
         return self.req

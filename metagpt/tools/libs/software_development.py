@@ -21,7 +21,6 @@ from metagpt.actions.requirement_analysis.trd import (
 from metagpt.const import ASSISTANT_ALIAS, DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
 from metagpt.context import Context
 from metagpt.logs import ToolLogItem, log_tool_output, logger
-from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import aread
 from metagpt.utils.cost_manager import CostManager
 
@@ -86,7 +85,6 @@ async def mock_asearch_acknowledgement(use_case_actors: str):
     return await aread(filename=TEST_DATA_PATH / "requirements/1.acknowledge.md")
 
 
-@register_tool(tags=["system design", "write trd", "Write a TRD"])
 async def write_trd(
     use_case_actors: str,
     user_requirements: str,
@@ -155,7 +153,6 @@ async def write_trd(
     return trd
 
 
-@register_tool(tags=["system design", "write software framework", "Write a software framework based on a TRD"])
 async def write_framework(
     use_case_actors: str,
     trd: str,
@@ -240,7 +237,6 @@ async def write_framework(
     return "## Software Framework" + "".join([f"\n- {i}" for i in file_list])
 
 
-@register_tool(tags=["system design", "write trd and framework", "Write a TRD and the framework"])
 async def write_trd_and_framework(
     use_case_actors: str,
     user_requirements: str,

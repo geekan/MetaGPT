@@ -191,7 +191,7 @@ class ExecuteNbCode(Action):
                 output_text = remove_log_and_warning_lines(output_text)
             # The useful information of the exception is at the end,
             # the useful information of normal output is at the begining.
-            if '<!DOCTYPE html>' not in output_text:
+            if "<!DOCTYPE html>" not in output_text:
                 output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
@@ -286,11 +286,7 @@ class ExecuteNbCode(Action):
 def remove_log_and_warning_lines(input_str: str) -> str:
     delete_lines = ["[warning]", "warning:", "[cv]", "[info]"]
     result = "\n".join(
-        [
-            line
-            for line in input_str.split("\n")
-            if not any(dl in line.lower() for dl in delete_lines)
-        ]
+        [line for line in input_str.split("\n") if not any(dl in line.lower() for dl in delete_lines)]
     ).strip()
     return result
 
