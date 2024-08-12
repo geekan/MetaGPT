@@ -362,7 +362,7 @@ def repair_escape_error(commands):
         When the original JSON string is " {"content":"\\\\( \\\\frac{1}{2} \\\\)"} ",
         The "content" will be parsed correctly to "\( \frac{1}{2} \)".
 
-        However, if the orginal JSON string is " {"content":"\( \frac{1}{2} \)"}" directly.
+        However, if the original JSON string is " {"content":"\( \frac{1}{2} \)"}" directly.
         It will cause a parsing error.
 
         To repair the wrong JSON string, the following transformations will be used:
