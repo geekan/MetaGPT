@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
@@ -31,7 +33,7 @@ class DataAnalyst(RoleZero):
     tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]
     custom_tools: list[str] = ["web scraping", "Terminal"]
     custom_tool_recommender: ToolRecommender = None
-    experience_retriever: ExpRetriever = KeywordExpRetriever()
+    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = KeywordExpRetriever()
 
     use_reflection: bool = True
     write_code: WriteAnalysisCode = Field(default_factory=WriteAnalysisCode, exclude=True)

@@ -12,6 +12,7 @@ from playwright.async_api import (
     Request,
     async_playwright,
 )
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.a11y_tree import (
@@ -43,7 +44,7 @@ from metagpt.utils.report import BrowserReporter
         "type",
     ],
 )
-class Browser:
+class Browser(BaseModel):
     """A tool for browsing the web. Don't initialize a new instance of this class if one already exists.
 
     Note: If you plan to use the browser to assist you in completing tasks, then using the browser should be a standalone
@@ -66,16 +67,17 @@ class Browser:
     >>> await browser.close_tab()
     """
 
-    def __init__(self):
-        self.playwright: Optional[Playwright] = None
-        self.browser_instance: Optional[Browser_] = None
-        self.browser_ctx: Optional[BrowserContext] = None
-        self.page: Optional[Page] = None
-        self.accessibility_tree: list = []
-        self.headless: bool = True
-        self.proxy = get_proxy_from_env()
-        self.is_empty_page = True
-        self.reporter = BrowserReporter()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    playwright: Optional[Playwright] = None
+    browser_instance: Optional[Browser_] = None
+    browser_ctx: Optional[BrowserContext] = None
+    page: Optional[Page] = None
+    accessibility_tree: list = Field(default_factory=list)
+    headless: bool = True
+    proxy: Optional[str] = Field(default_factory=get_proxy_from_env)
+    is_empty_page: bool = True
+    reporter: BrowserReporter = Field(default_factory=BrowserReporter)
 
     async def start(self) -> None:
         """Starts Playwright and launches a browser"""

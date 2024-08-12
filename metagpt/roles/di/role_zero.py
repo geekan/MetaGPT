@@ -4,9 +4,9 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Dict, List, Literal, Tuple
+from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
@@ -47,12 +47,13 @@ class RoleZero(Role):
     name: str = "Zero"
     profile: str = "RoleZero"
     goal: str = ""
+    system_msg: Optional[list[str]] = None  # Use None to conform to the default value at llm.aask
     system_prompt: str = SYSTEM_PROMPT  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     cmd_prompt_current_state: str = ""
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
-    task_type_desc: str = None
+    task_type_desc: Optional[str] = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -60,15 +61,15 @@ class RoleZero(Role):
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = None
-    tool_execution_map: dict[str, Callable] = {}
+    tool_recommender: Optional[ToolRecommender] = None
+    tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
 
     # Experience
-    experience_retriever: ExpRetriever = DummyExpRetriever()
+    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = DummyExpRetriever()
 
     # Others
     command_rsp: str = ""  # the raw string containing the commands
@@ -129,7 +130,7 @@ class RoleZero(Role):
 
     def _update_tool_execution(self):
         pass
-        
+
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         # Compatibility
@@ -195,7 +196,7 @@ class RoleZero(Role):
         The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
         """
         return await self.llm.aask(req, system_msgs=system_msgs)
-                      
+
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
@@ -261,7 +262,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:            # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))

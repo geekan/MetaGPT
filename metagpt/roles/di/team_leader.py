@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Annotated
+
+from pydantic import Field
+
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
@@ -24,7 +28,7 @@ class TeamLeader(RoleZero):
 
     tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
 
-    experience_retriever: ExpRetriever = SimpleExpRetriever()
+    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = SimpleExpRetriever()
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(
