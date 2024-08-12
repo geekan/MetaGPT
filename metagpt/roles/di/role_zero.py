@@ -274,11 +274,8 @@ class RoleZero(Role):
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
-        elif "OOD" or "AMBIGUOUS " in intent_result:
+        elif "AMBIGUOUS " in intent_result:
             # TODO: out of domain, ask human for help
-            pass
-        else:
-            # TODO: TASK question
             pass
 
         if answer:
