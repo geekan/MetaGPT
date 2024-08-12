@@ -4,7 +4,6 @@ from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     QUICK_THINK_SYSTEM_PROMPT,
-    SYSTEM_PROMPT,
     TL_INSTRUCTION,
     TL_THOUGHT_GUIDANCE,
 )
@@ -19,7 +18,6 @@ class TeamLeader(RoleZero):
     name: str = "Mike"
     profile: str = "Team Leader"
     goal: str = "Manage a team to assist users"
-    system_msg: list[str] = [SYSTEM_PROMPT]
     thought_guidance: str = TL_THOUGHT_GUIDANCE
     # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
     max_react_loop: int = 3
