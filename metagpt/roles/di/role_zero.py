@@ -129,7 +129,7 @@ class RoleZero(Role):
 
     def _update_tool_execution(self):
         pass
-
+        
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         # Compatibility
@@ -194,9 +194,8 @@ class RoleZero(Role):
         The `RoleZeroContextBuilder` attempts to add experiences to `req`.
         The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
         """
-
         return await self.llm.aask(req, system_msgs=system_msgs)
-
+                      
     async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
@@ -262,8 +261,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "YES" in intent_result:
-            # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:            # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))
