@@ -149,7 +149,7 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 {examples}
 
 Respond with a concise thought, then provide the appropriate response category: QUICK, SEARCH, TASK, or AMBIGUOUS. 
-You should **only** provide the thought, response category, and nothing else.
+Important: You should **only** provide the thought, response category, and nothing else.
 Your response:
 """
 
