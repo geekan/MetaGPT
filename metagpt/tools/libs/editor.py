@@ -237,7 +237,7 @@ class Editor(BaseModel):
                 return lines
             except:
                 pass
-        return [f"Reading failed: `{path}` cannot be decoded by `{encoding_format_list}`. Please ask a human for help."]
+        return [f"Reading failed: `{path}` cannot be decoded by `{encoding_format_list}`."]
 
     @staticmethod
     async def _read_pdf(path: Union[str, Path]) -> List[str]:
