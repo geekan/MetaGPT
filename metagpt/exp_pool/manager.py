@@ -113,4 +113,11 @@ class ExperienceManager(BaseModel):
         return self.vector_store._collection.count()
 
 
-exp_manager = ExperienceManager()
+_exp_manager = None
+
+
+def get_exp_manager():
+    global _exp_manager
+    if _exp_manager is None:
+        _exp_manager = ExperienceManager()
+    return _exp_manager

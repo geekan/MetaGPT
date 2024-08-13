@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from metagpt.config2 import Config
 from metagpt.exp_pool.context_builders import BaseContextBuilder, SimpleContextBuilder
-from metagpt.exp_pool.manager import ExperienceManager, exp_manager
+from metagpt.exp_pool.manager import ExperienceManager, get_exp_manager
 from metagpt.exp_pool.perfect_judges import BasePerfectJudge, SimplePerfectJudge
 from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
 from metagpt.exp_pool.scorers import BaseScorer, SimpleScorer
@@ -117,7 +117,7 @@ class ExpCacheHandler(BaseModel):
 
         self._validate_params()
 
-        self.exp_manager = self.exp_manager or exp_manager
+        self.exp_manager = self.exp_manager or get_exp_manager()
         self.exp_scorer = self.exp_scorer or SimpleScorer()
         self.exp_perfect_judge = self.exp_perfect_judge or SimplePerfectJudge()
         self.context_builder = self.context_builder or SimpleContextBuilder()
