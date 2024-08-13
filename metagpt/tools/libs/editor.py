@@ -219,9 +219,25 @@ class Editor(BaseModel):
 
     @staticmethod
     def _read_text(path: Union[str, Path]) -> List[str]:
-        with open(str(path), "r") as f:
-            lines = f.readlines()
-        return lines
+        encoding_format_list = [
+            "utf-8",
+            "ascii",
+            "gb2312",
+            "gbk",
+            "iso-8859-1",
+            "cp1252",
+            "utf-16",
+            "utf-16-le",
+            "utf-16-be",
+        ]
+        for encoding in encoding_format_list:
+            try:
+                with open(str(path), "r", encoding=encoding) as f:
+                    lines = f.readlines()
+                return lines
+            except:
+                pass
+        return [f"Reading failed: `{path}` cannot be decoded by `{encoding_format_list}`. Please ask a human for help."]
 
     @staticmethod
     async def _read_pdf(path: Union[str, Path]) -> List[str]:
