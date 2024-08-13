@@ -4,12 +4,12 @@
 
 import copy
 from enum import Enum
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import regex as re
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.logs import logger
 from metagpt.utils.custom_decoder import CustomDecoder
 
@@ -154,7 +154,9 @@ def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = 
     return output
 
 
-def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairType = None) -> str:
+def repair_llm_raw_output(
+    output: str, req_keys: list[str], repair_type: RepairType = None, config: Optional[Config] = None
+) -> str:
     """
     in open-source llm model, it usually can't follow the instruction well, the output may be incomplete,
     so here we try to repair it and use all repair methods by default.
@@ -169,6 +171,7 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
             target: { xxx }
             output: { xxx }]
     """
+    config = config if config else Config.default()
     if not config.repair_llm_output:
         return output
 
@@ -256,6 +259,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
                 "next_action":"None"
             }
         """
+        config = Config.default()
         if retry_state.outcome.failed:
             if retry_state.args:
                 # # can't be used as args=retry_state.args
@@ -276,8 +280,12 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
     return run_and_passon
 
 
+def repair_stop_after_attempt(retry_state):
+    return stop_after_attempt(3 if Config.default().repair_llm_output else 0)(retry_state)
+
+
 @retry(
-    stop=stop_after_attempt(3 if config.repair_llm_output else 0),
+    stop=repair_stop_after_attempt,
     wait=wait_fixed(1),
     after=run_after_exp_and_passon_next_retry(logger),
 )

@@ -7,8 +7,8 @@
 @Desc    : Text-to-Image skill, which provides text-to-image functionality.
 """
 import base64
+from typing import Optional
 
-import metagpt.config2
 from metagpt.config2 import Config
 from metagpt.const import BASE64_FORMAT
 from metagpt.llm import LLM
@@ -17,7 +17,7 @@ from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
 from metagpt.utils.s3 import S3
 
 
-async def text_to_image(text, size_type: str = "512x512", config: Config = metagpt.config2.config):
+async def text_to_image(text, size_type: str = "512x512", config: Optional[Config] = None):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -25,6 +25,7 @@ async def text_to_image(text, size_type: str = "512x512", config: Config = metag
     :param config: Config
     :return: The image data is returned in Base64 encoding.
     """
+    config = config if config else Config.default()
     image_declaration = "data:image/png;base64,"
 
     model_url = config.metagpt_tti_url

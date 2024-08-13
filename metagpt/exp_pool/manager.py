@@ -2,9 +2,9 @@
 
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.config2 import Config, config
+from metagpt.config2 import Config
 from metagpt.exp_pool.schema import (
     DEFAULT_COLLECTION_NAME,
     DEFAULT_SIMILARITY_TOP_K,
@@ -29,7 +29,7 @@ class ExperienceManager(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    config: Config = config
+    config: Config = Field(default_factory=Config.default)
 
     _storage: Any = None
     _vector_store: Any = None

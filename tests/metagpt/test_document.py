@@ -5,9 +5,11 @@
 @Author  : alexanderwu
 @File    : test_document.py
 """
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.document import Repo
 from metagpt.logs import logger
+
+config = Config.default()
 
 
 def set_existing_repo(path):

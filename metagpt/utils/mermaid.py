@@ -9,12 +9,14 @@ import asyncio
 import os
 from pathlib import Path
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.logs import logger
 from metagpt.utils.common import awrite, check_cmd_exists
 
 
-async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(
+    engine, mermaid_code, output_file_without_suffix, width=2048, height=2048, config=None
+) -> int:
     """suffix: png/svg/pdf
 
     :param mermaid_code: mermaid code
@@ -24,6 +26,7 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
     :return: 0 if succeed, -1 if failed
     """
     # Write the Mermaid code to a temporary file
+    config = config if config else Config.default()
     dir_name = os.path.dirname(output_file_without_suffix)
     if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name)

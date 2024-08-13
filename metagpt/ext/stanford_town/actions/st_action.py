@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from metagpt.actions.action import Action
-from metagpt.config2 import config
 from metagpt.ext.stanford_town.utils.const import PROMPTS_DIR
 from metagpt.logs import logger
 
@@ -62,13 +61,13 @@ class STAction(Action):
     async def _run_gpt35_max_tokens(self, prompt: str, max_tokens: int = 50, retry: int = 3):
         for idx in range(retry):
             try:
-                tmp_max_tokens_rsp = getattr(config.llm, "max_token", 1500)
-                setattr(config.llm, "max_token", max_tokens)
+                tmp_max_tokens_rsp = getattr(self.config.llm, "max_token", 1500)
+                setattr(self.config.llm, "max_token", max_tokens)
                 self.llm.use_system_prompt = False  # to make it behave like a non-chat completions
 
                 llm_resp = await self._aask(prompt)
 
-                setattr(config.llm, "max_token", tmp_max_tokens_rsp)
+                setattr(self.config.llm, "max_token", tmp_max_tokens_rsp)
                 logger.info(f"Action: {self.cls_name} llm _run_gpt35_max_tokens raw resp: {llm_resp}")
                 if self._func_validate(llm_resp, prompt):
                     return self._func_cleanup(llm_resp, prompt)
