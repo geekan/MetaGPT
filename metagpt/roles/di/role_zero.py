@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import re
 import traceback
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
@@ -222,7 +223,10 @@ class RoleZero(Role):
             return memory
         for i, msg in enumerate(memory):
             if msg.role == "user" and isinstance(msg.content, str) and extract_image_paths(msg.content):
-                images = [encode_image(path) for path in extract_image_paths(msg.content)]
+                images = []
+                for path in extract_image_paths(msg.content):
+                    if os.path.exists(path):
+                        images.append(encode_image(path))
                 memory[i] = self.llm._user_msg_with_imgs(msg.content, images=images)
         return memory
 
