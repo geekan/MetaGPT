@@ -26,7 +26,7 @@ class TeamLeader(RoleZero):
     # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
     max_react_loop: int = 3
 
-    tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
+    tools: list[str] = ["Plan", "RoleZero", "TeamLeader", "Editor:write,read"]
 
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = SimpleExpRetriever()
 
@@ -48,12 +48,14 @@ class TeamLeader(RoleZero):
             team_info += f"{role.name}: {role.profile}, {role.goal}\n"
         return team_info
 
-    async def _quick_think(self) -> Message:
-        # insert team info for quick question
-        self.llm.system_prompt = QUICK_THINK_SYSTEM_PROMPT.format(
+    def format_quick_system_prompt(self) -> str:
+        qt_system_prompt = super().format_quick_system_prompt()
+        return qt_system_prompt + QUICK_THINK_SYSTEM_PROMPT.format(
             role_info=super()._get_prefix(),
             team_info=self._get_team_info(),
         )
+
+    async def _quick_think(self) -> Message:
         return await super()._quick_think()
 
     async def _think(self) -> bool:
