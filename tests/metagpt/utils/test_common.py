@@ -29,7 +29,9 @@ from metagpt.utils.common import (
     awrite,
     check_cmd_exists,
     concat_namespace,
+    extract_image_paths,
     import_class_inst,
+    is_support_image_input,
     parse_recipient,
     print_members,
     read_file_block,
@@ -213,6 +215,25 @@ class TestGetProjectRoot:
         await awrite(filename=pathname, data=content, encoding="gb2312")
         data = await aread(filename=pathname, encoding="utf-8")
         assert data == content
+
+
+def test_extract_image_paths():
+    content = """
+    Here are some image paths /home/user/images/photo1.jpg /home/user/images/photo2.png
+    # /absolute/path/to/image.gif"""
+    assert extract_image_paths(content) == [
+        "/home/user/images/photo1.jpg",
+        "/home/user/images/photo2.png",
+        "/absolute/path/to/image.gif",
+    ]
+
+    content = "no image path"
+    assert not extract_image_paths(content)
+
+
+def test_is_support_image_input():
+    assert is_support_image_input("gpt-4o-2024-08-06")
+    assert not is_support_image_input("deepseek-coder")
 
 
 if __name__ == "__main__":

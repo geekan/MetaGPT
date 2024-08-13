@@ -34,7 +34,13 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, any_to_str
+from metagpt.utils.common import (
+    CodeParser,
+    any_to_str,
+    encode_image,
+    extract_image_paths,
+    is_support_image_input,
+)
 from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 from metagpt.utils.report import ThoughtReporter
 
@@ -129,7 +135,7 @@ class RoleZero(Role):
 
     def _update_tool_execution(self):
         pass
-        
+
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
         # Compatibility
@@ -171,6 +177,7 @@ class RoleZero(Role):
         ### Recent Observation ###
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+        memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
@@ -195,14 +202,23 @@ class RoleZero(Role):
         The `RoleZeroSerializer` extracts essential parts of `req` for the experience pool, trimming lengthy entries to retain only necessary parts.
         """
         return await self.llm.aask(req, system_msgs=system_msgs)
-                      
-    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
+
+    async def parse_browser_actions(self, memory: list[Message]) -> list[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
                 if pattern.search(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
+        return memory
+
+    def parse_images(self, memory: list[Message]) -> list[Message]:
+        if not is_support_image_input(self.llm.model):
+            return memory
+        for i, msg in enumerate(memory):
+            if msg.role == "user" and isinstance(msg.content, str) and extract_image_paths(msg.content):
+                images = [encode_image(path) for path in extract_image_paths(msg.content)]
+                memory[i] = self.llm._user_msg_with_imgs(msg.content, images=images)
         return memory
 
     async def _act(self) -> Message:
@@ -261,7 +277,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context)
 
-        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:            # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory))
