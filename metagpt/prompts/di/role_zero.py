@@ -148,7 +148,7 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 
 **Note:** Before categorizing a request as TASK:
 1. Consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files' content or path, it should fall under AMBIGUOUS.
-2. If the request is a "how-to" question that asks for a general plan, approach or strategy, it should be categorized as QUICK.
+2. If the request is a "how-to" question that asks for a general study plan, approach or strategy, it should be categorized as QUICK.
 
 {examples}
 """
@@ -177,8 +177,8 @@ Response Category: QUICK.
 Thought: This is a general knowledge question that can be answered concisely. 
 Response Category: QUICK.
 
-3. Request: "Can you help me plan a healthy diet for a week?"
-Thought: Writing a diet plan is a general task that can be answered directly.
+3. Request: "Please help me write a learning plan for Python web crawlers"
+Thought: Writing a learning plan is a daily planning task that can be answered directly.
 Response Category: QUICK.
 
 4. Request: "Can you help me find the latest research papers on deep learning?"
@@ -202,4 +202,3 @@ Thought: The request is vague and lacks specifics, requiring clarification on th
 Response Category: AMBIGUOUS.
 
 """
-# QUICK_THINK_EXAMPLES = ""
