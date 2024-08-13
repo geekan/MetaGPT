@@ -31,6 +31,10 @@ async def default_get_env(key: str, app_name: str = None) -> str:
     if app_key in os.environ:
         return os.environ[app_key]
 
+    env_app_key = app_key.replace("-", "_")  # "-" is not supported by linux environment variable
+    if env_app_key in os.environ:
+        return os.environ[env_app_key]
+
     from metagpt.context import Context
 
     context = Context()
