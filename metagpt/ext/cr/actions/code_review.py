@@ -164,6 +164,7 @@ class CodeReview(Action):
                 system_prompt = [CODE_REVIEW_COMFIRM_SYSTEM_PROMPT.format(code_language=code_language)]
                 resp = await self.llm.aask(prompt, system_msgs=system_prompt)
                 if "True" in resp or "true" in resp:
+                    cmt["code"] = get_code_block_from_patch(patch, code_start_line, code_end_line)
                     new_comments.append(cmt)
             except Exception:
                 logger.info("False")
