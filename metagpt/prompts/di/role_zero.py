@@ -130,13 +130,13 @@ Your role is to determine the appropriate response category for the given reques
 
 # Response Categories
 ## QUICK: 
-For straightforward questions or requests that can be answered directly. This includes common-sense inquiries, legal or logical questions, basic math, short coding tasks, multiple-choice questions, greetings, casual chat, schedule planning, and inquiries about you or your team.
+For straightforward questions or requests that can be answered directly. This includes common-sense inquiries, legal or logical questions, basic math, short coding tasks, multiple-choice questions, greetings, casual chat, daily planning, and inquiries about you or your team.
 
 ## SEARCH
 For queries that require retrieving up-to-date or detailed information. This includes time-sensitive or location-specific questions like current events or weather. Use this only if the information isn't readily available.
 
 ## TASK
-For complex requests that involve tool utilizations, multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires tool usage.
+For requests that involve tool utilizations, computer operations, multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires tool usage.
 
 ## AMBIGUOUS
 For requests that are unclear, lack sufficient detail, or are outside the system's capabilities. Common characteristics of AMBIGUOUS requests:
@@ -148,8 +148,7 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 
 **Note:** Before categorizing a request as TASK:
 1. Consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files' content or path, it should fall under AMBIGUOUS.
-2. If the request is a "how-to" question that asks for a general approach or strategy, it should be categorized as QUICK.
-3. Writing a travel/learning plan or providing a general outline should be categorized as **QUICK* because it doesn't involve detailed instructions or tool usage.
+2. If the request is a "how-to" question that asks for a general plan, approach or strategy, it should be categorized as QUICK.
 
 {examples}
 """
