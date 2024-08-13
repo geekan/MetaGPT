@@ -4,9 +4,9 @@ import inspect
 import json
 import re
 import traceback
-from typing import Callable, Dict, List, Literal, Tuple
+from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
@@ -41,7 +41,11 @@ from metagpt.utils.common import (
     extract_image_paths,
     is_support_image_input,
 )
-from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
+from metagpt.utils.repair_llm_raw_output import (
+    RepairType,
+    repair_escape_error,
+    repair_llm_raw_output,
+)
 from metagpt.utils.report import ThoughtReporter
 
 
@@ -53,12 +57,13 @@ class RoleZero(Role):
     name: str = "Zero"
     profile: str = "RoleZero"
     goal: str = ""
+    system_msg: Optional[list[str]] = None  # Use None to conform to the default value at llm.aask
     system_prompt: str = SYSTEM_PROMPT  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     cmd_prompt_current_state: str = ""
     thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
-    task_type_desc: str = None
+    task_type_desc: Optional[str] = None
 
     # React Mode
     react_mode: Literal["react"] = "react"
@@ -66,15 +71,15 @@ class RoleZero(Role):
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
-    tool_recommender: ToolRecommender = None
-    tool_execution_map: dict[str, Callable] = {}
+    tool_recommender: Optional[ToolRecommender] = None
+    tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
 
     # Experience
-    experience_retriever: ExpRetriever = DummyExpRetriever()
+    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = DummyExpRetriever()
 
     # Others
     command_rsp: str = ""  # the raw string containing the commands
@@ -330,10 +335,20 @@ class RoleZero(Role):
             if commands.endswith("]") and not commands.startswith("["):
                 commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
-            commands = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp))
-            commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
+            commands = await self.llm.aask(
+                msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp, json_decode_error=str(e))
+            )
+            try:
+                commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
+            except json.JSONDecodeError:
+                # repair escape error of code and math
+                commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+                new_command = repair_escape_error(commands)
+                commands = json.loads(
+                    repair_llm_raw_output(output=new_command, req_keys=[None], repair_type=RepairType.JSON)
+                )
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)

@@ -208,6 +208,6 @@ class CodeReview(Action):
             comments = await self.confirm_comments(patch=patch, comments=comments, points=points)
             for comment in comments:
                 if comment["code"]:
-                    if not (comment["code"].startswith("-") or comment["code"].isspace()):
+                    if not (comment["code"].isspace()):
                         result.append(comment)
         return result

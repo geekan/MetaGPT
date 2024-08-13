@@ -152,7 +152,7 @@ Respond with a concise thought, then provide the appropriate response category: 
 """
 
 
-QUICK_THINK_EXAMPLES ="""
+QUICK_THINK_EXAMPLES = """
 # Example
 
 1. Request: "How do I design an online document editing platform that supports real-time collaboration?"

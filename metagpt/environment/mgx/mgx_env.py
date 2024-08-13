@@ -10,11 +10,11 @@ from metagpt.const import AGENT
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
 from metagpt.roles import Architect, ProductManager, ProjectManager, Role
-from metagpt.schema import Message
+from metagpt.schema import Message, SerializationMixin
 from metagpt.utils.common import any_to_str, any_to_str_set
 
 
-class MGXEnv(Environment):
+class MGXEnv(Environment, SerializationMixin):
     """MGX Environment"""
 
     # If True, fixed software sop bypassing TL is allowed, otherwise, TL will fully take over the routing
