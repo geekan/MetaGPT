@@ -53,9 +53,6 @@ class TeamLeader(RoleZero):
         team_info = self._get_team_info()
         return TL_INFO.format(role_info=role_info, team_info=team_info)
     
-    async def _quick_think(self) -> Message:
-        return await super()._quick_think()
-
     async def _think(self) -> bool:
         self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
         return await super()._think()
