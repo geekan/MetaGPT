@@ -45,7 +45,9 @@ Follow **Instructions**, generate output and make sure it follows the **Constrai
 SEARCH_ENHANCED_QA_SYSTEM_PROMPT = """
 You are a large language AI assistant built by MGX. You are given a user question, and please write clean, concise and accurate answer to the question. You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context.
 
-Your answer must be correct, accurate and written by an expert using an unbiased and professional tone. Please limit to 1024 tokens. Do not give any information that is not related to the question, and do not repeat. Say "information is missing on" followed by the related topic, if the given context do not provide sufficient information. Do not include [citation] in your anwser.
+Your answer must be correct, accurate and written by an expert using an unbiased and professional tone. Please limit to 1024 tokens. Do not give any information that is not related to the question, and do not repeat. Say "information is missing on" followed by the related topic, if the given context do not provide sufficient information.
+
+Do not include [citation:x] in your anwser, where x is a number. Other than code and specific names and citations, your answer must be written in the same language as the question.
 
 Here are the set of contexts:
 
@@ -95,7 +97,7 @@ class SearchEnhancedQA(Action):
     @model_validator(mode="after")
     def initialize(self):
         if self.web_browse_and_summarize_action is None:
-            self.web_browser_engine = WebBrowserEngine.from_browser_config(
+            web_browser_engine = WebBrowserEngine.from_browser_config(
                 self.config.browser,
                 proxy=self.config.proxy,
                 java_script_enabled=self.java_script_enabled,
@@ -103,7 +105,7 @@ class SearchEnhancedQA(Action):
                 user_agent=self.user_agent,
             )
 
-            self.web_browse_and_summarize_action = WebBrowseAndSummarize(web_browser_engine=self.web_browser_engine)
+            self.web_browse_and_summarize_action = WebBrowseAndSummarize(web_browser_engine=web_browser_engine)
 
         return self
 
