@@ -7,7 +7,6 @@ from pydantic import Field
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
-    QUICK_THINK_SYSTEM_PROMPT,
     TL_INFO,
     TL_INSTRUCTION,
     TL_THOUGHT_GUIDANCE,
@@ -55,10 +54,6 @@ class TeamLeader(RoleZero):
         return TL_INFO.format(role_info=role_info, team_info=team_info)
     
     async def _quick_think(self) -> Message:
-        self.llm.system_prompt = QUICK_THINK_SYSTEM_PROMPT.format(
-            role_info=super()._get_prefix(),
-            team_info=self._get_team_info(),
-        )
         return await super()._quick_think()
 
     async def _think(self) -> bool:

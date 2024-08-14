@@ -35,12 +35,6 @@ Sixth, describe the requirements as they pertain to software development, data a
 Seventh, describe the technologies you must use.  
 """
 )
-QUICK_THINK_SYSTEM_PROMPT = """
-{role_info}
-Your team member:
-{team_info}
-However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
-"""
 
 TL_INFO = """
 {role_info}
