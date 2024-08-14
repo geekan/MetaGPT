@@ -62,6 +62,17 @@ class BM25RetrieverConfig(IndexRetrieverConfig):
     _no_embedding: bool = PrivateAttr(default=True)
 
 
+class MilvusRetrieverConfig(IndexRetrieverConfig):
+    """Config for Milvus-based retrievers."""
+
+    uri: str = Field(default="./milvus_local.db", description="The directory to save data.")
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    token: str = Field(default=None, description="The token for Milvus")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+
+
 class ChromaRetrieverConfig(IndexRetrieverConfig):
     """Config for Chroma-based retrievers."""
 
@@ -165,6 +176,16 @@ class ChromaIndexConfig(VectorIndexConfig):
     """Config for chroma-based index."""
 
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+
+class MilvusIndexConfig(VectorIndexConfig):
+    """Config for milvus-based index."""
+
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    uri: str = Field(default="./milvus_local.db", description="The uri of the index.")
+    token: Optional[str] = Field(default=None, description="The token of the index.")
     metadata: Optional[CollectionMetadata] = Field(
         default=None, description="Optional metadata to associate with the collection"
     )
