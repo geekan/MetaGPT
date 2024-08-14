@@ -273,7 +273,7 @@ class RoleZero(Role):
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         intent_result = await self.llm.aask(context, system_msgs=self.format_quick_system_prompt())
 
-        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 answer = await self.llm.aask(self.llm.format_msg(memory), system_msgs=QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix()))
