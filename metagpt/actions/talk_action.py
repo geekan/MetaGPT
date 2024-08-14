@@ -9,7 +9,6 @@
 from typing import Optional
 
 from metagpt.actions import Action
-from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.schema import Message
 
@@ -26,7 +25,7 @@ class TalkAction(Action):
 
     @property
     def language(self):
-        return self.context.kwargs.language or config.language
+        return self.context.kwargs.language or self.config.language
 
     @property
     def prompt(self):

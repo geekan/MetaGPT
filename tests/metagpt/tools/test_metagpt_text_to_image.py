@@ -10,8 +10,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
+
+config = Config.default()
 
 
 @pytest.mark.asyncio

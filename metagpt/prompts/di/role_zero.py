@@ -125,30 +125,46 @@ If no issues are detected, the original json data should be returned unchanged. 
 Output the JSON data in a format that can be loaded by the json.loads() function.
 """
 
-QUICK_THINK_PROMPT = """
+QUICK_THINK_SYSTEM_PROMPT = """
+{role_info}
+Your role is to determine the appropriate response category for the given request.
+
 # Response Categories
 ## QUICK: 
-For straightforward questions or requests that can be answered directly. This includes common-sense inquiries, legal or logical questions, basic math, short coding tasks, multiple-choice questions, greetings, casual chat, and inquiries about you or your team.
+For straightforward questions or requests that can be answered directly. This includes common-sense inquiries, legal or logical questions, basic math, short coding tasks, multiple-choice questions, greetings, casual chat, daily planning, and inquiries about you or your team.
 
 ## SEARCH
 For queries that require retrieving up-to-date or detailed information. This includes time-sensitive or location-specific questions like current events or weather. Use this only if the information isn't readily available.
+If a file or link is provided, you don't need to search for additional information.
 
 ## TASK
-For complex requests that involve multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires a sequence of actions.
+For requests that involve tool utilizations, computer operations, multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires tool usage.
 
 ## AMBIGUOUS
 For requests that are unclear, lack sufficient detail, or are outside the system's capabilities. Common characteristics of AMBIGUOUS requests:
 
-- Incomplete Information: Requests that imply complex tasks but lack critical details  (e.g., "Redesign this logo" without providing the original logo or specifying design requirements).
+- Incomplete Information: Requests that imply complex tasks but lack critical details  (e.g., "Redesign this logo" without specifying design requirements).
 - Vagueness: Broad, unspecified, or unclear requests that make it difficult to provide a precise answer. 
-- Out of Expertise: Requests for specialized advice (e.g., medical or legal advice) or highly technical tasks beyond the model's scope.
 - Unrealistic Scope: Overly broad requests that are impossible to address meaningfully in a single response (e.g., "Tell me everything about...").
+- Missing files: Requests that refer to specific documents, images, or data without providing them for reference. (when providing a file, website, or data, either the content, link, or path **must** be included)
 
-**Note:** Before categorizing a request as TASK, consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files, it should fall under AMBIGUOUS.
+**Note:** Before categorizing a request as TASK:
+1. Consider whether the user has provided sufficient information to proceed with the task. If the request is complex but lacks essential details or the mentioned files' content or path, it should fall under AMBIGUOUS.
+2. If the request is a "how-to" question that asks for a general plan, approach or strategy, it should be categorized as QUICK.
 
 {examples}
+"""
 
-Respond with a concise thought, then provide the appropriate response category: QUICK, SEARCH, TASK, or AMBIGUOUS. Your response:
+QUICK_THINK_PROMPT = """
+# Instruction
+Determine the previous message's intent.
+Respond with a concise thought, then provide the appropriate response category: QUICK, SEARCH, TASK, or AMBIGUOUS. 
+
+# Format
+Thought: [Your thought here]
+Response Category: [QUICK/SEARCH/TASK/AMBIGUOUS]
+
+# Response:
 """
 
 
@@ -163,8 +179,8 @@ Response Category: QUICK.
 Thought: This is a general knowledge question that can be answered concisely. 
 Response Category: QUICK.
 
-3. Request: "Can you help me plan a healthy diet for a week?"
-Thought: The user is requesting a simple plan that can be provided immediately. 
+3. Request: "Please help me write a learning plan for Python web crawlers"
+Thought: Writing a learning plan is a daily planning task that can be answered directly.
 Response Category: QUICK.
 
 4. Request: "Can you help me find the latest research papers on deep learning?"
@@ -176,18 +192,20 @@ Thought: This is a detailed software development task that requires multiple ste
 Response Category: TASK.
 
 6. Request: "Summarize this document for me."
-Thought: The request mentions summarizing a document but doesn't provide the document itself, making it impossible to fulfill. 
+Thought: The request mentions summarizing a document but doesn't provide the path or content of the document, making it impossible to fulfill. 
 Response Category: AMBIGUOUS.
 
-7. Request: "Optimize this process." 
+7. Request: "Summarize this document for me '/data/path/docmument.pdf'." 
+Thought: The request mentions summarizing a document and has provided the path to the document. It can be done by reading the document using a tool then summarizing it.
+Response Category: TASK.
+
+8. Request: "Optimize this process." 
 Thought: The request is vague and lacks specifics, requiring clarification on the process to optimize.
 Response Category: AMBIGUOUS.
 
-8. Request: "Create a poster for our upcoming event." 
-Thought: Critical details like event theme, date, and location are missing, making it impossible to complete the task.
-Response Category: AMBIGUOUS.
-
-# Instruction
 """
 
-QUICK_THINK_PROMPT = QUICK_THINK_PROMPT.format(examples=QUICK_THINK_EXAMPLES)
+QUICK_RESPONSE_SYSTEM_PROMPT = """
+{role_info}
+However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
+"""

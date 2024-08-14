@@ -7,7 +7,9 @@
 """
 import re
 from pathlib import Path
+from typing import Optional
 
+from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
@@ -36,11 +38,11 @@ class GPTvGenerator:
     It utilizes a vision model to analyze the layout from an image and generate webpage codes accordingly.
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Config]):
         """Initialize GPTvGenerator class with default values from the configuration."""
-        from metagpt.config2 import config
         from metagpt.llm import LLM
 
+        config = config if config else Config.default()
         self.llm = LLM(llm_config=config.get_openai_llm())
         self.llm.model = "gpt-4-vision-preview"
 

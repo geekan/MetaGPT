@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig, LLMType
@@ -61,7 +61,7 @@ class Context(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     kwargs: AttrDict = AttrDict()
-    config: Config = Config.default()
+    config: Config = Field(default_factory=Config.default)
 
     cost_manager: CostManager = CostManager()
 

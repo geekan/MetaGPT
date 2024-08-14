@@ -8,7 +8,6 @@ from typing import Any, Callable, Coroutine, Optional, Union
 from pydantic import TypeAdapter, model_validator
 
 from metagpt.actions import Action
-from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine
@@ -134,8 +133,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = config.llm.model
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, config.llm.max_token)
+        model_name = self.config.llm.model
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, self.config.llm.max_token)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
