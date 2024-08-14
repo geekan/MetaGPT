@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
-from metagpt.utils.common import aread_bin, awrite_bin
+from metagpt.utils.common import aread, aread_bin, awrite_bin
 from metagpt.utils.repo_to_markdown import is_text_file
 from metagpt.utils.report import EditorReporter
 
@@ -48,7 +48,7 @@ class Editor(BaseModel):
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
         is_text, mime_type = await is_text_file(path)
         if is_text:
-            lines = self._read_text(path)
+            lines = await self._read_text(path)
         elif mime_type == "application/pdf":
             lines = await self._read_pdf(path)
         elif mime_type in {
@@ -218,26 +218,10 @@ class Editor(BaseModel):
         return lint_passed, lint_message
 
     @staticmethod
-    def _read_text(path: Union[str, Path]) -> List[str]:
-        encoding_format_list = [
-            "utf-8",
-            "ascii",
-            "gb2312",
-            "gbk",
-            "iso-8859-1",
-            "cp1252",
-            "utf-16",
-            "utf-16-le",
-            "utf-16-be",
-        ]
-        for encoding in encoding_format_list:
-            try:
-                with open(str(path), "r", encoding=encoding) as f:
-                    lines = f.readlines()
-                return lines
-            except:
-                pass
-        return [f"Reading failed: `{path}` cannot be decoded by `{encoding_format_list}`."]
+    async def _read_text(path: Union[str, Path]) -> List[str]:
+        content = await aread(path)
+        lines = content.split("\n")
+        return lines
 
     @staticmethod
     async def _read_pdf(path: Union[str, Path]) -> List[str]:
