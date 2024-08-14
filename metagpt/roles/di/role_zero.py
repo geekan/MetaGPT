@@ -155,6 +155,8 @@ class RoleZero(Role):
         ### 2. Plan Status ###
         plan_status, current_task = self._get_plan_status()
 
+        plan_status_formated = self._format_plan_status(plan_status)
+
         ### 3. Tool/Command Info ###
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
@@ -168,7 +170,7 @@ class RoleZero(Role):
         ### Make Decision Dynamically ###
         prompt = self.cmd_prompt.format(
             current_state=self.cmd_prompt_current_state,
-            plan_status=plan_status,
+            plan_status=plan_status_formated,
             current_task=current_task,
             requirements_constraints=self.requirements_constraints,
         )
@@ -384,11 +386,10 @@ class RoleZero(Role):
         """command requiring special check or parsing"""
         command_output = ""
 
-        if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
-            # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
-            # self.planner.plan.current_task.update_task_result(task_result=task_result)
-            self.planner.plan.finish_current_task()
-            command_output = "Current task is finished. "
+        if cmd["command_name"] == "Plan.finish_current_task":
+            if not self.planner.plan.is_plan_finished():
+                self.planner.plan.finish_current_task()
+            command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
@@ -419,6 +420,21 @@ class RoleZero(Role):
             else ""
         )
         return plan_status, current_task
+
+    def _format_plan_status(self, plan_status):
+        """format plan status"""
+        # Example:
+        # [GOAL] create a 2048 game
+        # [TASK_ID 1] (finished) Create a Product Requirement Document (PRD) for the 2048 game. This task depends on tasks[]. [Assign to Alice]
+        # [TASK_ID 2] (        ) Design the system architecture for the 2048 game. This task depends on tasks[1]. [Assign to Bob]
+        plan_status_formated = f"[GOAL] {plan_status['goal']}\n"
+        if len(plan_status["tasks"]) > 0:
+            plan_status_formated += "[Plan]\n"
+            for task in plan_status["tasks"]:
+                plan_status_formated += f"[TASK_ID {task['task_id']}] ({'finished' if task['is_finished'] else '    '}){task['instruction']} This task depends on tasks{task['dependent_task_ids']}. [Assign to {task['assignee']}]\n"
+        else:
+            plan_status_formated += "No Plan \n"
+        return plan_status_formated
 
     def _retrieve_experience(self) -> str:
         """Default implementation of experience retrieval. Can be overwritten in subclasses."""
