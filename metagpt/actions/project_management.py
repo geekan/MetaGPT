@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, PACKAGE_REQUIREMENTS_FILENAME
+from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
@@ -190,7 +190,7 @@ class WriteTasks(Action):
             if not output_pathname:
                 output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
             elif not Path(output_pathname).is_absolute():
-                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+                output_pathname = self.config.workspace.path / output_pathname
             output_pathname = Path(output_pathname)
             await awrite(filename=output_pathname, data=file_content)
             md_output_filename = output_pathname.with_suffix(".md")

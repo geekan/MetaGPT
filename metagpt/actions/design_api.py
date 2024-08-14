@@ -25,11 +25,7 @@ from metagpt.actions.design_api_an import (
     REFINED_DESIGN_NODE,
     REFINED_PROGRAM_CALL_FLOW,
 )
-from metagpt.const import (
-    DATA_API_DESIGN_FILE_REPO,
-    DEFAULT_WORKSPACE_ROOT,
-    SEQ_FLOW_FILE_REPO,
-)
+from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import AIMessage, Document, Documents, Message
 from metagpt.tools.tool_registry import register_tool
@@ -268,7 +264,7 @@ class WriteDesign(Action):
             if not output_pathname:
                 output_pathname = Path(output_pathname) / "docs" / "sytem_design.json"
             elif not Path(output_pathname).is_absolute():
-                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+                output_pathname = self.config.workspace.path / output_pathname
             output_pathname = Path(output_pathname)
             await awrite(filename=output_pathname, data=design.content)
             output_filename = output_pathname.parent / f"{output_pathname.stem}-class-diagram"

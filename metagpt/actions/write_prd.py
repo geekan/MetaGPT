@@ -34,7 +34,6 @@ from metagpt.actions.write_prd_an import (
 from metagpt.const import (
     BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
-    DEFAULT_WORKSPACE_ROOT,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
@@ -312,9 +311,9 @@ class WritePRD(Action):
                 new_prd = await self._merge(req=req, related_doc=old_prd)
 
             if not output_pathname:
-                output_pathname = DEFAULT_WORKSPACE_ROOT / "docs" / "prd.json"
+                output_pathname = self.config.workspace.path / "docs" / "prd.json"
             elif not Path(output_pathname).is_absolute():
-                output_pathname = DEFAULT_WORKSPACE_ROOT / output_pathname
+                output_pathname = self.config.workspace.path / output_pathname
             output_pathname = Path(output_pathname)
             await awrite(filename=output_pathname, data=new_prd.content)
             competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
