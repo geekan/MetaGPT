@@ -151,6 +151,8 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 2. If the request is a "how-to" question that asks for a general study plan, approach or strategy, it should be categorized as QUICK.
 
 {examples}
+
+{role_info}
 """
 
 QUICK_THINK_PROMPT = """

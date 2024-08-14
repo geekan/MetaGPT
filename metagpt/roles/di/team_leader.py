@@ -49,13 +49,17 @@ class TeamLeader(RoleZero):
         return team_info
 
     def format_quick_system_prompt(self) -> str:
-        qt_system_prompt = super().format_quick_system_prompt()
-        return qt_system_prompt + QUICK_THINK_SYSTEM_PROMPT.format(
-            role_info=super()._get_prefix(),
+        quick_system_prompt = super().format_quick_system_prompt()
+        return quick_system_prompt + QUICK_THINK_SYSTEM_PROMPT.format(
+            role_info="", # rolezero's quick think system prompt will include role_info 
             team_info=self._get_team_info(),
         )
 
     async def _quick_think(self) -> Message:
+        self.llm.system_prompt = QUICK_THINK_SYSTEM_PROMPT.format(
+            role_info=self._get_role_info(),
+            team_info=self._get_team_info(),
+        )
         return await super()._quick_think()
 
     async def _think(self) -> bool:
