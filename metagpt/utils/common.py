@@ -566,7 +566,7 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> Callable
     return log_it
 
 
-def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
+def read_json_file(json_file: str, encoding: str = "utf-8") -> list[Any]:
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
@@ -595,7 +595,7 @@ def handle_unknown_serialization(x: Any) -> str:
     return f"<Unserializable {type(x).__name__} object>"
 
 
-def write_json_file(json_file: str, data: Any, encoding: str = None, indent: int = 4, use_fallback: bool = False):
+def write_json_file(json_file: str, data: Any, encoding: str = "utf-8", indent: int = 4, use_fallback: bool = False):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
