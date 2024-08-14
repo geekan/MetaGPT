@@ -258,7 +258,7 @@ class RoleZero(Role):
     
     def format_quick_system_prompt(self) -> str:
         """Format the system prompt for quick thinking."""
-        return QUICK_THINK_SYSTEM_PROMPT.format(examples=QUICK_THINK_EXAMPLES, role_info=super()._get_prefix())
+        return QUICK_THINK_SYSTEM_PROMPT.format(examples=QUICK_THINK_EXAMPLES, role_info=self._get_prefix())
 
     async def _quick_think(self) -> Tuple[Message, str]:
         answer = ""

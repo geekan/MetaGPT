@@ -8,6 +8,7 @@ from metagpt.actions.di.run_command import RunCommand
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     QUICK_THINK_SYSTEM_PROMPT,
+    TL_INFO,
     TL_INSTRUCTION,
     TL_THOUGHT_GUIDANCE,
 )
@@ -47,14 +48,12 @@ class TeamLeader(RoleZero):
             #     continue
             team_info += f"{role.name}: {role.profile}, {role.goal}\n"
         return team_info
-
-    def format_quick_system_prompt(self) -> str:
-        quick_system_prompt = super().format_quick_system_prompt()
-        return quick_system_prompt + QUICK_THINK_SYSTEM_PROMPT.format(
-            role_info="", # rolezero's quick think system prompt will include role_info 
-            team_info=self._get_team_info(),
-        )
-
+    
+    def _get_prefix(self) -> str:
+        role_info = super()._get_prefix()
+        team_info = self._get_team_info()
+        return TL_INFO.format(role_info=role_info, team_info=team_info)
+    
     async def _quick_think(self) -> Message:
         self.llm.system_prompt = QUICK_THINK_SYSTEM_PROMPT.format(
             role_info=super()._get_prefix(),

@@ -126,6 +126,7 @@ Output the JSON data in a format that can be loaded by the json.loads() function
 """
 
 QUICK_THINK_SYSTEM_PROMPT = """
+{role_info}
 Your role is to determine the appropriate response category for the given request.
 
 # Response Categories
@@ -152,8 +153,6 @@ For requests that are unclear, lack sufficient detail, or are outside the system
 2. If the request is a "how-to" question that asks for a general plan, approach or strategy, it should be categorized as QUICK.
 
 {examples}
-
-{role_info}
 """
 
 QUICK_THINK_PROMPT = """

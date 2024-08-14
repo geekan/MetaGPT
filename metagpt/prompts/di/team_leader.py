@@ -42,6 +42,12 @@ Your team member:
 However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
 """
 
+TL_INFO = """
+{role_info}
+Your team member:
+{team_info}
+"""
+
 FINISH_CURRENT_TASK_CMD = """
 ```json
 [
