@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import inspect
 import json
-import os
 import re
 import traceback
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
@@ -13,6 +12,7 @@ from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.const import IMAGES
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
@@ -35,13 +35,7 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import (
-    CodeParser,
-    any_to_str,
-    encode_image,
-    extract_image_paths,
-    is_support_image_input,
-)
+from metagpt.utils.common import CodeParser, any_to_str, extract_and_encode_images
 from metagpt.utils.repair_llm_raw_output import (
     RepairType,
     repair_escape_error,
@@ -219,15 +213,14 @@ class RoleZero(Role):
         return memory
 
     def parse_images(self, memory: list[Message]) -> list[Message]:
-        if not is_support_image_input(self.llm.model):
+        if not self.llm.support_image_input():
             return memory
-        for i, msg in enumerate(memory):
-            if msg.role == "user" and isinstance(msg.content, str) and extract_image_paths(msg.content):
-                images = []
-                for path in extract_image_paths(msg.content):
-                    if os.path.exists(path):
-                        images.append(encode_image(path))
-                memory[i] = self.llm._user_msg_with_imgs(msg.content, images=images)
+        for msg in memory:
+            if IMAGES in msg.metadata or msg.role != "user":
+                continue
+            images = extract_and_encode_images(msg.content)
+            if images:
+                msg.add_metadata(IMAGES, images)
         return memory
 
     async def _act(self) -> Message:

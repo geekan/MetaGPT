@@ -29,9 +29,9 @@ from metagpt.utils.common import (
     awrite,
     check_cmd_exists,
     concat_namespace,
+    extract_and_encode_images,
     extract_image_paths,
     import_class_inst,
-    is_support_image_input,
     parse_recipient,
     print_members,
     read_file_block,
@@ -231,9 +231,8 @@ def test_extract_image_paths():
     assert not extract_image_paths(content)
 
 
-def test_is_support_image_input():
-    assert is_support_image_input("gpt-4o-2024-08-06")
-    assert not is_support_image_input("deepseek-coder")
+def test_extract_and_encode_images():
+    assert not extract_and_encode_images("a non-existing.jpg")
 
 
 if __name__ == "__main__":
