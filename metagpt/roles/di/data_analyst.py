@@ -26,11 +26,11 @@ from metagpt.tools.tool_registry import register_tool
 class DataAnalyst(RoleZero):
     name: str = "David"
     profile: str = "DataAnalyst"
-    goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, etc."
+    goal: str = "Take on any data-related tasks, such as data analysis, machine learning, deep learning, web browsing, web scraping, web searching, web deployment, terminal operation, document QA & analysis, etc."
     instruction: str = ROLE_INSTRUCTION + EXTRA_INSTRUCTION
     task_type_desc: str = TASK_TYPE_DESC
 
-    tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser"]
+    tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser", "Editor:write,read"]
     custom_tools: list[str] = ["web scraping", "Terminal"]
     custom_tool_recommender: ToolRecommender = None
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = KeywordExpRetriever()

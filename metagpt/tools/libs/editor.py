@@ -24,7 +24,10 @@ class FileBlock(BaseModel):
 
 @register_tool()
 class Editor(BaseModel):
-    """A tool for reading, understanding, writing, and editing files"""
+    """
+    A tool for reading, understanding, writing, and editing files.
+    Support local file including text-based files (txt, md, json, py, html, js, css, etc.), pdf, docx, excluding images, excel, or online links
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

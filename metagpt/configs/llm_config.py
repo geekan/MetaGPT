@@ -101,8 +101,3 @@ class LLMConfig(YamlModel):
     @classmethod
     def check_timeout(cls, v):
         return v or LLM_API_TIMEOUT
-
-    @field_validator("compress_type")
-    @classmethod
-    def check_compress_type(cls, v):
-        return CompressType.get_type(v)
