@@ -404,11 +404,10 @@ class RoleZero(Role):
         """command requiring special check or parsing"""
         command_output = ""
 
-        if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
-            # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
-            # self.planner.plan.current_task.update_task_result(task_result=task_result)
-            self.planner.plan.finish_current_task()
-            command_output = "Current task is finished. "
+        if cmd["command_name"] == "Plan.finish_current_task":
+            if not self.planner.plan.is_plan_finished():
+                self.planner.plan.finish_current_task()
+            command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
@@ -438,7 +437,19 @@ class RoleZero(Role):
             if self.planner.plan.current_task
             else ""
         )
-        return plan_status, current_task
+        # format plan status
+        # Example:
+        # [GOAL] create a 2048 game
+        # [TASK_ID 1] (finished) Create a Product Requirement Document (PRD) for the 2048 game. This task depends on tasks[]. [Assign to Alice]
+        # [TASK_ID 2] (        ) Design the system architecture for the 2048 game. This task depends on tasks[1]. [Assign to Bob]
+        formatted_plan_status = f"[GOAL] {plan_status['goal']}\n"
+        if len(plan_status["tasks"]) > 0:
+            formatted_plan_status += "[Plan]\n"
+            for task in plan_status["tasks"]:
+                formatted_plan_status += f"[TASK_ID {task['task_id']}] ({'finished' if task['is_finished'] else '    '}){task['instruction']} This task depends on tasks{task['dependent_task_ids']}. [Assign to {task['assignee']}]\n"
+        else:
+            formatted_plan_status += "No Plan \n"
+        return formatted_plan_status, current_task
 
     def _retrieve_experience(self) -> str:
         """Default implementation of experience retrieval. Can be overwritten in subclasses."""
