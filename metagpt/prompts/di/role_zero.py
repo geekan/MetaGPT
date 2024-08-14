@@ -168,7 +168,7 @@ Response Category: [QUICK/SEARCH/TASK/AMBIGUOUS]
 """
 
 
-QUICK_THINK_EXAMPLES ="""
+QUICK_THINK_EXAMPLES = """
 # Example
 
 1. Request: "How do I design an online document editing platform that supports real-time collaboration?"

@@ -7,7 +7,7 @@
 """
 from typing import Callable, Optional
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from metagpt.tools import SearchEngineType
 from metagpt.utils.yaml_model import YamlModel
@@ -16,10 +16,11 @@ from metagpt.utils.yaml_model import YamlModel
 class SearchConfig(YamlModel):
     """Config for Search"""
 
+    model_config = ConfigDict(extra="allow")
+
     api_type: SearchEngineType = SearchEngineType.DUCK_DUCK_GO
     api_key: str = ""
     cse_id: str = ""  # for google
-    discovery_service_url: str = ""  # for google
     search_func: Optional[Callable] = None
     params: dict = Field(
         default_factory=lambda: {
