@@ -134,6 +134,7 @@ For straightforward questions or requests that can be answered directly. This in
 
 ## SEARCH
 For queries that require retrieving up-to-date or detailed information. This includes time-sensitive or location-specific questions like current events or weather. Use this only if the information isn't readily available.
+If a file or link is provided, you don't need to search for additional information.
 
 ## TASK
 For requests that involve tool utilizations, computer operations, multiple steps or detailed instructions. Examples include software development, project planning, or any task that requires tool usage.
