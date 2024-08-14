@@ -38,7 +38,6 @@ class Task(BaseModel):
 {available_commands}
 Special Command: Use {{"command_name": "end"}} to do nothing or indicate completion of all requirements and the end of actions.
 
-
 # Example
 {example}
 
@@ -46,7 +45,8 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 # Instruction
 {instruction}
 """
-
+EXAMPLE = ""
+# Example
 CMD_PROMPT = """
 {current_state}
 
