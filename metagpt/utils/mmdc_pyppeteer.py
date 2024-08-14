@@ -10,11 +10,11 @@ from urllib.parse import urljoin
 
 from pyppeteer import launch
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.logs import logger
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048, config=None) -> int:
     """
     Converts the given Mermaid code to various output formats and saves them to files.
 
@@ -27,6 +27,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     Returns:
         int: Returns 1 if the conversion and saving were successful, -1 otherwise.
     """
+    config = config if config else Config.default()
     suffixes = ["png", "svg", "pdf"]
     __dirname = os.path.dirname(os.path.abspath(__file__))
 

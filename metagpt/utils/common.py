@@ -566,7 +566,7 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> Callable
     return log_it
 
 
-def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
+def read_json_file(json_file: str, encoding: str = "utf-8") -> list[Any]:
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
@@ -595,7 +595,7 @@ def handle_unknown_serialization(x: Any) -> str:
     return f"<Unserializable {type(x).__name__} object>"
 
 
-def write_json_file(json_file: str, data: Any, encoding: str = None, indent: int = 4, use_fallback: bool = False):
+def write_json_file(json_file: str, data: Any, encoding: str = "utf-8", indent: int = 4, use_fallback: bool = False):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
@@ -840,17 +840,19 @@ def decode_image(img_url_or_b64: str) -> Image:
     return img
 
 
-def is_support_image_input(model_name: str) -> bool:
-    # model name can be gpt-4o-2024-08-06
-    support_models = ["gpt-4o", "gpt-4o-mini"]  # FIXME: hard code for now
-    return any([m in model_name for m in support_models])
-
-
 def extract_image_paths(content: str) -> bool:
     # We require that the path must have a space preceding it, like "xxx /an/absolute/path.jpg xxx"
     pattern = r"[^\s]+\.(?:png|jpe?g|gif|bmp|tiff)"
     image_paths = re.findall(pattern, content)
     return image_paths
+
+
+def extract_and_encode_images(content: str) -> list[str]:
+    images = []
+    for path in extract_image_paths(content):
+        if os.path.exists(path):
+            images.append(encode_image(path))
+    return images
 
 
 def log_and_reraise(retry_state: RetryCallState):

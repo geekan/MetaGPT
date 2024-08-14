@@ -35,11 +35,11 @@ Sixth, describe the requirements as they pertain to software development, data a
 Seventh, describe the technologies you must use.  
 """
 )
-QUICK_THINK_SYSTEM_PROMPT = """
+
+TL_INFO = """
 {role_info}
 Your team member:
 {team_info}
-However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
 """
 
 FINISH_CURRENT_TASK_CMD = """

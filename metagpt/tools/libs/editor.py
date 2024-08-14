@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
-from metagpt.utils.common import aread_bin, awrite_bin
+from metagpt.utils.common import aread, aread_bin, awrite_bin
 from metagpt.utils.repo_to_markdown import is_text_file
 from metagpt.utils.report import EditorReporter
 
@@ -51,7 +51,7 @@ class Editor(BaseModel):
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
         is_text, mime_type = await is_text_file(path)
         if is_text:
-            lines = self._read_text(path)
+            lines = await self._read_text(path)
         elif mime_type == "application/pdf":
             lines = await self._read_pdf(path)
         elif mime_type in {
@@ -221,9 +221,9 @@ class Editor(BaseModel):
         return lint_passed, lint_message
 
     @staticmethod
-    def _read_text(path: Union[str, Path]) -> List[str]:
-        with open(str(path), "r") as f:
-            lines = f.readlines()
+    async def _read_text(path: Union[str, Path]) -> List[str]:
+        content = await aread(path)
+        lines = content.split("\n")
         return lines
 
     @staticmethod

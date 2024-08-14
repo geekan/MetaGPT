@@ -10,9 +10,9 @@ from llama_index.core.llms import (
     LLMMetadata,
 )
 from llama_index.core.llms.callbacks import llm_completion_callback
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.async_helper import NestAsyncio
@@ -26,9 +26,23 @@ class RAGLLM(CustomLLM):
     """
 
     model_infer: BaseLLM = Field(..., description="The MetaGPT's LLM.")
-    context_window: int = TOKEN_MAX.get(config.llm.model, DEFAULT_CONTEXT_WINDOW)
-    num_output: int = config.llm.max_token
-    model_name: str = config.llm.model
+    context_window: int = -1
+    num_output: int = -1
+    model_name: str = ""
+
+    @model_validator(mode="after")
+    def update_from_config(self):
+        config = Config.default()
+        if self.context_window < 0:
+            self.context_window = TOKEN_MAX.get(config.llm.model, DEFAULT_CONTEXT_WINDOW)
+
+        if self.num_output < 0:
+            self.num_output = config.llm.max_token
+
+        if not self.model_name:
+            self.model_name = config.llm.model
+
+        return self
 
     @property
     def metadata(self) -> LLMMetadata:

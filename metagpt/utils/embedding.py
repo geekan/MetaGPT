@@ -7,10 +7,11 @@
 """
 from llama_index.embeddings.openai import OpenAIEmbedding
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 
 
 def get_embedding() -> OpenAIEmbedding:
+    config = Config.default()
     llm = config.get_openai_llm()
     if llm is None:
         raise ValueError("To use OpenAIEmbedding, please ensure that config.llm.api_type is correctly set to 'openai'.")

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from metagpt.actions import (
     UserRequirement,
     WriteDesign,
@@ -6,12 +8,12 @@ from metagpt.actions import (
     WriteTest,
 )
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import AGENT
+from metagpt.const import AGENT, IMAGES
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
 from metagpt.roles import Architect, ProductManager, ProjectManager, Role
 from metagpt.schema import Message, SerializationMixin
-from metagpt.utils.common import any_to_str, any_to_str_set
+from metagpt.utils.common import any_to_str, any_to_str_set, extract_and_encode_images
 
 
 class MGXEnv(Environment, SerializationMixin):
@@ -27,6 +29,8 @@ class MGXEnv(Environment, SerializationMixin):
 
     def publish_message(self, message: Message, user_defined_recipient: str = "", publicer: str = "") -> bool:
         """let the team leader take over message publishing"""
+        message = self.attach_images(message)  # for multi-modal message
+
         tl = self.get_role("Mike")  # TeamLeader's name is Mike
 
         if user_defined_recipient:
@@ -119,9 +123,16 @@ class MGXEnv(Environment, SerializationMixin):
             converted_msg.role = "assistant"
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
         converted_msg.content = (
-            f"[Message] from {sent_from if sent_from else 'User'} to {converted_msg.send_to}: {converted_msg.content}"
+            f"[Message] from {sent_from or 'User'} to {converted_msg.send_to}: {converted_msg.content}"
         )
         return converted_msg
+
+    def attach_images(self, message: Message) -> Message:
+        if message.role == "user":
+            images = extract_and_encode_images(message.content)
+            if images:
+                message.add_metadata(IMAGES, images)
+        return message
 
     def __repr__(self):
         return "MGXEnv()"

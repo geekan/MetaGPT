@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import inspect
 import json
-import os
 import re
 import traceback
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
@@ -13,6 +12,7 @@ from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.const import IMAGES
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
@@ -22,6 +22,9 @@ from metagpt.prompts.di.role_zero import (
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_THINK_PROMPT,
+    QUICK_THINK_EXAMPLES,
+    QUICK_THINK_SYSTEM_PROMPT,
+    QUICK_RESPONSE_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
     SYSTEM_PROMPT,
@@ -35,13 +38,7 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import (
-    CodeParser,
-    any_to_str,
-    encode_image,
-    extract_image_paths,
-    is_support_image_input,
-)
+from metagpt.utils.common import CodeParser, any_to_str, extract_and_encode_images
 from metagpt.utils.repair_llm_raw_output import (
     RepairType,
     repair_escape_error,
@@ -219,15 +216,14 @@ class RoleZero(Role):
         return memory
 
     def parse_images(self, memory: list[Message]) -> list[Message]:
-        if not is_support_image_input(self.llm.model):
+        if not self.llm.support_image_input():
             return memory
-        for i, msg in enumerate(memory):
-            if msg.role == "user" and isinstance(msg.content, str) and extract_image_paths(msg.content):
-                images = []
-                for path in extract_image_paths(msg.content):
-                    if os.path.exists(path):
-                        images.append(encode_image(path))
-                memory[i] = self.llm._user_msg_with_imgs(msg.content, images=images)
+        for msg in memory:
+            if IMAGES in msg.metadata or msg.role != "user":
+                continue
+            images = extract_and_encode_images(msg.content)
+            if images:
+                msg.add_metadata(IMAGES, images)
         return memory
 
     async def _act(self) -> Message:
@@ -273,6 +269,10 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
+    
+    def format_quick_system_prompt(self) -> str:
+        """Format the system prompt for quick thinking."""
+        return QUICK_THINK_SYSTEM_PROMPT.format(examples=QUICK_THINK_EXAMPLES, role_info=self._get_prefix())
 
     async def _quick_think(self) -> Tuple[Message, str]:
         answer = ""
@@ -284,12 +284,12 @@ class RoleZero(Role):
         # routing
         memory = self.get_memories(k=4)  # FIXME: A magic number for two rounds of Q&A
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
-        intent_result = await self.llm.aask(context)
+        intent_result = await self.llm.aask(context, system_msgs=[self.format_quick_system_prompt()])
 
-        if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
+        if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
-                answer = await self.llm.aask(self.llm.format_msg(memory))
+                answer = await self.llm.aask(self.llm.format_msg(memory), system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())])
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
@@ -404,11 +404,10 @@ class RoleZero(Role):
         """command requiring special check or parsing"""
         command_output = ""
 
-        if cmd["command_name"] == "Plan.finish_current_task" and not self.planner.plan.is_plan_finished():
-            # task_result = TaskResult(code=str(commands), result=outputs, is_success=is_success)
-            # self.planner.plan.current_task.update_task_result(task_result=task_result)
-            self.planner.plan.finish_current_task()
-            command_output = "Current task is finished. "
+        if cmd["command_name"] == "Plan.finish_current_task":
+            if not self.planner.plan.is_plan_finished():
+                self.planner.plan.finish_current_task()
+            command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
             self._set_state(-1)
@@ -438,7 +437,19 @@ class RoleZero(Role):
             if self.planner.plan.current_task
             else ""
         )
-        return plan_status, current_task
+        # format plan status
+        # Example:
+        # [GOAL] create a 2048 game
+        # [TASK_ID 1] (finished) Create a Product Requirement Document (PRD) for the 2048 game. This task depends on tasks[]. [Assign to Alice]
+        # [TASK_ID 2] (        ) Design the system architecture for the 2048 game. This task depends on tasks[1]. [Assign to Bob]
+        formatted_plan_status = f"[GOAL] {plan_status['goal']}\n"
+        if len(plan_status["tasks"]) > 0:
+            formatted_plan_status += "[Plan]\n"
+            for task in plan_status["tasks"]:
+                formatted_plan_status += f"[TASK_ID {task['task_id']}] ({'finished' if task['is_finished'] else '    '}){task['instruction']} This task depends on tasks{task['dependent_task_ids']}. [Assign to {task['assignee']}]\n"
+        else:
+            formatted_plan_status += "No Plan \n"
+        return formatted_plan_status, current_task
 
     def _retrieve_experience(self) -> str:
         """Default implementation of experience retrieval. Can be overwritten in subclasses."""
