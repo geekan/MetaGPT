@@ -26,7 +26,7 @@ class TeamLeader(RoleZero):
     # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
     max_react_loop: int = 3
 
-    tools: list[str] = ["Plan", "RoleZero", "TeamLeader", "Editor:write,read"]
+    tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
 
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = SimpleExpRetriever()
 
