@@ -155,8 +155,6 @@ class RoleZero(Role):
         ### 2. Plan Status ###
         plan_status, current_task = self._get_plan_status()
 
-        formatted_plan_status = self._format_plan_status(plan_status)
-
         ### 3. Tool/Command Info ###
         tools = await self.tool_recommender.recommend_tools()
         tool_info = json.dumps({tool.name: tool.schemas for tool in tools})
@@ -170,7 +168,7 @@ class RoleZero(Role):
         ### Make Decision Dynamically ###
         prompt = self.cmd_prompt.format(
             current_state=self.cmd_prompt_current_state,
-            plan_status=formatted_plan_status,
+            plan_status=plan_status,
             current_task=current_task,
             requirements_constraints=self.requirements_constraints,
         )
@@ -419,10 +417,7 @@ class RoleZero(Role):
             if self.planner.plan.current_task
             else ""
         )
-        return plan_status, current_task
-
-    def _format_plan_status(self, plan_status):
-        """format plan status"""
+        # format plan status
         # Example:
         # [GOAL] create a 2048 game
         # [TASK_ID 1] (finished) Create a Product Requirement Document (PRD) for the 2048 game. This task depends on tasks[]. [Assign to Alice]
@@ -434,7 +429,7 @@ class RoleZero(Role):
                 formatted_plan_status += f"[TASK_ID {task['task_id']}] ({'finished' if task['is_finished'] else '    '}){task['instruction']} This task depends on tasks{task['dependent_task_ids']}. [Assign to {task['assignee']}]\n"
         else:
             formatted_plan_status += "No Plan \n"
-        return formatted_plan_status
+        return formatted_plan_status, current_task
 
     def _retrieve_experience(self) -> str:
         """Default implementation of experience retrieval. Can be overwritten in subclasses."""
