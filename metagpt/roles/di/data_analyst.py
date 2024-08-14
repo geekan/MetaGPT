@@ -51,8 +51,12 @@ class DataAnalyst(RoleZero):
             }
         )
 
-    async def write_and_exec_code(self):
-        """Write a code block for current task and execute it in an interactive notebook environment. No argument is needed."""
+    async def write_and_exec_code(self, instruction: str = ""):
+        """Write a code block for current task and execute it in an interactive notebook environment.
+
+        Args:
+            instruction (optional, str): Further hints or notice other than the current task instruction, must be very concise and can be empty. Defaults to "".
+        """
         if self.planner.plan:
             logger.info(f"Current task {self.planner.plan.current_task}")
 
@@ -64,6 +68,7 @@ class DataAnalyst(RoleZero):
         if self.planner.current_task:
             # clear task result from plan to save token, since it has been in memory
             plan_status = self.planner.get_plan_status(exclude=["task_result"])
+            plan_status += f"\nFurther Task Instruction: {instruction}"
         else:
             return "No current_task found now. Please use command Plan.append_task to add a task first."
 
