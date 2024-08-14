@@ -23,6 +23,7 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     QUICK_THINK_EXAMPLES,
     QUICK_THINK_SYSTEM_PROMPT,
+    QUICK_RESPONSE_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
     SYSTEM_PROMPT,
@@ -275,7 +276,7 @@ class RoleZero(Role):
         if "QUICK" in intent_result or "AMBIGUOUS " in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
-                answer = await self.llm.aask(self.llm.format_msg(memory))
+                answer = await self.llm.aask(self.llm.format_msg(memory), system_msgs=QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix()))
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)

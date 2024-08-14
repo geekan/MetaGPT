@@ -204,3 +204,8 @@ Thought: The request is vague and lacks specifics, requiring clarification on th
 Response Category: AMBIGUOUS.
 
 """
+
+QUICK_RESPONSE_SYSTEM_PROMPT = """
+{role_info}
+However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
+"""
