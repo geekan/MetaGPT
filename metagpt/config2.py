@@ -97,20 +97,21 @@ class Config(CLIParams, YamlModel):
         return Config.from_yaml_file(pathname)
 
     @classmethod
-    def default(cls):
+    def default(cls, reload: bool = False):
         """Load default config
         - Priority: env < default_config_paths
         - Inside default_config_paths, the latter one overwrites the former one
         """
-        default_config_paths: List[Path] = [
+        default_config_paths = (
             METAGPT_ROOT / "config/config2.yaml",
             CONFIG_ROOT / "config2.yaml",
-        ]
-
-        dicts = [dict(os.environ)]
-        dicts += [Config.read_yaml(path) for path in default_config_paths]
-        final = merge_dict(dicts)
-        return Config(**final)
+        )
+        if reload or default_config_paths not in _CONFIG_CACHE:
+            dicts = [dict(os.environ)]
+            dicts += [Config.read_yaml(path) for path in default_config_paths]
+            final = merge_dict(dicts)
+            _CONFIG_CACHE[default_config_paths] = Config(**final)
+        return _CONFIG_CACHE[default_config_paths]
 
     @classmethod
     def from_llm_config(cls, llm_config: dict):
@@ -160,4 +161,4 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     return result
 
 
-config = Config.default()
+_CONFIG_CACHE = {}

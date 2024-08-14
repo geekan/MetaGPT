@@ -8,9 +8,11 @@
 
 import pytest
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.llm import LLM
 from metagpt.tools.moderation import Moderation
+
+config = Config.default()
 
 
 @pytest.mark.asyncio

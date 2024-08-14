@@ -75,7 +75,7 @@ class Browser(BaseModel):
     page: Optional[Page] = None
     accessibility_tree: list = Field(default_factory=list)
     headless: bool = True
-    proxy: Optional[str] = Field(default_factory=get_proxy_from_env)
+    proxy: Optional[dict] = Field(default_factory=get_proxy_from_env)
     is_empty_page: bool = True
     reporter: BrowserReporter = Field(default_factory=BrowserReporter)
 

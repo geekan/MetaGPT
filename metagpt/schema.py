@@ -121,7 +121,7 @@ class SerializationMixin(BaseModel, extra="forbid"):
 
         if class_type is None:
             # TODO could try dynamic import
-            raise TypeError("Trying to instantiate {class_full_name}, which has not yet been defined!")
+            raise TypeError(f"Trying to instantiate {class_full_name}, which has not yet been defined!")
 
         return class_type(**value)
 

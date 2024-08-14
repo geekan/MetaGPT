@@ -18,7 +18,6 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
-from metagpt.config2 import config
 from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.logs import logger
 from metagpt.repo_parser import CodeBlockInfo, DotClassInfo
@@ -84,7 +83,7 @@ class RebuildSequenceView(Action):
 
     graph_db: Optional[GraphRepository] = None
 
-    async def run(self, with_messages=None, format=config.prompt_schema):
+    async def run(self, with_messages=None, format=None):
         """
         Implementation of `Action`'s `run` method.
 
@@ -92,6 +91,7 @@ class RebuildSequenceView(Action):
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
         """
+        format = format if format else self.config.prompt_schema
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         if not self.i_context:
