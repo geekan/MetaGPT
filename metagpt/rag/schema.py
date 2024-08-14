@@ -10,7 +10,7 @@ from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType
 from metagpt.logs import logger
 from metagpt.rag.interface import RAGObject
@@ -45,6 +45,7 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
     @model_validator(mode="after")
     def check_dimensions(self):
         if self.dimensions == 0:
+            config = Config.default()
             self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
                 config.embedding.api_type, 1536
             )

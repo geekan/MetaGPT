@@ -13,7 +13,7 @@ from typing import Union
 
 from openai import OpenAI
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.logs import logger
 
 
@@ -48,6 +48,7 @@ def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
 
 
 def get_embedding(text, model: str = "text-embedding-ada-002"):
+    config = Config.default()
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"

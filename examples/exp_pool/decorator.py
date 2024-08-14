@@ -5,7 +5,7 @@ This script demonstrates how to automatically store experiences using @exp_cache
 import asyncio
 import uuid
 
-from metagpt.exp_pool import exp_cache, exp_manager
+from metagpt.exp_pool import exp_cache, get_exp_manager
 from metagpt.logs import logger
 
 
@@ -20,7 +20,7 @@ async def main():
     resp = await produce(req=req)
     logger.info(f"The response of `produce({req})` is: {resp}")
 
-    exps = await exp_manager.query_exps(req)
+    exps = await get_exp_manager().query_exps(req)
     logger.info(f"Find experiences: {exps}")
 
 

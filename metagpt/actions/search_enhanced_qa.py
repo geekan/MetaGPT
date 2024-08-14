@@ -64,7 +64,7 @@ class SearchEnhancedQA(Action):
     desc: str = "Integrating search engine results to anwser the question."
 
     collect_links_action: CollectLinks = Field(
-        default=CollectLinks(), description="Action to collect relevant links from a search engine."
+        default_factory=CollectLinks, description="Action to collect relevant links from a search engine."
     )
     web_browse_and_summarize_action: WebBrowseAndSummarize = Field(
         default=None,
