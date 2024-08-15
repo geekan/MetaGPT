@@ -24,8 +24,9 @@ from tenacity import (
 
 from metagpt.configs.compress_msg_config import CompressType
 from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
+from metagpt.const import IMAGES, LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
+from metagpt.provider.constant import MULTI_MODAL_MODELS
 from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
@@ -50,7 +51,7 @@ class BaseLLM(ABC):
         pass
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, Union[str, dict]]:
-        if images:
+        if images and self.support_image_input():
             # as gpt-4v, chat with image
             return self._user_msg_with_imgs(msg, images)
         else:
@@ -76,6 +77,9 @@ class BaseLLM(ABC):
     def _system_msg(self, msg: str) -> dict[str, str]:
         return {"role": "system", "content": msg}
 
+    def support_image_input(self) -> bool:
+        return any([m in self.config.model for m in MULTI_MODAL_MODELS])
+
     def format_msg(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
         from metagpt.schema import Message
@@ -91,7 +95,9 @@ class BaseLLM(ABC):
                 assert set(msg.keys()) == set(["role", "content"])
                 processed_messages.append(msg)
             elif isinstance(msg, Message):
-                processed_messages.append(msg.to_dict())
+                images = msg.metadata.get(IMAGES)
+                processed_msg = self._user_msg(msg=msg.content, images=images) if images else msg.to_dict()
+                processed_messages.append(processed_msg)
             else:
                 raise ValueError(
                     f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"

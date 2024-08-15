@@ -12,6 +12,7 @@ from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.const import IMAGES
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
@@ -37,7 +38,7 @@ from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, any_to_str
+from metagpt.utils.common import CodeParser, any_to_str, extract_and_encode_images
 from metagpt.utils.repair_llm_raw_output import (
     RepairType,
     repair_escape_error,
@@ -179,6 +180,7 @@ class RoleZero(Role):
         ### Recent Observation ###
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+        memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
@@ -204,13 +206,24 @@ class RoleZero(Role):
         """
         return await self.llm.aask(req, system_msgs=system_msgs)
 
-    async def parse_browser_actions(self, memory: List[Message]) -> List[Message]:
+    async def parse_browser_actions(self, memory: list[Message]) -> list[Message]:
         if not self.browser.is_empty_page:
             pattern = re.compile(r"Command Browser\.(\w+) executed")
             for index, msg in zip(range(len(memory), 0, -1), memory[::-1]):
                 if pattern.search(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
+        return memory
+
+    def parse_images(self, memory: list[Message]) -> list[Message]:
+        if not self.llm.support_image_input():
+            return memory
+        for msg in memory:
+            if IMAGES in msg.metadata or msg.role != "user":
+                continue
+            images = extract_and_encode_images(msg.content)
+            if images:
+                msg.add_metadata(IMAGES, images)
         return memory
 
     async def _act(self) -> Message:
