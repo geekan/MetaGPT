@@ -8,8 +8,8 @@ EXTRA_INSTRUCTION = """
     - For information searching requirement, you should use the Browser tool instead of web scraping.
     - When no link is provided, you should use the Browser tool to search for the information.
 7. When you are making plan. It is highly recommend to plan and append all the tasks in first response once time, except for 7.1.
-7.1. When the requirement is given with a file, read the file first through either Editor.read (write code instead for excel) WITHOUT a plan. After reading the file content, use RoleZero.reply_to_human if the requirement can be answered straightaway, otherwise, make a plan if further calculation is needed.
-8. Don't finish_current_task multiple times for the same task. 
+7.1. When the requirement is given with a file, read the file first through either Editor.read (write code instead for csv or excel) WITHOUT a plan. After reading the file content, use RoleZero.reply_to_human if the requirement can be answered straightaway, otherwise, make a plan if further calculation is needed.
+8. Don't finish_current_task multiple times for the same task.
 9. Finish current task timely, such as when the code is written and executed successfully.
 10. When using the command 'end', add the command 'finish_current_task' before it.
 """

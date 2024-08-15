@@ -21,10 +21,10 @@ from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
-    QUICK_THINK_PROMPT,
-    QUICK_THINK_EXAMPLES,
-    QUICK_THINK_SYSTEM_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
+    QUICK_THINK_EXAMPLES,
+    QUICK_THINK_PROMPT,
+    QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
     SYSTEM_PROMPT,
@@ -166,7 +166,11 @@ class RoleZero(Role):
         ### Role Instruction ###
         instruction = self.instruction.strip()
         system_prompt = self.system_prompt.format(
-            task_type_desc=self.task_type_desc, available_commands=tool_info, example=example, instruction=instruction
+            role_info=self._get_prefix(),
+            task_type_desc=self.task_type_desc,
+            available_commands=tool_info,
+            example=example,
+            instruction=instruction,
         )
 
         ### Make Decision Dynamically ###
@@ -269,7 +273,7 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
-    
+
     def format_quick_system_prompt(self) -> str:
         """Format the system prompt for quick thinking."""
         return QUICK_THINK_SYSTEM_PROMPT.format(examples=QUICK_THINK_EXAMPLES, role_info=self._get_prefix())
@@ -289,7 +293,10 @@ class RoleZero(Role):
         if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
-                answer = await self.llm.aask(self.llm.format_msg(memory), system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())])
+                answer = await self.llm.aask(
+                    self.llm.format_msg(memory),
+                    system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
+                )
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
