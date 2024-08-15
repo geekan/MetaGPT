@@ -46,6 +46,9 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 """
 
 CMD_PROMPT = """
+# Past Experience
+<experience>
+
 {current_state}
 
 # Current Plan

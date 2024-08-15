@@ -21,10 +21,10 @@ from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     JSON_REPAIR_PROMPT,
-    QUICK_THINK_PROMPT,
-    QUICK_THINK_EXAMPLES,
-    QUICK_THINK_SYSTEM_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
+    QUICK_THINK_EXAMPLES,
+    QUICK_THINK_PROMPT,
+    QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
     ROLE_INSTRUCTION,
     SYSTEM_PROMPT,
@@ -269,7 +269,7 @@ class RoleZero(Role):
             rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
-    
+
     def format_quick_system_prompt(self) -> str:
         """Format the system prompt for quick thinking."""
         return QUICK_THINK_SYSTEM_PROMPT.format(examples=QUICK_THINK_EXAMPLES, role_info=self._get_prefix())
@@ -289,7 +289,10 @@ class RoleZero(Role):
         if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
-                answer = await self.llm.aask(self.llm.format_msg(memory), system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())])
+                answer = await self.llm.aask(
+                    self.llm.format_msg(memory),
+                    system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
+                )
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
@@ -427,11 +430,6 @@ class RoleZero(Role):
 
     def _get_plan_status(self) -> Tuple[str, str]:
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
-        for task in plan_status["tasks"]:
-            task.pop("code")
-            task.pop("result")
-            task.pop("is_success")
-        # print(plan_status)
         current_task = (
             self.planner.plan.current_task.model_dump(exclude=["code", "result", "is_success"])
             if self.planner.plan.current_task

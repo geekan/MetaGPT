@@ -31,7 +31,14 @@ class RoleZeroContextBuilder(BaseContextBuilder):
         return req_copy
 
     def replace_example_content(self, text: str, new_example_content: str) -> str:
-        return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
+        return self.replace_content_of_example_tag(text, new_example_content)
+        # return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
+
+    @staticmethod
+    def replace_content_of_example_tag(self, text: str, new_example_content: str) -> str:
+        pattern = "# Past Experience\n<experience>"
+        replaced_text = text.replace(pattern, "# Example\n" + new_example_content)
+        return replaced_text
 
     @staticmethod
     def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:
