@@ -149,6 +149,7 @@ METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
 
 # Metadata defines
 AGENT = "agent"
+IMAGES = "images"
 
 # SWE agent
 SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/setup_default.sh"
