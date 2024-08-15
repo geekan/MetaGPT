@@ -840,6 +840,21 @@ def decode_image(img_url_or_b64: str) -> Image:
     return img
 
 
+def extract_image_paths(content: str) -> bool:
+    # We require that the path must have a space preceding it, like "xxx /an/absolute/path.jpg xxx"
+    pattern = r"[^\s]+\.(?:png|jpe?g|gif|bmp|tiff)"
+    image_paths = re.findall(pattern, content)
+    return image_paths
+
+
+def extract_and_encode_images(content: str) -> list[str]:
+    images = []
+    for path in extract_image_paths(content):
+        if os.path.exists(path):
+            images.append(encode_image(path))
+    return images
+
+
 def log_and_reraise(retry_state: RetryCallState):
     logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
     logger.warning(
