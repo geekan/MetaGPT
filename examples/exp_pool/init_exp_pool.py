@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from metagpt.const import EXAMPLE_DATA_PATH
-from metagpt.exp_pool import exp_manager
+from metagpt.exp_pool import get_exp_manager
 from metagpt.exp_pool.schema import EntryType, Experience, Metric, Score
 from metagpt.logs import logger
 from metagpt.utils.common import aread
@@ -45,7 +45,7 @@ async def add_exp(req: str, resp: str, tag: str, metric: Metric = None):
         tag=tag,
         metric=metric or Metric(score=Score(val=10, reason="Manual")),
     )
-
+    exp_manager = get_exp_manager()
     exp_manager.config.exp_pool.enable_write = True
     exp_manager.create_exp(exp)
     logger.info(f"New experience created for the request `{req[:10]}`.")
@@ -79,7 +79,7 @@ async def add_exps_from_file(tag: str, filepath: Path):
 
 def query_exps_count():
     """Queries and logs the total count of experiences in the pool."""
-
+    exp_manager = get_exp_manager()
     count = exp_manager.get_exps_count()
     logger.info(f"Experiences Count: {count}")
 
