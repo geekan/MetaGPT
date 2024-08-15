@@ -11,44 +11,12 @@ from datetime import datetime
 from typing import Any
 
 from jinja2 import Template
-from mem0 import Memory
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.minion.minion import SmartMinion
-
-
-class Input(BaseModel):
-    long_context: str = Field(default="")
-    short_context: str = ""  # abstract/summarized version
-    query: str = ""
-    query_type: str = "question"  # question or requirement
-    guidance: str = ""
-    constraint: str = ""  # question or requirement
-    instruction: str = ""  # instruction for each step, different step can have different instruction
-    complexity: str = ""  # low,medium,high
-    query_range: str = ""  # short range query, or multiple step range like writing a very long novel
-    # plan:str = "" # current plan
-    score_func: Any = None
-
-    answer: str = ""
-
-    # metadata
-    query_time: Any = None
-    processed_minions: int = 0  # how many minions processed this
-    metadata: dict = {}
-    info: dict = {}
-
-    run_id: str = Field(default_factory=uuid.uuid4)
-
-    @property
-    def context(self):
-        return self.long_context
-
-    @context.setter
-    def context(self, context):
-        self.long_context = context
+from metagpt.minion.input import Input
+from metagpt.minion.minion import RouteMinion
 
 
 class Mind(BaseModel):
@@ -60,7 +28,7 @@ class Mind(BaseModel):
         input.run_id = run_id or uuid.uuid4()
         input.short_context = input.context  # first set digested context same as context
 
-        smart = SmartMinion(input, brain=self.brain)
+        smart = RouteMinion(input, brain=self.brain)
         answer, score = await smart.execute()
         return answer, score, False, False, {}  # terminated: false, truncated:false, info:{}
 
@@ -111,9 +79,10 @@ Supporting navigation and spatial memory""",
 
         # self.add_mind(Mind(id="hypothalamus", description="..."))
         if not memory:
-            config = {"collection_name": f"brain-mem-{self.id}"}
+            pass
 
-        memory = Memory.from_config(config)
+        # memory = Memory.from_config(config)
+        memory = None
         self.mem = memory
         self.llm = llm
 

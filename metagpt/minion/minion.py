@@ -5,19 +5,52 @@
 @Author  : femto Zheng
 @File    : brain.py
 """
+import json
+import os
 import re
 import uuid
 from typing import List
 
+import networkx as nx
 from jinja2 import Template
 from pydantic import BaseModel, Field
+from tenacity import retry, stop_after_attempt, wait_none
 
 from metagpt.actions.action_node import ActionNode
+from metagpt.const import METAGPT_ROOT
 from metagpt.llm import LLM
+from metagpt.logs import logger
 from metagpt.minion.python_env import PythonEnv
+from metagpt.minion.save_plan import save_json_to_file
+from metagpt.minion.task_graph import convert_tasks_to_graph
 
 
-class MetaPlanner(BaseModel):
+def extract_json_from_string(text):
+    # Regular expression pattern to match content between ```json and ```
+    pattern = r"```json\s*([\s\S]*?)\s*```"
+
+    # Search for the pattern in the input text
+    match = re.search(pattern, text)
+
+    if match:
+        json_content = match.group(1)  # Extract the JSON content
+        try:
+            # Convert the JSON string to a Python object
+            return json.loads(json_content)
+        except json.JSONDecodeError as e:
+            raise ValueError("Invalid JSON content.") from e
+    else:
+        raise ValueError("No JSON content found.")
+
+
+def extract_final_answer(text):
+    match = re.search(r"<final_answer>\s*(.*?)\s*</final_answer>", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return None
+
+
+class MetaPlan(BaseModel):
     name: str = Field(default="naive", description="The name of stragety.")
     score: float = Field(
         default=0,
@@ -71,6 +104,9 @@ class Plan(BaseModel):
     )
 
 
+COT_PROBLEM_INSTRUCTION = """
+Let's approach this problem by breaking it down into distinct, logical steps. For each step, provide a clear explanation of the reasoning behind it. Consider any underlying assumptions, explore potential alternative approaches, and evaluate the consequences of each decision. Once you have thoroughly analyzed all aspects, synthesize the findings to reach a well-supported conclusion. Finally, present your answer clearly within the tags <final_answer></final_answer>.
+"""
 ASK_PROMPT = """context:
 {input.short_context}
 instruction:
@@ -81,7 +117,7 @@ query:
 {input.query}
 """
 
-ASK_PROMPT2 = """context:
+ASK_PROMPT_JINJA = """context:
 {{input.short_context}}
 instruction:
 {{input.instruction}}
@@ -104,7 +140,7 @@ Please return strategy name for the question:
 Please note, since the strategy name is used as class name, you must ensure the returned strategy name upper or lower case must match *EXACTLY* the name I provided here.
 
 """
-    + ASK_PROMPT2
+    + ASK_PROMPT_JINJA
 )
 
 SMART_PROMPT_TEMPLATE = (
@@ -113,31 +149,56 @@ SMART_PROMPT_TEMPLATE = (
 """
     + CHOOSE_WORKER_MINION_TEMPLATE
 )
+TASK_INPUT = """
+Current Task Input:
+instruction:
+{{task.instruction}}
+task type:
+{{task.task_type}}
+task parameters:
+{% for key,minion in task.task_params.items() %}
+1. **Name:** {{ key }}  
+   **Value:** 
+   "{{ minion }}"
+{% endfor %}
+hint:
+{{task.hint}}
+"""
+TASK_PROMPT = (
+    """Given the task's context, instructions, parameters, and provided hints, analyze the situation and evaluate multiple worker strategies. Identify potential outcomes for each strategy and select the most effective approach. Justify your choice by considering both immediate and long-term implications, as well as any trade-offs or risks associated with your decision. Additionally, explore how alternative strategies might alter the task's outcome and what contingencies could be prepared to address unforeseen challenges.
+"""
+    + CHOOSE_WORKER_MINION_TEMPLATE
+    + ASK_PROMPT_JINJA
+    + TASK_INPUT
+)
 PLAN_PROMPT = (
     """You are a strategic planner capable of designing and executing complex plans. When a user presents a task, your first step is to outline how each strategy will be utilized. Then, you implement the strategies to accomplish the task. Below is a list of strategies available to you:
 
 """
-    + ASK_PROMPT2
+    + ASK_PROMPT_JINJA
     + """ 
 
-# Task:
-Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
-If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
-If you encounter errors on the current task, revise and output the current single task only.
+Task:
 
-Output a list of jsons following the format:
-    ```json
-    [
-        {
-            "task_id": str = "unique identifier for a task in plan, can be an ordinal",
-        "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
-        "instruction": "what you should do in this task, one short phrase or sentence",
-        "task_type": "type of this task",
-        "task_params": "a json dictionary of task parameters and values"
-        },
-        ...
-    ]
+Given the context, create a detailed plan or refine an existing plan to achieve a specified goal. A comprehensive plan should consist of one to {max_tasks} tasks. The following points outline the necessary steps:
 
+    Detailed Task Construction: Each task in the plan must be described clearly and should include specific actions, conditions, and parameters that guide its execution. Avoid generic steps; instead, ensure that each task is actionable and contributes directly to the overall objective.
+
+    Critical Evaluation of Dependencies: When refining or modifying an existing plan, critically analyze dependencies between tasks. If revising a single task, assess how it interacts with previous or subsequent tasks and ensure that it aligns with the overall flow of the plan. Modify only what is necessary, maintaining the integrity of the original structure unless fundamental changes are needed for optimization.
+
+    Error Handling and Adaptation: In case of errors or obstacles in executing a task, revise the specific task to address the issue effectively. The revision should include precise instructions on how to overcome the challenge, minimizing disruption to the plan's progress.
+
+    JSON Output Specifications: Provide the final plan as a list of JSON objects, ensuring each task includes the following attributes:
+        task_id: A unique identifier for each task, preferably ordinal or descriptive.
+        dependent_task_ids: A list of task IDs that are prerequisites for this task, indicating dependencies.
+        instruction: A concise but clear description of the action required for this task.
+        task_type: The type or category of the task.
+        task_params: A JSON dictionary specifying the task's parameters and their corresponding values.
+        Hint: (Optional) Provide a hint or brief guidance for carrying out the task effectively, particularly if the task involves complexity or potential challenges. This could include tips, best practices, or a brief outline of steps to ensure successful completion.
+
+    Contextual Precision: Return a plan that is as specific and precise as possible. Avoid vague or ambiguous instructions. Ensure that task descriptions and parameters are well-defined to facilitate smooth execution and alignment with the overall goal.
+
+By following these guidelines, ensure the plan is logical, thorough, and well-suited to achieving the desired outcome efficiently.
 """
 )
 
@@ -217,6 +278,12 @@ def camel_case_to_snake_case(camel_str: str, suffix: str = "Minion") -> str:
     return snake_case_str
 
 
+# a dummy score that does nothing, always return 1 to shortcut the score process
+class NoneScore:
+    def __call__(self, **kwargs):
+        return 1
+
+
 class SubclassHookMeta(type):
     def __init__(cls, name, bases, clsdict):
         super().__init__(name, bases, clsdict)
@@ -227,7 +294,7 @@ MINION_REGISTRY = {}
 
 
 class Minion(metaclass=SubclassHookMeta):
-    def __init__(self, input=None, brain=None, id=None, score_func=None):
+    def __init__(self, input=None, brain=None, id=None, score_func=None, task=None):
         if brain is None:
             raise ValueError("The 'brain' parameter cannot be None.")
 
@@ -237,6 +304,7 @@ class Minion(metaclass=SubclassHookMeta):
         self.brain = brain
         self.followers = []
         self.score_func = score_func
+        self.task = task
 
     def propagate_information(self, other):
         other.input = self.input
@@ -271,7 +339,7 @@ class Minion(metaclass=SubclassHookMeta):
 
     async def is_finished(self):
         # check whether self is finished
-        meta_planner = await ActionNode.from_pydantic(MetaPlanner).fill(
+        meta_planner = await ActionNode.from_pydantic(MetaPlan).fill(
             context=FINISH_PROMPT.format(input=self.input), llm=self.brain.llm
         )
 
@@ -298,6 +366,16 @@ class CotMinion(Minion):
         super().__init__(**kwargs)
         self.input.instruction = "let's think step by step to solve this problem"
 
+    async def execute(self):
+        node = ActionNode(key="answer", expected_type=str, instruction="let's think step by step", example="")
+        node = await node.fill(
+            context=(COT_PROBLEM_INSTRUCTION + ASK_PROMPT).format(input=self.input), llm=self.brain.llm, schema="raw"
+        )
+        self.answer_node = node
+        self.answer = self.input.answer = extract_final_answer(node.content)
+        self.answer_raw = self.input.answer_raw = node.content
+        return self.answer  # maybe also adds score?
+
 
 class MultiPlanMinion(Minion):
     "This Strategy will first generate multiple plan, and then compare each plan, see which one is more promising to produce good result, first try most promising plan, then to less promising plan."
@@ -307,10 +385,29 @@ class MultiPlanMinion(Minion):
 class PlanMinion(Minion):
     "Divide and Conquer Strategy, Divide the problem into smaller subproblems, solve each subproblem independently, and then merge the results for the final solution."
 
-    async def execute(self):
+    @retry(stop=stop_after_attempt(3), wait=wait_none())  # Retries up to 3 times with a 2-second wait between attempts
+    async def get_plan_with_retry(self, cache_filename=None):
+        if cache_filename:
+            cache_filename = (
+                "/Users/femtozheng/python-project/MetaGPT/logs/plan/json_plan_f2a8a06b-dffa-44bd-a0e8-3005e4e37c57.json"
+            )
+
+            # Attempt to load the plan from the cache
+            import json
+
+            try:
+                if os.path.exists(cache_filename):
+                    with open(cache_filename, "r") as file:
+                        plan = json.load(file)
+                        logger.info("Plan loaded from cache.")
+                        return plan
+                else:
+                    logger.info("Cache file not found. Fetching plan with retry.")
+            except (IOError, json.JSONDecodeError) as e:
+                logger.info(f"Error loading plan from cache: {e}. Fetching plan with retry.")
         choose_template = Template(PLAN_PROMPT)
 
-        # filter out smart, since we don't want choose smart following smart again
+        # filter out smart, since we don't want to choose smart following smart again
         # also filter out ScoreMinion
         filtered_registry = {
             key: value
@@ -321,40 +418,66 @@ class PlanMinion(Minion):
 
         plan = await ActionNode.from_pydantic(Plan).fill(context=filled_template, llm=self.brain.llm, schema="raw")
 
-        plan
+        json = extract_json_from_string(plan.content)
+        return json
 
-        # class_name = node.instruct_content.name
-        # if class_name in filtered_registry:
-        #     klass = filtered_registry[class_name]  # get the Minion
-        # else:
-        #     # print(f"Class {class_name} not found.")
-        #     klass = filtered_registry["cot"]  # default we use CoTMinion
-        # num_trials = 1
-        # scores = {}
-        # for i in range(num_trials):  # generate a list of children
-        #     minion = klass(question=node.instruct_content.subquestion)
-        #     self.add_followers(minion)
-        #     await minion.execute()
-        #     score = await minion.score()
-        #     scores[minion] = score
-        #
-        # # if the score is too low, then maybe we add some more iterations?
-        # sorted_items = sorted(scores.items(), key=lambda item: item[1], reverse=True)
-        #
-        # # Extract keys and values
-        # sorted_keys = [item[0] for item in sorted_items]
-        # sorted_values = [item[1] for item in sorted_items]
-        # for i, minion in enumerate(sorted_keys):
-        #     if await minion.is_finished():
-        #         self.answer = minion.answer
-        #         self._score = sorted_values[i]
-        #         return minion.answer  # .content
-        #     else:
-        #         minion = SmartMinion(question=minion.question + minion.answer)
-        #         self._score = minion.score
-        #         await minion.execute()
-        #         # should we also determine score, is_finished etc? I don't think so since we're using SmartMinion
-        #         return minion.answer
+    async def execute(self):
+        log_dir = METAGPT_ROOT / "logs" / "plan"
+
+        # Create the directory, including any necessary parent directories
+        log_dir.mkdir(parents=True, exist_ok=True)
+        filename = log_dir / f"json_plan_{self.id}.json"
+        self.plan = await self.get_plan_with_retry(cache_filename=filename)
+
+        save_json_to_file(self.plan, filename)
+
+        self.task_graph = convert_tasks_to_graph(self.plan)
+        # plot_graph(self.task_graph)
+        await self.execute_tasks_in_order(self.task_graph)
+        self.answer = self.input.answer = "task completed"
+
+    async def execute_tasks_in_order(self, graph):
+        # Perform topological sorting
+        sorted_tasks = list(nx.topological_sort(graph))
+
+        for task_id in sorted_tasks:
+            # Execute the task (replace this with your actual task execution logic)
+            for task in self.plan:
+                if task["task_id"] == task_id:
+                    task_minion = TaskMinion(brain=self.brain, input=self.input, task=task)
+                    await task_minion.execute()
+
+            print(f"Executing task {task_id}: {task['label']}")
+
+
+class TaskMinion(Minion):
+    async def choose_minion(self):
+        choose_template = Template(TASK_PROMPT)
+
+        # filter out smart, since we don't want choose smart following smart again
+        # also filter out ScoreMinion
+        filtered_registry = {key: value for key, value in MINION_REGISTRY.items() if key != "smart" and key != "score"}
+        filled_template = choose_template.render(minions=filtered_registry, input=self.input, task=self.task)
+
+        # if self.input.route:
+        #     return filtered_registry[self.input.route]
+
+        meta_plan = await ActionNode.from_pydantic(MetaPlan).fill(context=filled_template, llm=self.brain.llm)
+        self.num_trials = meta_plan.instruct_content.num_trials
+        if self.num_trials < 1 or not isinstance(self.num_trials, int):
+            self.num_trials = 1
+
+        name = meta_plan.instruct_content.name
+        if name in filtered_registry:
+            klass = filtered_registry[name]  # get the Minion
+        else:
+            # print(f"Class {class_name} not found.")
+            klass = filtered_registry["cot"]  # default we use CoTMinion
+        return klass
+
+    async def execute(self):
+        klass = await self.choose_minion()
+        klass
 
 
 class PythonMinion(Minion):
@@ -371,11 +494,13 @@ class PythonMinion(Minion):
             node = ActionNode(
                 key="code",
                 expected_type=str,
-                instruction="Write python code to solve the problem, also noted the python program must return a string print out answer that describe how the problem is solved,"
+                instruction="Write python code to solve the problem, also noted the python program must return a string print out answer and only answer,"
                 "please remember I may have not python pip installed, so please add in the code like"
                 """import os
                             os.system('python -m pip install sympy')
-                            """,
+                            """
+                "Please ensure all the variables are defined, don't use variables before defining them,"
+                "please ensure you correctly indent the code, and don't use // as comment",
                 example="",
             )
             node = await node.fill(
@@ -391,10 +516,11 @@ Previous error:
                 llm=LLM(),
             )
             code = node.instruct_content.code
-            self.answer_node = code
+            self.answer_code = code
+            print(self.answer_code)
 
             image_name = "intercode-python"
-            env = PythonEnv(image_name, verbose=True)
+            env = PythonEnv(image_name, verbose=False, is_agent=True)
             # env = PythonEnv("metagpt/metagpt:latest", verbose=True)
             result = env.step(code)
             obs = result[0]  # obs
@@ -403,7 +529,7 @@ Previous error:
                 error = obs["error"]
                 continue  # try again?
             output, error = obs["output"], obs["error"]
-            self.answer = output
+            self.answer = self.input.answer = output
             return self.answer  # obs
 
 
@@ -425,7 +551,19 @@ class MathMinion(PythonMinion):
         self.input.instruction = "This is a math problem, write python code to solve it"
 
 
+class CodeProblemMinion(PlanMinion):
+    "This is a coding problem which requires stragety thinking to solve it, you will first explore the stragety space then solve it"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.input.instruction = "This is a coding problem which requires stragety thinking to solve it, you will first explore the stragety space then solve it"
+
+
 class ScoreMinion(Minion):
+    def __init__(self, **kwargs):
+        super(ScoreMinion, self).__init__(**kwargs)
+        self.score = None  # clear self.score to avoid loop
+
     async def execute(self):
         # if self.input.score_func, handles that
         node = ActionNode(key="score", expected_type=float, instruction=SCORE_PROMPT, example="")
@@ -442,8 +580,8 @@ class ScoreMinion(Minion):
         return node.instruct_content.score
 
 
-class SmartMinion(Minion):
-    async def execute(self):
+class RouteMinion(Minion):
+    async def choose_minion(self):
         choose_template = Template(SMART_PROMPT_TEMPLATE)
 
         # filter out smart, since we don't want choose smart following smart again
@@ -451,23 +589,30 @@ class SmartMinion(Minion):
         filtered_registry = {key: value for key, value in MINION_REGISTRY.items() if key != "smart" and key != "score"}
         filled_template = choose_template.render(minions=filtered_registry, input=self.input)
 
-        meta_planner = await ActionNode.from_pydantic(MetaPlanner).fill(context=filled_template, llm=self.brain.llm)
-        num_trials = meta_planner.instruct_content.num_trials
-        if num_trials < 1 or not isinstance(num_trials, int):
-            num_trials = 1
+        if self.input.route:
+            return filtered_registry[self.input.route]
 
-        name = meta_planner.instruct_content.name
+        meta_plan = await ActionNode.from_pydantic(MetaPlan).fill(context=filled_template, llm=self.brain.llm)
+        self.num_trials = meta_plan.instruct_content.num_trials
+        if self.num_trials < 1 or not isinstance(self.num_trials, int):
+            self.num_trials = 1
+
+        name = meta_plan.instruct_content.name
         if name in filtered_registry:
             klass = filtered_registry[name]  # get the Minion
         else:
             # print(f"Class {class_name} not found.")
             klass = filtered_registry["cot"]  # default we use CoTMinion
+        return klass
+
+    async def execute(self):
+        klass = await self.choose_minion()
 
         scores = {}
-        for i in range(num_trials):  # generate a list of children
+        for i in range(self.input.num_trials):  # generate a list of children
             minion = klass(input=self.input, brain=self.brain)
             self.add_followers(minion)
-            await minion.execute()
+            self.answer = self.input.answer = await minion.execute()
             score = await minion.score()
             scores[minion] = score
 
@@ -482,10 +627,3 @@ class SmartMinion(Minion):
             self.answer = self.input.answer = minion.answer
             self._score = sorted_values[i]
             return minion.answer, self._score
-
-            # else:
-            #     minion = SmartMinion(input=self.input, brain=self.brain)
-            #     self._score = minion.score
-            #     await minion.execute()
-            #     # should we also determine score, is_finished etc? I don't think so since we're using SmartMinion
-            #     return minion.answer, self._score

@@ -13,6 +13,15 @@ from metagpt.minion.brain import Brain
 async def smart_brain():
     brain = Brain()
 
+    # obs, score, *_ = await brain.step(query="create a 2048 game")
+    # print(obs)
+
+    obs, score, *_ = await brain.step(
+        query="Every morning, Aya does a $9$ kilometer walk, and then finishes at the coffee shop. One day, she walks at $s$ kilometers per hour, and the walk takes $4$ hours, including $t$ minutes at the coffee shop. Another morning, she walks at $s+2$ kilometers per hour, and the walk takes $2$ hours and $24$ minutes, including $t$ minutes at the coffee shop. This morning, if she walks at $s+\frac12$ kilometers per hour, how many minutes will the walk take, including the $t$ minutes at the coffee shop?",
+        query_type="code_problem",
+    )
+    print(obs)
+
     obs, score, *_ = await brain.step(query="what's the solution for  game of 24 for 4 3 9 8")
     print(obs)
 

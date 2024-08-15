@@ -40,7 +40,7 @@ class PythonEnv(IntercodeEnv):
             self.observation = self.conn.root.execute(action)
             self.info[ACTION_EXEC] = "error" in self.observation and len(self.observation["error"]) > 0
         except Exception as err:
-            self.observation = f"Error executing action: {err}"
+            self.observation = {"error": f"Error executing action: {err}"}
             self.info[ACTION_EXEC] = False
 
     def get_reward(self) -> Tuple[float, Dict]:
