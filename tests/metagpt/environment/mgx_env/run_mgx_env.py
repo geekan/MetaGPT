@@ -143,6 +143,10 @@ clone https://github.com/garylin2099/simple_calculator, checkout a new branch na
 Commit your changes and push, finally, create a PR to the master branch of https://github.com/mannaandpoem/simple_calculator.
 """
 IMAGE2CODE_REQ = "Please write a frontend web page similar to this image /Users/gary/Files/temp/workspace/temp_img.png, I want the same title and color. code only"
+DOC_QA_REQ1 = "Tell me what this paper is about /Users/gary/Files/temp/workspace/2308.09687.pdf"
+DOC_QA_REQ2 = "Summarize this doc /Users/gary/Files/temp/workspace/2401.14295.pdf"
+DOC_QA_REQ3 = "请总结/Users/gary/Files/temp/workspace/2309.04658.pdf里的关键点"
+DOC_QA_REQ4 = "这份报表/Users/gary/Files/temp/workspace/9929550.md中，营业收入TOP3产品各自的收入占比是多少"
 
 TL_CHAT1 = """Summarize the paper for me"""  # expecting clarification
 TL_CHAT2 = """Solve the issue at this link"""  # expecting clarification
