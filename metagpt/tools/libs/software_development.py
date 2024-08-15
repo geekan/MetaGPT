@@ -18,7 +18,7 @@ from metagpt.actions.requirement_analysis.trd import (
     EvaluateTRD,
     WriteTRD,
 )
-from metagpt.const import ASSISTANT_ALIAS, DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
+from metagpt.const import ASSISTANT_ALIAS, TEST_DATA_PATH
 from metagpt.context import Context
 from metagpt.logs import ToolLogItem, log_tool_output, logger
 from metagpt.utils.common import aread
@@ -202,7 +202,7 @@ async def write_framework(
     output_dir = (
         Path(output_dir)
         if output_dir
-        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
+        else context.config.workspace.path / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
     )
     file_list = []
     while not is_pass and (context.cost_manager.total_cost < context.cost_manager.max_budget):

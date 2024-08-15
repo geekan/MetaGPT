@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Literal, Optional
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
 from metagpt.configs.embedding_config import EmbeddingConfig
@@ -68,12 +68,12 @@ class Config(CLIParams, YamlModel):
     # Misc Parameters
     repair_llm_output: bool = False
     prompt_schema: Literal["json", "markdown", "raw"] = "json"
-    workspace: WorkspaceConfig = WorkspaceConfig()
+    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
     enable_longterm_memory: bool = False
     code_review_k_times: int = 2
 
     # Experience Pool Parameters
-    exp_pool: ExperiencePoolConfig = ExperiencePoolConfig()
+    exp_pool: ExperiencePoolConfig = Field(default_factory=ExperiencePoolConfig)
 
     # Will be removed in the future
     metagpt_tti_url: str = ""
@@ -97,7 +97,7 @@ class Config(CLIParams, YamlModel):
         return Config.from_yaml_file(pathname)
 
     @classmethod
-    def default(cls, reload: bool = False):
+    def default(cls, reload: bool = False, **kwargs):
         """Load default config
         - Priority: env < default_config_paths
         - Inside default_config_paths, the latter one overwrites the former one
@@ -107,7 +107,7 @@ class Config(CLIParams, YamlModel):
             CONFIG_ROOT / "config2.yaml",
         )
         if reload or default_config_paths not in _CONFIG_CACHE:
-            dicts = [dict(os.environ)]
+            dicts = [kwargs, dict(os.environ)]
             dicts += [Config.read_yaml(path) for path in default_config_paths]
             final = merge_dict(dicts)
             _CONFIG_CACHE[default_config_paths] = Config(**final)

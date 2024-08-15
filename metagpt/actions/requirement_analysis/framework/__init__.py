@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from metagpt.actions.requirement_analysis.framework.evaluate_framework import EvaluateFramework
 from metagpt.actions.requirement_analysis.framework.write_framework import WriteFramework
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.config2 import Config
 from metagpt.utils.common import awrite
 
 
@@ -54,7 +54,7 @@ async def save_framework(
     output_dir = (
         Path(output_dir)
         if output_dir
-        else DEFAULT_WORKSPACE_ROOT / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
+        else Config.default().workspace.path / (datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:8])
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
