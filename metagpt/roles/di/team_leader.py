@@ -47,12 +47,12 @@ class TeamLeader(RoleZero):
             #     continue
             team_info += f"{role.name}: {role.profile}, {role.goal}\n"
         return team_info
-    
+
     def _get_prefix(self) -> str:
         role_info = super()._get_prefix()
         team_info = self._get_team_info()
         return TL_INFO.format(role_info=role_info, team_info=team_info)
-    
+
     async def _think(self) -> bool:
         self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
         return await super()._think()

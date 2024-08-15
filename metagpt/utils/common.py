@@ -35,6 +35,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
+import aiohttp
 import chardet
 import loguru
 import requests
@@ -1118,3 +1119,23 @@ def log_time(method):
         return result
 
     return timeit_wrapper_async if iscoroutinefunction(method) else timeit_wrapper
+
+
+async def check_http_endpoint(url: str, timeout: int = 3) -> bool:
+    """
+    Checks the status of an HTTP endpoint.
+
+    Args:
+        url (str): The URL of the HTTP endpoint to check.
+        timeout (int, optional): The timeout in seconds for the HTTP request. Defaults to 3.
+
+    Returns:
+        bool: True if the endpoint is online and responding with a 200 status code, False otherwise.
+    """
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, timeout=timeout) as response:
+                return response.status == 200
+        except Exception as e:
+            print(f"Error accessing the endpoint {url}: {e}")
+            return False
