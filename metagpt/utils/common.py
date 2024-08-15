@@ -1118,3 +1118,25 @@ def log_time(method):
         return result
 
     return timeit_wrapper_async if iscoroutinefunction(method) else timeit_wrapper
+
+
+def rectify_pathname(path: Union[str, Path], default_filename: str) -> Path:
+    """
+    Rectifies the given path to ensure a valid output file path.
+
+    If the given `path` is a directory, it creates the directory (if it doesn't exist) and appends the `default_filename` to it. If the `path` is a file path, it creates the parent directory (if it doesn't exist) and returns the `path`.
+
+    Args:
+        path (Union[str, Path]): The input path, which can be a string or a `Path` object.
+        default_filename (str): The default filename to use if the `path` is a directory.
+
+    Returns:
+        Path: The rectified output path.
+    """
+    output_pathname = Path(path)
+    if output_pathname.is_dir():
+        output_pathname.mkdir(parents=True, exist_ok=True)
+        output_pathname = output_pathname / default_filename
+    else:
+        output_pathname.parent.mkdir(parents=True, exist_ok=True)
+    return output_pathname
