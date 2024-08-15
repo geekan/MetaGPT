@@ -37,7 +37,7 @@ class RoleZeroContextBuilder(BaseContextBuilder):
     @staticmethod
     def replace_content_of_example_tag(self, text: str, new_example_content: str) -> str:
         pattern = "# Past Experience\n<experience>"
-        replaced_text = text.replace(pattern, "# Example\n" + new_example_content)
+        replaced_text = text.replace(pattern, "# Past Example\n" + new_example_content)
         return replaced_text
 
     @staticmethod
