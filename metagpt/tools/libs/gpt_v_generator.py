@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.config2 import Config
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, encode_image
@@ -86,7 +85,7 @@ class GPTvGenerator:
             Path: The path of the saved webpages.
         """
         # Create a folder called webpages in the workspace directory to store HTML, CSS, and JavaScript files
-        webpages_path = DEFAULT_WORKSPACE_ROOT / "webpages" / save_folder_name
+        webpages_path = Config.default().workspace.path / "webpages" / save_folder_name
         logger.info(f"code will be saved at {webpages_path}")
         webpages_path.mkdir(parents=True, exist_ok=True)
 

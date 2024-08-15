@@ -4,7 +4,8 @@ from asyncio import Queue
 from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
+from metagpt.config2 import Config
+from metagpt.const import SWE_SETUP_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
@@ -151,12 +152,12 @@ class Bash(Terminal):
 
     def __init__(self):
         """init"""
-        os.environ["SWE_CMD_WORK_DIR"] = str(DEFAULT_WORKSPACE_ROOT)
+        os.environ["SWE_CMD_WORK_DIR"] = str(Config.default().workspace.path)
         super().__init__()
         self.start_flag = False
 
     async def start(self):
-        await self.run_command(f"cd {DEFAULT_WORKSPACE_ROOT}")
+        await self.run_command(f"cd {Config.default().workspace.path}")
         await self.run_command(f"source {SWE_SETUP_PATH}")
 
     async def run(self, cmd) -> str:

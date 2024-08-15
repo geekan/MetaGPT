@@ -25,7 +25,6 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 
 from metagpt.actions import Action
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.report import NotebookReporter
 
@@ -96,7 +95,7 @@ class ExecuteNbCode(Action):
         self.nb_client = RealtimeOutputNotebookClient(
             self.nb,
             timeout=self.timeout,
-            resources={"metadata": {"path": DEFAULT_WORKSPACE_ROOT}},
+            resources={"metadata": {"path": self.config.workspace.path}},
             notebook_reporter=self.reporter,
             coalesce_streams=True,
         )
@@ -276,7 +275,7 @@ class ExecuteNbCode(Action):
             else:
                 raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
 
-            file_path = DEFAULT_WORKSPACE_ROOT / "code.ipynb"
+            file_path = self.config.workspace.path / "code.ipynb"
             nbformat.write(self.nb, file_path)
             await self.reporter.async_report(file_path, "path")
 

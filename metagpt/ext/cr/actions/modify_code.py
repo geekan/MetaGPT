@@ -7,7 +7,6 @@ from typing import Optional
 from unidiff import PatchSet
 
 from metagpt.actions.action import Action
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.ext.cr.utils.cleaner import (
     add_line_num_on_patch,
     get_code_block_from_patch,
@@ -97,7 +96,7 @@ class ModifyCode(Action):
             output_dir = (
                 Path(output_dir)
                 if output_dir
-                else DEFAULT_WORKSPACE_ROOT / "modify_code" / str(datetime.date.today()) / self.pr
+                else self.config.workspace.path / "modify_code" / str(datetime.date.today()) / self.pr
             )
             patch_file = output_dir / f"{patch_target_file_name}.patch"
             patch_file.parent.mkdir(exist_ok=True, parents=True)
