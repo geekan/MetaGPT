@@ -5,7 +5,7 @@ from metagpt.tools.libs.cr import CodeReview
 
 
 async def main(msg):
-    role = Engineer2(tools=["Plan", "Editor:write,read", "RoleZero", "ReviewAndRewriteCode", "CodeReview"])
+    role = Engineer2(tools=["Plan", "Editor:write,read", "RoleZero", "ValidateAndRewriteCode", "CodeReview"])
     cr = CodeReview()
     role.tool_execution_map.update({"CodeReview.review": cr.review, "CodeReview.fix": cr.fix})
     await role.run(msg)

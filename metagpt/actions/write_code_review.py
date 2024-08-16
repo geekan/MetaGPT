@@ -157,7 +157,7 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.i_context.code_doc.content
-        k = self.context.config.code_review_k_times or 1
+        k = self.context.config.code_validate_k_times or 1
 
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.i_context.code_doc.filename)
@@ -212,44 +212,43 @@ class WriteCodeReview(Action):
 
 
 @register_tool(include_functions=["run"])
-class ReviewAndRewriteCode(Action):
-    """According to the design and task documents, review the code to ensure it is complete and correct."""
+class ValidateAndRewriteCode(Action):
+    """According to the design and task documents, validate the code to ensure it is complete and correct."""
 
-    name: str = "ReviewAndRewriteCode"
+    name: str = "ValidateAndRewriteCode"
 
     async def run(
         self,
         code_path: str,
         system_design_input: str = "",
         project_schedule_input: str = "",
-        code_review_k_times: int = 2,
+        code_validate_k_times: int = 2,
     ) -> str:
-        """Reviews the provided code based on the accompanying system design and project schedule documentation, return the complete and correct code.
+        """Validates the provided code based on the accompanying system design and project schedule documentation, return the complete and correct code.
 
-        Read the code from `code_path`, and write the final code to `code_path`.
-        If both `system_design_input` and `project_schedule_input are absent`, it will return and do nothing.
+        Read the code from code_path, and write the final code to code_path.
+        If both system_design_input and project_schedule_input are absent, it will return and do nothing.
 
         Args:
-            code_path (str): The file path of the code snippet to be reviewed. This should be a string containing the path to the source code file.
-            system_design_input (str): Content or file path of the design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the review process.
+            code_path (str): The file path of the code snippet to be validated. This should be a string containing the path to the source code file.
+            system_design_input (str): Content or file path of the design document associated with the code. This should describe the system architecture, used in the code. It helps provide context for the validation process.
             project_schedule_input (str): Content or file path of the task document describing what the code is intended to accomplish. This should outline the functional requirements or objectives of the code.
-            code_review_k_times (int, optional): The number of iterations for reviewing and potentially rewriting the code. Defaults to 2.
+            code_validate_k_times (int, optional): The number of iterations for validating and potentially rewriting the code. Defaults to 2.
 
         Returns:
-            str: The potentially corrected or approved code after review.
+            str: The potentially corrected or approved code after validation.
 
         Example Usage:
             # Example of how to call the run method with a code snippet and documentation
-            await ReviewAndRewriteCode().run(
+            await ValidateAndRewriteCode().run(
                 code_path="/tmp/game.js",
                 system_design_input="/tmp/system_design.json",
                 project_schedule_input="/tmp/project_task_list.json"
             )
         """
-
         if not system_design_input and not project_schedule_input:
             logger.info(
-                "Both `system_design_input` and `project_schedule_input` are absent, ReviewAndRewriteCode will do nothing."
+                "Both `system_design_input` and `project_schedule_input` are absent, ValidateAndRewriteCode will do nothing."
             )
             return
 
@@ -266,7 +265,7 @@ class ReviewAndRewriteCode(Action):
             ]
         )
 
-        for i in range(code_review_k_times):
+        for i in range(code_validate_k_times):
             context_prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=code_path)
             cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
                 format_example=FORMAT_EXAMPLE.format(filename=code_path),

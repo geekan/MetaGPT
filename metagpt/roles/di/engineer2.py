@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from metagpt.actions.write_code_review import ReviewAndRewriteCode
+from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.prompts.di.engineer2 import ENGINEER2_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
@@ -17,16 +17,16 @@ class Engineer2(RoleZero):
 
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
-    tools: list[str] = ["Plan", "Editor:write,read", "RoleZero", "Terminal:run_command", "ReviewAndRewriteCode"]
+    tools: list[str] = ["Plan", "Editor:write,read", "RoleZero", "Terminal:run_command", "ValidateAndRewriteCode"]
 
     def _update_tool_execution(self):
-        review = ReviewAndRewriteCode()
+        validate = ValidateAndRewriteCode()
 
         self.tool_execution_map.update(
             {
                 "Terminal.run_command": self.terminal.run_command,
-                "ReviewAndRewriteCode.run": review.run,
-                "ReviewAndRewriteCode": review.run,
+                "ValidateAndRewriteCode.run": validate.run,
+                "ValidateAndRewriteCode": validate.run,
             }
         )
 

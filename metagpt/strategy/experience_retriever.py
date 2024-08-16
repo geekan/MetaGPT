@@ -887,7 +887,7 @@ Let's start by appending the first task to the plan.
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["1"],
-            "instruction": "Use ReviewAndRewriteCode to review the code in index.html to ensure it meets the design specifications.",
+            "instruction": "Use ValidateAndRewriteCode to review the code in index.html to ensure it meets the design specifications.",
             "assignee": "Alex"
         }
     },
@@ -896,7 +896,7 @@ Let's start by appending the first task to the plan.
         "args": {
             "task_id": "5",
             "dependent_task_ids": ["2"],
-            "instruction": "Use ReviewAndRewriteCode to review the code in style.css to ensure it meets the design specifications.",
+            "instruction": "Use ValidateAndRewriteCode to review the code in style.css to ensure it meets the design specifications.",
             "assignee": "Alex"
         }
     },
@@ -905,7 +905,7 @@ Let's start by appending the first task to the plan.
         "args": {
             "task_id": "6",
             "dependent_task_ids": ["3"],
-            "instruction": "Use ReviewAndRewriteCode to review the code in script.js to ensure it meets the design specifications. ",
+            "instruction": "Use ValidateAndRewriteCode to review the code in script.js to ensure it meets the design specifications. ",
             "assignee": "Alex"
         }
     }
@@ -933,17 +933,17 @@ Explanation: Take on one task, such as writing a file. Upon completion, finish c
 
 ## example 4
 I will now review the code in `script.js`.
-Explanation: to review the code, call ReviewAndRewriteCode.run.
+Explanation: to review the code, call ValidateAndRewriteCode.run.
 
 ```json
 [
     {
-        "command_name": "ReviewAndRewriteCode.run",
+        "command_name": "ValidateAndRewriteCode.run",
         "args": {
             "code_path": "/tmp/src/script.js",
             "system_design_input": "/tmp/docs/system_design.json",
             "project_schedule_input": "/tmp/docs/project_schedule.json",
-            "code_review_k_times": 2
+            "code_validate_k_times": 2
         }
     },
     {

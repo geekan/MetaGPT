@@ -71,7 +71,7 @@ class Config(CLIParams, YamlModel):
     prompt_schema: Literal["json", "markdown", "raw"] = "json"
     workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
     enable_longterm_memory: bool = False
-    code_review_k_times: int = 2
+    code_validate_k_times: int = 2
 
     # Experience Pool Parameters
     exp_pool: ExperiencePoolConfig = Field(default_factory=ExperiencePoolConfig)
