@@ -7,10 +7,11 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
+from metagpt.config2 import Config
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
-from metagpt.utils.common import aread, aread_bin, awrite_bin
+from metagpt.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
 from metagpt.utils.repo_to_markdown import is_text_file
 from metagpt.utils.report import EditorReporter
 
@@ -252,6 +253,8 @@ class Editor(BaseModel):
 
         base_url = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
         if not base_url:
+            base_url = await Editor._read_omniparse_config()
+        if not base_url:
             return None
         api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")
         v = await get_env_default(key="timeout", app_name="OmniParse", default_value="120")
@@ -261,6 +264,9 @@ class Editor(BaseModel):
             timeout = 120
 
         try:
+            if not await check_http_endpoint(url=base_url):
+                logger.warning(f"{base_url}: NOT AVAILABLE")
+                return None
             client = OmniParseClient(api_key=api_key, base_url=base_url, max_timeout=timeout)
             file_data = await aread_bin(filename=path)
             ret = await client.parse_document(file_input=file_data, bytes_filename=str(path))
@@ -279,3 +285,10 @@ class Editor(BaseModel):
             await awrite_bin(filename=filename, data=byte_data)
             result.append(f"![{i.image_name}]({str(filename)})")
         return result
+
+    @staticmethod
+    async def _read_omniparse_config() -> str:
+        config = Config.default()
+        if config.omniparse and config.omniparse.url:
+            return config.omniparse.url
+        return ""

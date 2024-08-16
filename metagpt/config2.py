@@ -16,6 +16,7 @@ from metagpt.configs.embedding_config import EmbeddingConfig
 from metagpt.configs.exp_pool_config import ExperiencePoolConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
+from metagpt.configs.omniparse_config import OmniParseConfig
 from metagpt.configs.redis_config import RedisConfig
 from metagpt.configs.role_custom_config import RoleCustomConfig
 from metagpt.configs.s3_config import S3Config
@@ -87,6 +88,8 @@ class Config(CLIParams, YamlModel):
 
     # Role's custom configuration
     roles: Optional[List[RoleCustomConfig]] = None
+
+    omniparse: Optional[OmniParseConfig] = None
 
     @classmethod
     def from_home(cls, path):
