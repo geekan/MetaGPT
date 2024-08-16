@@ -10,7 +10,7 @@ EXTRA_INSTRUCTION = """
 10. When provided system design, YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
 11. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 12. To modify code in a file, read the entire file, make changes, and update the file with the complete code, ensuring that no line numbers are included in the final write.
-13. When a system design or project schedule is provided, at the end of the plan, add a CodeRview Task for each file; for example, if there are three files, add three CodeRview Tasks. For each CodeRview Task, just call ReviewAndRewriteCode.run.
+13. When a system design or project schedule is provided, at the end of the plan, add a CodeRview Task for each file; for example, if there are three files, add three CodeRview Tasks. For each CodeRview Task, just call ValidateAndRewriteCode.run.
 14. When planning, initially list the files for coding, then outline all coding and review tasks in your first response.
 15. Note 'Task for {file_name} completed.' — signifies the {file_name} coding task is done.
 16. Avoid re-reviewing or re-coding the same code. When you decide to take a write or review action, include the command 'finish current task' in the same response.
