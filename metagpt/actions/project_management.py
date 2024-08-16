@@ -26,6 +26,7 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import (
     aread,
     awrite,
+    rectify_pathname,
     save_json_to_markdown,
     to_markdown_code_block,
 )
@@ -191,7 +192,7 @@ class WriteTasks(Action):
                 output_pathname = Path(output_pathname) / "docs" / "project_schedule.json"
             elif not Path(output_pathname).is_absolute():
                 output_pathname = self.config.workspace.path / output_pathname
-            output_pathname = Path(output_pathname)
+            output_pathname = rectify_pathname(path=output_pathname, default_filename="project_schedule.json")
             await awrite(filename=output_pathname, data=file_content)
             md_output_filename = output_pathname.with_suffix(".md")
             await save_json_to_markdown(content=file_content, output_filename=md_output_filename)

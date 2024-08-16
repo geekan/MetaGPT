@@ -166,7 +166,11 @@ class RoleZero(Role):
         ### Role Instruction ###
         instruction = self.instruction.strip()
         system_prompt = self.system_prompt.format(
-            task_type_desc=self.task_type_desc, available_commands=tool_info, example=example, instruction=instruction
+            role_info=self._get_prefix(),
+            task_type_desc=self.task_type_desc,
+            available_commands=tool_info,
+            example=example,
+            instruction=instruction,
         )
 
         ### Make Decision Dynamically ###
@@ -284,7 +288,9 @@ class RoleZero(Role):
         # routing
         memory = self.get_memories(k=4)  # FIXME: A magic number for two rounds of Q&A
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
-        intent_result = await self.llm.aask(context, system_msgs=[self.format_quick_system_prompt()])
+        async with ThoughtReporter() as reporter:
+            await reporter.async_report({"type": "classify"})
+            intent_result = await self.llm.aask(context, system_msgs=[self.format_quick_system_prompt()])
 
         if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:

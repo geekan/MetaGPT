@@ -22,6 +22,8 @@ Note:
 
 ###########################
 SYSTEM_PROMPT = """
+# Basic Info
+{role_info}
 
 # Data Structure
 class Task(BaseModel):
