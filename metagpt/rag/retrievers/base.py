@@ -45,3 +45,17 @@ class PersistableRAGRetriever(RAGRetriever):
     @abstractmethod
     def persist(self, persist_dir: str, **kwargs) -> None:
         """To support persist, must inplement this func"""
+
+
+class QueryableRAGRetriever(RAGRetriever):
+    """Support querying total count."""
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is QueryableRAGRetriever:
+            return check_methods(C, "query_total_count")
+        return NotImplemented
+
+    @abstractmethod
+    def query_total_count(self) -> int:
+        """To support querying total count, must implement this func"""

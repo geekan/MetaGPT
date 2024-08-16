@@ -84,6 +84,8 @@ class RetrieverFactory(ConfigBasedFactory):
     def _create_bm25_retriever(self, config: BM25RetrieverConfig, **kwargs) -> DynamicBM25Retriever:
         index = self._extract_index(config, **kwargs)
         nodes = list(index.docstore.docs.values()) if index else self._extract_nodes(config, **kwargs)
+        if index and not config.index:
+            config.index = index
 
         return DynamicBM25Retriever(nodes=nodes, **config.model_dump())
 
