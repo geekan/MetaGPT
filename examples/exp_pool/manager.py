@@ -15,10 +15,10 @@ async def main():
     # Define the simple request and response
     req = "Simple req"
     resp = "Simple resp"
-    exp_manager = get_exp_manager()
 
     # Add the new experience
     exp = Experience(req=req, resp=resp, entry_type=EntryType.MANUAL)
+    exp_manager = get_exp_manager()
     exp_manager.create_exp(exp)
     logger.info(f"New experience created for the request `{req}`.")
 

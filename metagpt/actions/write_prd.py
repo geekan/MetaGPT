@@ -43,6 +43,7 @@ from metagpt.utils.common import (
     CodeParser,
     aread,
     awrite,
+    rectify_pathname,
     save_json_to_markdown,
     to_markdown_code_block,
 )
@@ -314,7 +315,7 @@ class WritePRD(Action):
                 output_pathname = self.config.workspace.path / "docs" / "prd.json"
             elif not Path(output_pathname).is_absolute():
                 output_pathname = self.config.workspace.path / output_pathname
-            output_pathname = Path(output_pathname)
+            output_pathname = rectify_pathname(path=output_pathname, default_filename="prd.json")
             await awrite(filename=output_pathname, data=new_prd.content)
             competitive_analysis_filename = output_pathname.parent / f"{output_pathname.stem}-competitive-analysis"
             await self._save_competitive_analysis(prd_doc=new_prd, output_filename=Path(competitive_analysis_filename))
