@@ -83,6 +83,7 @@ MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
 MESSAGE_ROUTE_TO_SELF = "<self>"  # Add this tag to replace `ActionOutput`
 
+
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
@@ -153,3 +154,6 @@ IMAGES = "images"
 
 # SWE agent
 SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/setup_default.sh"
+
+# experience pool
+EXPERIENCE_MASK = "<experience>"

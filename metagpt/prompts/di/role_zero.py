@@ -1,3 +1,5 @@
+from metagpt.const import EXPERIENCE_MASK
+
 ROLE_INSTRUCTION = """
 Based on the context, write a plan or modify an existing plan to achieve the goal. A plan consists of one to 3 tasks.
 If plan is created, you should track the progress and update the plan accordingly, such as Plan.finish_current_task, Plan.append_task, Plan.reset_task, Plan.replace_task, etc.
@@ -10,7 +12,6 @@ Note:
 4. Don't forget to append task first when all existing tasks are finished and new tasks are required.
 5. Avoid repeating tasks you have already completed. And end loop when all requirements are met.
 """
-# To ensure compatibility with hard-coded experience, do not add any other content between "# Example" and "# Instruction".
 
 ########################## ignore guidance
 
@@ -47,7 +48,14 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 {instruction}
 """
 
-CMD_PROMPT = """
+CMD_EXPERIENCE_MASK = f"""
+# Past Experience
+{EXPERIENCE_MASK}
+"""
+
+CMD_PROMPT = (
+    CMD_EXPERIENCE_MASK
+    + """
 {current_state}
 
 # Current Plan
@@ -79,6 +87,7 @@ Output should adhere to the following format.
 ```
 Notice: your output JSON data section must start with **```json [**
 """
+)
 
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.

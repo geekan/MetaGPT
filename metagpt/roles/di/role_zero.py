@@ -436,11 +436,6 @@ class RoleZero(Role):
 
     def _get_plan_status(self) -> Tuple[str, str]:
         plan_status = self.planner.plan.model_dump(include=["goal", "tasks"])
-        for task in plan_status["tasks"]:
-            task.pop("code")
-            task.pop("result")
-            task.pop("is_success")
-        # print(plan_status)
         current_task = (
             self.planner.plan.current_task.model_dump(exclude=["code", "result", "is_success"])
             if self.planner.plan.current_task
