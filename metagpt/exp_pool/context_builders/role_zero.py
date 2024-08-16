@@ -1,7 +1,6 @@
 """RoleZero context builder."""
 
 import copy
-import re
 from typing import Any
 
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
@@ -32,32 +31,9 @@ class RoleZeroContextBuilder(BaseContextBuilder):
 
     def replace_example_content(self, text: str, new_example_content: str) -> str:
         return self.replace_content_of_example_tag(text, new_example_content)
-        # return self.replace_content_between_markers(text, "# Example", "# Instruction", new_example_content)
 
     @staticmethod
-    def replace_content_of_example_tag(self, text: str, new_example_content: str) -> str:
+    def replace_content_of_example_tag(text: str, new_example_content: str) -> str:
         pattern = "# Past Experience\n<experience>"
-        replaced_text = text.replace(pattern, "# Past Example\n" + new_example_content)
-        return replaced_text
-
-    @staticmethod
-    def replace_content_between_markers(text: str, start_marker: str, end_marker: str, new_content: str) -> str:
-        """Replace the content between `start_marker` and `end_marker` in the text with `new_content`.
-
-        Args:
-            text (str): The original text.
-            new_content (str): The new content to replace the old content.
-            start_marker (str): The marker indicating the start of the content to be replaced, such as '# Example'.
-            end_marker (str): The marker indicating the end of the content to be replaced, such as '# Instruction'.
-
-        Returns:
-            str: The text with the content replaced.
-        """
-
-        pattern = re.compile(f"({start_marker}\n)(.*?)(\n{end_marker})", re.DOTALL)
-
-        def replacement(match):
-            return f"{match.group(1)}{new_content}\n{match.group(3)}"
-
-        replaced_text = pattern.sub(replacement, text)
+        replaced_text = text.replace(pattern, "# Past Experience\n" + new_example_content)
         return replaced_text

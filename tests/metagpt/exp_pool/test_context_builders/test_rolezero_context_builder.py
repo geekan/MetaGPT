@@ -30,22 +30,20 @@ class TestRoleZeroContextBuilder:
         assert result == [{"content": "Updated content"}]
 
     def test_replace_example_content(self, context_builder, mocker):
-        mocker.patch.object(RoleZeroContextBuilder, "replace_content_between_markers", return_value="Replaced content")
+        mocker.patch.object(RoleZeroContextBuilder, "replace_content_of_example_tag", return_value="Replaced content")
         result = context_builder.replace_example_content("Original text", "New example content")
         assert result == "Replaced content"
-        context_builder.replace_content_between_markers.assert_called_once_with(
-            "Original text", "# Example", "# Instruction", "New example content"
-        )
+        context_builder.replace_content_of_example_tag.assert_called_once_with("Original text", "New example content")
 
-    def test_replace_content_between_markers(self):
-        text = "Start\n# Example\nOld content\n# Instruction\nEnd"
+    def test_replace_content_of_example_tag(self):
+        text = "Start\n# Past Experience\n<experience>\n\n# Instruction\nEnd"
         new_content = "New content"
-        result = RoleZeroContextBuilder.replace_content_between_markers(text, "# Example", "# Instruction", new_content)
-        expected = "Start\n# Example\nNew content\n\n# Instruction\nEnd"
+        result = RoleZeroContextBuilder.replace_content_of_example_tag(text, new_content)
+        expected = "Start\n# Past Experience\nNew content\n\n# Instruction\nEnd"
         assert result == expected
 
-    def test_replace_content_between_markers_no_match(self):
+    def test_replace_content_of_example_tag_no_match(self):
         text = "Start\nNo markers\nEnd"
         new_content = "New content"
-        result = RoleZeroContextBuilder.replace_content_between_markers(text, "# Example", "# Instruction", new_content)
+        result = RoleZeroContextBuilder.replace_content_of_example_tag(text, new_content)
         assert result == text
