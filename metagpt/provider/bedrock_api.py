@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 from functools import partial
@@ -30,12 +31,13 @@ class BedrockLLM(BaseLLM):
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
         """initialize boto3 client"""
         # access key and secret key from https://us-east-1.console.aws.amazon.com/iam
-        self.__credentital_kwargs = {
-            "aws_secret_access_key": self.config.secret_key,
-            "aws_access_key_id": self.config.access_key,
-            "region_name": self.config.region_name,
+        self.__credential_kwargs = {
+            "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY", self.config.secret_key),
+            "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID", self.config.access_key),
+            "aws_session_token": os.environ.get("AWS_SESSION_TOKEN", self.config.session_token),
+            "region_name": os.environ.get("AWS_DEFAULT_REGION", self.config.region_name),
         }
-        session = boto3.Session(**self.__credentital_kwargs)
+        session = boto3.Session(**self.__credential_kwargs)
         client = session.client(service_name)
         return client
 
