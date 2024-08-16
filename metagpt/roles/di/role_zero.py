@@ -286,7 +286,7 @@ class RoleZero(Role):
             return rsp_msg, ""
 
         # routing
-        memory = self.get_memories(k=4)  # FIXME: A magic number for two rounds of Q&A
+        memory = self.get_memories(k=self.memory_k)
         context = self.llm.format_msg(memory + [UserMessage(content=QUICK_THINK_PROMPT)])
         async with ThoughtReporter() as reporter:
             await reporter.async_report({"type": "classify"})

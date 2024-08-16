@@ -842,7 +842,7 @@ def decode_image(img_url_or_b64: str) -> Image:
 
 def extract_image_paths(content: str) -> bool:
     # We require that the path must have a space preceding it, like "xxx /an/absolute/path.jpg xxx"
-    pattern = r"[^\s]+\.(?:png|jpe?g|gif|bmp|tiff)"
+    pattern = r"[^\s]+\.(?:png|jpe?g|gif|bmp|tiff|PNG|JPE?G|GIF|BMP|TIFF)"
     image_paths = re.findall(pattern, content)
     return image_paths
 
