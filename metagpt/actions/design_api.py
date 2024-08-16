@@ -32,6 +32,7 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import (
     aread,
     awrite,
+    rectify_pathname,
     save_json_to_markdown,
     to_markdown_code_block,
 )
@@ -262,10 +263,10 @@ class WriteDesign(Action):
                 )
 
             if not output_pathname:
-                output_pathname = Path(output_pathname) / "docs" / "sytem_design.json"
+                output_pathname = Path(output_pathname) / "docs" / "system_design.json"
             elif not Path(output_pathname).is_absolute():
                 output_pathname = self.config.workspace.path / output_pathname
-            output_pathname = Path(output_pathname)
+            output_pathname = rectify_pathname(path=output_pathname, default_filename="system_design.json")
             await awrite(filename=output_pathname, data=design.content)
             output_filename = output_pathname.parent / f"{output_pathname.stem}-class-diagram"
             await self._save_data_api_design(design_doc=design, output_filename=output_filename)

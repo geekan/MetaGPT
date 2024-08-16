@@ -29,7 +29,7 @@ class RAGEmbeddingFactory(GenericFactory):
             LLMType.AZURE: self._create_azure,
         }
         super().__init__(creators)
-        self.config = config if self.config else Config.default()
+        self.config = config if config else Config.default()
 
     def get_rag_embedding(self, key: EmbeddingType = None) -> BaseEmbedding:
         """Key is EmbeddingType."""

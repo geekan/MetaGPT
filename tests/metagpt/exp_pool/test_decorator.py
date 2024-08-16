@@ -155,7 +155,10 @@ class TestExpCache:
 
     @pytest.fixture
     def mock_config(self, mocker):
-        return mocker.patch("metagpt.exp_pool.decorator.config")
+        config = Config.default().model_copy(deep=True)
+        default = mocker.patch("metagpt.config2.Config.default")
+        default.return_value = config
+        return config
 
     @pytest.mark.asyncio
     async def test_exp_cache_disabled(self, mock_config, mock_exp_manager):
@@ -171,7 +174,9 @@ class TestExpCache:
 
     @pytest.mark.asyncio
     async def test_exp_cache_enabled_no_perfect_exp(self, mock_config, mock_exp_manager, mock_scorer):
+        mock_config.exp_pool.enabled = True
         mock_config.exp_pool.enable_read = True
+        mock_config.exp_pool.enable_write = True
         mock_exp_manager.query_exps.return_value = []
 
         @exp_cache(manager=mock_exp_manager, scorer=mock_scorer)
@@ -185,6 +190,7 @@ class TestExpCache:
 
     @pytest.mark.asyncio
     async def test_exp_cache_enabled_with_perfect_exp(self, mock_config, mock_exp_manager, mock_perfect_judge):
+        mock_config.exp_pool.enabled = True
         mock_config.exp_pool.enable_read = True
         perfect_exp = Experience(req="test", resp="perfect_result")
         mock_exp_manager.query_exps.return_value = [perfect_exp]

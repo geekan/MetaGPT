@@ -35,8 +35,10 @@ def exp_cache(
     Note:
         1. This can be applied to both synchronous and asynchronous functions.
         2. The function must have a `req` parameter, and it must be provided as a keyword argument.
-        3. If `config.exp_pool.enable_read` is False, the decorator will just directly execute the function.
+        3. If `config.exp_pool.enabled` is False, the decorator will just directly execute the function.
         4. If `config.exp_pool.enable_write` is False, the decorator will skip evaluating and saving the experience.
+        5. If `config.exp_pool.enable_read` is False, the decorator will skip reading from the experience pool.
+
 
     Args:
         _func: Just to make the decorator more flexible, for example, it can be used directly with @exp_cache by default, without the need for @exp_cache().

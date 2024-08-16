@@ -1139,3 +1139,25 @@ async def check_http_endpoint(url: str, timeout: int = 3) -> bool:
         except Exception as e:
             print(f"Error accessing the endpoint {url}: {e}")
             return False
+
+
+def rectify_pathname(path: Union[str, Path], default_filename: str) -> Path:
+    """
+    Rectifies the given path to ensure a valid output file path.
+
+    If the given `path` is a directory, it creates the directory (if it doesn't exist) and appends the `default_filename` to it. If the `path` is a file path, it creates the parent directory (if it doesn't exist) and returns the `path`.
+
+    Args:
+        path (Union[str, Path]): The input path, which can be a string or a `Path` object.
+        default_filename (str): The default filename to use if the `path` is a directory.
+
+    Returns:
+        Path: The rectified output path.
+    """
+    output_pathname = Path(path)
+    if output_pathname.is_dir():
+        output_pathname.mkdir(parents=True, exist_ok=True)
+        output_pathname = output_pathname / default_filename
+    else:
+        output_pathname.parent.mkdir(parents=True, exist_ok=True)
+    return output_pathname
