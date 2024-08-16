@@ -3,6 +3,7 @@
 import copy
 from typing import Any
 
+from metagpt.const import EXPERIENCE_MASK
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
 
 
@@ -34,6 +35,5 @@ class RoleZeroContextBuilder(BaseContextBuilder):
 
     @staticmethod
     def fill_experience(text: str, new_example_content: str) -> str:
-        pattern = "<experience>"
-        replaced_text = text.replace(pattern, new_example_content)
+        replaced_text = text.replace(EXPERIENCE_MASK, new_example_content)
         return replaced_text

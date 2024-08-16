@@ -83,6 +83,8 @@ MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
 MESSAGE_ROUTE_TO_SELF = "<self>"  # Add this tag to replace `ActionOutput`
 
+EXPERIENCE_MASK = "<experience>"
+
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"

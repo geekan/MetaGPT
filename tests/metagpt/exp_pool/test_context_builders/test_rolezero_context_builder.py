@@ -1,5 +1,6 @@
 import pytest
 
+from metagpt.const import EXPERIENCE_MASK
 from metagpt.exp_pool.context_builders.base import BaseContextBuilder
 from metagpt.exp_pool.context_builders.role_zero import RoleZeroContextBuilder
 
@@ -36,7 +37,7 @@ class TestRoleZeroContextBuilder:
         context_builder.fill_experience.assert_called_once_with("Original text", "New example content")
 
     def test_fill_experience(self):
-        text = "Start\n# Past Experience\n<experience>\n\n# Instruction\nEnd"
+        text = f"Start\n# Past Experience\n{EXPERIENCE_MASK}\n\n# Instruction\nEnd"
         new_content = "New content"
         result = RoleZeroContextBuilder.fill_experience(text, new_content)
         expected = "Start\n# Past Experience\nNew content\n\n# Instruction\nEnd"
