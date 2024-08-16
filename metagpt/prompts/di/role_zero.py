@@ -218,3 +218,22 @@ QUICK_RESPONSE_SYSTEM_PROMPT = """
 {role_info}
 However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
 """
+
+REPORT_TO_HUMAN_PROMPT = """
+# Current Plan
+{plan_status}
+
+Your have just finish a task, Use "RoleZero.reply_to_human" to report what you have done.
+The output format is :
+```json
+[
+    {{
+        "command_name": "RoleZero.reply_to_human",
+        "args": {{
+            "content": ""
+        }}
+    }}
+]
+```
+
+"""
