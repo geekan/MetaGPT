@@ -114,6 +114,11 @@ class Ai21Provider(BaseBedrockProvider):
             )
         return body
 
+    def get_choice_text_from_stream(self, event) -> str:
+        rsp_dict = json.loads(event["chunk"]["bytes"])
+        completions = rsp_dict.get("choices", [{}])[0].get("delta", {}).get("content", "")
+        return completions
+
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         if self.model_type == "j2":
             # See https://docs.ai21.com/reference/j2-complete-ref

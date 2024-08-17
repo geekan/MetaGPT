@@ -2,8 +2,6 @@ from metagpt.logs import logger
 
 # max_tokens for each model
 NOT_SUUPORT_STREAM_MODELS = {
-    # Jamba-Instruct
-    "ai21.jamba-instruct-v1:0": 256000,
     # Jurassic-2 Mid-v1 and Ultra-v1
     # + Legacy date: 2024-04-30 (us-west-2/Oregon)
     # + EOL date: 2024-08-31 (us-west-2/Oregon)
@@ -12,6 +10,8 @@ NOT_SUUPORT_STREAM_MODELS = {
 }
 
 SUPPORT_STREAM_MODELS = {
+    # Jamba-Instruct
+    "ai21.jamba-instruct-v1:0": 256000,
     # Titan Text Large
     "amazon.titan-tg1-large": 8000,
     # Titan Text G1 - Express
