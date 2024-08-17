@@ -1,7 +1,7 @@
 from metagpt.logs import logger
 
 # max_tokens for each model
-NOT_SUUPORT_STREAM_MODELS = {
+NOT_SUPPORT_STREAM_MODELS = {
     # Jurassic-2 Mid-v1 and Ultra-v1
     # + Legacy date: 2024-04-30 (us-west-2/Oregon)
     # + EOL date: 2024-08-31 (us-west-2/Oregon)
@@ -11,72 +11,72 @@ NOT_SUUPORT_STREAM_MODELS = {
 
 SUPPORT_STREAM_MODELS = {
     # Jamba-Instruct
-    "ai21.jamba-instruct-v1:0": 256000,
+    "ai21.jamba-instruct-v1:0": 4096,
+    # Titan Text G1 - Express
+    "amazon.titan-text-express-v1": 8192,
+    "amazon.titan-text-express-v1:0:8k": 8192,
+    # Titan Text G1 - Lite
+    "amazon.titan-text-lite-v1:0:4k": 4096,
+    "amazon.titan-text-lite-v1": 4096,
+    # Titan Text Premier
+    "amazon.titan-text-premier-v1:0": 3072,
+    "amazon.titan-text-premier-v1:0:32k": 3072,
     # Titan Text Large
     "amazon.titan-tg1-large": 8000,
-    # Titan Text G1 - Express
-    "amazon.titan-text-express-v1": 8000,
-    "amazon.titan-text-express-v1:0:8k": 8000,
-    # Titan Text G1 - Lite
-    "amazon.titan-text-lite-v1:0:4k": 4000,
-    "amazon.titan-text-lite-v1": 4000,
-    # Titan Text Premier
-    "amazon.titan-text-premier-v1:0": 32000,
-    "amazon.titan-text-premier-v1:0:32k": 32000,
     # Claude Instant v1
-    "anthropic.claude-instant-v1": 100000,
-    "anthropic.claude-instant-v1:2:100k": 100000,
+    "anthropic.claude-instant-v1": 4096,
+    "anthropic.claude-instant-v1:2:100k": 4096,
     # Claude v2
-    "anthropic.claude-v2": 100000,
-    "anthropic.claude-v2:0:18k": 18000,
-    "anthropic.claude-v2:0:100k": 100000,
+    "anthropic.claude-v2": 4096,
+    "anthropic.claude-v2:0:18k": 4096,
+    "anthropic.claude-v2:0:100k": 4096,
     # Claude v2.1
-    "anthropic.claude-v2:1": 200000,
-    "anthropic.claude-v2:1:18k": 18000,
-    "anthropic.claude-v2:1:200k": 200000,
+    "anthropic.claude-v2:1": 4096,
+    "anthropic.claude-v2:1:18k": 4096,
+    "anthropic.claude-v2:1:200k": 4096,
     # Claude 3 Sonnet
-    "anthropic.claude-3-sonnet-20240229-v1:0": 200000,
-    "anthropic.claude-3-sonnet-20240229-v1:0:28k": 28000,
-    "anthropic.claude-3-sonnet-20240229-v1:0:200k": 200000,
+    "anthropic.claude-3-sonnet-20240229-v1:0": 4096,
+    "anthropic.claude-3-sonnet-20240229-v1:0:28k": 4096,
+    "anthropic.claude-3-sonnet-20240229-v1:0:200k": 4096,
     # Claude 3 Haiku
-    "anthropic.claude-3-haiku-20240307-v1:0": 200000,
-    "anthropic.claude-3-haiku-20240307-v1:0:48k": 48000,
-    "anthropic.claude-3-haiku-20240307-v1:0:200k": 200000,
+    "anthropic.claude-3-haiku-20240307-v1:0": 4096,
+    "anthropic.claude-3-haiku-20240307-v1:0:48k": 4096,
+    "anthropic.claude-3-haiku-20240307-v1:0:200k": 4096,
     # Claude 3 Opus
-    "anthropic.claude-3-opus-20240229-v1:0": 200000,
+    "anthropic.claude-3-opus-20240229-v1:0": 4096,
     # Claude 3.5 Sonnet
-    "anthropic.claude-3-5-sonnet-20240620-v1:0": 200000,
+    "anthropic.claude-3-5-sonnet-20240620-v1:0": 8192,
     # Command Text
-    "cohere.command-text-v14": 4000,
-    "cohere.command-text-v14:7:4k": 4000,
+    "cohere.command-text-v14": 4096,
+    "cohere.command-text-v14:7:4k": 4096,
     # Command Light Text
-    "cohere.command-light-text-v14": 4000,
-    "cohere.command-light-text-v14:7:4k": 4000,
+    "cohere.command-light-text-v14": 4096,
+    "cohere.command-light-text-v14:7:4k": 4096,
     # Command R
-    "cohere.command-r-v1:0": 128000,
+    "cohere.command-r-v1:0": 4096,
     # Command R+
-    "cohere.command-r-plus-v1:0": 128000,
+    "cohere.command-r-plus-v1:0": 4096,
     # Llama 2 (--> Llama 3/3.1) !!!
     # + Legacy: 2024-05-12
     # + EOL: 2024-10-30
-    "meta.llama2-13b-chat-v1": 2000,
-    "meta.llama2-13b-chat-v1:0:4k": 4000,
-    "meta.llama2-70b-v1": 4000,
-    "meta.llama2-70b-v1:0:4k": 4000,
-    "meta.llama2-70b-chat-v1": 2000,
-    "meta.llama2-70b-chat-v1:0:4k": 2000,
+    "meta.llama2-13b-chat-v1": 2048,
+    "meta.llama2-13b-chat-v1:0:4k": 2048,
+    "meta.llama2-70b-v1": 2048,
+    "meta.llama2-70b-v1:0:4k": 2048,
+    "meta.llama2-70b-chat-v1": 2048,
+    "meta.llama2-70b-chat-v1:0:4k": 2048,
     # Llama 3 8B Instruct
-    "meta.llama3-8b-instruct-v1:0": 2000,
+    "meta.llama3-8b-instruct-v1:0": 2048,
     # Llama 3 70B Instruct
-    "meta.llama3-70b-instruct-v1:0": 2000,
+    "meta.llama3-70b-instruct-v1:0": 2048,
     # Mistral 7B Instruct
-    "mistral.mistral-7b-instruct-v0:2": 32000,
+    "mistral.mistral-7b-instruct-v0:2": 8192,
     # Mixtral 8x7B Instruct
-    "mistral.mixtral-8x7b-instruct-v0:1": 32000,
+    "mistral.mixtral-8x7b-instruct-v0:1": 8192,
     # Mistral Large (24.02)
-    "mistral.mistral-large-2402-v1:0": 32000,
+    "mistral.mistral-large-2402-v1:0": 8192,
     # Mistral Large 2 (24.07)
-    "mistral.mistral-large-2407-v1:0": 128000
+    "mistral.mistral-large-2407-v1:0": 8192
 }
 
 # TODO:use a more general function for constructing chat templates.
@@ -136,7 +136,7 @@ def messages_to_prompt_claude2(messages: list[dict]) -> str:
 
 def get_max_tokens(model_id: str) -> int:
     try:
-        max_tokens = (NOT_SUUPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
+        max_tokens = (NOT_SUPPORT_STREAM_MODELS | SUPPORT_STREAM_MODELS)[model_id]
     except KeyError:
         logger.warning(f"Couldn't find model:{model_id} , max tokens has been set to 2048")
         max_tokens = 2048

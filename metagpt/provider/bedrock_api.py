@@ -12,7 +12,7 @@ from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.bedrock.bedrock_provider import get_provider
-from metagpt.provider.bedrock.utils import NOT_SUUPORT_STREAM_MODELS, get_max_tokens
+from metagpt.provider.bedrock.utils import NOT_SUPPORT_STREAM_MODELS, get_max_tokens
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.token_counter import BEDROCK_TOKEN_COSTS
@@ -25,7 +25,7 @@ class BedrockLLM(BaseLLM):
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(self.config.model)
         self.cost_manager = CostManager(token_costs=BEDROCK_TOKEN_COSTS)
-        if self.config.model in NOT_SUUPORT_STREAM_MODELS:
+        if self.config.model in NOT_SUPPORT_STREAM_MODELS:
             logger.warning(f"model {self.config.model} doesn't support streaming output!")
 
     def __init_client(self, service_name: Literal["bedrock-runtime", "bedrock"]):
@@ -113,7 +113,7 @@ class BedrockLLM(BaseLLM):
         return await self.acompletion(messages)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
-        if self.config.model in NOT_SUUPORT_STREAM_MODELS:
+        if self.config.model in NOT_SUPPORT_STREAM_MODELS:
             rsp = await self.acompletion(messages)
             full_text = self.get_choice_text(rsp)
             log_llm_stream(full_text)
