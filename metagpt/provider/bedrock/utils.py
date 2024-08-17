@@ -72,7 +72,9 @@ SUPPORT_STREAM_MODELS = {
     # Mistral 7B Instruct
     "mistral.mistral-7b-instruct-v0:2": 8192,
     # Mixtral 8x7B Instruct
-    "mistral.mixtral-8x7b-instruct-v0:1": 8192,
+    "mistral.mixtral-8x7b-instruct-v0:1": 4096,
+    # Mistral Small
+    "mistral.mistral-small-2402-v1:0": 8192,
     # Mistral Large (24.02)
     "mistral.mistral-large-2402-v1:0": 8192,
     # Mistral Large 2 (24.07)
