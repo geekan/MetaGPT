@@ -19,9 +19,7 @@ from metagpt.rag.schema import (
 )
 from metagpt.utils.exceptions import handle_exception
 from metagpt.rag.query_analysis.simple_query_transformer import SimpleQueryTransformer
-from metagpt.rag.query_analysis.HyDE import HyDEQuery
-
-
+from metagpt.rag.query_analysis.hyde import HyDEQuery
 
 LLM_TIP = "If you not sure, just answer I don't know."
 

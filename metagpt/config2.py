@@ -12,7 +12,6 @@ from typing import Dict, Iterable, List, Literal, Optional
 from pydantic import BaseModel, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
-from metagpt.configs.embedding_config import EmbeddingConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
 from metagpt.configs.redis_config import RedisConfig
@@ -21,6 +20,7 @@ from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.utils.yaml_model import YamlModel
+from MetaGPT.metagpt.configs.rag_config import RAGConfig
 
 
 class CLIParams(BaseModel):
@@ -48,8 +48,8 @@ class Config(CLIParams, YamlModel):
     # Key Parameters
     llm: LLMConfig
 
-    # RAG Embedding
-    embedding: EmbeddingConfig = EmbeddingConfig()
+    # RAG
+    rag: RAGConfig = RAGConfig()
 
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""

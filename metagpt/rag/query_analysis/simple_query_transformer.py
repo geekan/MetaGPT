@@ -1,4 +1,3 @@
-from llama_index.core.base.response.schema import RESPONSE_TYPE
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.indices.query.query_transform.base import BaseQueryTransform
 from llama_index.core.query_engine import TransformQueryEngine, BaseQueryEngine
