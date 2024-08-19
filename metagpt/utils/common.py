@@ -1090,7 +1090,7 @@ def tool2name(cls, methods: List[str], entry) -> Dict[str, Any]:
     return mappings
 
 
-def new_tid(postfix_len=8) -> str:
+def new_transaction_id(postfix_len=8) -> str:
     """
     Generates a new unique transaction ID based on current timestamp and a random UUID.
 

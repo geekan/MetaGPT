@@ -9,7 +9,7 @@
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.utils.common import check_cmd_exists, new_tid
+from metagpt.utils.common import check_cmd_exists, new_transaction_id
 from metagpt.utils.mermaid import MMC1, mermaid_to_file
 
 
@@ -23,7 +23,7 @@ async def test_mermaid(engine, suffixes, context, mermaid_mocker):
     # playwright prerequisites: playwright install --with-deps chromium
     assert check_cmd_exists("npm") == 0
 
-    save_to = DEFAULT_WORKSPACE_ROOT / f"{new_tid()}/{engine}/1"
+    save_to = DEFAULT_WORKSPACE_ROOT / f"{new_transaction_id()}/{engine}/1"
     await mermaid_to_file(engine, MMC1, save_to, suffixes=suffixes)
 
     # ink does not support pdf
