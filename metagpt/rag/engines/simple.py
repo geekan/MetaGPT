@@ -27,6 +27,8 @@ from llama_index.core.schema import (
     QueryType,
     TransformComponent,
 )
+from llama_index.core.query_engine import TransformQueryEngine
+from llama_index.legacy.indices.query.query_transform.base import BaseQueryTransform
 
 from metagpt.rag.factories import (
     get_index,
@@ -58,12 +60,12 @@ class SimpleEngine(RetrieverQueryEngine):
     """
 
     def __init__(
-        self,
-        retriever: BaseRetriever,
-        response_synthesizer: Optional[BaseSynthesizer] = None,
-        node_postprocessors: Optional[list[BaseNodePostprocessor]] = None,
-        callback_manager: Optional[CallbackManager] = None,
-        transformations: Optional[list[TransformComponent]] = None,
+            self,
+            retriever: BaseRetriever,
+            response_synthesizer: Optional[BaseSynthesizer] = None,
+            node_postprocessors: Optional[list[BaseNodePostprocessor]] = None,
+            callback_manager: Optional[CallbackManager] = None,
+            transformations: Optional[list[TransformComponent]] = None,
     ) -> None:
         super().__init__(
             retriever=retriever,
@@ -75,14 +77,14 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @classmethod
     def from_docs(
-        cls,
-        input_dir: str = None,
-        input_files: list[str] = None,
-        transformations: Optional[list[TransformComponent]] = None,
-        embed_model: BaseEmbedding = None,
-        llm: LLM = None,
-        retriever_configs: list[BaseRetrieverConfig] = None,
-        ranker_configs: list[BaseRankerConfig] = None,
+            cls,
+            input_dir: str = None,
+            input_files: list[str] = None,
+            transformations: Optional[list[TransformComponent]] = None,
+            embed_model: BaseEmbedding = None,
+            llm: LLM = None,
+            retriever_configs: list[BaseRetrieverConfig] = None,
+            ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         """From docs.
 
@@ -117,13 +119,13 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @classmethod
     def from_objs(
-        cls,
-        objs: Optional[list[RAGObject]] = None,
-        transformations: Optional[list[TransformComponent]] = None,
-        embed_model: BaseEmbedding = None,
-        llm: LLM = None,
-        retriever_configs: list[BaseRetrieverConfig] = None,
-        ranker_configs: list[BaseRankerConfig] = None,
+            cls,
+            objs: Optional[list[RAGObject]] = None,
+            transformations: Optional[list[TransformComponent]] = None,
+            embed_model: BaseEmbedding = None,
+            llm: LLM = None,
+            retriever_configs: list[BaseRetrieverConfig] = None,
+            ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         """From objs.
 
@@ -154,12 +156,12 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @classmethod
     def from_index(
-        cls,
-        index_config: BaseIndexConfig,
-        embed_model: BaseEmbedding = None,
-        llm: LLM = None,
-        retriever_configs: list[BaseRetrieverConfig] = None,
-        ranker_configs: list[BaseRankerConfig] = None,
+            cls,
+            index_config: BaseIndexConfig,
+            embed_model: BaseEmbedding = None,
+            llm: LLM = None,
+            retriever_configs: list[BaseRetrieverConfig] = None,
+            ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         """Load from previously maintained index by self.persist(), index_config contains persis_path."""
         index = get_index(index_config, embed_model=cls._resolve_embed_model(embed_model, [index_config]))
@@ -209,13 +211,13 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @classmethod
     def _from_nodes(
-        cls,
-        nodes: list[BaseNode],
-        transformations: Optional[list[TransformComponent]] = None,
-        embed_model: BaseEmbedding = None,
-        llm: LLM = None,
-        retriever_configs: list[BaseRetrieverConfig] = None,
-        ranker_configs: list[BaseRankerConfig] = None,
+            cls,
+            nodes: list[BaseNode],
+            transformations: Optional[list[TransformComponent]] = None,
+            embed_model: BaseEmbedding = None,
+            llm: LLM = None,
+            retriever_configs: list[BaseRetrieverConfig] = None,
+            ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
         llm = llm or get_rag_llm()
@@ -232,11 +234,11 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @classmethod
     def _from_index(
-        cls,
-        index: BaseIndex,
-        llm: LLM = None,
-        retriever_configs: list[BaseRetrieverConfig] = None,
-        ranker_configs: list[BaseRankerConfig] = None,
+            cls,
+            index: BaseIndex,
+            llm: LLM = None,
+            retriever_configs: list[BaseRetrieverConfig] = None,
+            ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         llm = llm or get_rag_llm()
 
@@ -301,3 +303,5 @@ class SimpleEngine(RetrieverQueryEngine):
     @staticmethod
     def _default_transformations():
         return [SentenceSplitter()]
+
+
