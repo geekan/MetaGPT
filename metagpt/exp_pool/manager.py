@@ -128,12 +128,13 @@ class ExperienceManager(BaseModel):
         persist_path = Path(self.config.exp_pool.persist_path)
         docstore_path = persist_path / "docstore.json"
 
+        ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+
         if not docstore_path.exists():
             logger.debug(f"Path `{docstore_path}` not exists, try to create a new bm25 storage.")
             exps = [Experience(req="req", resp="resp")]
 
-            retriever_configs = [BM25RetrieverConfig(create_index=True)]
-            ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+            retriever_configs = [BM25RetrieverConfig(create_index=True, similarity_top_k=DEFAULT_SIMILARITY_TOP_K)]
 
             storage = SimpleEngine.from_objs(
                 objs=exps, retriever_configs=retriever_configs, ranker_configs=ranker_configs
@@ -141,8 +142,11 @@ class ExperienceManager(BaseModel):
             return storage
 
         logger.debug(f"Path `{docstore_path}` exists, try to load bm25 storage.")
+        retriever_configs = [BM25RetrieverConfig(similarity_top_k=DEFAULT_SIMILARITY_TOP_K)]
         storage = SimpleEngine.from_index(
-            BM25IndexConfig(persist_path=persist_path), retriever_configs=[BM25RetrieverConfig()]
+            BM25IndexConfig(persist_path=persist_path),
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
         )
 
         return storage
