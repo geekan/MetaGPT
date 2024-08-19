@@ -37,7 +37,11 @@ from metagpt.rag.factories import (
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
-from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
+from metagpt.rag.retrievers.base import (
+    ModifiableRAGRetriever,
+    PersistableRAGRetriever,
+    QueryableRAGRetriever,
+)
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
     BaseIndexConfig,
@@ -144,7 +148,7 @@ class SimpleEngine(RetrieverQueryEngine):
         if not objs and any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
             raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
-        nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
+        nodes = cls.get_obj_nodes(objs)
 
         return cls._from_nodes(
             nodes=nodes,
@@ -201,7 +205,7 @@ class SimpleEngine(RetrieverQueryEngine):
         """Adds objects to the retriever, storing each object's original form in metadata for future reference."""
         self._ensure_retriever_modifiable()
 
-        nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
+        nodes = self.get_obj_nodes(objs)
         self._save_nodes(nodes)
 
     def persist(self, persist_dir: Union[str, os.PathLike], **kwargs):
@@ -209,6 +213,18 @@ class SimpleEngine(RetrieverQueryEngine):
         self._ensure_retriever_persistable()
 
         self._persist(str(persist_dir), **kwargs)
+
+    def count(self) -> int:
+        """Count."""
+        self._ensure_retriever_queryable()
+
+        return self._retriever.query_total_count()
+
+    @staticmethod
+    def get_obj_nodes(objs: Optional[list[RAGObject]] = None) -> list[ObjectNode]:
+        """Converts a list of RAGObjects to a list of ObjectNodes."""
+
+        return [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
 
     @classmethod
     def _from_nodes(
@@ -257,6 +273,9 @@ class SimpleEngine(RetrieverQueryEngine):
 
     def _ensure_retriever_persistable(self):
         self._ensure_retriever_of_type(PersistableRAGRetriever)
+
+    def _ensure_retriever_queryable(self):
+        self._ensure_retriever_of_type(QueryableRAGRetriever)
 
     def _ensure_retriever_of_type(self, required_type: BaseRetriever):
         """Ensure that self.retriever is required_type, or at least one of its components, if it's a SimpleHybridRetriever.

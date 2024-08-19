@@ -7,6 +7,7 @@ import chromadb
 import faiss
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.embeddings.mock_embed_model import MockEmbedding
 from llama_index.core.schema import BaseNode
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -84,6 +85,12 @@ class RetrieverFactory(ConfigBasedFactory):
     def _create_bm25_retriever(self, config: BM25RetrieverConfig, **kwargs) -> DynamicBM25Retriever:
         index = self._extract_index(config, **kwargs)
         nodes = list(index.docstore.docs.values()) if index else self._extract_nodes(config, **kwargs)
+
+        if index and not config.index:
+            config.index = index
+
+        if not config.index and config.create_index:
+            config.index = VectorStoreIndex(nodes, embed_model=MockEmbedding(embed_dim=1))
 
         return DynamicBM25Retriever(nodes=nodes, **config.model_dump())
 

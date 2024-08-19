@@ -47,3 +47,8 @@ class DynamicBM25Retriever(BM25Retriever):
         """Support persist."""
         if self._index:
             self._index.storage_context.persist(persist_dir)
+
+    def query_total_count(self) -> int:
+        """Support query total count."""
+
+        return len(self._nodes)

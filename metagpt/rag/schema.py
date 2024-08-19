@@ -60,6 +60,11 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
 class BM25RetrieverConfig(IndexRetrieverConfig):
     """Config for BM25-based retrievers."""
 
+    create_index: bool = Field(
+        default=False,
+        description="Indicates whether to create an index for the nodes. It is useful when you need to persist data while only using BM25.",
+        exclude=True,
+    )
     _no_embedding: bool = PrivateAttr(default=True)
 
 
