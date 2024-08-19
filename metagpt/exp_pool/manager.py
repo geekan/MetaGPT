@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
-from metagpt.configs.exp_pool_config import ExperiencePoolStorageType
+from metagpt.configs.exp_pool_config import ExperiencePoolRetrievalType
 from metagpt.exp_pool.schema import (
     DEFAULT_COLLECTION_NAME,
     DEFAULT_SIMILARITY_TOP_K,
@@ -95,11 +95,11 @@ class ExperienceManager(BaseModel):
         """Selects the appropriate storage creation method based on the configured storage type."""
 
         storage_creators = {
-            ExperiencePoolStorageType.BM25: self._create_bm25_storage,
-            ExperiencePoolStorageType.CHROMA: self._create_chroma_storage,
+            ExperiencePoolRetrievalType.BM25: self._create_bm25_storage,
+            ExperiencePoolRetrievalType.CHROMA: self._create_chroma_storage,
         }
 
-        return storage_creators[self.config.exp_pool.storage_type]()
+        return storage_creators[self.config.exp_pool.retrieval_type]()
 
     def _create_bm25_storage(self) -> "SimpleEngine":
         """Creates or loads BM25 storage.
@@ -116,8 +116,6 @@ class ExperienceManager(BaseModel):
         """
 
         try:
-            from llama_index.core import VectorStoreIndex
-
             from metagpt.rag.engines import SimpleEngine
             from metagpt.rag.schema import (
                 BM25IndexConfig,
@@ -133,11 +131,8 @@ class ExperienceManager(BaseModel):
         if not docstore_path.exists():
             logger.debug(f"Path `{docstore_path}` not exists, try to create a new bm25 storage.")
             exps = [Experience(req="req", resp="resp")]
-            nodes = SimpleEngine.get_obj_nodes(exps)
-            embed_model = SimpleEngine._resolve_embed_model(configs=[BM25RetrieverConfig()])
-            index = VectorStoreIndex(nodes, embed_model=embed_model)
 
-            retriever_configs = [BM25RetrieverConfig(index=index)]
+            retriever_configs = [BM25RetrieverConfig(create_index=True)]
             ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
 
             storage = SimpleEngine.from_objs(

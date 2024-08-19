@@ -3,7 +3,7 @@ import pytest
 from metagpt.config2 import Config
 from metagpt.configs.exp_pool_config import (
     ExperiencePoolConfig,
-    ExperiencePoolStorageType,
+    ExperiencePoolRetrievalType,
 )
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.exp_pool.manager import Experience, ExperienceManager
@@ -16,7 +16,7 @@ class TestExperienceManager:
         return Config(
             llm=LLMConfig(),
             exp_pool=ExperiencePoolConfig(
-                enable_write=True, enable_read=True, enabled=True, storage_type=ExperiencePoolStorageType.BM25
+                enable_write=True, enable_read=True, enabled=True, retrieval_type=ExperiencePoolRetrievalType.BM25
             ),
         )
 
@@ -96,7 +96,7 @@ class TestExperienceManager:
         assert exp_manager.get_exps_count() == 10
 
     def test_resolve_storage_bm25(self, mocker, mock_config):
-        mock_config.exp_pool.storage_type = ExperiencePoolStorageType.BM25
+        mock_config.exp_pool.retrieval_type = ExperiencePoolRetrievalType.BM25
         mocker.patch.object(ExperienceManager, "_create_bm25_storage", return_value=mocker.MagicMock())
         manager = ExperienceManager(config=mock_config)
         storage = manager._resolve_storage()
@@ -104,7 +104,7 @@ class TestExperienceManager:
         assert storage is not None
 
     def test_resolve_storage_chroma(self, mocker, mock_config):
-        mock_config.exp_pool.storage_type = ExperiencePoolStorageType.CHROMA
+        mock_config.exp_pool.retrieval_type = ExperiencePoolRetrievalType.CHROMA
         mocker.patch.object(ExperienceManager, "_create_chroma_storage", return_value=mocker.MagicMock())
         manager = ExperienceManager(config=mock_config)
         storage = manager._resolve_storage()

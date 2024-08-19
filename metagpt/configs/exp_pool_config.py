@@ -5,7 +5,7 @@ from pydantic import Field
 from metagpt.utils.yaml_model import YamlModel
 
 
-class ExperiencePoolStorageType(Enum):
+class ExperiencePoolRetrievalType(Enum):
     BM25 = "bm25"
     CHROMA = "chroma"
 
@@ -18,6 +18,6 @@ class ExperiencePoolConfig(YamlModel):
     enable_read: bool = Field(default=False, description="Enable to read from experience pool.")
     enable_write: bool = Field(default=False, description="Enable to write to experience pool.")
     persist_path: str = Field(default=".chroma_exp_data", description="The persist path for experience pool.")
-    storage_type: ExperiencePoolStorageType = Field(
-        default=ExperiencePoolStorageType.BM25, description="The storage type for experience pool."
+    retrieval_type: ExperiencePoolRetrievalType = Field(
+        default=ExperiencePoolRetrievalType.BM25, description="The retrieval type for experience pool."
     )
