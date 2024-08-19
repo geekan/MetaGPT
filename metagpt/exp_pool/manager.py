@@ -92,7 +92,7 @@ class ExperienceManager(BaseModel):
         return self.storage.count()
 
     def _resolve_storage(self) -> "SimpleEngine":
-        """Selects the appropriate storage creation method based on the configured storage type."""
+        """Selects the appropriate storage creation method based on the configured retrieval type."""
 
         storage_creators = {
             ExperiencePoolRetrievalType.BM25: self._create_bm25_storage,
