@@ -1,7 +1,8 @@
+from typing import Optional
+
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.indices.query.query_transform.base import BaseQueryTransform
-from llama_index.core.query_engine import TransformQueryEngine, BaseQueryEngine
-from typing import List, Optional, Sequence
+from llama_index.core.query_engine import TransformQueryEngine
 
 from metagpt.rag.engines.simple import SimpleEngine
 
@@ -19,15 +20,15 @@ class SimpleQueryTransformer(TransformQueryEngine):
     """
 
     def __init__(
-            self,
-            query_engine: SimpleEngine,
-            query_transform: BaseQueryTransform,
-            transform_metadata: Optional[dict] = None,
-            callback_manager: Optional[CallbackManager] = None,
+        self,
+        query_engine: SimpleEngine,
+        query_transform: BaseQueryTransform,
+        transform_metadata: Optional[dict] = None,
+        callback_manager: Optional[CallbackManager] = None,
     ) -> None:
         super().__init__(
             query_engine=query_engine,
             query_transform=query_transform,
             transform_metadata=transform_metadata,
-            callback_manager=callback_manager
+            callback_manager=callback_manager,
         )

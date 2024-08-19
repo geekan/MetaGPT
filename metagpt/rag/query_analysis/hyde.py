@@ -1,13 +1,14 @@
 from typing import Any, Dict, Optional
-from llama_index.core.llms import LLM
+
 from llama_index.core.indices.query.query_transform import HyDEQueryTransform
+from llama_index.core.prompts import BasePromptTemplate
 from llama_index.core.prompts.default_prompts import DEFAULT_HYDE_PROMPT
 from llama_index.core.schema import QueryBundle
-from llama_index.core.prompts import BasePromptTemplate
 from llama_index.core.service_context_elements.llm_predictor import LLMPredictorType
+
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.rag.factories import get_rag_llm
-from metagpt.config2 import config
 
 
 class HyDEQuery(HyDEQueryTransform):

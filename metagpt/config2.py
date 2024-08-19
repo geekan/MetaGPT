@@ -19,8 +19,8 @@ from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
-from metagpt.utils.yaml_model import YamlModel
 from MetaGPT.metagpt.configs.rag_config import RAGConfig
+from metagpt.utils.yaml_model import YamlModel
 
 
 class CLIParams(BaseModel):

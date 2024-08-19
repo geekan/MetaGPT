@@ -2,12 +2,13 @@
 
 import asyncio
 
-from llama_index.core.query_engine import TransformQueryEngine
 from pydantic import BaseModel
 
 from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.query_analysis.hyde import HyDEQuery
+from metagpt.rag.query_analysis.simple_query_transformer import SimpleQueryTransformer
 from metagpt.rag.schema import (
     ChromaIndexConfig,
     ChromaRetrieverConfig,
@@ -18,8 +19,6 @@ from metagpt.rag.schema import (
     LLMRankerConfig,
 )
 from metagpt.utils.exceptions import handle_exception
-from metagpt.rag.query_analysis.simple_query_transformer import SimpleQueryTransformer
-from metagpt.rag.query_analysis.hyde import HyDEQuery
 
 LLM_TIP = "If you not sure, just answer I don't know."
 

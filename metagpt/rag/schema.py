@@ -48,7 +48,10 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
             self.dimensions = config.rag.embedding.dimensions or self._embedding_type_to_dimensions.get(
                 config.rag.embedding.api_type, 1536
             )
-            if not config.rag.embedding.dimensions and config.rag.embedding.api_type not in self._embedding_type_to_dimensions:
+            if (
+                not config.rag.embedding.dimensions
+                and config.rag.embedding.api_type not in self._embedding_type_to_dimensions
+            ):
                 logger.warning(
                     f"You didn't set dimensions in config when using {config.rag.embedding.api_type}, default to 1536"
                 )
