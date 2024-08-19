@@ -19,6 +19,7 @@ __all__ = [
     "read_docx",
     "Singleton",
     "TOKEN_COSTS",
+    "new_tid",
     "count_message_tokens",
     "count_string_tokens",
 ]

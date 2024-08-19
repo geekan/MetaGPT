@@ -26,6 +26,7 @@ import re
 import sys
 import time
 import traceback
+import uuid
 from asyncio import iscoroutinefunction
 from datetime import datetime
 from functools import partial
@@ -1087,6 +1088,19 @@ def tool2name(cls, methods: List[str], entry) -> Dict[str, Any]:
     if len(mappings) < 2:
         mappings[class_name] = entry
     return mappings
+
+
+def new_tid(postfix_len=8) -> str:
+    """
+    Generates a new unique transaction ID based on current timestamp and a random UUID.
+
+    Args:
+        postfix_len (int): Length of the random UUID postfix to include in the transaction ID. Default is 8.
+
+    Returns:
+        str: A unique transaction ID composed of timestamp and a random UUID.
+    """
+    return datetime.now().strftime("%Y%m%d%H%M%ST") + uuid.uuid4().hex[0:postfix_len]
 
 
 def log_time(method):
