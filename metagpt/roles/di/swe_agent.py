@@ -69,11 +69,10 @@ class SWEAgent(RoleZero):
 
         This function is specifically added for SWE bench evaluation.
         """
-        # only import when evaluation is needed
+        # If todo switches to None, it indicates that this is the final round of reactions, and the Swe-Agent will stop. Use git diff to store any changes made.
         if not self.rc.todo:
             from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
 
-            # swe agent have been stop. it means  'end' or other command which can stop the swe agent have been executed
             try:
                 diff_output = await self.terminal.run("git diff --cached")
                 clear_diff = extract_patch(diff_output)

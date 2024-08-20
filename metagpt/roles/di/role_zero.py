@@ -28,6 +28,7 @@ from metagpt.prompts.di.role_zero import (
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
+    SUMMARY_PROMPY,
     SYSTEM_PROMPT,
     THOUGHT_GUIDANCE,
 )
@@ -68,6 +69,8 @@ class RoleZero(Role):
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
 
+    # Summary Mode
+    use_summary: bool = True
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
@@ -86,8 +89,6 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
-
-    command_history: list[str] = []
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -247,46 +248,30 @@ class RoleZero(Role):
         logger.info(f"Commands outputs: \n{outputs}")
         self.rc.memory.add(UserMessage(content=outputs))
 
-        # Report what is done when finishing the task.
-        current_command_list = [command["command_name"] for command in commands]
-        self.command_history.extend(current_command_list)
-        if self.check_whether_report_to_human():
-            memory = self.rc.memory.get(self.memory_k)
-            memory = await self.parse_browser_actions(memory)
-            memory = self.parse_images(memory)
-            plan_status, _ = self._get_plan_status()
-            prompt = REPORT_TO_HUMAN_PROMPT.format(plan_status=plan_status)
-            req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
-            respond_command = await self.llm.aask(msg=req)
-            commands, ok = await self._parse_commands(respond_command)
-            if ok and len(commands) == 1 and commands[0]["command_name"] == "RoleZero.reply_to_human":
-                cmd = commands[0]
-                report_result = await self.reply_to_human(cmd["args"])
-                self.rc.memory.add(AIMessage(content=respond_command))
-                self.rc.memory.add(UserMessage(content=report_result))
-                self.command_history.append("RoleZero.reply_to_human")
-                logger.info(f"Commands outputs: \n{report_result}")
-                outputs += report_result
+        if any(["end" == command["command_name"] for command in commands]):
+            # Ensure reply to the human before the "end" command is executed.
+            if all(["reply_to_human" not in memory.content for memory in self.get_memories(k=5)]):
+                memory = self.rc.memory.get(self.memory_k)
+                reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
+                    requirements_constraints=self.requirements_constraints,
+                )
+                reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
+                await self.reply_to_human(content=reply_content)
+                self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
+
+            # Summary of the Completed Task and Deliverables
+            if self.use_summary:
+                memory = self.rc.memory.get(self.memory_k)
+                summary_prompt = SUMMARY_PROMPY.format(
+                    requirements_constraints=self.requirements_constraints,
+                )
+                outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
 
         return AIMessage(
             content=f"I have finished the task, please mark my task as finished. Outputs: {outputs}",
             sent_from=self.name,
             cause_by=RunCommand,
         )
-
-    def check_whether_report_to_human(self):
-        """ "Check whether add reply to human command when finish current task"""
-        interaction_with_human = ["RoleZero.ask_human", "RoleZero.reply_to_human"]
-        plan_end_action = ["Plan.finish_current_task", "end"]
-        flag = 0
-        for command_name in self.command_history[::-1]:
-            if command_name in plan_end_action:
-                flag |= 1
-            elif command_name in interaction_with_human:
-                flag |= 2
-            else:
-                break
-        return flag == 1
 
     async def _react(self) -> Message:
         # NOTE: Diff 1: Each time landing here means news is observed, set todo to allow news processing in _think

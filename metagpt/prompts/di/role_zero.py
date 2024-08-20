@@ -220,20 +220,19 @@ However, you MUST respond to the user message by yourself directly, DON'T ask yo
 """
 
 REPORT_TO_HUMAN_PROMPT = """
-# Current Plan
-{plan_status}
+# Restrictions
+{requirements_constraints}
 
-Your have just finish a task, Use "RoleZero.reply_to_human" to report what you have done.
-The output format is :
-```json
-[
-    {{
-        "command_name": "RoleZero.reply_to_human",
-        "args": {{
-            "content": ""
-        }}
-    }}
-]
-```
+Your have just finish all tasks, Use "RoleZero.reply_to_human" to answer the user requirements.
+Report to human what you have done. Do Not ouput any other format.
+Your reply is:
 
+"""
+SUMMARY_PROMPY = """
+# Restrictions
+{requirements_constraints}
+
+You have just completed some tasks. 
+Summarize the tasks you have accomplished without including detailed information. 
+If there are any deliverables, list their descriptions and provide their file paths.
 """
