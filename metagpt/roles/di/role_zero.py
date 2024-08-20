@@ -300,7 +300,7 @@ class RoleZero(Role):
                     system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
                 )
                 # If the answer contains the substring '[Message] from A to B:', remove it.
-                pattern = r"\[Message\] from .* to .*:\s*"
+                pattern = r"\[Message\] from .+? to .+?:\s*"
                 answer = re.sub(pattern, "", answer, count=1)
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
