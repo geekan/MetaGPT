@@ -180,6 +180,7 @@ class WriteTasks(Action):
     ) -> str:
         context = to_markdown_code_block(user_requirement)
         if design_filename:
+            design_filename = rectify_pathname(path=design_filename, default_filename="system_design.json")
             content = await aread(filename=design_filename)
             context += to_markdown_code_block(content)
 

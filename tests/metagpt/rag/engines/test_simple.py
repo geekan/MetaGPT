@@ -75,7 +75,7 @@ class TestSimpleEngine:
         )
 
         # Assert
-        mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
+        mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files, fs=None)
         mock_get_retriever.assert_called_once()
         mock_get_rankers.assert_called_once()
         mock_get_response_synthesizer.assert_called_once_with(llm=llm)

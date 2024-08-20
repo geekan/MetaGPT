@@ -245,6 +245,7 @@ class WriteDesign(Action):
     ) -> str:
         prd_content = ""
         if prd_filename:
+            prd_filename = rectify_pathname(path=prd_filename, default_filename="prd.json")
             prd_content = await aread(filename=prd_filename)
         context = "### User Requirements\n{user_requirement}\n### Extra_info\n{extra_info}\n### PRD\n{prd}\n".format(
             user_requirement=to_markdown_code_block(user_requirement),

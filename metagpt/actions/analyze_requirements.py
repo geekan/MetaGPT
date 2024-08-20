@@ -24,7 +24,7 @@ Requirements:
 创建一个贪吃蛇，只需要给出设计文档和代码
 Outputs:
 [User Restrictions] : 只需要给出设计文档和代码.
-[Language Restrictions] : The response, message and instruction must be in the language specified by Chinese.
+[Language Restrictions] : The response, message and instruction must be in Chinese.
 [Programming Language] : HTML (*.html), CSS (*.css), and JavaScript (*.js)
 
 Example 2
@@ -32,7 +32,7 @@ Requirements:
 Create 2048 game using Python. Do not write PRD.
 Outputs:
 [User Restrictions] : Do not write PRD.
-[Language Restrictions] : The response, message and instruction must be in the language specified by English.
+[Language Restrictions] : The response, message and instruction must be in English.
 [Programming Language] : Python
 
 Example 3
@@ -40,7 +40,7 @@ Requirements:
 You must ignore create PRD and TRD. Help me write a schedule display program for the Paris Olympics. 
 Outputs:
 [User Restrictions] : You must ignore create PRD and TRD.
-[Language Restrictions] : The response, message and instruction must be in the language specified by English.
+[Language Restrictions] : The response, message and instruction must be in English.
 [Programming Language] : HTML (*.html), CSS (*.css), and JavaScript (*.js)
 """
 
@@ -57,7 +57,7 @@ Note:
 
 OUTPUT_FORMAT = """
 [User Restrictions] : the restrictions in the requirements
-[Language Restrictions] :  The response, message and instruction must be in the language specified by {{language}}
+[Language Restrictions] :  The response, message and instruction must be in {{language}}
 [Programming Language] : Your program must use ...
 """
 

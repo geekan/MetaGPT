@@ -1,10 +1,12 @@
 """Experience Manager."""
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
+from metagpt.configs.exp_pool_config import ExperiencePoolRetrievalType
 from metagpt.exp_pool.schema import (
     DEFAULT_COLLECTION_NAME,
     DEFAULT_SIMILARITY_TOP_K,
@@ -15,7 +17,7 @@ from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
 if TYPE_CHECKING:
-    from llama_index.vector_stores.chroma import ChromaVectorStore
+    from metagpt.rag.engines import SimpleEngine
 
 
 class ExperienceManager(BaseModel):
@@ -32,39 +34,15 @@ class ExperienceManager(BaseModel):
     config: Config = Field(default_factory=Config.default)
 
     _storage: Any = None
-    _vector_store: Any = None
 
     @property
     def storage(self):
         if self._storage is None:
-            try:
-                from metagpt.rag.engines import SimpleEngine
-                from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
-            except ImportError:
-                raise ImportError("To use the experience pool, you need to install the rag module.")
-
-            retriever_configs = [
-                ChromaRetrieverConfig(
-                    persist_path=self.config.exp_pool.persist_path,
-                    collection_name=DEFAULT_COLLECTION_NAME,
-                    similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
-                )
-            ]
-            ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
-
-            self._storage: SimpleEngine = SimpleEngine.from_objs(
-                retriever_configs=retriever_configs, ranker_configs=ranker_configs
-            )
             logger.info(f"exp_pool config: {self.config.exp_pool}")
 
+            self._storage = self._resolve_storage()
+
         return self._storage
-
-    @property
-    def vector_store(self):
-        if not self._vector_store:
-            self._vector_store: ChromaVectorStore = self.storage._retriever._vector_store
-
-        return self._vector_store
 
     @handle_exception
     def create_exp(self, exp: Experience):
@@ -78,6 +56,7 @@ class ExperienceManager(BaseModel):
             return
 
         self.storage.add_objs([exp])
+        self.storage.persist(self.config.exp_pool.persist_path)
 
     @handle_exception(default_return=[])
     async def query_exps(self, req: str, tag: str = "", query_type: QueryType = QueryType.SEMANTIC) -> list[Experience]:
@@ -110,7 +89,106 @@ class ExperienceManager(BaseModel):
     def get_exps_count(self) -> int:
         """Get the total number of experiences."""
 
-        return self.vector_store._collection.count()
+        return self.storage.count()
+
+    def _resolve_storage(self) -> "SimpleEngine":
+        """Selects the appropriate storage creation method based on the configured retrieval type."""
+
+        storage_creators = {
+            ExperiencePoolRetrievalType.BM25: self._create_bm25_storage,
+            ExperiencePoolRetrievalType.CHROMA: self._create_chroma_storage,
+        }
+
+        return storage_creators[self.config.exp_pool.retrieval_type]()
+
+    def _create_bm25_storage(self) -> "SimpleEngine":
+        """Creates or loads BM25 storage.
+
+        This function attempts to create a new BM25 storage if the specified
+        document store path does not exist. If the path exists, it loads the
+        existing BM25 storage.
+
+        Returns:
+            SimpleEngine: An instance of SimpleEngine configured with BM25 storage.
+
+        Raises:
+            ImportError: If required modules are not installed.
+        """
+
+        try:
+            from metagpt.rag.engines import SimpleEngine
+            from metagpt.rag.schema import BM25IndexConfig, BM25RetrieverConfig
+        except ImportError:
+            raise ImportError("To use the experience pool, you need to install the rag module.")
+
+        persist_path = Path(self.config.exp_pool.persist_path)
+        docstore_path = persist_path / "docstore.json"
+
+        ranker_configs = self._get_ranker_configs()
+
+        if not docstore_path.exists():
+            logger.debug(f"Path `{docstore_path}` not exists, try to create a new bm25 storage.")
+            exps = [Experience(req="req", resp="resp")]
+
+            retriever_configs = [BM25RetrieverConfig(create_index=True, similarity_top_k=DEFAULT_SIMILARITY_TOP_K)]
+
+            storage = SimpleEngine.from_objs(
+                objs=exps, retriever_configs=retriever_configs, ranker_configs=ranker_configs
+            )
+            return storage
+
+        logger.debug(f"Path `{docstore_path}` exists, try to load bm25 storage.")
+        retriever_configs = [BM25RetrieverConfig(similarity_top_k=DEFAULT_SIMILARITY_TOP_K)]
+        storage = SimpleEngine.from_index(
+            BM25IndexConfig(persist_path=persist_path),
+            retriever_configs=retriever_configs,
+            ranker_configs=ranker_configs,
+        )
+
+        return storage
+
+    def _create_chroma_storage(self) -> "SimpleEngine":
+        """Creates Chroma storage.
+
+        Returns:
+            SimpleEngine: An instance of SimpleEngine configured with Chroma storage.
+
+        Raises:
+            ImportError: If required modules are not installed.
+        """
+
+        try:
+            from metagpt.rag.engines import SimpleEngine
+            from metagpt.rag.schema import ChromaRetrieverConfig
+        except ImportError:
+            raise ImportError("To use the experience pool, you need to install the rag module.")
+
+        retriever_configs = [
+            ChromaRetrieverConfig(
+                persist_path=self.config.exp_pool.persist_path,
+                collection_name=DEFAULT_COLLECTION_NAME,
+                similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
+            )
+        ]
+        ranker_configs = self._get_ranker_configs()
+
+        storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
+
+        return storage
+
+    def _get_ranker_configs(self):
+        """Returns ranker configurations based on the configuration.
+
+        If `use_llm_ranker` is True, returns a list with one `LLMRankerConfig`
+        instance. Otherwise, returns an empty list.
+
+        Returns:
+            list: A list of `LLMRankerConfig` instances or an empty list.
+        """
+
+        from metagpt.rag.schema import LLMRankerConfig
+
+        return [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)] if self.config.exp_pool.use_llm_ranker else []
 
 
 _exp_manager = None
