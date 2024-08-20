@@ -69,14 +69,14 @@ class Browser(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    playwright: Optional[Playwright] = None
-    browser_instance: Optional[Browser_] = None
-    browser_ctx: Optional[BrowserContext] = None
-    page: Optional[Page] = None
+    playwright: Optional[Playwright] = Field(default=None, exclude=True)
+    browser_instance: Optional[Browser_] = Field(default=None, exclude=True)
+    browser_ctx: Optional[BrowserContext] = Field(default=None, exclude=True)
+    page: Optional[Page] = Field(default=None, exclude=True)
     accessibility_tree: list = Field(default_factory=list)
-    headless: bool = True
+    headless: bool = Field(default=True)
     proxy: Optional[dict] = Field(default_factory=get_proxy_from_env)
-    is_empty_page: bool = True
+    is_empty_page: bool = Field(default=True)
     reporter: BrowserReporter = Field(default_factory=BrowserReporter)
 
     async def start(self) -> None:
