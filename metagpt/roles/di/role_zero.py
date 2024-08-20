@@ -299,6 +299,9 @@ class RoleZero(Role):
                     self.llm.format_msg(memory),
                     system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
                 )
+                # If the answer contains the substring '[Message] from A to B:', remove it.
+                pattern = r"\[Message\] from .+? to .+?:\s*"
+                answer = re.sub(pattern, "", answer, count=1)
                 if "command_name" in answer:
                     # an actual TASK intent misclassified as QUICK, correct it here, FIXME: a better way is to classify it correctly in the first place
                     answer = ""
