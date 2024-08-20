@@ -26,7 +26,9 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
+    REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
+    SUMMARY_PROMPT,
     SYSTEM_PROMPT,
     THOUGHT_GUIDANCE,
 )
@@ -85,6 +87,7 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
+    use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -234,9 +237,10 @@ class RoleZero(Role):
         if self.use_fixed_sop:
             return await super()._act()
 
-        commands, ok = await self._parse_commands()
+        commands, ok = await self._parse_commands(self.command_rsp)
         if not ok:
             error_msg = commands
+            self.rc.memory.add(UserMessage(content=error_msg))
             return error_msg
         logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
@@ -339,7 +343,7 @@ class RoleZero(Role):
             command_rsp = await self.llm.aask(regenerate_req)
         return command_rsp
 
-    async def _parse_commands(self) -> Tuple[List[Dict], bool]:
+    async def _parse_commands(self, command_rsp) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
         This function attempts to retrieve a list of commands from the LLM by
@@ -351,20 +355,20 @@ class RoleZero(Role):
                 - A boolean flag indicating success (True) or failure (False).
         """
         try:
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = CodeParser.parse_code(block=None, lang="json", text=command_rsp)
             if commands.endswith("]") and not commands.startswith("["):
                 commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
+            logger.warning(f"Failed to parse JSON for: {command_rsp}. Trying to repair...")
             commands = await self.llm.aask(
-                msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp, json_decode_error=str(e))
+                msg=JSON_REPAIR_PROMPT.format(json_data=command_rsp, json_decode_error=str(e))
             )
             try:
                 commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
             except json.JSONDecodeError:
                 # repair escape error of code and math
-                commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+                commands = CodeParser.parse_code(block=None, lang="json", text=command_rsp)
                 new_command = repair_escape_error(commands)
                 commands = json.loads(
                     repair_llm_raw_output(output=new_command, req_keys=[None], repair_type=RepairType.JSON)
@@ -372,8 +376,7 @@ class RoleZero(Role):
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)
-            error_msg = UserMessage(content=str(e))
-            self.rc.memory.add(error_msg)
+            error_msg = str(e)
             return error_msg, False
 
         # 为了对LLM不按格式生成进行容错
@@ -426,8 +429,7 @@ class RoleZero(Role):
             command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
-            self._set_state(-1)
-            command_output = ""
+            command_output = await self._end()
 
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Bash.run":
@@ -486,3 +488,23 @@ class RoleZero(Role):
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
+
+    async def _end(self):
+        self._set_state(-1)
+        memory = self.rc.memory.get(self.memory_k)
+        # Ensure reply to the human before the "end" command is executed.
+        if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
+                requirements_constraints=self.requirements_constraints,
+            )
+            reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
+            await self.reply_to_human(content=reply_content)
+            self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
+        outputs = ""
+        # Summary of the Completed Task and Deliverables
+        if self.use_summary:
+            summary_prompt = SUMMARY_PROMPT.format(
+                requirements_constraints=self.requirements_constraints,
+            )
+            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
+        return outputs

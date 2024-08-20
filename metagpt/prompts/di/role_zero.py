@@ -218,3 +218,22 @@ QUICK_RESPONSE_SYSTEM_PROMPT = """
 {role_info}
 However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
 """
+
+REPORT_TO_HUMAN_PROMPT = """
+# Restrictions
+{requirements_constraints}
+
+You have just finished all tasks.
+Reply to the human requirements.
+Do not output any other format.
+Your reply is:
+
+"""
+SUMMARY_PROMPT = """
+# Restrictions
+{requirements_constraints}
+
+You have just completed some tasks. 
+Summarize the tasks you have accomplished without including detailed information. 
+If there are any deliverables, list their descriptions and provide their file paths.
+"""
