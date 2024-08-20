@@ -80,7 +80,7 @@ exp_pool:
   enable_write: false
   persist_path: .chroma_exp_data # The directory.
   retrieval_type: bm25 # Default is `bm25`, can be set to `chroma` for vector storage, which requires setting up embedding.
-  use_llm_ranker: false # If `use_llm_ranker` is true, then it will use LLM Reranker to get better result, but it is not always guaranteed that the output will be parseable for reranking.
+  use_llm_ranker: true # Default is `true`, it will use LLM Reranker to get better result.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

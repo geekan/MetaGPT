@@ -6,6 +6,7 @@ from typing import Any, ClassVar, List, Literal, Optional, Union
 from chromadb.api.types import CollectionMetadata
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
+from llama_index.core.prompts import BasePromptTemplate
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
@@ -14,6 +15,7 @@ from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType
 from metagpt.logs import logger
 from metagpt.rag.interface import RAGObject
+from metagpt.rag.prompts.default_prompts import DEFAULT_CHOICE_SELECT_PROMPT
 
 
 class BaseRetrieverConfig(BaseModel):
@@ -123,6 +125,9 @@ class LLMRankerConfig(BaseRankerConfig):
     llm: Any = Field(
         default=None,
         description="The LLM to rerank with. using Any instead of LLM, as llama_index.core.llms.LLM is pydantic.v1.",
+    )
+    choice_select_prompt: Optional[BasePromptTemplate] = Field(
+        default=DEFAULT_CHOICE_SELECT_PROMPT, description="Choice select prompt."
     )
 
 
