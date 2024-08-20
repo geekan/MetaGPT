@@ -15,6 +15,7 @@ from metagpt.configs.browser_config import BrowserConfig
 from metagpt.configs.file_parser_config import OmniParseConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
+from metagpt.configs.rag_config import RAGConfig
 from metagpt.configs.redis_config import RedisConfig
 from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
@@ -51,10 +52,8 @@ class Config(CLIParams, YamlModel):
 
     # RAG
     rag: RAGConfig = RAGConfig()
-
     # omniparse
     omniparse: OmniParseConfig = OmniParseConfig()
-
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
