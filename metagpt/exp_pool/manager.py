@@ -185,6 +185,7 @@ class ExperienceManager(BaseModel):
         Returns:
             list: A list of `LLMRankerConfig` instances or an empty list.
         """
+
         from metagpt.rag.schema import LLMRankerConfig
 
         return [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)] if self.config.exp_pool.use_llm_ranker else []
