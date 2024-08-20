@@ -117,18 +117,14 @@ class ExperienceManager(BaseModel):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import (
-                BM25IndexConfig,
-                BM25RetrieverConfig,
-                LLMRankerConfig,
-            )
+            from metagpt.rag.schema import BM25IndexConfig, BM25RetrieverConfig
         except ImportError:
             raise ImportError("To use the experience pool, you need to install the rag module.")
 
         persist_path = Path(self.config.exp_pool.persist_path)
         docstore_path = persist_path / "docstore.json"
 
-        ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+        ranker_configs = self._get_ranker_configs()
 
         if not docstore_path.exists():
             logger.debug(f"Path `{docstore_path}` not exists, try to create a new bm25 storage.")
@@ -163,7 +159,7 @@ class ExperienceManager(BaseModel):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+            from metagpt.rag.schema import ChromaRetrieverConfig
         except ImportError:
             raise ImportError("To use the experience pool, you need to install the rag module.")
 
@@ -174,11 +170,24 @@ class ExperienceManager(BaseModel):
                 similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
             )
         ]
-        ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+        ranker_configs = self._get_ranker_configs()
 
         storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
         return storage
+
+    def _get_ranker_configs(self):
+        """Returns ranker configurations based on the configuration.
+
+        If `use_llm_ranker` is True, returns a list with one `LLMRankerConfig`
+        instance. Otherwise, returns an empty list.
+
+        Returns:
+            list: A list of `LLMRankerConfig` instances or an empty list.
+        """
+        from metagpt.rag.schema import LLMRankerConfig
+
+        return [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)] if self.config.exp_pool.use_llm_ranker else []
 
 
 _exp_manager = None
