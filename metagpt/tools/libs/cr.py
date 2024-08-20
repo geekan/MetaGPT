@@ -88,7 +88,7 @@ class CodeReview:
             async with aiofiles.open(patch_path, encoding="utf-8") as f:
                 patch_file_content = await f.read()
                 await EditorReporter().async_report(patch_path)
-            if not patch_path.endswith((".diff", "patch")):
+            if not patch_path.endswith((".diff", ".patch")):
                 name = Path(patch_path).name
                 patch_file_content = "".join(
                     difflib.unified_diff([], patch_file_content.splitlines(keepends=True), "/dev/null", f"b/{name}"),
