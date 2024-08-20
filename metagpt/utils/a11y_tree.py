@@ -111,6 +111,12 @@ async def click_element(page: Page, backend_node_id: int):
     resp = await get_bounding_rect(cdp_session, backend_node_id)
     node_info = resp["result"]["value"]
     x, y = await get_element_center(node_info)
+    # Move to the location of the element
+    await page.evaluate(f"window.scrollTo({x}- window.innerWidth/2,{y} - window.innerHeight/2);")
+    # Refresh the relative location of the element
+    resp = await get_bounding_rect(cdp_session, backend_node_id)
+    node_info = resp["result"]["value"]
+    x, y = await get_element_center(node_info)
     await page.mouse.click(x, y)
 
 
