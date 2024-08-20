@@ -23,7 +23,7 @@ rag:
   # RAG Query Analysis
   query_analysis:
     hyde:
-      include_original: true  # In the query rewrite, determines whether to include the original
+      include_original: True  # In the query rewrite, determines whether to include the original
 
 
 # RAG Analysis

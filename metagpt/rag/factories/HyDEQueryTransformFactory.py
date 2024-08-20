@@ -3,7 +3,7 @@ from llama_index.core.llms import LLM
 from metagpt.config2 import config
 from metagpt.rag.factories import get_rag_llm
 from metagpt.rag.factories.base import ConfigBasedFactory
-from metagpt.rag.query_analysis.HyDE import HyDEQuery
+from metagpt.rag.query_analysis.hyde import HyDEQuery
 
 
 class HyDEQueryTransformFactory(ConfigBasedFactory):

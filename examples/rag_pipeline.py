@@ -2,7 +2,6 @@
 
 import asyncio
 
-from llama_index.core.query_engine import TransformQueryEngine
 from pydantic import BaseModel
 
 from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
@@ -233,7 +232,6 @@ class RAGExample:
         self._print_query_result(answer)
 
         self._print_title("No use HyDE to analysis query")
-        engine = SimpleEngine.from_docs(input_files=[DOC_PATH])
         answer = await engine.aquery(QUESTION2)
 
         self._print_query_result(answer)
@@ -281,7 +279,6 @@ async def main():
     await e.init_and_query_chromadb()
     await e.init_and_query_es()
     await e.use_hyde()
-
 
 
 if __name__ == "__main__":
