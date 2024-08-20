@@ -7,7 +7,7 @@ from metagpt.configs.exp_pool_config import (
 )
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.exp_pool.manager import Experience, ExperienceManager
-from metagpt.exp_pool.schema import QueryType
+from metagpt.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, QueryType
 
 
 class TestExperienceManager:
@@ -129,3 +129,16 @@ class TestExperienceManager:
         manager = ExperienceManager(config=mock_config)
         storage = manager._create_chroma_storage()
         assert storage is not None
+
+    def test_get_ranker_configs_use_llm_ranker_true(self, mock_config):
+        mock_config.exp_pool.use_llm_ranker = True
+        manager = ExperienceManager(config=mock_config)
+        ranker_configs = manager._get_ranker_configs()
+        assert len(ranker_configs) == 1
+        assert ranker_configs[0].top_n == DEFAULT_SIMILARITY_TOP_K
+
+    def test_get_ranker_configs_use_llm_ranker_false(self, mock_config):
+        mock_config.exp_pool.use_llm_ranker = False
+        manager = ExperienceManager(config=mock_config)
+        ranker_configs = manager._get_ranker_configs()
+        assert len(ranker_configs) == 0
