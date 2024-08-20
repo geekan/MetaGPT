@@ -114,7 +114,6 @@ class MockLLM(OriginalLLM):
                 raise ValueError(
                     "In current test setting, api call is not allowed, you should properly mock your tests, "
                     "or add expected api response in tests/data/rsp_cache.json. "
-                    f"The prompt you want for api call: {msg_key}"
                 )
             # Call the original unmocked method
             rsp = await ask_func(*args, **kwargs)

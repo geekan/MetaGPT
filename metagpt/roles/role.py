@@ -170,7 +170,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
-        self._watch(kwargs.pop("watch", [UserRequirement]))
+        if not self.rc.watch:
+            self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True

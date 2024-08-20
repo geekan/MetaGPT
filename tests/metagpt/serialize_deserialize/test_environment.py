@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   :
-
+import pytest
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
@@ -55,6 +55,7 @@ def test_environment_serdeser(context):
     assert isinstance(list(environment.roles.values())[0].actions[0], ActionOK)
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
     assert type(list(new_env.roles.values())[0].actions[1]) == ActionRaise
+    assert list(new_env.roles.values())[0].rc.watch == role_c.rc.watch
 
 
 def test_environment_serdeser_v2(context):
@@ -69,6 +70,7 @@ def test_environment_serdeser_v2(context):
     assert isinstance(role, ProjectManager)
     assert isinstance(role.actions[0], WriteTasks)
     assert isinstance(list(new_env.roles.values())[0].actions[0], WriteTasks)
+    assert list(new_env.roles.values())[0].rc.watch == pm.rc.watch
 
 
 def test_environment_serdeser_save(context):
@@ -85,3 +87,8 @@ def test_environment_serdeser_save(context):
     new_env: Environment = Environment(**env_dict, context=context)
     assert len(new_env.roles) == 1
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
+    assert list(new_env.roles.values())[0].rc.watch == role_c.rc.watch
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

@@ -5,14 +5,14 @@
 @Author  : alexanderwu
 @File    : project_management_an.py
 """
-from typing import List
+from typing import List, Optional
 
 from metagpt.actions.action_node import ActionNode
 
 REQUIRED_PACKAGES = ActionNode(
     key="Required packages",
-    expected_type=List[str],
-    instruction="Provide required packages in requirements.txt format.",
+    expected_type=Optional[List[str]],
+    instruction="Provide required third-party packages in requirements.txt format.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
 
