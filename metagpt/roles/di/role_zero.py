@@ -26,7 +26,6 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
-    REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
     SUMMARY_PROMPY,
     SYSTEM_PROMPT,
@@ -248,25 +247,6 @@ class RoleZero(Role):
         logger.info(f"Commands outputs: \n{outputs}")
         self.rc.memory.add(UserMessage(content=outputs))
 
-        if any(["end" == command["command_name"] for command in commands]):
-            # Ensure reply to the human before the "end" command is executed.
-            if all(["reply_to_human" not in memory.content for memory in self.get_memories(k=5)]):
-                memory = self.rc.memory.get(self.memory_k)
-                reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
-                    requirements_constraints=self.requirements_constraints,
-                )
-                reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
-                await self.reply_to_human(content=reply_content)
-                self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
-
-            # Summary of the Completed Task and Deliverables
-            if self.use_summary:
-                memory = self.rc.memory.get(self.memory_k)
-                summary_prompt = SUMMARY_PROMPY.format(
-                    requirements_constraints=self.requirements_constraints,
-                )
-                outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
-
         return AIMessage(
             content=f"I have finished the task, please mark my task as finished. Outputs: {outputs}",
             sent_from=self.name,
@@ -442,8 +422,7 @@ class RoleZero(Role):
             command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
-            self._set_state(-1)
-            command_output = ""
+            command_output = await self._end()
 
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Bash.run":
@@ -502,3 +481,28 @@ class RoleZero(Role):
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
+
+    async def _end(self):
+        # summary
+        memory = self.get_memories(k=self.memory_k)
+        summary_prompt = SUMMARY_PROMPY.format(
+            requirements_constraints=self.requirements_constraints,
+        )
+        reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
+        # Ensure reply to the human before the "end" command is executed.
+        need_reply = True
+        for memory in self.get_memories(k=5)[::-1]:
+            if "reply_to_human" in memory.content:
+                need_reply = False
+                break
+            if "[Message]" in memory.content:
+                # Receive new message from other
+                need_reply = True
+                break
+        if need_reply:
+            await self.reply_to_human(content=reply_content)
+            self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
+
+        self._set_state(-1)
+
+        return f"{reply_content} \n Plan.end executed Task is finished"

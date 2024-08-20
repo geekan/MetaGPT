@@ -233,6 +233,8 @@ SUMMARY_PROMPY = """
 {requirements_constraints}
 
 You have just completed some tasks. 
-Summarize the tasks you have accomplished without including detailed information. 
-If there are any deliverables, list their descriptions and provide their file paths.
+You must reply to human what you have done and what is the result.
+If there are any deliverables, provide descriptions and file paths.
+Do Not ouput any other format. limited in 300 words.
+Your reply is:
 """
