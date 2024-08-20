@@ -295,13 +295,13 @@ class RoleZero(Role):
         if "QUICK" in intent_result or "AMBIGUOUS" in intent_result:  # llm call with the original context
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
-                # remove "[Message] from A to B :" tag.
-                pattern = r"\[Message\] from .* to .*:\s*"
-                memory[-1].content = re.sub(pattern, "", memory[-1].content, count=1)
                 answer = await self.llm.aask(
                     self.llm.format_msg(memory),
                     system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
                 )
+                # If the answer contains the substring '[Message] from A to B:', remove it.
+                pattern = r"\[Message\] from .* to .*:\s*"
+                answer = re.sub(pattern, "", answer, count=1)
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
