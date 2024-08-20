@@ -69,7 +69,6 @@ class TestRAGIndexFactory:
     ):
         self.index_factory.get_index(bm25_config, embed_model=mock_embedding)
 
-
     def test_create_milvus_index(self, mocker, milvus_config, mock_from_vector_store, mock_embedding):
         # Mock
         mock_milvus_store = mocker.patch("metagpt.rag.factories.index.MilvusVectorStore")

@@ -99,7 +99,7 @@ class TestRetrieverFactory:
         assert isinstance(retriever, ChromaRetriever)
 
     def test_get_retriever_with_milvus_config(self, mocker, mock_milvus_vector_store, mock_embedding):
-        mock_config = MilvusRetrieverConfig(uri="/path/to/milvus", collection_name="test_collection")
+        mock_config = MilvusRetrieverConfig(uri="/path/to/milvus.db", collection_name="test_collection")
         mocker.patch("metagpt.rag.factories.retriever.MilvusVectorStore", return_value=mock_milvus_vector_store)
 
         retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)

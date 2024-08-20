@@ -28,7 +28,8 @@ from metagpt.rag.schema import (
     ChromaRetrieverConfig,
     ElasticsearchKeywordRetrieverConfig,
     ElasticsearchRetrieverConfig,
-    FAISSRetrieverConfig, MilvusRetrieverConfig,
+    FAISSRetrieverConfig,
+    MilvusRetrieverConfig,
 )
 
 
@@ -138,7 +139,7 @@ class RetrieverFactory(ConfigBasedFactory):
 
     @get_or_build_index
     def _build_milvus_index(self, config: MilvusRetrieverConfig, **kwargs) -> VectorStoreIndex:
-        vector_store = MilvusVectorStore(uri=config.uri, collection_name=config.collection_name, token=config.token)
+        vector_store = MilvusVectorStore(uri=config.uri, collection_name=config.collection_name, token=config.token, dim=config.dimensions)
 
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 

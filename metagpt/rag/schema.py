@@ -8,7 +8,7 @@ from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator, validator
 
 from metagpt.config2 import config
 from metagpt.configs.embedding_config import EmbeddingType
@@ -71,6 +71,25 @@ class MilvusRetrieverConfig(IndexRetrieverConfig):
     metadata: Optional[CollectionMetadata] = Field(
         default=None, description="Optional metadata to associate with the collection"
     )
+    dimensions: int = Field(default=0, description="Dimensionality of the vectors for Milvus index construction.")
+
+    _embedding_type_to_dimensions: ClassVar[dict[EmbeddingType, int]] = {
+        EmbeddingType.GEMINI: 768,
+        EmbeddingType.OLLAMA: 4096,
+    }
+
+    @model_validator(mode="after")
+    def check_dimensions(self):
+        if self.dimensions == 0:
+            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.embedding.api_type, 1536
+            )
+            if not config.embedding.dimensions and config.embedding.api_type not in self._embedding_type_to_dimensions:
+                logger.warning(
+                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
+                )
+
+        return self
 
 
 class ChromaRetrieverConfig(IndexRetrieverConfig):
