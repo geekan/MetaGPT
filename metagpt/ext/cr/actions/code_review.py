@@ -4,7 +4,9 @@
 
 import json
 import re
+from pathlib import Path
 
+import aiofiles
 from unidiff import PatchSet
 
 from metagpt.actions.action import Action
@@ -16,6 +18,7 @@ from metagpt.ext.cr.utils.cleaner import (
 from metagpt.ext.cr.utils.schema import Point
 from metagpt.logs import logger
 from metagpt.utils.common import parse_json_code_block
+from metagpt.utils.report import EditorReporter
 
 CODE_REVIEW_PROMPT_TEMPLATE = """
 NOTICE
@@ -193,16 +196,26 @@ class CodeReview(Action):
                     patched_file_path = patched_file.path
                     for c in comments_batch:
                         c["commented_file"] = patched_file_path
-                    comments += comments_batch
+                    comments.extend(comments_batch)
 
         return comments
 
-    async def run(self, patch: PatchSet, points: list[Point]):
+    async def run(self, patch: PatchSet, points: list[Point], output_file: str):
         patch: PatchSet = rm_patch_useless_part(patch)
         patch: PatchSet = add_line_num_on_patch(patch)
 
         result = []
-        comments = await self.cr_by_points(patch=patch, points=points)
+        async with EditorReporter(enable_llm_stream=True) as reporter:
+            log_cr_output_path = Path(output_file).with_suffix(".log")
+            await reporter.async_report(
+                {"src_path": str(log_cr_output_path), "filename": log_cr_output_path.name}, "meta"
+            )
+            comments = await self.cr_by_points(patch=patch, points=points)
+            log_cr_output_path.parent.mkdir(exist_ok=True, parents=True)
+            async with aiofiles.open(log_cr_output_path, "w", encoding="utf-8") as f:
+                await f.write(json.dumps(comments, ensure_ascii=False, indent=2))
+            await reporter.async_report(log_cr_output_path)
+
         if len(comments) != 0:
             comments = self.format_comments(comments, points, patch)
             comments = await self.confirm_comments(patch=patch, comments=comments, points=points)
@@ -210,4 +223,14 @@ class CodeReview(Action):
                 if comment["code"]:
                     if not (comment["code"].isspace()):
                         result.append(comment)
+
+        async with EditorReporter() as reporter:
+            src_path = output_file
+            cr_output_path = Path(output_file)
+            await reporter.async_report(
+                {"type": "CodeReview", "src_path": src_path, "filename": cr_output_path.name}, "meta"
+            )
+            async with aiofiles.open(cr_output_path, "w", encoding="utf-8") as f:
+                await f.write(json.dumps(comments, ensure_ascii=False, indent=2))
+            await reporter.async_report(cr_output_path)
         return result
