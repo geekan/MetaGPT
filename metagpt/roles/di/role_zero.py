@@ -69,8 +69,6 @@ class RoleZero(Role):
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
 
-    # Summary Mode
-    use_summary: bool = True
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
@@ -89,6 +87,7 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
+    use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
