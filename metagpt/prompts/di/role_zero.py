@@ -229,7 +229,7 @@ Do not output any other format.
 Your reply is:
 
 """
-SUMMARY_PROMPY = """
+SUMMARY_PROMPT = """
 # Restrictions
 {requirements_constraints}
 

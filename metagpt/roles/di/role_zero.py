@@ -28,7 +28,7 @@ from metagpt.prompts.di.role_zero import (
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
-    SUMMARY_PROMPY,
+    SUMMARY_PROMPT,
     SYSTEM_PROMPT,
     THOUGHT_GUIDANCE,
 )
@@ -485,9 +485,9 @@ class RoleZero(Role):
 
     async def _end(self):
         self._set_state(-1)
+        memory = self.rc.memory.get(self.memory_k)
         # Ensure reply to the human before the "end" command is executed.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
-            memory = self.rc.memory.get(self.memory_k)
             reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
                 requirements_constraints=self.requirements_constraints,
             )
@@ -497,8 +497,7 @@ class RoleZero(Role):
         outputs = ""
         # Summary of the Completed Task and Deliverables
         if self.use_summary:
-            memory = self.rc.memory.get(self.memory_k)
-            summary_prompt = SUMMARY_PROMPY.format(
+            summary_prompt = SUMMARY_PROMPT.format(
                 requirements_constraints=self.requirements_constraints,
             )
             outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
