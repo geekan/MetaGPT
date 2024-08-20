@@ -21,4 +21,4 @@ class ExperiencePoolConfig(YamlModel):
     retrieval_type: ExperiencePoolRetrievalType = Field(
         default=ExperiencePoolRetrievalType.BM25, description="The retrieval type for experience pool."
     )
-    use_llm_ranker: bool = Field(default=False, description="Use LLM Reranker to get better result.")
+    use_llm_ranker: bool = Field(default=True, description="Use LLM Reranker to get better result.")
