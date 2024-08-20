@@ -68,8 +68,6 @@ class RoleZero(Role):
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
 
-    # Summary Mode
-    use_summary: bool = True
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
@@ -483,6 +481,8 @@ class RoleZero(Role):
         return await self.rc.env.reply_to_human(content, sent_from=self)
 
     async def _end(self):
+        self._set_state(-1)
+
         # summary
         memory = self.get_memories(k=self.memory_k)
         summary_prompt = SUMMARY_PROMPY.format(
@@ -503,6 +503,4 @@ class RoleZero(Role):
             await self.reply_to_human(content=reply_content)
             self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
 
-        self._set_state(-1)
-
-        return f"{reply_content} \n Plan.end executed Task is finished"
+        return reply_content
