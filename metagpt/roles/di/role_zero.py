@@ -26,6 +26,7 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
+    REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
     SUMMARY_PROMPY,
     SYSTEM_PROMPT,
@@ -68,6 +69,8 @@ class RoleZero(Role):
     react_mode: Literal["react"] = "react"
     max_react_loop: int = 20  # used for react mode
 
+    # Summary Mode
+    use_summary: bool = True
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
@@ -482,25 +485,21 @@ class RoleZero(Role):
 
     async def _end(self):
         self._set_state(-1)
-
-        # summary
-        memory = self.get_memories(k=self.memory_k)
-        summary_prompt = SUMMARY_PROMPY.format(
-            requirements_constraints=self.requirements_constraints,
-        )
-        reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
         # Ensure reply to the human before the "end" command is executed.
-        need_reply = True
-        for memory in self.get_memories(k=5)[::-1]:
-            if "reply_to_human" in memory.content:
-                need_reply = False
-                break
-            if "[Message]" in memory.content:
-                # Receive new message from other
-                need_reply = True
-                break
-        if need_reply:
+        if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
+            memory = self.rc.memory.get(self.memory_k)
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
+                requirements_constraints=self.requirements_constraints,
+            )
+            reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
             await self.reply_to_human(content=reply_content)
             self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
-
-        return reply_content
+        outputs = ""
+        # Summary of the Completed Task and Deliverables
+        if self.use_summary:
+            memory = self.rc.memory.get(self.memory_k)
+            summary_prompt = SUMMARY_PROMPY.format(
+                requirements_constraints=self.requirements_constraints,
+            )
+            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
+        return outputs

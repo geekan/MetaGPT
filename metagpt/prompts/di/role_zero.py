@@ -223,8 +223,9 @@ REPORT_TO_HUMAN_PROMPT = """
 # Restrictions
 {requirements_constraints}
 
-Your have just finish all tasks, Use "RoleZero.reply_to_human" to answer the user requirements.
-Report to human what you have done. Do Not ouput any other format.
+You have just finished all tasks.
+Reply to the human requirements.
+Do not output any other format.
 Your reply is:
 
 """
@@ -233,8 +234,6 @@ SUMMARY_PROMPY = """
 {requirements_constraints}
 
 You have just completed some tasks. 
-You must reply to human what you have done and what is the result.
-If there are any deliverables, provide descriptions and file paths.
-Do Not ouput any other format. limited in 300 words.
-Your reply is:
+Summarize the tasks you have accomplished without including detailed information. 
+If there are any deliverables, list their descriptions and provide their file paths.
 """
