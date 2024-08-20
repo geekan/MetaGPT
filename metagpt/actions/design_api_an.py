@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : design_api_an.py
 """
-from typing import List
+from typing import List, Optional
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.utils.mermaid import MMC1, MMC2
@@ -45,9 +45,10 @@ REFINED_FILE_LIST = ActionNode(
     example=["main.py", "game.py", "new_feature.py"],
 )
 
+# optional,because low success reproduction of class diagram in non py project.
 DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     key="Data structures and interfaces",
-    expected_type=str,
+    expected_type=Optional[str],
     instruction="Use mermaid classDiagram code syntax, including classes, method(__init__ etc.) and functions with type"
     " annotations, CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. "
     "The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design.",
@@ -66,7 +67,7 @@ REFINED_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
 
 PROGRAM_CALL_FLOW = ActionNode(
     key="Program call flow",
-    expected_type=str,
+    expected_type=Optional[str],
     instruction="Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE "
     "accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.",
     example=MMC2,
