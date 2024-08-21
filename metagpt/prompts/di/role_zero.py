@@ -220,20 +220,24 @@ However, you MUST respond to the user message by yourself directly, DON'T ask yo
 """
 
 REPORT_TO_HUMAN_PROMPT = """
-# Restrictions
-{requirements_constraints}
+## Examlpe
+example 1: 
+User requirement:开发贪吃蛇游戏
+reply: 贪吃蛇游戏的开发已经完成。所有文件（index.html、style.css和script.js）已经创建并经过审查。
 
-You have just finished all tasks.
-Reply to the human requirements.
-Do not output any other format.
-Your reply is:
+example 2: 
+User requirement: Crawl and extract all the herb names from the website, Tell me the number of herbs.
+reply : The herb names have been successfully extracted and saved to the file /home/mgx/mgx/MetaGPT/src/herb_name.txt. A total of 8 herb names were extracted.
 
+------------
+
+Carefully review the history and respond to the user in the expected language to meet their requirements.
+If you have any deliverables that are helpful in explaining the results (such as files, metrics, quantitative results, etc.), provide brief descriptions of them.
+Your reply must be concise.
+Directly output your reply content. Do not add any output format.
 """
 SUMMARY_PROMPT = """
-# Restrictions
-{requirements_constraints}
-
-You have just completed some tasks. 
-Summarize the tasks you have accomplished without including detailed information. 
-If there are any deliverables, list their descriptions and provide their file paths.
+Summarize what you have accomplished lately. Be concise.
+If you produce any deliverables, include their short descriptions and file paths. If there are any metrics or quantitative results, include them, too.
+If the deliverable is code, only output the file path.
 """
