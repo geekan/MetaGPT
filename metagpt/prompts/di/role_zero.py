@@ -227,13 +227,8 @@ You have just finished all tasks.
 Reply to the human requirements.
 Do not output any other format.
 Your reply is:
-
 """
 SUMMARY_PROMPT = """
-# Restrictions
-{requirements_constraints}
-
-You have just completed some tasks. 
-Summarize the tasks you have accomplished without including detailed information. 
-If there are any deliverables, list their descriptions and provide their file paths.
+Summarize what you have accomplished lately. Be concise.
+If you produce any deliverables, include their short descriptions and file paths. If there are any metrics or quantitative results, include them, too.
 """

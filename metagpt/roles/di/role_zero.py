@@ -507,8 +507,5 @@ class RoleZero(Role):
         # Summary of the Completed Task and Deliverables
         if self.use_summary:
             logger.info("end current run and summarize")
-            summary_prompt = SUMMARY_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
-            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
+            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(SUMMARY_PROMPT)]))
         return outputs
