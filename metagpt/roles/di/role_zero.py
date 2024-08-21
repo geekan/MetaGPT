@@ -190,13 +190,13 @@ class RoleZero(Role):
         memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
+        state_data = dict(
+            plan_status=plan_status,
+            current_task=current_task,
+            instruction=instruction,
+        )
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
-            state_data = dict(
-                plan_status=plan_status,
-                current_task=current_task,
-                instruction=instruction,
-            )
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
 
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
@@ -303,13 +303,13 @@ class RoleZero(Role):
                     self.llm.format_msg(memory),
                     system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
                 )
-                # If the answer contains the substring '[Message] from A to B:', remove it.
-                pattern = r"\[Message\] from .+? to .+?:\s*"
-                answer = re.sub(pattern, "", answer, count=1)
-                if "command_name" in answer:
-                    # an actual TASK intent misclassified as QUICK, correct it here, FIXME: a better way is to classify it correctly in the first place
-                    answer = ""
-                    intent_result = "TASK"
+            # If the answer contains the substring '[Message] from A to B:', remove it.
+            pattern = r"\[Message\] from .+? to .+?:\s*"
+            answer = re.sub(pattern, "", answer, count=1)
+            if "command_name" in answer:
+                # an actual TASK intent misclassified as QUICK, correct it here, FIXME: a better way is to classify it correctly in the first place
+                answer = ""
+                intent_result = "TASK"
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
@@ -492,19 +492,20 @@ class RoleZero(Role):
     async def _end(self):
         self._set_state(-1)
         memory = self.rc.memory.get(self.memory_k)
-        # Ensure reply to the human before the "end" command is executed.
+        # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
+            logger.info("manually reply to human")
             reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
                 requirements_constraints=self.requirements_constraints,
             )
-            reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
+            async with ThoughtReporter(enable_llm_stream=True) as reporter:
+                await reporter.async_report({"type": "quick"})
+                reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
             await self.reply_to_human(content=reply_content)
             self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
         outputs = ""
         # Summary of the Completed Task and Deliverables
         if self.use_summary:
-            summary_prompt = SUMMARY_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
-            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
+            logger.info("end current run and summarize")
+            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(SUMMARY_PROMPT)]))
         return outputs
