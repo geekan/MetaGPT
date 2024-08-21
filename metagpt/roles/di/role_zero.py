@@ -494,17 +494,15 @@ class RoleZero(Role):
         memory = self.rc.memory.get(self.memory_k)
         # Ensure reply to the human before the "end" command is executed.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
-            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
+            pattern = r"\[Language Restrictions\](.*?)\n"
+            match = re.search(pattern, self.requirements_constraints, re.DOTALL)
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(lanaguge_restruction=match.group(0) if match else "")
             reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
             await self.reply_to_human(content=reply_content)
             self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
         outputs = ""
         # Summary of the Completed Task and Deliverables
         if self.use_summary:
-            summary_prompt = SUMMARY_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
+            summary_prompt = SUMMARY_PROMPT.format()
             outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(summary_prompt)]))
         return outputs
