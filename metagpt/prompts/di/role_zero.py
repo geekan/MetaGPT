@@ -227,7 +227,7 @@ reply: 贪吃蛇游戏的开发已经完成。所有文件（index.html、style.
 
 example 2: 
 User requirement: Crawl and extract all the herb names from the website, Tell me the number of herbs.
-reply : The herb names have been successfully extracted and saved to the file /home/mgx/mgx/MetaGPT/src/herb_name.txt. A total of 8 herb names were extracted.
+reply : The herb names have been successfully extracted. A total of 8 herb names were extracted.
 
 ------------
 
