@@ -300,7 +300,6 @@ class BaseLLM(ABC):
         if compress_type == CompressType.NO_COMPRESS:
             return messages
 
-        current_token_count = 0
         max_token = TOKEN_MAX.get(self.config.model, max_token)
         keep_token = int(max_token * threshold)
         compressed = []
@@ -318,7 +317,7 @@ class BaseLLM(ABC):
         # system_msgs = [msg for msg in messages if msg["role"] == system_msg_val]
         # user_assistant_msgs = [msg for msg in messages if msg["role"] != system_msg_val]
         compressed.extend(system_msgs)
-        current_token_count += self.count_tokens(system_msgs)
+        current_token_count = self.count_tokens(system_msgs)
 
         if compress_type in [CompressType.POST_CUT_BY_TOKEN, CompressType.POST_CUT_BY_MSG]:
             # Under keep_token constraint, keep as many latest messages as possible
