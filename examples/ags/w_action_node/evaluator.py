@@ -6,7 +6,7 @@ from typing import Literal
 
 # TODO 完成实验数据集的手动划分
 
-DatasetType = Literal["humaneval", "gsm8k", "hotpotqa", "drop", "mmlu"]
+DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
 
 
 class Evaluator:

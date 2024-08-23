@@ -8,7 +8,7 @@ from typing import Literal
 from metagpt.llm import LLM
 from metagpt.utils.cost_manager import CostManager
 
-DatasetType = Literal["humaneval", "gsm8k", "hotpotqa", "drop", "mmlu"]
+DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
 
 cost_manager = CostManager()
 

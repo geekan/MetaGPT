@@ -86,3 +86,7 @@ class ReflectionTestOp(BaseModel):
     refined_solution: str = Field(
         default="", description="Corrective solution for code execution errors or test case failures"
     )
+
+
+class Optimize(BaseModel):
+    graph: str = Field(default="", description="graph")

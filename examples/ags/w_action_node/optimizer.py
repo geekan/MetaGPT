@@ -21,6 +21,11 @@ DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
 
 evaluator = Evaluator(eval_path="eval")
 
+# prompt = GENERATE_PROMPT.format(problem_description=problem_description)
+# node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, mode="context_fill", llm=self.llm)
+# response = node.instruct_content.model_dump()
+# return response
+
 
 class Optimizer:
     def __init__(self, dataset: DatasetType, llm: LLM, operators: List, optimized_path: str = None) -> None:
@@ -28,6 +33,7 @@ class Optimizer:
         self.dataset = dataset
         self.graph = None  # 初始化为 None，稍后加载
         self.operators = operators
+        self.optimize_prompt = ""
         self._optimized_path = optimized_path
         self.root_path = f"{self._optimized_path}/{self.dataset}"
         self.sample = 6  # sample 含义是什么？
@@ -37,9 +43,10 @@ class Optimizer:
 
     def _initialize(self):
         """
-        基于数据集、操作符初始化 operator 跟 graph
+        基于数据集、操作符初始化optimize prompt, operator 跟 graph
         """
-        basic_path = f"{config_iterate_path}/{self.dataset}/basic"
+
+        basic_path = f"{self.root_path}/basic"
         required_files = ["operator.py", "graph.py", "prompt.py"]
 
         def check_files_exist(basic_path, required_files):
@@ -104,6 +111,7 @@ class Optimizer:
         动态读取指定轮次的 Prompt和Graph。
         """
         # 构建 prompt.py 文件的相对路径
+        # examples/ags/w_action_node/optimized/gsm8k/graphs/round_1
         prompt_file_path = os.path.join(graphs_path, "prompt.py")
         graph_file_path = os.path.join(graphs_path, "graph.py")
 
@@ -228,7 +236,7 @@ class Optimizer:
         """
         # TODO 读取basic模版（从对应的dataset文件夹 {dataset}/basic/operator.py, graph.py, prompt.py ），Operator几乎不用动
         # TODO 动Prompt内容；动Graph连接
-        graph_path = f"{self.root_path}/graphs"
+        graph_path = f"{self._optimized_path}/{self.dataset}/graphs"
         f"{graph_path}/round_{self.round + 1}"
 
         # TODO 填充Optimize 逻辑
