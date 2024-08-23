@@ -17,6 +17,7 @@ global cost_manager
 if not globals().get("cost_manager"):
     cost_manager = CostManager()
 
+
 def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> BaseLLM:
     """get the default llm provider if name is None"""
     ctx = context or Context()

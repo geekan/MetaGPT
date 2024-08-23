@@ -20,6 +20,17 @@ def extract_task_id(task_id: str) -> int:
     return int(match.group(1)) if match else 0
 
 
+def get_hotpotqa(path: str):
+    # Parses each jsonl line and yields it as a dictionary
+    def parse_jsonl(path):
+        with open(path) as f:
+            for line in f:
+                yield json.loads(line)
+
+    datas = list(parse_jsonl(path))
+    return {data["_id"]: data for data in datas}
+
+
 def sort_json_by_key(input_file: str, output_file: str, key: str = "task_id"):
     """
     Read a JSONL file, sort the entries based on task_id, and write to a new JSONL file.

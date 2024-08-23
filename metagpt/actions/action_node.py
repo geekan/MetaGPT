@@ -39,6 +39,7 @@ class ReviseMode(Enum):
 
 TAG = "CONTENT"
 MODE_CODE_FILL = "code_fill"
+CONTEXT_FILL = "context_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
@@ -481,6 +482,9 @@ class ActionNode:
         # If there are multiple fields, we might want to use self.key to find the right one
         return self.key
 
+    def xml_compile(self, context):
+        pass
+
     async def code_fill(self, context, function_name=None, timeout=USE_CONFIG_TIMEOUT):
         """
         fill CodeBlock Node
@@ -493,12 +497,9 @@ class ActionNode:
         result = {field_name: extracted_code}
         return result
 
-    async def messages_fill(
-        self,
-    ):
+    async def context_fill(self, context):
         """
-        参考这个代码，只不过LLM调用方式改成使用；
-        参考
+        这个地方的代码实现的目的是
         """
         pass
 
@@ -541,6 +542,15 @@ class ActionNode:
 
         if mode == MODE_CODE_FILL:
             result = await self.code_fill(context, function_name, timeout)
+            self.instruct_content = self.create_class()(**result)
+            return self
+
+        elif mode == CONTEXT_FILL:
+            """
+            使用xml_compile，但是这个版本没有办法实现system message 跟 temperature
+            """
+            context = self.xml_compile(context=self.context)
+            result = await self.context_fill(context, timeout)
             self.instruct_content = self.create_class()(**result)
             return self
 

@@ -15,6 +15,7 @@ from examples.ags.w_action_node.operator_an import (
     FormatOp,
     FuEnsembleOp,
     GenerateCodeBlockOp,
+    GenerateCodeSolution,
     GenerateOp,
     MdEnsembleOp,
     ReflectionTestOp,
@@ -31,11 +32,15 @@ from examples.ags.w_action_node.prompt import (
     DE_ENSEMBLE_TXT_FORMAT_PROMPT,
     FORMAT_PROMPT,
     FU_ENSEMBLE_PROMPT,
+    GENERATE_CODE_SOLUTION_PROMPT,
     GENERATE_CODEBLOCK_PROMPT,
     GENERATE_CODEBLOCK_REPHRASE_PROMPT,
+    GENERATE_ON_CONTEXT_PROMPT,
     GENERATE_PROMPT,
+    MATH_ANSWER_FORMAT_PROMPT,
     MATH_CORE_PROMPT,
     MATH_EXTRACT_PROMPT,
+    MATH_GENERATE_PROMPT,
     MATH_REPHRASE_ON_PROBLEM_PROMPT,
     MD_ENSEMBLE_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
@@ -73,6 +78,26 @@ class Generate(Operator):
         response = node.instruct_content.model_dump()
         return response
 
+    async def math_generate(self, problem_description):
+        prompt = MATH_GENERATE_PROMPT.format(problem_description=problem_description)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def code_solution_generate(self, problem_description: str, rephrase_problem: str):
+        prompt = GENERATE_CODE_SOLUTION_PROMPT.format(
+            problem_description=problem_description, rephrase_problem=rephrase_problem
+        )
+        node = await ActionNode.from_pydantic(GenerateCodeSolution).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def context_solution_generate(self, question, context):
+        prompt = GENERATE_ON_CONTEXT_PROMPT.format(problem_description=question, context=context)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
 
 class GenerateCodeBlock(Operator):
     def __init__(self, name: str = "GenerateCodeBlock", llm: LLM = LLM()):
@@ -97,12 +122,18 @@ class GenerateCodeBlock(Operator):
         return response
 
 
-class Format(Generate):
+class Format(Operator):
     def __init__(self, name: str = "Format", llm: LLM = LLM()):
         super().__init__(name, llm)
 
     async def __call__(self, problem_description, solution):
         prompt = FORMAT_PROMPT.format(problem_description=problem_description, solution=solution)
+        node = await ActionNode.from_pydantic(FormatOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+        return response
+
+    async def math_answer_format(self, problem_description: str) -> dict:
+        prompt = MATH_ANSWER_FORMAT_PROMPT.format(problem_description=problem_description)
         node = await ActionNode.from_pydantic(FormatOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
         return response
