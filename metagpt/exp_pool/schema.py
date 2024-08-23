@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 
 MAX_SCORE = 10
 
-DEFAULT_COLLECTION_NAME = "experience_pool"
 DEFAULT_SIMILARITY_TOP_K = 2
 
 

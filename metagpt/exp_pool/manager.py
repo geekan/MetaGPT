@@ -7,12 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
 from metagpt.configs.exp_pool_config import ExperiencePoolRetrievalType
-from metagpt.exp_pool.schema import (
-    DEFAULT_COLLECTION_NAME,
-    DEFAULT_SIMILARITY_TOP_K,
-    Experience,
-    QueryType,
-)
+from metagpt.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, Experience, QueryType
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
@@ -166,7 +161,7 @@ class ExperienceManager(BaseModel):
         retriever_configs = [
             ChromaRetrieverConfig(
                 persist_path=self.config.exp_pool.persist_path,
-                collection_name=DEFAULT_COLLECTION_NAME,
+                collection_name=self.config.exp_pool.collection_name,
                 similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
             )
         ]

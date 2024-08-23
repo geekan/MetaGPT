@@ -148,7 +148,7 @@ class SerializationMixin(BaseModel, extra="forbid"):
         serialized_data = self.model_dump()
 
         write_json_file(file_path, serialized_data)
-        logger.info(f"{self.__class__.__qualname__} serialization successful. File saved at: {file_path}")
+        logger.debug(f"{self.__class__.__qualname__} serialization successful. File saved at: {file_path}")
 
         return file_path
 
@@ -171,7 +171,7 @@ class SerializationMixin(BaseModel, extra="forbid"):
         data: dict = read_json_file(file_path)
 
         model = cls(**data)
-        logger.info(f"{cls.__qualname__} deserialization successful. Instance created from file: {file_path}")
+        logger.debug(f"{cls.__qualname__} deserialization successful. Instance created from file: {file_path}")
 
         return model
 
