@@ -49,6 +49,7 @@ class Optimizer:
         operators: List,
         optimized_path: str = None,
         sample: int = 6,
+        q_type: str = "math",  # math,code,quiz
     ) -> None:
         self.optimize_llm = opt_llm
         self.execute_llm = exec_llm
@@ -61,6 +62,7 @@ class Optimizer:
         self.sample = sample
         self.score = "None"
         self.top_scores = []
+        self.type = q_type
         self.round = 1  # 起始轮次
 
     def _initialize_oprimizer(self):
@@ -130,33 +132,57 @@ class Optimizer:
         # examples/ags/w_action_node/optimized/gsm8k/graphs/round_1
         prompt_file_path = os.path.join(graphs_path, "prompt.py")
         graph_file_path = os.path.join(graphs_path, "graph.py")
+        operator_file_path = os.path.join(graphs_path, "operator.py")
 
         try:
             with open(prompt_file_path, "r", encoding="utf-8") as file:
                 prompt_content = file.read()
             with open(graph_file_path, "r", encoding="utf-8") as file:
                 graph_content = file.read()
+            with open(operator_file_path, "r", encoding="utf-8") as file:
+                operator_content = file.read()
         except FileNotFoundError as e:
             print(f"Error: File not found for round {round_number}: {e}")
             raise
         except Exception as e:
             print(f"Error loading prompt for round {round_number}: {e}")
             raise
-        return prompt_content, graph_content
+        return prompt_content, graph_content, operator_content
 
     def _load_scores(self):
-        """
-        # TODO 重写这个函数，写一个新的结构存储分数
-        """
-        round_number = 1
-        score = 1
+        rounds_dir = os.path.join(self.root_path, "graphs")
+        self.top_scores = []
 
-        self.top_scores.append(
-            {
-                "round": round_number,
-                "score": score,
-            }
-        )
+        # 遍历所有轮次的文件夹
+        for round_dir in os.listdir(rounds_dir):
+            if os.path.isdir(os.path.join(rounds_dir, round_dir)) and round_dir.startswith("round_"):
+                round_number = int(round_dir.replace("round_", ""))
+                csv_file_path = os.path.join(rounds_dir, round_dir)
+                try:
+                    # 遍历文件夹中的文件，查找 CSV 文件
+                    for filename in os.listdir(csv_file_path):
+                        score = 0
+
+                        if filename.endswith(".csv"):
+                            # 文件名就是分数
+                            score = float(filename[:-4])  # 去除.csv
+
+                        self.top_scores.append(
+                            {
+                                "round": round_number,
+                                "score": score,
+                            }
+                        )
+
+                except FileNotFoundError as e:
+                    print(f"Error: File not found for round {round_number}: {e}")
+                    continue
+                except ValueError as e:
+                    print(f"Error parsing score from filename for round {round_number}: {e}")
+                    continue
+                except Exception as e:
+                    print(f"Error processing round {round_number}: {e}")
+                    continue
 
         # 对所有轮次的分数进行排序
         self.top_scores.sort(key=lambda x: x["score"], reverse=True)
@@ -272,7 +298,7 @@ class Optimizer:
 
         print(top_rounds)
 
-        prompt, graph_load = self._read_files(sample["round"])
+        prompt, graph_load, operator = self._read_files(sample["round"])
         score = sample["score"]
 
         # 正则表达式匹配 SolveGraph 开始的内容
@@ -298,9 +324,12 @@ class Optimizer:
         else:
             experience = f"No experience data found for round {current_round}."
 
-        graph_input = GRAPH_INPUT.format(experinece=experience, score=score, graph=graph[0], prompt=prompt)
+        graph_input = GRAPH_INPUT.format(
+            experinece=experience, score=score, graph=graph[0], prompt=prompt, type=self.type
+        )
+        graph_system = GRAPH_OPTIMIZE_PROMPT.format(type=self.type)
 
-        node_prompt = GRAPH_OPTIMIZE_PROMPT + graph_input  # TODO 看一眼谁先谁后这个地方
+        node_prompt = graph_system + graph_input  # TODO 看一眼谁先谁后这个地方
 
         node = await ActionNode.from_pydantic(GraphOptimize).fill(
             context=node_prompt, mode="context_fill", llm=self.llm

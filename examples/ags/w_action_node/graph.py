@@ -5,7 +5,7 @@
 
 from typing import Literal
 
-from metagpt.llm import LLM
+from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
 
 DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
@@ -17,16 +17,16 @@ class Graph:
     def __init__(
         self,
         name: str,
-        llm: LLM,
+        llm_config,
         dataset: DatasetType,
     ) -> None:
         self.name = name
-        self.model = llm
         self.dataset = dataset
-        self.cost = cost_manager  # TODO
+        self.llm = create_llm_instance(llm_config)
+        self.llm.cost_manager = CostManager()
 
-    def __call__():
+    def __call__(self):
         """
         Implementation of the graph
         """
-        NotImplementedError("Subclasses must implement __call__ method")
+        return self.llm.cost_manager.total_cost

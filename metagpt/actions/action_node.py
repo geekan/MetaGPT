@@ -504,7 +504,6 @@ class ActionNode:
 ### format example (must be strictly followed) (do not include any other formats except for the given XML format)
 {example_str}
 """
-        print(context)
         return context
 
     async def code_fill(self, context, function_name=None, timeout=USE_CONFIG_TIMEOUT):
