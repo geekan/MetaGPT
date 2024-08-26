@@ -10,7 +10,7 @@ class GenerateOp(BaseModel):
     solution: str = Field(default="", description="Your solution for this problem")
 
 
-class GenerateCodeBlockOp(BaseModel):
+class CodeGenerateOp(BaseModel):
     code_solution: str = Field(default="", description="Your complete code solution for this problem")
 
 
@@ -88,5 +88,5 @@ class ReflectionTestOp(BaseModel):
     )
 
 
-class Optimize(BaseModel):
-    graph: str = Field(default="", description="graph")
+class ScEnsembleOp(BaseModel):
+    solution_letter: str = Field(default="", description="The letter of most consistent solution.")

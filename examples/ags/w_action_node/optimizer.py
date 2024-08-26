@@ -3,6 +3,7 @@
 # @Author  : issac
 # @Desc    : optimizer for graph
 
+import asyncio
 import json
 import os
 import re
@@ -18,6 +19,9 @@ from examples.ags.w_action_node.prompts.optimize_prompt import (
     GRAPH_INPUT,
     GRAPH_OPTIMIZE_PROMPT,
     GRAPH_TEMPLATE,
+    OPERATOR_INPUT,
+    OPERATOR_OPTIMIZE_PROMPT,
+    OPERATOR_TEMPLATE,
 )
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
@@ -26,6 +30,7 @@ from metagpt.logs import logger
 config_iterate_path = "iterate"
 
 DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
+OptimizerType = Literal["Complete", "Graph", "Operator"]
 
 evaluator = Evaluator(eval_path="eval")
 
@@ -50,12 +55,14 @@ class Optimizer:
         optimized_path: str = None,
         sample: int = 6,
         q_type: str = "math",  # math,code,quiz
+        op: str = "Generator",  # 需要优化的Operator
     ) -> None:
         self.optimize_llm = opt_llm
         self.execute_llm = exec_llm
         self.dataset = dataset
         self.graph = None  # 初始化为 None，稍后加载
         self.operators = operators
+        self.op = op
         self.optimize_prompt = ""
         self._optimized_path = optimized_path
         self.root_path = f"{self._optimized_path}/{self.dataset}"
@@ -104,12 +111,27 @@ class Optimizer:
 
         # 初始化Graph，直接手动从模版中取出（COT）
 
-    def optimize(self):
+    def optimize(self, mode: OptimizerType = "Complete", max_rounds: int = 100):
         """
         Optimize the graph and operator for the dataset.
         """
-        self._initialize()  # Operator's Optimization
-        self._optimize()  # Graph's Optimization
+        if mode == "Complete":
+            self._initialize()  # Operator's Optimization
+
+        for opt_round in range(max_rounds):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            try:
+                score = loop.run_until_complete(self._optimize_graph())
+            finally:
+                loop.close()
+
+            time.sleep(5)
+
+            self.round += 1
+
+            print(f"Score for round {self.round}: {score}")
 
     def _load_graph(self, round_number, graphs_path):
         """
@@ -281,7 +303,7 @@ class Optimizer:
         print(f"Processed experience data saved to {output_path}")
         return experience_data
 
-    async def _optimize(self):
+    async def _optimize_graph(self):
         """
         Optimize Graph's Structure and Prompt
         """
@@ -329,7 +351,119 @@ class Optimizer:
         )
         graph_system = GRAPH_OPTIMIZE_PROMPT.format(type=self.type)
 
-        node_prompt = graph_system + graph_input  # TODO 看一眼谁先谁后这个地方
+        graph_optimize_prompt = graph_system + graph_input  # TODO 看一眼谁先谁后这个地方
+
+        # TODO 从这里开始，Graph Optimize 可以作为一个Operator放入 Operator.py 之中
+        graph_optimize_node = await ActionNode.from_pydantic(GraphOptimize).fill(
+            context=graph_optimize_prompt, mode="context_fill", llm=self.llm
+        )
+
+        max_retries = 5
+        retries = 0
+
+        while retries < max_retries:
+            try:
+                # TODO 需要和评测的模型分开（传入模型或其它方法），如果能实现Temperature调整更好
+                response = graph_optimize_node.instruct_content.model_dump()
+                break
+
+            except Exception as e:
+                retries += 1
+                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+
+                if retries == max_retries:
+                    print("Maximum retries reached. Skipping this sample.")
+                    break
+                time.sleep(5)
+
+        graph_match = response["graph"]
+        prompt_match = response["prompt"]
+        modification_match = response["modification"]
+
+        modification = modification_match.group(1)
+        prompt = prompt_match.group(1)
+        graph = GRAPH_TEMPLATE.format(graph=graph_match.group(1), round=self.round + 1)
+
+        # 将 graph.py 文件写入到目录中
+        with open(os.path.join(directory, "graph.py"), "w", encoding="utf-8") as file:
+            file.write(graph)
+
+        # 将 prompt.py 文件写入到目录中
+        with open(os.path.join(directory, "prompt.py"), "w", encoding="utf-8") as file:
+            file.write(prompt)
+
+        # 将 prompt.py 文件写入到目录中
+        with open(os.path.join(directory, "__init__.py"), "w", encoding="utf-8") as file:
+            file.write("")
+
+        experience = {
+            "father node": sample["round"],
+            "modification": modification,
+            "before": sample["score"],
+            "after": None,
+            "succeed": None,
+        }
+
+        with open(os.path.join(directory, "experience.json"), "w", encoding="utf-8") as file:
+            json.dump(experience, file, ensure_ascii=False, indent=4)
+
+        score = evaluator.validation_evaluate(self.dataset, self.graph)
+        experience["after"] = score
+        experience["succeed"] = bool(score > experience["before"])
+        return score
+
+    async def _optimize_operator(self):
+        """
+        Optimize Graph's Structure and Prompt
+        """
+        # 获取项目的根目录
+        graph_path = f"{self.root_path}/operators"
+
+        # 创建文件夹（如果不存在）
+        directory = os.path.join(graph_path, f"round_{self.round + 1}")
+        os.makedirs(directory, exist_ok=True)
+
+        top_rounds = self._get_top_rounds()
+
+        sample = self._select_round(top_rounds)
+
+        print(top_rounds)
+
+        prompt, graph_load, operator_load = self._read_files(sample["round"])
+        score = sample["score"]
+
+        # 正则表达式匹配 SolveGraph 开始的内容
+        operator_pattern = rf"class {self.op}(Operator):.+"
+
+        graph_pattern = r"class SolveGraph:.+"
+
+        # 使用re.findall找到所有匹配项
+        operator = re.findall(operator_pattern, operator_load, re.DOTALL)
+        graph = re.findall(graph_pattern, graph_load, re.DOTALL)
+
+        # 加载处理过的 experience 数据
+        processed_experience = self._load_experience()
+
+        # 获取当前轮次的 experience 数据
+        current_round = int(sample["round"])  # 确保是字符串类型
+        experience_data = processed_experience.get(current_round)
+
+        if experience_data:
+            # 构建 experience 字符串
+            experience = f"Original Score: {experience_data['score']}\n"
+            experience += "Failed modifications:\n"
+            for mod in experience_data["failure"]:
+                experience += f"- {mod['modification']} (Score: {mod['score']})\n"
+            experience += "\n\nNote: Reference failed experiences, avoid trying failed approaches again, attempt to change your thinking, not limited to using more advanced Python syntax like for, if, else, etc., or modifying the Prompt part"
+        else:
+            experience = f"No experience data found for round {current_round}."
+
+        operator_input = OPERATOR_INPUT.format(
+            experinece=experience, score=score, operator=operator[0], prompt=prompt, type=self.type, graph=graph[0]
+        )
+        operator_system = OPERATOR_OPTIMIZE_PROMPT.format(type=self.type)
+
+        node_prompt = operator_system + operator_input  # TODO 看一眼谁先谁后这个地方
 
         node = await ActionNode.from_pydantic(GraphOptimize).fill(
             context=node_prompt, mode="context_fill", llm=self.llm
@@ -354,17 +488,17 @@ class Optimizer:
                 time.sleep(5)
 
         # TODO 这里其实可以省去
-        graph_match = response["graph"]
+        operator_match = response["operator"]
         prompt_match = response["prompt"]
         modification_match = response["modification"]
 
         modification = modification_match.group(1)
         prompt = prompt_match.group(1)
-        graph = GRAPH_TEMPLATE.format(graph=graph_match.group(1), round=self.round + 1)
+        operator = OPERATOR_TEMPLATE.format(operator=operator_match.group(1), round=self.round + 1)
 
-        # 将 graph.py 文件写入到目录中
-        with open(os.path.join(directory, "graph.py"), "w", encoding="utf-8") as file:
-            file.write(graph)
+        # 将 operator.py 文件写入到目录中
+        with open(os.path.join(directory, "operator.py"), "w", encoding="utf-8") as file:
+            file.write(operator)
 
         # 将 prompt.py 文件写入到目录中
         with open(os.path.join(directory, "prompt.py"), "w", encoding="utf-8") as file:

@@ -3,11 +3,15 @@
 # @Author  : all
 # @Desc    : evaluate for different dataset
 import datetime
+import inspect
 import os
 from typing import Literal
 
 import pandas as pd
 from deepeval.benchmarks import GSM8K
+
+from examples.ags.benchmark.gsm8k import GraphModel
+from examples.ags.w_action_node.graph import SolveGraph
 
 # TODO 完成实验数据集的手动划分
 
@@ -20,14 +24,14 @@ class Evaluator:
     """
 
     def __init__(self, eval_path: str):
-        pass
+        self.eval_path = eval_path
 
-    def validation_evaluate(self, dataset: DatasetType, result_path: str):
+    def validation_evaluate(self, dataset: DatasetType, graph, params: dict):
         """
         Evaluates on validation dataset.
         """
         if dataset == "Gsm8K":
-            return self._gsm8k_eval(result_path)
+            return self._gsm8k_eval(graph, params)
         pass
 
     def test_evaluate(self, dataset: DatasetType):
@@ -36,16 +40,12 @@ class Evaluator:
         """
         pass
 
-    def _gsm8k_eval(self, model, result_path, samples: int = 1000):
+    def _gsm8k_eval(self, graph_class, params, samples: int = 1000):
         """
         Evaluate on GSM8K dataset.
         """
-        if model is None:
-            raise ValueError("Model is required for evaluation.")
 
-        benchmark = GSM8K(n_problems=samples, n_shots=0, enable_cot=False)
-        goldens = benchmark.load_benchmark_dataset()[: benchmark.n_problems]
-
+        # TODO 划分验证集测试集
         def _evaluate_problem(model, golden, benchmark):
             prompt = golden.input
 
@@ -69,12 +69,6 @@ class Evaluator:
                         break
 
             return golden.input, str(prediction), golden.expected_output, score
-
-        results = [_evaluate_problem(model, golden, benchmark) for golden in goldens]
-
-        overall_correct_predictions = sum(score for _, _, _, score in results)
-        overall_total_predictions = benchmark.n_problems
-        overall_accuracy = overall_correct_predictions / overall_total_predictions
 
         def process_gsm8k_csv(file_path, tolerance=1e-6):
             # 读取 CSV 文件
@@ -129,6 +123,24 @@ class Evaluator:
 
             return average_score
 
+        dataset = params["dataset"]
+        llm_config = params["llm_config"]
+
+        # TODO 给到的是load出来的Graph，怎么让他做实例化？
+        graph = SolveGraph(name="Gsm8K", llm_config=llm_config, dataset=dataset)
+        model = GraphModel(graph)
+        benchmark = GSM8K(n_problems=samples, n_shots=0, enable_cot=False)
+
+        graph_module = inspect.getmodule(graph_class)
+        os.path.dirname(graph_module.__file__)
+        goldens = benchmark.load_benchmark_dataset()[: benchmark.n_problems]
+
+        results = [_evaluate_problem(model, golden, benchmark) for golden in goldens]
+
+        overall_correct_predictions = sum(score for _, _, _, score in results)
+        overall_total_predictions = benchmark.n_problems
+        overall_accuracy = overall_correct_predictions / overall_total_predictions
+
         predictions_row = [
             (input, prediction, expected_output, score) for input, prediction, expected_output, score in results
         ]
@@ -137,11 +149,11 @@ class Evaluator:
         )
         benchmark.overall_score = overall_accuracy
         now = datetime.datetime.now()
-        now.strftime("%Y-%m-%d_%H-%M-%S").replace(":", "_")
+        now_time = now.strftime("%Y-%m-%d_%H-%M-%S").replace(":", "_")
 
-        # file_path = f'gsm8k_{overall_accuracy}_{now_time}.csv'
+        file_path = f"{self.eval_path}/gsm8k_{overall_accuracy}_{now_time}.csv"
 
-        benchmark.predictions.to_csv(result_path, index=False)
+        benchmark.predictions.to_csv(file_path, index=False)
 
-        score = process_gsm8k_csv(file_path=result_path)
+        score = process_gsm8k_csv(file_path=file_path)
         return {"score": score}

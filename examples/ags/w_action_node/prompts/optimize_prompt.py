@@ -69,3 +69,54 @@ GRAPH_TEMPLATE = """import os
 
         {graph}
                     """
+
+OPERATOR_OPTIMIZE_PROMPT = """You are building a Operator and corresponding Prompt to jointly solve {type} problems.
+Referring to the given combination of Operator and prompt, which forms a basic example of a {type} solution approach, please reconstruct and optimize the Prompt and Operator. You can add, modify, or delete nodes and parameters in the Operator, as well as modify, delete, or add new Prompts.
+Put your modification (only make one point of change, i.e., one sentence), and the modified Prompt and Operator in XML tags in your reply. They will be used as new Prompt and Operator for calculation and iteration. Please ensure they are complete and correct, otherwise it may lead to runtime failures.
+Only modify the parts in Prompt and Operator.
+
+Don't be limited to the previous format.You can consider Python's built-in loops (like for, while, and list comprehensions) or conditional statements (such as if-elif-else and ternary operators), or even machine learning methods ranging from basic supervised learning techniques (e.g., linear regression, decision trees) to more advanced approaches like neural networks and clustering algorithms. However, you must ensure that each call to the Operator internally involves at most 10 interactions, i.e., the complexity of the Operator does not exceed 15."""
+
+
+OPERATOR_INPUT = """
+Here is a Operator and corresponding Prompt that performed excellently in a previous iteration (maximum score is 1), Graph calls the Operator:\n
+<sample>
+    <experience>{experience}</experience>
+    <modification>None</modification>
+    <score>{score}</score>
+    <operator>{operator}</operator>
+    <prompt>{prompt}</prompt>
+    <graph>{graph}</graph>
+</sample>
+First provide optimization ideas. Note that ANSWER_FORMAT_PROMPT must exist and cannot be modified. Only add/modify/delete one detail point, extensive modifications are prohibited.\n\n"
+"""
+
+
+OPERATOR_TEMPLATE = """
+import ast
+import random
+import sys
+import traceback
+from collections import Counter
+from typing import Dict, List, Tuple
+
+from tenacity import retry, stop_after_attempt
+from examples.ags.w_action_node.optimized.gsm8k.operators.round_{round}.prompt import *
+from examples.ags.w_action_node.operator_an import (
+    GenerateOp,
+)
+from metagpt.actions.action_node import ActionNode
+from metagpt.llm import LLM
+from metagpt.logs import logger
+
+
+class Operator:
+    def __init__(self, name, llm: LLM):
+        self.name = name
+        self.llm = llm
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError
+        
+{operator}
+                    """

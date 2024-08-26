@@ -12,27 +12,30 @@ from typing import Dict, List, Tuple
 from tenacity import retry, stop_after_attempt
 
 from examples.ags.w_action_node.operator_an import (
+    CodeGenerateOp,
     FormatOp,
     FuEnsembleOp,
-    GenerateCodeBlockOp,
     GenerateOp,
     MdEnsembleOp,
     ReflectionTestOp,
     RephraseOp,
     ReviewOp,
     ReviseOp,
+    ScEnsembleOp,
 )
 from examples.ags.w_action_node.prompt import (
+    CODE_CONTEXTUAL_GENERATE_PROMPT,
+    CONTEXTUAL_GENERATE_PROMPT,
     FORMAT_PROMPT,
     FU_ENSEMBLE_PROMPT,
     GENERATE_CODEBLOCK_PROMPT,
-    GENERATE_CODEBLOCK_REPHRASE_PROMPT,
     GENERATE_PROMPT,
     MD_ENSEMBLE_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
     REPHRASE_ON_PROBLEM_PROMPT,
     REVIEW_PROMPT,
     REVISE_PROMPT,
+    SC_ENSEMBLE_PROMPT,
 )
 from examples.ags.w_action_node.utils import test_case_2_test_function
 from metagpt.actions.action_node import ActionNode
@@ -54,7 +57,7 @@ class Generate(Operator):
     基于Action Node Fill Function的 Generate 算子
     """
 
-    def __init__(self, name: str = "Generate", llm: LLM = LLM()):
+    def __init__(self, llm: LLM, name: str = "Generate"):
         super().__init__(name, llm)
 
     async def __call__(self, problem_description):
@@ -64,23 +67,42 @@ class Generate(Operator):
         return response
 
 
-class GenerateCodeBlock(Operator):
-    def __init__(self, name: str = "GenerateCodeBlock", llm: LLM = LLM()):
+class ContextualGenerate(Operator):
+    def __init__(self, llm: LLM, name: str = "ContextualGenerate"):
+        super().__init__(name, llm)
+
+    @retry(stop=stop_after_attempt(3))
+    async def __call__(self, problem_description, thought, function_name):
+        prompt = CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem_description, thought=thought)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(
+            context=prompt, llm=self.llm, function_name=function_name
+        )
+        response = node.instruct_content.model_dump()
+        return response
+
+
+class CodeGenerate(Operator):
+    def __init__(self, name: str = "CodeGenerate", llm: LLM = LLM()):
         super().__init__(name, llm)
 
     @retry(stop=stop_after_attempt(3))
     async def __call__(self, problem_description, function_name):
         prompt = GENERATE_CODEBLOCK_PROMPT.format(problem_description=problem_description)
-        node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(
+        node = await ActionNode.from_pydantic(CodeGenerateOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
         return response
 
+
+class CodeContextualGenerate(Operator):
+    def __init__(self, llm: LLM, name: str = "CodeContextualGenerate"):
+        super().__init__(name, llm)
+
     @retry(stop=stop_after_attempt(3))
-    async def rephrase_generate(self, problem_description, thought, function_name):
-        prompt = GENERATE_CODEBLOCK_REPHRASE_PROMPT.format(problem_description=problem_description, thought=thought)
-        node = await ActionNode.from_pydantic(GenerateCodeBlockOp).fill(
+    async def __call__(self, problem_description, thought, function_name):
+        prompt = CODE_CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem_description, thought=thought)
+        node = await ActionNode.from_pydantic(CodeGenerateOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
@@ -262,9 +284,28 @@ class ScEnsemble(Operator):
     """
     Paper: Self-Consistency Improves Chain of Thought Reasoning in Language Models
     Link: https://arxiv.org/abs/2203.11171
+    Paper: Universal Self-Consistency for Large Language Model Generation
+    Link: https://arxiv.org/abs/2311.17311
     """
 
-    pass
+    def __init__(self, name: str = "ScEnsemble", llm: LLM = LLM()):
+        super().__init__(name, llm)
+
+    async def __call__(self, solutions: List[str], problem_description: str):
+        answer_mapping = {}
+        solution_text = ""
+        for index, solution in enumerate(solutions):
+            answer_mapping[chr(65 + index)] = index
+            solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
+
+        prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+        node = await ActionNode.from_pydantic(ScEnsembleOp).fill(context=prompt, llm=self.llm)
+        response = node.instruct_content.model_dump()
+
+        answer = response.get("solution_letter", "")
+        answer = answer.strip().upper()
+
+        return {"final_solution": solutions[answer_mapping[answer]]}
 
 
 class Rephrase(Operator):
@@ -351,18 +392,3 @@ class Test(Operator):
                 response = node.instruct_content.model_dump()
                 solution = response["refined_solution"]
         return {"final_solution": solution}
-
-
-class FindFact(Operator):
-    def __init__(self, name: str = "FindFact", llm: LLM = LLM()):
-        super().__init__(name, llm)
-
-
-class SelfAsk(Operator):
-    def __init__(self, name: str = "SelfAsk", llm: LLM = LLM()):
-        super().__init__(name, llm)
-
-
-class Verify(Operator):
-    def __init__(self, name: str = "Verify", llm: LLM = LLM()):
-        super().__init__(name, llm)

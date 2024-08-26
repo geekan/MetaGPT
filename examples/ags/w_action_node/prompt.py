@@ -7,8 +7,14 @@ GENERATE_PROMPT = """
 Generate Solution for the following problem: {problem_description}
 """
 
-GENERATE_SOLUTION_PROMPT = """
-Generate a text solution for the following problemL: {problem_description}
+CONTEXTUAL_GENERATE_PROMPT = """
+Generate Solution for the following problem: 
+
+## Problem Description
+{problem_description}
+
+## Thought
+{thought}
 """
 
 GENERATE_CODE_SOLUTION_PROMPT = """
@@ -28,7 +34,7 @@ Guidelines:
 - Double-check the solutions. Each possible solution must be able to generalize to additional test cases, not just the ones provided in the problem description.
 """
 
-GENERATE_CODEBLOCK_REPHRASE_PROMPT = """
+CODE_CONTEXTUAL_GENERATE_PROMPT = """
 Please provide a self-contained  Python script that solves the following problem in a markdown code block:
 
 ### Problem Description
@@ -132,6 +138,16 @@ Don't just pick the most efficient solution. The main consideration is that the 
 Provide your final decision by writing the chosen solution letter.
 
 Please maintain the JSON format in your response.
+"""
+
+SC_ENSEMBLE_PROMPT = """
+I have generated the following solutions to the question: {problem_description}
+
+{solutions}
+
+Evaluate these solutions.
+Select the most consistent solution based on majority consensus.
+Give your answer with a single id of solution (without anything else).
 """
 
 DE_ENSEMBLE_TXT_FORMAT_PROMPT = """
