@@ -19,10 +19,11 @@ class SWEAgent(RoleZero):
     goal: str = "Resolve GitHub issue or bug in any existing codebase"
     _instruction: str = NEXT_STEP_TEMPLATE
     tools: list[str] = [
-        "Bash",
+        # "Bash",
         "Browser:goto,scroll",
         "RoleZero",
         "git_create_pull",
+        "Editor",
     ]
     terminal: Bash = Field(default_factory=Bash, exclude=True)
     output_diff: str = ""

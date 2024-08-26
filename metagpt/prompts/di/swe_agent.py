@@ -183,7 +183,9 @@ IMPORTANT_TIPS = """
 
 15. When the edit fails, try to enlarge the starting line.
 
-16. Once again, and this is critical: YOU CAN ONLY ENTER ONE COMMAND AT A TIME.
+16. Use an absolute path instead of a relative path.
+
+17. Once again, and this is critical: YOU CAN ONLY ENTER ONE COMMAND AT A TIME.
 """
 
 NEXT_STEP_TEMPLATE = f"""
