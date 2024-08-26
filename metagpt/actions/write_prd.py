@@ -278,7 +278,7 @@ class WritePRD(Action):
         pathname = output_filename or self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, quadrant_chart, pathname)
-        image_path = pathname.parent / f"{pathname.name}.png"
+        image_path = pathname.parent / f"{pathname.name}.svg"
         if image_path.exists():
             await GalleryReporter().async_report(image_path, "path")
 
