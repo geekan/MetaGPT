@@ -29,7 +29,7 @@ from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser, get_markdown_code_block_type
 from metagpt.utils.project_repo import ProjectRepo
-from metagpt.utils.report import EditorReporter
+from metagpt.utils.report import FileIOOperatorReporter
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -152,7 +152,7 @@ class WriteCode(Action):
                 summary_log=summary_doc.content if summary_doc else "",
             )
         logger.info(f"Writing {coding_context.filename}..")
-        async with EditorReporter(enable_llm_stream=True) as reporter:
+        async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "code", "filename": coding_context.filename}, "meta")
             code = await self.write_code(prompt)
             if not coding_context.code_doc:

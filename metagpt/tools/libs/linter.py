@@ -30,12 +30,12 @@ class Linter:
         )
         self.all_lint_cmd = None
 
-    # def set_linter(self, lang, cmd):
-    #     if lang:
-    #         self.languages[lang] = cmd
-    #         return
-    #
-    #     self.all_lint_cmd = cmd
+    def set_linter(self, lang, cmd):
+        if lang:
+            self.languages[lang] = cmd
+            return
+
+        self.all_lint_cmd = cmd
 
     def get_rel_fname(self, fname):
         if self.root:

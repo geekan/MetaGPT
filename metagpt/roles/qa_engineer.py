@@ -33,7 +33,7 @@ from metagpt.utils.common import (
     parse_recipient,
 )
 from metagpt.utils.project_repo import ProjectRepo
-from metagpt.utils.report import EditorReporter
+from metagpt.utils.report import FileIOOperatorReporter
 
 
 class QaEngineer(Role):
@@ -80,7 +80,7 @@ class QaEngineer(Role):
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
 
             context = await WriteTest(i_context=context, context=self.context, llm=self.llm).run()
-            async with EditorReporter(enable_llm_stream=True) as reporter:
+            async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "test", "filename": test_doc.filename}, "meta")
 
                 doc = await self.repo.tests.save_doc(

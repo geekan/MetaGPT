@@ -13,7 +13,7 @@ from metagpt.ext.cr.utils.cleaner import (
     rm_patch_useless_part,
 )
 from metagpt.utils.common import CodeParser
-from metagpt.utils.report import EditorReporter
+from metagpt.utils.report import FileIOOperatorReporter
 
 SYSTEM_MSGS_PROMPT = """
 You're an adaptive software developer who excels at refining code based on user inputs. You're proficient in creating Git patches to represent code modifications.
@@ -100,7 +100,7 @@ class ModifyCode(Action):
             )
             patch_file = output_dir / f"{patch_target_file_name}.patch"
             patch_file.parent.mkdir(exist_ok=True, parents=True)
-            async with EditorReporter(enable_llm_stream=True) as reporter:
+            async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report(
                     {"type": "Patch", "src_path": str(patch_file), "filename": patch_file.name}, "meta"
                 )

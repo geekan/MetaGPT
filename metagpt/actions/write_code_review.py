@@ -22,7 +22,7 @@ from metagpt.schema import CodingContext, Document
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, aread, awrite
 from metagpt.utils.project_repo import ProjectRepo
-from metagpt.utils.report import EditorReporter
+from metagpt.utils.report import FileIOOperatorReporter
 
 PROMPT_TEMPLATE = """
 # System
@@ -144,7 +144,7 @@ class WriteCodeReview(Action):
             return result, None
 
         # if LBTM, rewrite code
-        async with EditorReporter(enable_llm_stream=True) as reporter:
+        async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report(
                 {"type": "code", "filename": filename, "src_path": doc.root_relative_path}, "meta"
             )

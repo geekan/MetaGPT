@@ -12,7 +12,7 @@ from metagpt.ext.cr.actions.modify_code import ModifyCode
 from metagpt.ext.cr.utils.schema import Point
 from metagpt.tools.libs.browser import Browser
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.report import EditorReporter
+from metagpt.utils.report import FileIOOperatorReporter
 
 
 @register_tool(tags=["codereview"], include_functions=["review", "fix"])
@@ -38,7 +38,7 @@ class CodeReview:
             cr_point_content = await f.read()
             cr_points = [Point(**i) for i in json.loads(cr_point_content)]
 
-        async with EditorReporter(enable_llm_stream=True) as reporter:
+        async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
             src_path = cr_output_file
             cr_output_path = Path(cr_output_file)
             await reporter.async_report(
@@ -87,7 +87,7 @@ class CodeReview:
         else:
             async with aiofiles.open(patch_path, encoding="utf-8") as f:
                 patch_file_content = await f.read()
-                await EditorReporter().async_report(patch_path)
+                await FileIOOperatorReporter().async_report(patch_path)
 
         patch: PatchSet = PatchSet(patch_file_content)
         return patch
