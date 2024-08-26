@@ -47,7 +47,7 @@ class ExperienceManager(BaseModel):
             exp (Experience): The experience to add.
         """
 
-        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_write:
+        if not self._is_writable():
             return
 
         self.storage.add_objs([exp])
@@ -66,7 +66,7 @@ class ExperienceManager(BaseModel):
             list[Experience]: A list of experiences that match the args.
         """
 
-        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_read:
+        if not self._is_readable():
             return []
 
         nodes = await self.storage.aretrieve(req)
@@ -85,6 +85,21 @@ class ExperienceManager(BaseModel):
         """Get the total number of experiences."""
 
         return self.storage.count()
+
+    @handle_exception
+    def delete_all_exps(self):
+        """Delete the all experiences."""
+
+        if not self._is_writable():
+            return
+
+        self.storage.clear(persist_dir=self.config.exp_pool.persist_path)
+
+    def _is_readable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_read
+
+    def _is_writable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_write
 
     def _resolve_storage(self) -> "SimpleEngine":
         """Selects the appropriate storage creation method based on the configured retrieval type."""

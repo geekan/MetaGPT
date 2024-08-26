@@ -1,4 +1,5 @@
 """BM25 retriever."""
+from pathlib import Path
 from typing import Callable, Optional
 
 from llama_index.core import VectorStoreIndex
@@ -52,3 +53,18 @@ class DynamicBM25Retriever(BM25Retriever):
         """Support query total count."""
 
         return len(self._nodes)
+
+    def clear(self, **kwargs) -> None:
+        """Support deleting all nodes."""
+        self._delete_json_files(kwargs.get("persist_dir"))
+        self._nodes = []
+
+    @staticmethod
+    def _delete_json_files(directory: str):
+        """Delete all JSON files in the specified directory."""
+
+        if not directory:
+            return
+
+        for file in Path(directory).glob("*.json"):
+            file.unlink()
