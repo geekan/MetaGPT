@@ -11,7 +11,6 @@ import pandas as pd
 from deepeval.benchmarks import GSM8K
 
 from examples.ags.benchmark.gsm8k import GraphModel
-from examples.ags.w_action_node.graph import SolveGraph
 
 # TODO 完成实验数据集的手动划分
 
@@ -126,8 +125,8 @@ class Evaluator:
         dataset = params["dataset"]
         llm_config = params["llm_config"]
 
-        # TODO 给到的是load出来的Graph，怎么让他做实例化？
-        graph = SolveGraph(name="Gsm8K", llm_config=llm_config, dataset=dataset)
+        # TODO 给到的是load出来的Graph，怎么让他做实例化？graph_class 可以跟我这样用吗？
+        graph = graph_class(name="Gsm8K", llm_config=llm_config, dataset=dataset)
         model = GraphModel(graph)
         benchmark = GSM8K(n_problems=samples, n_shots=0, enable_cot=False)
 
