@@ -147,7 +147,7 @@ class SerializationMixin(BaseModel, extra="forbid"):
 
         serialized_data = self.model_dump()
 
-        write_json_file(file_path, serialized_data)
+        write_json_file(file_path, serialized_data, use_fallback=True)
         logger.debug(f"{self.__class__.__qualname__} serialization successful. File saved at: {file_path}")
 
         return file_path
