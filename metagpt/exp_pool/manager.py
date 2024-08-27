@@ -39,6 +39,18 @@ class ExperienceManager(BaseModel):
 
         return self._storage
 
+    @storage.setter
+    def storage(self, value):
+        self._storage = value
+
+    @property
+    def _is_readable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_read
+
+    @property
+    def _is_writable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_write
+
     @handle_exception
     def create_exp(self, exp: Experience):
         """Adds an experience to the storage if writing is enabled.
@@ -47,7 +59,7 @@ class ExperienceManager(BaseModel):
             exp (Experience): The experience to add.
         """
 
-        if not self._is_writable():
+        if not self._is_writable:
             return
 
         self.storage.add_objs([exp])
@@ -66,7 +78,7 @@ class ExperienceManager(BaseModel):
             list[Experience]: A list of experiences that match the args.
         """
 
-        if not self._is_readable():
+        if not self._is_readable:
             return []
 
         nodes = await self.storage.aretrieve(req)
@@ -81,25 +93,19 @@ class ExperienceManager(BaseModel):
 
         return exps
 
-    def get_exps_count(self) -> int:
-        """Get the total number of experiences."""
-
-        return self.storage.count()
-
     @handle_exception
     def delete_all_exps(self):
         """Delete the all experiences."""
 
-        if not self._is_writable():
+        if not self._is_writable:
             return
 
         self.storage.clear(persist_dir=self.config.exp_pool.persist_path)
 
-    def _is_readable(self) -> bool:
-        return self.config.exp_pool.enabled and self.config.exp_pool.enable_read
+    def get_exps_count(self) -> int:
+        """Get the total number of experiences."""
 
-    def _is_writable(self) -> bool:
-        return self.config.exp_pool.enabled and self.config.exp_pool.enable_write
+        return self.storage.count()
 
     def _resolve_storage(self) -> "SimpleEngine":
         """Selects the appropriate storage creation method based on the configured retrieval type."""
