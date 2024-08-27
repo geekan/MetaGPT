@@ -32,7 +32,7 @@ class Engineer2(RoleZero):
         "Browser:goto,scroll",
         "git_create_pull",
     ]
-    # Swe Agent ability
+    # SWE Agent parameter
     run_eval: bool = False
     output_diff: str = ""
     max_react_loop: int = 40
@@ -59,8 +59,6 @@ class Engineer2(RoleZero):
                 "ValidateAndRewriteCode.run": validate.run,
                 "ValidateAndRewriteCode": validate.run,
                 "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
-                "RoleZero.ask_human": self.ask_human,
-                "RoleZero.reply_to_human": self.reply_to_human,
                 "git_create_pull": git_create_pull,
             }
         )
