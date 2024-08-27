@@ -88,7 +88,7 @@ Note:
   - If you don't need to submit code changes to the remote repository. use the command Bash.run('submit') to commit the changes locally. 
 31. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
 32. When the edit fails, try to enlarge the starting line.
-33. When using the Bash.run tool's edit command, the response must contain a single command only.
+33. When using the Bash.run tool's edit command or open command, the response must contain a single command only.
 """
 
 CURRENT_BASH_STATE = """
