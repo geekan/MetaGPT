@@ -38,7 +38,7 @@ async def mermaid_to_file(
     Returns:
         int: 0 if the conversion is successful, -1 if the conversion fails.
     """
-    suffixes = suffixes or ["png"]
+    suffixes = suffixes or ["svg"]
     # Write the Mermaid code to a temporary file
     config = config if config else Config.default()
     dir_name = os.path.dirname(output_file_without_suffix)
