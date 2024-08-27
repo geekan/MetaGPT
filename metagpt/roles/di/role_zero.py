@@ -495,9 +495,9 @@ class RoleZero(Role):
         # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
             logger.info("manually reply to human")
-            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
+            pattern = r"\[Language Restrictions\](.*?)\n"
+            match = re.search(pattern, self.requirements_constraints, re.DOTALL)
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(lanaguge_restruction=match.group(0) if match else "")
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
