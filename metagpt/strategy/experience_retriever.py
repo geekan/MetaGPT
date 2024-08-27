@@ -952,6 +952,128 @@ Explanation: to review the code, call ValidateAndRewriteCode.run.
     }
 ]
 ```
+
+## example 5
+I have received a GitHub issue URL.
+I will use browser to review the detailed information of this issue in order to understand the problem.
+```json
+[
+    {
+        "command_name": "Browser.goto",
+        "args": {
+            "url": "https://github.com/geekan/MetaGPT/issues/1275"
+        }
+    }
+]
+```
+## example 6
+I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "find_file 'openai_api.py'"   
+        }
+    }
+]
+```
+
+## example 7
+I have located the openai_api.py file. I want to edit this file, so I will open it first.
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "open '/workspace/MetaGPT/provider/openai_api.py'"   
+        }
+    }
+]
+```
+
+## example 8
+I've found the bug and will start fixing it. I'll pay close attention to the indentation.
+Since I only need to modify a few lines in this file, I will use the Bash.run tool with the edit command. 
+Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "edit 93:95 <<EOF\\n        usage = None\\n        collected_messages = []\\n        async for chunk in response:\\n            if chunk.usage is not None:\\n                usage = CompletionUsage(**chunk.usage)\\n            chunk_message = chunk.choices[0].delta.content or '' if chunk.choices else ''  # extract the message\\n            finish_reason = (\\n                chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], 'finish_reason') else None\\n            )\\n            log_llm_stream(chunk_message)\\nEOF"
+        }
+    }
+]
+```
+
+## example 9
+Due to a syntax error related to an undefined name 'Image', I need to address this issue even though it is not directly related to our work.
+Let's try importing the package to fix it.
+
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "edit 14:14 <<EOF\\nfrom PIL.Image import Image\\nEOF"
+        }
+    }
+]
+```
+
+## example 10
+### Save the Changes (Required): After all changes have been made, save them to the repository.
+I must choose one of the following two methods.
+
+#### Just save the changes locally, it only need one action.
+Thought: The bug has been fixed. Let's submit the changes.
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "submit"
+        }
+    }
+]
+```
+#### Save the changes and commit them to the remote repository.
+
+##### Push the changes from the local repository to the remote repository.
+Thought: All changes have been saved, let's push the code to the remote repository.
+```json
+[
+    {
+        "command_name": "Bash.run",
+        "args": {
+            "cmd": "git push origin test-fix"
+        }
+    }
+]
+```
+
+
+##### Create a pull request (Optional): Merge the changes from the new branch into the master branch.
+Thought: Now that the changes have been pushed to the remote repository, due to the user's requirement, let's create a pull request to merge the changes into the master branch.
+```json
+[
+    {
+        "command_name": "git_create_pull",
+        "args": {
+            "base": "master",
+            "head": "test-fix",
+            "base_repo_name": "garylin2099/MetaGPT",
+            "head_repo_name": "seeker-jie/MetaGPT",
+            "app_name": "github",
+            "title": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType"",
+            "body": "This pull request addresses issue #1275 by ensuring that chunk.usage is not None before passing it to CompletionUsage."
+            }
+        }
+]
+```
+
+
 """
 
 

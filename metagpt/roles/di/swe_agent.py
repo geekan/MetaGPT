@@ -38,10 +38,24 @@ class SWEAgent(RoleZero):
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {
-                "Bash.run": self.terminal.run,
+                "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
                 "git_create_pull": git_create_pull,
             }
         )
+
+    async def eval_terminal_run(self, cmd):
+        """change command pull/push/commit to end."""
+        if any([cmd_key_word in cmd for cmd_key_word in ["pull", "push", "commit"]]):
+            # Observe that SWEAgent tries to submit the repo after fixing the bug.
+            # Set self.rc.todo to None and use git -diff to record the change.
+            logger.info("SWEAgent use cmd:{cmd}")
+            logger.info("finish current task")
+            # stop the sweagent
+            self._set_state(-1)
+            command_output = "Current test case is finished."
+        else:
+            command_output = await self.terminal.run(cmd)
+        return command_output
 
     async def _format_instruction(self):
         """
@@ -57,7 +71,7 @@ class SWEAgent(RoleZero):
     async def _act(self) -> Message:
         message = await super()._act()
         if self.run_eval:
-            self._parse_commands_for_eval()
+            await self._parse_commands_for_eval()
         return message
 
     async def _parse_commands_for_eval(self):
