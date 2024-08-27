@@ -251,15 +251,15 @@ class Editor(BaseModel):
         from metagpt.tools.libs import get_env_default
         from metagpt.utils.omniparse_client import OmniParseClient
 
-        base_url1 = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
-        timeout1 = await get_env_default(key="timeout", app_name="OmniParse", default_value="")
-        base_url2, timeout2 = await Editor._read_omniparse_config()
+        env_base_url = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
+        env_timeout = await get_env_default(key="timeout", app_name="OmniParse", default_value="")
+        conf_base_url, conf_timeout = await Editor._read_omniparse_config()
 
-        base_url = base_url1 or base_url2
+        base_url = env_base_url or conf_base_url
         if not base_url:
             return None
         api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")
-        timeout = timeout1 or timeout2 or 120
+        timeout = env_timeout or conf_timeout or 120
         try:
             timeout = int(timeout)
         except ValueError:
