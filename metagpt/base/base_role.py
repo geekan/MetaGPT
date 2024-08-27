@@ -8,7 +8,10 @@ class BaseRole:
     """Abstract base class for all roles."""
 
     name: str
-    is_idle: bool
+
+    @property
+    def is_idle(self) -> bool:
+        raise NotImplementedError
 
     @abstractmethod
     def think(self):
