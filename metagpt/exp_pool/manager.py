@@ -31,7 +31,7 @@ class ExperienceManager(BaseModel):
     _storage: Any = None
 
     @property
-    def storage(self):
+    def storage(self) -> "SimpleEngine":
         if self._storage is None:
             logger.info(f"exp_pool config: {self.config.exp_pool}")
 
@@ -44,12 +44,20 @@ class ExperienceManager(BaseModel):
         self._storage = value
 
     @property
-    def _is_readable(self) -> bool:
+    def is_readable(self) -> bool:
         return self.config.exp_pool.enabled and self.config.exp_pool.enable_read
 
+    @is_readable.setter
+    def is_readable(self, value: bool):
+        self.config.exp_pool.enabled = self.config.exp_pool.enable_read = value
+
     @property
-    def _is_writable(self) -> bool:
+    def is_writable(self) -> bool:
         return self.config.exp_pool.enabled and self.config.exp_pool.enable_write
+
+    @is_writable.setter
+    def is_writable(self, value: bool):
+        self.config.exp_pool.enabled = self.config.exp_pool.enable_write = value
 
     @handle_exception
     def create_exp(self, exp: Experience):
@@ -59,10 +67,19 @@ class ExperienceManager(BaseModel):
             exp (Experience): The experience to add.
         """
 
-        if not self._is_writable:
+        self.create_exps([exp])
+
+    @handle_exception
+    def create_exps(self, exps: list[Experience]):
+        """Adds multiple experiences to the storage if writing is enabled.
+
+        Args:
+            exps (list[Experience]): A list of experiences to add.
+        """
+        if not self.is_writable:
             return
 
-        self.storage.add_objs([exp])
+        self.storage.add_objs(exps)
         self.storage.persist(self.config.exp_pool.persist_path)
 
     @handle_exception(default_return=[])
@@ -78,7 +95,7 @@ class ExperienceManager(BaseModel):
             list[Experience]: A list of experiences that match the args.
         """
 
-        if not self._is_readable:
+        if not self.is_readable:
             return []
 
         nodes = await self.storage.aretrieve(req)
@@ -97,7 +114,7 @@ class ExperienceManager(BaseModel):
     def delete_all_exps(self):
         """Delete the all experiences."""
 
-        if not self._is_writable:
+        if not self.is_writable:
             return
 
         self.storage.clear(persist_dir=self.config.exp_pool.persist_path)
@@ -210,7 +227,7 @@ class ExperienceManager(BaseModel):
 _exp_manager = None
 
 
-def get_exp_manager():
+def get_exp_manager() -> ExperienceManager:
     global _exp_manager
     if _exp_manager is None:
         _exp_manager = ExperienceManager()

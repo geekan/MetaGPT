@@ -46,8 +46,8 @@ async def add_exp(req: str, resp: str, tag: str, metric: Metric = None):
         metric=metric or Metric(score=Score(val=10, reason="Manual")),
     )
     exp_manager = get_exp_manager()
-    exp_manager.config.exp_pool.enabled = True
-    exp_manager.config.exp_pool.enable_write = True
+    exp_manager.is_writable = True
+
     exp_manager.create_exp(exp)
     logger.info(f"New experience created for the request `{req[:10]}`.")
 
