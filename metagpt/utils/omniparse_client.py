@@ -189,7 +189,7 @@ class OmniParseClient:
             # Do not verify if only byte data is provided
             return
 
-        file_ext = Path(verify_file_path).suffix
+        file_ext = Path(verify_file_path).suffix.lower()
         if file_ext not in allowed_file_extensions:
             raise ValueError(f"Not allowed {file_ext} File extension must be one of {allowed_file_extensions}")
 
