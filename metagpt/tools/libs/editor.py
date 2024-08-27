@@ -259,11 +259,11 @@ class Editor(BaseModel):
         if not base_url:
             return None
         api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")
-        timeout = env_timeout or conf_timeout or 120
+        timeout = env_timeout or conf_timeout or 600
         try:
             timeout = int(timeout)
         except ValueError:
-            timeout = 120
+            timeout = 600
 
         try:
             if not await check_http_endpoint(url=base_url):
