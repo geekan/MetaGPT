@@ -1,7 +1,7 @@
 """RAG schemas."""
-
+from enum import Enum
 from pathlib import Path
-from typing import Any, ClassVar, Literal, Optional, Union
+from typing import Any, ClassVar, List, Literal, Optional, Union
 
 from chromadb.api.types import CollectionMetadata
 from llama_index.core.embeddings import BaseEmbedding
@@ -214,3 +214,51 @@ class ObjectNode(TextNode):
         )
 
         return metadata.model_dump()
+
+
+class OmniParseType(str, Enum):
+    """OmniParseType"""
+
+    PDF = "PDF"
+    DOCUMENT = "DOCUMENT"
+
+
+class ParseResultType(str, Enum):
+    """The result type for the parser."""
+
+    TXT = "text"
+    MD = "markdown"
+    JSON = "json"
+
+
+class OmniParseOptions(BaseModel):
+    """OmniParse Options config"""
+
+    result_type: ParseResultType = Field(default=ParseResultType.MD, description="OmniParse result_type")
+    parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse parse_type")
+    max_timeout: Optional[int] = Field(default=120, description="Maximum timeout for OmniParse service requests")
+    num_workers: int = Field(
+        default=5,
+        gt=0,
+        lt=10,
+        description="Number of concurrent requests for multiple files",
+    )
+
+
+class OminParseImage(BaseModel):
+    image: str = Field(default="", description="image str bytes")
+    image_name: str = Field(default="", description="image name")
+    image_info: Optional[dict] = Field(default={}, description="image info")
+
+
+class OmniParsedResult(BaseModel):
+    markdown: str = Field(default="", description="markdown text")
+    text: str = Field(default="", description="plain text")
+    images: Optional[List[OminParseImage]] = Field(default=[], description="images")
+    metadata: Optional[dict] = Field(default={}, description="metadata")
+
+    @model_validator(mode="before")
+    def set_markdown(cls, values):
+        if not values.get("markdown"):
+            values["markdown"] = values.get("text")
+        return values

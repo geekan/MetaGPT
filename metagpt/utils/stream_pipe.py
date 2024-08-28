@@ -11,8 +11,10 @@ from multiprocessing import Pipe
 
 
 class StreamPipe:
-    parent_conn, child_conn = Pipe()
-    finish: bool = False
+    def __init__(self, name=None):
+        self.name = name
+        self.parent_conn, self.child_conn = Pipe()
+        self.finish: bool = False
 
     format_data = {
         "id": "chatcmpl-96bVnBOOyPFZZxEoTIGbdpFcVEnur",
