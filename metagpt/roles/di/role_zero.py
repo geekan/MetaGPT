@@ -67,7 +67,7 @@ class RoleZero(Role):
 
     # React Mode
     react_mode: Literal["react"] = "react"
-    max_react_loop: int = 20  # used for react mode
+    max_react_loop: int = 50  # used for react mode
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
@@ -276,6 +276,14 @@ class RoleZero(Role):
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()
             actions_taken += 1
+
+            # post-check
+            if self.rc.max_react_loop >= 10 and actions_taken >= self.rc.max_react_loop:
+                # If max_react_loop is a small value (e.g. < 10), it is intended to be reached and make the agent stop
+                logger.warning(f"reached max_react_loop: {actions_taken}")
+                rsp = await self.ask_human("I have reached my max action rounds, do you want me to continue? Yes or no")
+                if "yes" in rsp.lower():
+                    actions_taken = 0
         return rsp  # return output from the last action
 
     def format_quick_system_prompt(self) -> str:
