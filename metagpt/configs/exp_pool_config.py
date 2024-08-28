@@ -22,3 +22,4 @@ class ExperiencePoolConfig(YamlModel):
         default=ExperiencePoolRetrievalType.BM25, description="The retrieval type for experience pool."
     )
     use_llm_ranker: bool = Field(default=True, description="Use LLM Reranker to get better result.")
+    collection_name: str = Field(default="experience_pool", description="The collection name in chromadb")
