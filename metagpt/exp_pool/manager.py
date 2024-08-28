@@ -49,7 +49,11 @@ class ExperienceManager(BaseModel):
 
     @is_readable.setter
     def is_readable(self, value: bool):
-        self.config.exp_pool.enabled = self.config.exp_pool.enable_read = value
+        self.config.exp_pool.enable_read = value
+
+        # If set to True, ensure that enabled is also True.
+        if value:
+            self.config.exp_pool.enabled = True
 
     @property
     def is_writable(self) -> bool:
@@ -57,7 +61,11 @@ class ExperienceManager(BaseModel):
 
     @is_writable.setter
     def is_writable(self, value: bool):
-        self.config.exp_pool.enabled = self.config.exp_pool.enable_write = value
+        self.config.exp_pool.enable_write = value
+
+        # If set to True, ensure that enabled is also True.
+        if value:
+            self.config.exp_pool.enabled = True
 
     @handle_exception
     def create_exp(self, exp: Experience):
