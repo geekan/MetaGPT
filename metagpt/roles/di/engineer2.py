@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import Field
 
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
@@ -14,6 +16,7 @@ from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
+from metagpt.utils.report import EditorReporter
 
 
 @register_tool(include_functions=["write_new_code"])
@@ -65,10 +68,13 @@ class Engineer2(RoleZero):
             instruction=instruction,
         )
         context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
-        rsp = await self.llm.aask(context, system_msgs=[WRITE_CODE_SYSTEM_PROMPT])
-        code = CodeParser.parse_code(text=rsp)
 
-        await awrite(path, code)
+        async with EditorReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "code", "filename": Path(path).name, "src_path": path}, "meta")
+            rsp = await self.llm.aask(context, system_msgs=[WRITE_CODE_SYSTEM_PROMPT])
+            code = CodeParser.parse_code(text=rsp)
+            await awrite(path, code)
+            await reporter.async_report(path, "path")
 
         # TODO: Consider adding line no to be ready for editing.
         return f"The file {path} has been successfully created, with content:\n{code}"
