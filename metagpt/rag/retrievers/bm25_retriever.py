@@ -37,6 +37,7 @@ class DynamicBM25Retriever(BM25Retriever):
 
     def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
         """Support add nodes."""
+
         self._nodes.extend(nodes)
         self._corpus = [self._tokenizer(node.get_content()) for node in self._nodes]
         self.bm25 = BM25Okapi(self._corpus)
@@ -46,6 +47,7 @@ class DynamicBM25Retriever(BM25Retriever):
 
     def persist(self, persist_dir: str, **kwargs) -> None:
         """Support persist."""
+
         if self._index:
             self._index.storage_context.persist(persist_dir)
 
@@ -56,6 +58,7 @@ class DynamicBM25Retriever(BM25Retriever):
 
     def clear(self, **kwargs) -> None:
         """Support deleting all nodes."""
+
         self._delete_json_files(kwargs.get("persist_dir"))
         self._nodes = []
 
