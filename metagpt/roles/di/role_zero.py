@@ -4,6 +4,7 @@ import inspect
 import json
 import re
 import traceback
+from datetime import datetime
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
 from pydantic import Field, model_validator
@@ -232,6 +233,10 @@ class RoleZero(Role):
             if images:
                 msg.add_metadata(IMAGES, images)
         return memory
+
+    def _get_prefix(self) -> str:
+        time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return super()._get_prefix() + f" The current time is {time_info}."
 
     async def _act(self) -> Message:
         if self.use_fixed_sop:
