@@ -16,6 +16,7 @@ import base64
 import contextlib
 import csv
 import functools
+import hashlib
 import importlib
 import inspect
 import json
@@ -1175,3 +1176,23 @@ def rectify_pathname(path: Union[str, Path], default_filename: str) -> Path:
     else:
         output_pathname.parent.mkdir(parents=True, exist_ok=True)
     return output_pathname
+
+
+def generate_fingerprint(text: str) -> str:
+    """
+    Generate a fingerprint for the given text
+
+    Args:
+        text (str): The text for which the fingerprint needs to be generated
+
+    Returns:
+        str: The fingerprint value of the text
+    """
+    text_bytes = text.encode("utf-8")
+
+    # calculate SHA-256 hash
+    sha256 = hashlib.sha256()
+    sha256.update(text_bytes)
+    fingerprint = sha256.hexdigest()
+
+    return fingerprint
