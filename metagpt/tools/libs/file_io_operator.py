@@ -26,7 +26,7 @@ class LineNumberError(Exception):
 
 
 @register_tool()
-class FileIOOperator(BaseModel):
+class FileOperator(BaseModel):
     """
     A state-of-state tool for reading, understanding, and writing files.
     """
@@ -82,7 +82,7 @@ class FileIOOperator(BaseModel):
 
     @staticmethod
     async def _read_pdf(path: Union[str, Path]) -> List[str]:
-        result = await FileIOOperator._omniparse_read_file(path)
+        result = await FileOperator._omniparse_read_file(path)
         if result:
             return result
 
@@ -94,7 +94,7 @@ class FileIOOperator(BaseModel):
 
     @staticmethod
     async def _read_docx(path: Union[str, Path]) -> List[str]:
-        result = await FileIOOperator._omniparse_read_file(path)
+        result = await FileOperator._omniparse_read_file(path)
         if result:
             return result
         return read_docx(str(path))
@@ -106,7 +106,7 @@ class FileIOOperator(BaseModel):
 
         base_url = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
         if not base_url:
-            base_url = await FileIOOperator._read_omniparse_config()
+            base_url = await FileOperator._read_omniparse_config()
         if not base_url:
             return None
         api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")

@@ -71,7 +71,7 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
-    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end"]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor()
     browser: Browser = Browser()
@@ -140,12 +140,11 @@ class RoleZero(Role):
                     "goto_line",
                     "insert_content_at_line",
                     "open_file",
-                    # "read",
                     "scroll_down",
                     "scroll_up",
                     "search_dir",
                     "search_file",
-                    # "write",
+                    "set_workdir",
                 ]
             }
         )

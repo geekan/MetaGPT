@@ -1,10 +1,7 @@
-import contextlib
-import io
-
 import pytest
 
 from metagpt.const import TEST_DATA_PATH
-from metagpt.tools.libs.editor import WINDOW, Editor
+from metagpt.tools.libs.editor import Editor
 
 TEST_FILE_CONTENT = """
 # this is line one
@@ -17,6 +14,7 @@ def test_function_for_fm():
 """.strip()
 
 TEST_FILE_PATH = TEST_DATA_PATH / "tools/test_script_for_editor.py"
+WINDOW = 100
 
 
 @pytest.fixture
@@ -38,32 +36,43 @@ def test_function_for_fm():
 """.strip()
 
 
-@pytest.mark.skip
 def test_replace_content(test_file):
-    Editor().write_content(
-        file_path=str(TEST_FILE_PATH),
-        start_line=3,
-        end_line=5,
-        new_block_content="    # This is the new line A replacing lines 3 to 5.\n    # This is the new line B.",
+    editor = Editor()
+    editor._edit_file_impl(
+        file_name=TEST_FILE_PATH,
+        start=3,
+        end=5,
+        content="    # This is the new line A replacing lines 3 to 5.\n    # This is the new line B.",
+        is_insert=False,
+        is_append=False,
     )
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
-    assert new_content == EXPECTED_CONTENT_AFTER_REPLACE
+    assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE.strip()
 
 
 EXPECTED_CONTENT_AFTER_DELETE = """
 # this is line one
 def test_function_for_fm():
+
     c = 3
     # this is the 7th line
 """.strip()
 
 
 def test_delete_content(test_file):
-    Editor().write_content(file_path=str(TEST_FILE_PATH), start_line=3, end_line=5)
+    editor = Editor()
+    editor._edit_file_impl(
+        file_name=TEST_FILE_PATH,
+        start=3,
+        end=5,
+        content="",
+        is_insert=False,
+        is_append=False,
+    )
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
-    assert new_content == EXPECTED_CONTENT_AFTER_DELETE
+    assert new_content.strip() == EXPECTED_CONTENT_AFTER_DELETE.strip()
 
 
 EXPECTED_CONTENT_AFTER_INSERT = """
@@ -78,17 +87,19 @@ def test_function_for_fm():
 """.strip()
 
 
-@pytest.mark.skip
 def test_insert_content(test_file):
-    Editor().write_content(
-        file_path=str(TEST_FILE_PATH),
-        start_line=3,
-        end_line=-1,
-        new_block_content="    # This is the new line to be inserted, at line 3",
+    editor = Editor()
+    editor._edit_file_impl(
+        file_name=TEST_FILE_PATH,
+        start=3,
+        end=3,
+        content="    # This is the new line to be inserted, at line 3",
+        is_insert=True,
+        is_append=False,
     )
     with open(TEST_FILE_PATH, "r") as f:
         new_content = f.read()
-    assert new_content == EXPECTED_CONTENT_AFTER_INSERT
+    assert new_content.strip() == EXPECTED_CONTENT_AFTER_INSERT.strip()
 
 
 @pytest.mark.parametrize(
@@ -115,12 +126,6 @@ async def test_read_files(filename):
     assert file_block.file_path
     if filename.suffix not in [".png", ".mp3", ".mp4"]:
         assert file_block.block_content
-
-
-@pytest.fixture(autouse=True)
-def reset_current_file():
-    global CURRENT_FILE
-    CURRENT_FILE = None
 
 
 def _numbered_test_lines(start, end) -> str:
@@ -150,24 +155,20 @@ def _calculate_window_bounds(current_line, total_lines, window_size):
     return start, end
 
 
-@pytest.mark.asyncio
-async def test_open_file_unexist_path():
+def test_open_file_unexist_path():
     editor = Editor()
     with pytest.raises(FileNotFoundError):
         editor.open_file("/unexist/path/a.txt")
 
 
-@pytest.mark.asyncio
-async def test_open_file(tmp_path):
+def test_open_file(tmp_path):
     editor = Editor()
     assert tmp_path is not None
     temp_file_path = tmp_path / "a.txt"
     temp_file_path.write_text("Line 1\nLine 2\nLine 3\nLine 4\nLine 5")
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path))
+
     assert result is not None
     expected = (
         f"[File: {temp_file_path} (5 lines total)]\n"
@@ -177,21 +178,17 @@ async def test_open_file(tmp_path):
         "3|Line 3\n"
         "4|Line 4\n"
         "5|Line 5\n"
-        "(this is the end of the file)\n"
+        "(this is the end of the file)"
     )
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_open_file_with_indentation(tmp_path):
+def test_open_file_with_indentation(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     temp_file_path.write_text("Line 1\n    Line 2\nLine 3\nLine 4\nLine 5")
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path))
     assert result is not None
     expected = (
         f"[File: {temp_file_path} (5 lines total)]\n"
@@ -201,33 +198,28 @@ async def test_open_file_with_indentation(tmp_path):
         "3|Line 3\n"
         "4|Line 4\n"
         "5|Line 5\n"
-        "(this is the end of the file)\n"
+        "(this is the end of the file)"
     )
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_open_file_long(tmp_path):
+def test_open_file_long(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 1001)])
     temp_file_path.write_text(content)
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path), 1, 50)
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path), 1, 50)
     assert result is not None
     expected = f"[File: {temp_file_path} (1000 lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, 51):
         expected += f"{i}|Line {i}\n"
-    expected += "(950 more lines below)\n"
+    expected += "(950 more lines below)"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_open_file_long_with_lineno(tmp_path):
+def test_open_file_long_with_lineno(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 1001)])
@@ -235,10 +227,7 @@ async def test_open_file_long_with_lineno(tmp_path):
 
     cur_line = 100
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path), cur_line)
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path), cur_line)
     assert result is not None
     expected = f"[File: {temp_file_path} (1000 lines total)]\n"
     start, end = _calculate_window_bounds(cur_line, 1000, WINDOW)
@@ -251,61 +240,44 @@ async def test_open_file_long_with_lineno(tmp_path):
     if end == 1000:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({1000 - end} more lines below)\n"
+        expected += f"({1000 - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_create_file_unexist_path():
+def test_create_file_unexist_path():
     editor = Editor()
     with pytest.raises(FileNotFoundError):
         editor.create_file("/unexist/path/a.txt")
 
 
-@pytest.mark.asyncio
-async def test_create_file(tmp_path):
+def test_create_file(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.create_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.create_file(str(temp_file_path))
 
-    expected = (
-        f"[File: {temp_file_path} (1 lines total)]\n"
-        "(this is the beginning of the file)\n"
-        "1|\n"
-        "(this is the end of the file)\n"
-        f"[File {temp_file_path} created.]\n"
-    )
+    expected = f"[File {temp_file_path} created.]"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_goto_line(tmp_path):
+def test_goto_line(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path))
     assert result is not None
 
     expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, WINDOW + 1):
         expected += f"{i}|Line {i}\n"
-    expected += f"({total_lines - WINDOW} more lines below)\n"
+    expected += f"({total_lines - WINDOW} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.goto_line(500)
-        result = buf.getvalue()
+    result = editor.goto_line(500)
+
     assert result is not None
 
     cur_line = 500
@@ -320,50 +292,39 @@ async def test_goto_line(tmp_path):
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_goto_line_negative(tmp_path):
+def test_goto_line_negative(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 5)])
     temp_file_path.write_text(content)
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
+    editor.open_file(str(temp_file_path))
     with pytest.raises(ValueError):
         editor.goto_line(-1)
 
 
-@pytest.mark.asyncio
-async def test_goto_line_out_of_bound(tmp_path):
+def test_goto_line_out_of_bound(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 5)])
     temp_file_path.write_text(content)
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
+    editor.open_file(str(temp_file_path))
     with pytest.raises(ValueError):
         editor.goto_line(100)
 
 
-@pytest.mark.asyncio
-async def test_scroll_down(tmp_path):
+def test_scroll_down(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
-
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path))
     assert result is not None
 
     expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
@@ -375,15 +336,13 @@ async def test_scroll_down(tmp_path):
     for i in range(start, end + 1):
         expected += f"{i}|Line {i}\n"
     if end == total_lines:
-        expected += "(this is the end of the file)\n"
+        expected += "(this is the end of the file)"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.scroll_down()
-        result = buf.getvalue()
+    result = editor.scroll_down()
+
     assert result is not None
 
     expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
@@ -397,12 +356,11 @@ async def test_scroll_down(tmp_path):
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_scroll_up(tmp_path):
+def test_scroll_up(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
@@ -410,10 +368,8 @@ async def test_scroll_up(tmp_path):
     temp_file_path.write_text(content)
 
     cur_line = 300
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path), cur_line)
-        result = buf.getvalue()
+
+    result = editor.open_file(str(temp_file_path), cur_line)
     assert result is not None
 
     expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
@@ -427,13 +383,9 @@ async def test_scroll_up(tmp_path):
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
-
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.scroll_up()
-        result = buf.getvalue()
+    result = editor.scroll_up()
     assert result is not None
 
     cur_line = cur_line - WINDOW
@@ -449,44 +401,35 @@ async def test_scroll_up(tmp_path):
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_scroll_down_edge(tmp_path):
+def test_scroll_down_edge(tmp_path):
     editor = Editor()
     temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 10)])
     temp_file_path.write_text(content)
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(temp_file_path))
-        result = buf.getvalue()
+    result = editor.open_file(str(temp_file_path))
     assert result is not None
 
     expected = f"[File: {temp_file_path} (9 lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, 10):
         expected += f"{i}|Line {i}\n"
-    expected += "(this is the end of the file)\n"
+    expected += "(this is the end of the file)"
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.scroll_down()
-        result = buf.getvalue()
+    result = editor.scroll_down()
     assert result is not None
 
     assert result.split("\n") == expected.split("\n")
 
 
-@pytest.mark.asyncio
-async def test_print_window_internal(tmp_path):
+def test_print_window_internal(tmp_path):
     editor = Editor()
     test_file_path = tmp_path / "a.txt"
-    await editor.create_file(str(test_file_path))
-    editor.open_file(str(test_file_path))
+    editor.create_file(str(test_file_path))
     with open(test_file_path, "w") as file:
         for i in range(1, 101):
             file.write(f"Line `{i}`\n")
@@ -494,20 +437,15 @@ async def test_print_window_internal(tmp_path):
     current_line = 50
     window = 2
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor._print_window(str(test_file_path), current_line, window, return_str=False)
-        result = buf.getvalue()
-    expected = "(48 more lines above)\n" "49|Line `49`\n" "50|Line `50`\n" "51|Line `51`\n" "(49 more lines below)\n"
+    result = editor._print_window(test_file_path, current_line, window)
+    expected = "(48 more lines above)\n" "49|Line `49`\n" "50|Line `50`\n" "51|Line `51`\n" "(49 more lines below)"
     assert result == expected
 
 
-@pytest.mark.asyncio
-async def test_open_file_large_line_number(tmp_path):
+def test_open_file_large_line_number(tmp_path):
     editor = Editor()
     test_file_path = tmp_path / "a.txt"
     editor.create_file(str(test_file_path))
-    editor.open_file(str(test_file_path))
     with open(test_file_path, "w") as file:
         for i in range(1, 1000):
             file.write(f"Line `{i}`\n")
@@ -515,24 +453,20 @@ async def test_open_file_large_line_number(tmp_path):
     current_line = 800
     window = 100
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(test_file_path), current_line, window)
-        result = buf.getvalue()
+    result = editor.open_file(str(test_file_path), current_line, window)
+
     expected = f"[File: {test_file_path} (999 lines total)]\n"
     expected += "(749 more lines above)\n"
     for i in range(750, 850 + 1):
         expected += f"{i}|Line `{i}`\n"
-    expected += "(149 more lines below)\n"
+    expected += "(149 more lines below)"
     assert result == expected
 
 
-@pytest.mark.asyncio
-async def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
+def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
     editor = Editor()
     test_file_path = tmp_path / "a.txt"
     editor.create_file(str(test_file_path))
-    editor.open_file(str(test_file_path))
     total_lines = 1000
     with open(test_file_path, "w") as file:
         for i in range(1, total_lines + 1):
@@ -541,10 +475,8 @@ async def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
     current_line = 800
     cur_window = 300
 
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.open_file(str(test_file_path), current_line, cur_window)
-        result = buf.getvalue()
+    result = editor.open_file(str(test_file_path), current_line, cur_window)
+
     expected = f"[File: {test_file_path} ({total_lines} lines total)]\n"
     start, end = _calculate_window_bounds(current_line, total_lines, cur_window)
     if start == 1:
@@ -556,13 +488,26 @@ async def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
-        expected += f"({total_lines - end} more lines below)\n"
+        expected += f"({total_lines - end} more lines below)"
     assert result == expected
 
     current_line = current_line - WINDOW
-    with io.StringIO() as buf:
-        with contextlib.redirect_stdout(buf):
-            editor.scroll_up()
+
+    result = editor.scroll_up()
+
+    expected = f"[File: {test_file_path} ({total_lines} lines total)]\n"
+    start, end = _calculate_window_bounds(current_line, total_lines, WINDOW)
+    if start == 1:
+        expected += "(this is the beginning of the file)\n"
+    else:
+        expected += f"({start - 1} more lines above)\n"
+    for i in range(start, end + 1):
+        expected += f"{i}|Line `{i}`\n"
+    if end == total_lines:
+        expected += "(this is the end of the file)\n"
+    else:
+        expected += f"({total_lines - end} more lines below)"
+    assert result.split("\n") == expected.split("\n")
 
 
 if __name__ == "__main__":

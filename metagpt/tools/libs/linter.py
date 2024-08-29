@@ -46,7 +46,6 @@ class Linter:
     def run_cmd(self, cmd, rel_fname, code):
         cmd += " " + rel_fname
         cmd = cmd.split()
-
         process = subprocess.Popen(cmd, cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, _ = process.communicate()
         errors = stdout.decode().strip()
