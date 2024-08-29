@@ -9,8 +9,8 @@ from typing import Any, Callable, Optional
 
 from pydantic import ConfigDict, Field
 
+from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
-from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
 
 

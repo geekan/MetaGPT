@@ -231,7 +231,7 @@ class WriteDesign(Action):
     async def _save_mermaid_file(self, data: str, pathname: Path):
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, data, pathname)
-        image_path = pathname.parent / f"{pathname.name}.png"
+        image_path = pathname.parent / f"{pathname.name}.svg"
         if image_path.exists():
             await GalleryReporter().async_report(image_path, "path")
 

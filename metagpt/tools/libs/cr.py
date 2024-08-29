@@ -1,3 +1,4 @@
+import difflib
 import json
 from pathlib import Path
 from typing import Optional
@@ -22,35 +23,33 @@ class CodeReview:
     async def review(
         self,
         patch_path: str,
-        cr_output_file: str,
-        cr_point_file: Optional[str] = None,
+        output_file: str,
+        point_file: Optional[str] = None,
     ) -> str:
         """Review a PR and save code review comments.
 
+        Notes:
+            If the user does not specify an output path, saved it using a relative path in the current working directory.
+
         Args:
-            patch_path: The local path of the patch file or the url of the pull request. Example: "/data/xxx-pr-1.patch", "https://github.com/xx/XX/pull/1362"
-            cr_output_file: Output file path where code review comments will be saved. Example: "cr/xxx-pr-1.json"
-            cr_point_file: File path for specifying code review points. If not specified, this parameter is not passed..
+            patch_path: The local path of the patch file or the URL of the pull request.
+            output_file: Output file path where code review comments will be saved.
+            point_file: File path for specifying code review points. If not specified, this parameter does not need to be passed.
+
+        Examples:
+
+            >>> cr = CodeReview()
+            >>> await cr.review(patch_path="https://github.com/geekan/MetaGPT/pull/136", output_file="cr/MetaGPT_136.json")
+            >>> await cr.review(patch_path="/data/uploads/dev-master.diff", output_file="cr/dev-master.json")
+            >>> await cr.review(patch_path="/data/uploads/main.py", output_file="cr/main.json")
         """
         patch = await self._get_patch_content(patch_path)
-        cr_point_file = cr_point_file if cr_point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"
-        async with aiofiles.open(cr_point_file, "rb") as f:
+        point_file = point_file if point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"
+        async with aiofiles.open(point_file, "rb") as f:
             cr_point_content = await f.read()
             cr_points = [Point(**i) for i in json.loads(cr_point_content)]
-
-        async with FileIOOperatorReporter(enable_llm_stream=True) as reporter:
-            src_path = cr_output_file
-            cr_output_path = Path(cr_output_file)
-            await reporter.async_report(
-                {"type": "CodeReview", "src_path": src_path, "filename": cr_output_path.name}, "meta"
-            )
-            comments = await CodeReview_().run(patch, cr_points)
-            cr_output_path.parent.mkdir(exist_ok=True, parents=True)
-            async with aiofiles.open(cr_output_path, "w", encoding="utf-8") as f:
-                await f.write(json.dumps(comments, ensure_ascii=False))
-            await reporter.async_report(cr_output_path)
-
-        return f"The number of defects: {len(comments)} and the comments are stored in {cr_output_file}"
+        comments = await CodeReview_().run(patch, cr_points, output_file)
+        return f"The number of defects: {len(comments)} and the comments are stored in {output_file}"
 
     async def fix(
         self,
@@ -88,6 +87,12 @@ class CodeReview:
             async with aiofiles.open(patch_path, encoding="utf-8") as f:
                 patch_file_content = await f.read()
                 await FileIOOperatorReporter().async_report(patch_path)
+            if not patch_path.endswith((".diff", ".patch")):
+                name = Path(patch_path).name
+                patch_file_content = "".join(
+                    difflib.unified_diff([], patch_file_content.splitlines(keepends=True), "/dev/null", f"b/{name}"),
+                )
+                patch_file_content = f"diff --git a/{name} b/{name}\n{patch_file_content}"
 
         patch: PatchSet = PatchSet(patch_file_content)
         return patch

@@ -30,6 +30,8 @@ class TeamLeader(RoleZero):
 
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = SimpleExpRetriever()
 
+    use_summary: bool = False
+
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {

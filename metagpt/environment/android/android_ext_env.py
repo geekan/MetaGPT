@@ -8,9 +8,9 @@ from typing import Any, Optional
 
 from pydantic import Field
 
+from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
-from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 
 
 class AndroidExtEnv(ExtEnv):

@@ -2,13 +2,15 @@
 import time
 from enum import Enum
 from typing import Optional
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
 MAX_SCORE = 10
 
-DEFAULT_COLLECTION_NAME = "experience_pool"
 DEFAULT_SIMILARITY_TOP_K = 2
+
+LOG_NEW_EXPERIENCE_PREFIX = "New experience: "
 
 
 class QueryType(str, Enum):
@@ -68,6 +70,7 @@ class Experience(BaseModel):
     tag: str = Field(default="", description="Tagging experience.")
     traj: Optional[Trajectory] = Field(default=None, description="Trajectory.")
     timestamp: Optional[float] = Field(default_factory=time.time)
+    uuid: Optional[UUID] = Field(default_factory=uuid4)
 
     def rag_key(self):
         return self.req

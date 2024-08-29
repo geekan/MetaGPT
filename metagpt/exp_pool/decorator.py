@@ -10,7 +10,13 @@ from metagpt.config2 import Config
 from metagpt.exp_pool.context_builders import BaseContextBuilder, SimpleContextBuilder
 from metagpt.exp_pool.manager import ExperienceManager, get_exp_manager
 from metagpt.exp_pool.perfect_judges import BasePerfectJudge, SimplePerfectJudge
-from metagpt.exp_pool.schema import Experience, Metric, QueryType, Score
+from metagpt.exp_pool.schema import (
+    LOG_NEW_EXPERIENCE_PREFIX,
+    Experience,
+    Metric,
+    QueryType,
+    Score,
+)
 from metagpt.exp_pool.scorers import BaseScorer, SimpleScorer
 from metagpt.exp_pool.serializers import BaseSerializer, SimpleSerializer
 from metagpt.logs import logger
@@ -173,6 +179,7 @@ class ExpCacheHandler(BaseModel):
 
         exp = Experience(req=self._req, resp=self._resp, tag=self.tag, metric=Metric(score=self._score))
         self.exp_manager.create_exp(exp)
+        self._log_exp(exp)
 
     @staticmethod
     def choose_wrapper(func, wrapped_func):
@@ -215,3 +222,8 @@ class ExpCacheHandler(BaseModel):
             return await self.func(*self.args, **self.kwargs)
 
         return self.func(*self.args, **self.kwargs)
+
+    def _log_exp(self, exp: Experience):
+        log_entry = exp.model_dump_json(include={"uuid", "req", "resp", "tag"})
+
+        logger.debug(f"{LOG_NEW_EXPERIENCE_PREFIX}{log_entry}")

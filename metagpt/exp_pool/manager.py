@@ -7,12 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
 from metagpt.configs.exp_pool_config import ExperiencePoolRetrievalType
-from metagpt.exp_pool.schema import (
-    DEFAULT_COLLECTION_NAME,
-    DEFAULT_SIMILARITY_TOP_K,
-    Experience,
-    QueryType,
-)
+from metagpt.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, Experience, QueryType
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
@@ -36,13 +31,41 @@ class ExperienceManager(BaseModel):
     _storage: Any = None
 
     @property
-    def storage(self):
+    def storage(self) -> "SimpleEngine":
         if self._storage is None:
             logger.info(f"exp_pool config: {self.config.exp_pool}")
 
             self._storage = self._resolve_storage()
 
         return self._storage
+
+    @storage.setter
+    def storage(self, value):
+        self._storage = value
+
+    @property
+    def is_readable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_read
+
+    @is_readable.setter
+    def is_readable(self, value: bool):
+        self.config.exp_pool.enable_read = value
+
+        # If set to True, ensure that enabled is also True.
+        if value:
+            self.config.exp_pool.enabled = True
+
+    @property
+    def is_writable(self) -> bool:
+        return self.config.exp_pool.enabled and self.config.exp_pool.enable_write
+
+    @is_writable.setter
+    def is_writable(self, value: bool):
+        self.config.exp_pool.enable_write = value
+
+        # If set to True, ensure that enabled is also True.
+        if value:
+            self.config.exp_pool.enabled = True
 
     @handle_exception
     def create_exp(self, exp: Experience):
@@ -52,10 +75,19 @@ class ExperienceManager(BaseModel):
             exp (Experience): The experience to add.
         """
 
-        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_write:
+        self.create_exps([exp])
+
+    @handle_exception
+    def create_exps(self, exps: list[Experience]):
+        """Adds multiple experiences to the storage if writing is enabled.
+
+        Args:
+            exps (list[Experience]): A list of experiences to add.
+        """
+        if not self.is_writable:
             return
 
-        self.storage.add_objs([exp])
+        self.storage.add_objs(exps)
         self.storage.persist(self.config.exp_pool.persist_path)
 
     @handle_exception(default_return=[])
@@ -71,7 +103,7 @@ class ExperienceManager(BaseModel):
             list[Experience]: A list of experiences that match the args.
         """
 
-        if not self.config.exp_pool.enabled or not self.config.exp_pool.enable_read:
+        if not self.is_readable:
             return []
 
         nodes = await self.storage.aretrieve(req)
@@ -85,6 +117,15 @@ class ExperienceManager(BaseModel):
             exps = [exp for exp in exps if exp.req == req]
 
         return exps
+
+    @handle_exception
+    def delete_all_exps(self):
+        """Delete the all experiences."""
+
+        if not self.is_writable:
+            return
+
+        self.storage.clear(persist_dir=self.config.exp_pool.persist_path)
 
     def get_exps_count(self) -> int:
         """Get the total number of experiences."""
@@ -117,18 +158,14 @@ class ExperienceManager(BaseModel):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import (
-                BM25IndexConfig,
-                BM25RetrieverConfig,
-                LLMRankerConfig,
-            )
+            from metagpt.rag.schema import BM25IndexConfig, BM25RetrieverConfig
         except ImportError:
             raise ImportError("To use the experience pool, you need to install the rag module.")
 
         persist_path = Path(self.config.exp_pool.persist_path)
         docstore_path = persist_path / "docstore.json"
 
-        ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+        ranker_configs = self._get_ranker_configs()
 
         if not docstore_path.exists():
             logger.debug(f"Path `{docstore_path}` not exists, try to create a new bm25 storage.")
@@ -163,28 +200,42 @@ class ExperienceManager(BaseModel):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+            from metagpt.rag.schema import ChromaRetrieverConfig
         except ImportError:
             raise ImportError("To use the experience pool, you need to install the rag module.")
 
         retriever_configs = [
             ChromaRetrieverConfig(
                 persist_path=self.config.exp_pool.persist_path,
-                collection_name=DEFAULT_COLLECTION_NAME,
+                collection_name=self.config.exp_pool.collection_name,
                 similarity_top_k=DEFAULT_SIMILARITY_TOP_K,
             )
         ]
-        ranker_configs = [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)]
+        ranker_configs = self._get_ranker_configs()
 
         storage = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
         return storage
 
+    def _get_ranker_configs(self):
+        """Returns ranker configurations based on the configuration.
+
+        If `use_llm_ranker` is True, returns a list with one `LLMRankerConfig`
+        instance. Otherwise, returns an empty list.
+
+        Returns:
+            list: A list of `LLMRankerConfig` instances or an empty list.
+        """
+
+        from metagpt.rag.schema import LLMRankerConfig
+
+        return [LLMRankerConfig(top_n=DEFAULT_SIMILARITY_TOP_K)] if self.config.exp_pool.use_llm_ranker else []
+
 
 _exp_manager = None
 
 
-def get_exp_manager():
+def get_exp_manager() -> ExperienceManager:
     global _exp_manager
     if _exp_manager is None:
         _exp_manager = ExperienceManager()

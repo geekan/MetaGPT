@@ -4,6 +4,7 @@ import inspect
 import json
 import re
 import traceback
+from datetime import datetime
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
 from pydantic import Field, model_validator
@@ -26,7 +27,9 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_PROMPT,
     QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
+    REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
+    SUMMARY_PROMPT,
     SYSTEM_PROMPT,
     THOUGHT_GUIDANCE,
 )
@@ -65,7 +68,7 @@ class RoleZero(Role):
 
     # React Mode
     react_mode: Literal["react"] = "react"
-    max_react_loop: int = 20  # used for react mode
+    max_react_loop: int = 50  # used for react mode
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
@@ -85,6 +88,7 @@ class RoleZero(Role):
     memory_k: int = 20  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
+    use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "RoleZero":
@@ -203,13 +207,13 @@ class RoleZero(Role):
         memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
+        state_data = dict(
+            plan_status=plan_status,
+            current_task=current_task,
+            instruction=instruction,
+        )
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
-            state_data = dict(
-                plan_status=plan_status,
-                current_task=current_task,
-                instruction=instruction,
-            )
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
 
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
@@ -246,13 +250,18 @@ class RoleZero(Role):
                 msg.add_metadata(IMAGES, images)
         return memory
 
+    def _get_prefix(self) -> str:
+        time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return super()._get_prefix() + f" The current time is {time_info}."
+
     async def _act(self) -> Message:
         if self.use_fixed_sop:
             return await super()._act()
 
-        commands, ok = await self._parse_commands()
+        commands, ok = await self._parse_commands(self.command_rsp)
         if not ok:
             error_msg = commands
+            self.rc.memory.add(UserMessage(content=error_msg))
             return error_msg
         logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
@@ -288,6 +297,14 @@ class RoleZero(Role):
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()
             actions_taken += 1
+
+            # post-check
+            if self.rc.max_react_loop >= 10 and actions_taken >= self.rc.max_react_loop:
+                # If max_react_loop is a small value (e.g. < 10), it is intended to be reached and make the agent stop
+                logger.warning(f"reached max_react_loop: {actions_taken}")
+                rsp = await self.ask_human("I have reached my max action rounds, do you want me to continue? Yes or no")
+                if "yes" in rsp.lower():
+                    actions_taken = 0
         return rsp  # return output from the last action
 
     def format_quick_system_prompt(self) -> str:
@@ -315,10 +332,13 @@ class RoleZero(Role):
                     self.llm.format_msg(memory),
                     system_msgs=[QUICK_RESPONSE_SYSTEM_PROMPT.format(role_info=self._get_prefix())],
                 )
-                if "command_name" in answer:
-                    # an actual TASK intent misclassified as QUICK, correct it here, FIXME: a better way is to classify it correctly in the first place
-                    answer = ""
-                    intent_result = "TASK"
+            # If the answer contains the substring '[Message] from A to B:', remove it.
+            pattern = r"\[Message\] from .+? to .+?:\s*"
+            answer = re.sub(pattern, "", answer, count=1)
+            if "command_name" in answer:
+                # an actual TASK intent misclassified as QUICK, correct it here, FIXME: a better way is to classify it correctly in the first place
+                answer = ""
+                intent_result = "TASK"
         elif "SEARCH" in intent_result:
             query = "\n".join(str(msg) for msg in memory)
             answer = await SearchEnhancedQA().run(query)
@@ -352,7 +372,7 @@ class RoleZero(Role):
             command_rsp = await self.llm.aask(regenerate_req)
         return command_rsp
 
-    async def _parse_commands(self) -> Tuple[List[Dict], bool]:
+    async def _parse_commands(self, command_rsp) -> Tuple[List[Dict], bool]:
         """Retrieves commands from the Large Language Model (LLM).
 
         This function attempts to retrieve a list of commands from the LLM by
@@ -364,20 +384,20 @@ class RoleZero(Role):
                 - A boolean flag indicating success (True) or failure (False).
         """
         try:
-            commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+            commands = CodeParser.parse_code(block=None, lang="json", text=command_rsp)
             if commands.endswith("]") and not commands.startswith("["):
                 commands = "[" + commands
             commands = json.loads(repair_llm_raw_output(output=commands, req_keys=[None], repair_type=RepairType.JSON))
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse JSON for: {self.command_rsp}. Trying to repair...")
+            logger.warning(f"Failed to parse JSON for: {command_rsp}. Trying to repair...")
             commands = await self.llm.aask(
-                msg=JSON_REPAIR_PROMPT.format(json_data=self.command_rsp, json_decode_error=str(e))
+                msg=JSON_REPAIR_PROMPT.format(json_data=command_rsp, json_decode_error=str(e))
             )
             try:
                 commands = json.loads(CodeParser.parse_code(block=None, lang="json", text=commands))
             except json.JSONDecodeError:
                 # repair escape error of code and math
-                commands = CodeParser.parse_code(block=None, lang="json", text=self.command_rsp)
+                commands = CodeParser.parse_code(block=None, lang="json", text=command_rsp)
                 new_command = repair_escape_error(commands)
                 commands = json.loads(
                     repair_llm_raw_output(output=new_command, req_keys=[None], repair_type=RepairType.JSON)
@@ -385,8 +405,7 @@ class RoleZero(Role):
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)
-            error_msg = UserMessage(content=str(e))
-            self.rc.memory.add(error_msg)
+            error_msg = str(e)
             return error_msg, False
 
         # 为了对LLM不按格式生成进行容错
@@ -439,8 +458,7 @@ class RoleZero(Role):
             command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
 
         elif cmd["command_name"] == "end":
-            self._set_state(-1)
-            command_output = ""
+            command_output = await self._end()
 
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Bash.run":
@@ -499,3 +517,24 @@ class RoleZero(Role):
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
+
+    async def _end(self):
+        self._set_state(-1)
+        memory = self.rc.memory.get(self.memory_k)
+        # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.
+        if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
+            logger.info("manually reply to human")
+            pattern = r"\[Language Restrictions\](.*?)\n"
+            match = re.search(pattern, self.requirements_constraints, re.DOTALL)
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(lanaguge_restruction=match.group(0) if match else "")
+            async with ThoughtReporter(enable_llm_stream=True) as reporter:
+                await reporter.async_report({"type": "quick"})
+                reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
+            await self.reply_to_human(content=reply_content)
+            self.rc.memory.add(AIMessage(content=reply_content, cause_by=RunCommand))
+        outputs = ""
+        # Summary of the Completed Task and Deliverables
+        if self.use_summary:
+            logger.info("end current run and summarize")
+            outputs = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(SUMMARY_PROMPT)]))
+        return outputs
