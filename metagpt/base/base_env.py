@@ -6,10 +6,11 @@ from abc import abstractmethod
 from typing import Any, Optional
 
 from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
+from metagpt.base.base_serialization import BaseSerialization
 from metagpt.schema import Message
 
 
-class BaseEnvironment:
+class BaseEnvironment(BaseSerialization):
     """Base environment"""
 
     @abstractmethod

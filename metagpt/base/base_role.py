@@ -1,10 +1,11 @@
 from abc import abstractmethod
 from typing import Optional, Union
 
+from metagpt.base.base_serialization import BaseSerialization
 from metagpt.schema import Message
 
 
-class BaseRole:
+class BaseRole(BaseSerialization):
     """Abstract base class for all roles."""
 
     name: str
