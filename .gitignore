@@ -188,3 +188,4 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
+expo/results/*
