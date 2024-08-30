@@ -518,6 +518,41 @@ def test_edit_file_by_replace(temp_py_file):
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
 
 
+def test_append_file(temp_file_path):
+    editor = Editor()
+    # 写入初始内容
+    initial_content = "Line 1\nLine 2\nLine 3\n"
+    temp_file_path.write_text(initial_content)
+
+    # 追加内容到文件
+    append_content = "Line 4\nLine 5\n"
+
+    result = editor.append_file(str(temp_file_path), append_content)
+
+    # 预期内容
+    expected_content = initial_content + append_content
+
+    # 读取文件并断言内容与预期一致
+    with open(temp_file_path, "r") as f:
+        new_content = f.read()
+    assert new_content == expected_content
+
+    # 输出的预期结果
+    expected_output = (
+        f"[File: {temp_file_path.resolve()} (5 lines total after edit)]\n"
+        "(this is the beginning of the file)\n"
+        "1|Line 1\n"
+        "2|Line 2\n"
+        "3|Line 3\n"
+        "4|Line 4\n"
+        "5|Line 5\n"
+        "(this is the end of the file)\n"
+        "[File updated (edited at line 3). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]"
+    )
+
+    assert result.split("\n") == expected_output.split("\n")
+
+
 def test_search_dir(tmp_path):
     editor = Editor()
     dir_path = tmp_path / "test_dir"

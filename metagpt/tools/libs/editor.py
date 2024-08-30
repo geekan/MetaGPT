@@ -42,9 +42,8 @@ class LineNumberError(Exception):
 @register_tool()
 class Editor(BaseModel):
     """
-    A state-of-state tool for open/reading, understanding, and editing/writing files.
-    Args:
-        working_dir: The working directory to use for the editor.
+    A tool for reading, understanding, writing, and editing files.
+    Support local file including text-based files (txt, md, json, py, html, js, css, etc.), pdf, docx, excluding images, csv, excel, or online links
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -281,7 +280,7 @@ class Editor(BaseModel):
     def set_workdir(self, path: str) -> None:
         """
         Sets the working directory to the given path. eg: repo directory.
-        You need to set it up before operating the file.
+        You MUST to set it up before open the file.
 
         Args:
             path: str: The path to set as the working directory.

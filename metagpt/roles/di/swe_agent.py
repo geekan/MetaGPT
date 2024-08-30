@@ -11,7 +11,7 @@ from metagpt.prompts.di.swe_agent import (
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message
 from metagpt.tools.libs.git import git_create_pull
-from metagpt.tools.libs.terminal import Bash
+from metagpt.tools.libs.terminal import Terminal
 
 
 class SWEAgent(RoleZero):
@@ -19,14 +19,8 @@ class SWEAgent(RoleZero):
     profile: str = "Issue Solver"
     goal: str = "Resolve GitHub issue or bug in any existing codebase"
     _instruction: str = NEXT_STEP_TEMPLATE
-    tools: list[str] = [
-        # "Bash",
-        "Browser:goto,scroll",
-        "RoleZero",
-        "git_create_pull",
-        "Editor",
-    ]
-    terminal: Bash = Field(default_factory=Bash, exclude=True)
+    tools: list[str] = ["Browser:goto,scroll", "RoleZero", "git_create_pull", "Editor", "Terminal"]
+    terminal: Terminal = Field(default_factory=Terminal, exclude=True)
     output_diff: str = ""
     max_react_loop: int = 40
     run_eval: bool = False
@@ -39,7 +33,6 @@ class SWEAgent(RoleZero):
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {
-                "Bash.run": self.terminal.run,
                 "git_create_pull": git_create_pull,
             }
         )
