@@ -1,36 +1,47 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from pydantic import Field
 
 from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.logs import logger
-from metagpt.prompts.di.engineer2 import CURRENT_BASH_STATE, ENGINEER2_INSTRUCTION
+
+# from metagpt.actions.write_code_review import ValidateAndRewriteCode
+from metagpt.prompts.di.engineer2 import (
+    CURRENT_BASH_STATE,
+    ENGINEER2_INSTRUCTION,
+    WRITE_CODE_PROMPT,
+    WRITE_CODE_SYSTEM_PROMPT,
+)
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import Message
+from metagpt.schema import Message, UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.git import git_create_pull
-from metagpt.tools.libs.terminal import Bash
+from metagpt.tools.libs.terminal import Bash, Terminal
+from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import CodeParser, awrite
+from metagpt.utils.report import EditorReporter
 
 
+@register_tool(include_functions=["write_new_code"])
 class Engineer2(RoleZero):
     name: str = "Alex"
     profile: str = "Engineer"
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
 
-    # terminal: Terminal = Field(default_factory=Terminal, exclude=True)
-    terminal: Bash = Field(default_factory=Bash, exclude=True)
+    terminal: Terminal = Field(default_factory=Bash, exclude=True)
 
     tools: list[str] = [
         "Plan",
-        "Editor:write,read",
+        "Editor:read",
         "RoleZero",
-        "ValidateAndRewriteCode",
         "Bash",
         "Browser:goto,scroll",
         "git_create_pull",
+        "Engineer2",
     ]
     # SWE Agent parameter
     run_eval: bool = False
@@ -53,13 +64,14 @@ class Engineer2(RoleZero):
         self.cmd_prompt_current_state = CURRENT_BASH_STATE.format(**bash_state).strip()
 
     def _update_tool_execution(self):
-        validate = ValidateAndRewriteCode()
+        ValidateAndRewriteCode()
         self.tool_execution_map.update(
             {
-                "ValidateAndRewriteCode.run": validate.run,
-                "ValidateAndRewriteCode": validate.run,
                 "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
                 "git_create_pull": git_create_pull,
+                "Engineer2.write_new_code": self.write_new_code,
+                # "ValidateAndRewriteCode.run": validate.run,
+                # "ValidateAndRewriteCode": validate.run,
             }
         )
 
@@ -119,3 +131,28 @@ class Engineer2(RoleZero):
                     self.output_diff = clear_diff
             except Exception as e:
                 logger.error(f"Error during submission: {e}")
+
+    async def write_new_code(self, path: str, instruction: str = "") -> str:
+        """Write a new code file.
+        When used, make sure content arg contains the full content of the file.
+        Args:
+            path (str): The absolute path of the file to be created.
+            instruction (optional, str): Further hints or notice other than the current task instruction, must be very concise and can be empty. Defaults to "".
+        """
+        plan_status, _ = self._get_plan_status()
+        prompt = WRITE_CODE_PROMPT.format(
+            user_requirement=self.planner.plan.goal,
+            plan_status=plan_status,
+            instruction=instruction,
+        )
+        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
+
+        async with EditorReporter(enable_llm_stream=True) as reporter:
+            await reporter.async_report({"type": "code", "filename": Path(path).name, "src_path": path}, "meta")
+            rsp = await self.llm.aask(context, system_msgs=[WRITE_CODE_SYSTEM_PROMPT])
+            code = CodeParser.parse_code(text=rsp)
+            await awrite(path, code)
+            await reporter.async_report(path, "path")
+
+        # TODO: Consider adding line no to be ready for editing.
+        return f"The file {path} has been successfully created, with content:\n{code}"

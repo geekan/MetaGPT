@@ -4,6 +4,7 @@ import inspect
 import json
 import re
 import traceback
+from datetime import datetime
 from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 
 from pydantic import Field, model_validator
@@ -67,7 +68,7 @@ class RoleZero(Role):
 
     # React Mode
     react_mode: Literal["react"] = "react"
-    max_react_loop: int = 20  # used for react mode
+    max_react_loop: int = 50  # used for react mode
 
     # Tools
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
@@ -233,6 +234,10 @@ class RoleZero(Role):
                 msg.add_metadata(IMAGES, images)
         return memory
 
+    def _get_prefix(self) -> str:
+        time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return super()._get_prefix() + f" The current time is {time_info}."
+
     async def _act(self) -> Message:
         if self.use_fixed_sop:
             return await super()._act()
@@ -276,6 +281,14 @@ class RoleZero(Role):
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()
             actions_taken += 1
+
+            # post-check
+            if self.rc.max_react_loop >= 10 and actions_taken >= self.rc.max_react_loop:
+                # If max_react_loop is a small value (e.g. < 10), it is intended to be reached and make the agent stop
+                logger.warning(f"reached max_react_loop: {actions_taken}")
+                rsp = await self.ask_human("I have reached my max action rounds, do you want me to continue? Yes or no")
+                if "yes" in rsp.lower():
+                    actions_taken = 0
         return rsp  # return output from the last action
 
     def format_quick_system_prompt(self) -> str:
@@ -495,9 +508,9 @@ class RoleZero(Role):
         # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
             logger.info("manually reply to human")
-            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(
-                requirements_constraints=self.requirements_constraints,
-            )
+            pattern = r"\[Language Restrictions\](.*?)\n"
+            match = re.search(pattern, self.requirements_constraints, re.DOTALL)
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(lanaguge_restruction=match.group(0) if match else "")
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))

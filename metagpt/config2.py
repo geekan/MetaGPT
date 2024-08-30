@@ -110,8 +110,7 @@ class Config(CLIParams, YamlModel):
             CONFIG_ROOT / "config2.yaml",
         )
         if reload or default_config_paths not in _CONFIG_CACHE:
-            dicts = [kwargs, dict(os.environ)]
-            dicts += [Config.read_yaml(path) for path in default_config_paths]
+            dicts = [dict(os.environ), *(Config.read_yaml(path) for path in default_config_paths), kwargs]
             final = merge_dict(dicts)
             _CONFIG_CACHE[default_config_paths] = Config(**final)
         return _CONFIG_CACHE[default_config_paths]

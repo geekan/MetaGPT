@@ -8,6 +8,10 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 class ChromaRetriever(VectorIndexRetriever):
     """Chroma retriever."""
 
+    @property
+    def vector_store(self) -> ChromaVectorStore:
+        return self._vector_store
+
     def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
         """Support add nodes."""
         self._index.insert_nodes(nodes, **kwargs)
@@ -20,6 +24,11 @@ class ChromaRetriever(VectorIndexRetriever):
     def query_total_count(self) -> int:
         """Support query total count."""
 
-        vector_store: ChromaVectorStore = self._vector_store
+        return self.vector_store._collection.count()
 
-        return vector_store._collection.count()
+    def clear(self, **kwargs) -> None:
+        """Support deleting all nodes."""
+
+        ids = self.vector_store._collection.get()["ids"]
+        if ids:
+            self.vector_store._collection.delete(ids=ids)

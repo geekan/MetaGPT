@@ -220,15 +220,25 @@ However, you MUST respond to the user message by yourself directly, DON'T ask yo
 """
 
 REPORT_TO_HUMAN_PROMPT = """
-# Restrictions
-{requirements_constraints}
+## Examlpe
+example 1: 
+User requirement: create a 2048 game
+reply: The development of the 2048 game has been completed. All files (index.html, style.css, and script.js) have been created and reviewed.
 
-You have just finished all tasks.
-Reply to the human requirements.
-Do not output any other format.
-Your reply is:
+example 2: 
+User requirement: Crawl and extract all the herb names from the website, Tell me the number of herbs.
+reply : The herb names have been successfully extracted. A total of 8 herb names were extracted.
+
+------------
+
+Carefully review the history and respond to the user in the expected language to meet their requirements.
+If you have any deliverables that are helpful in explaining the results (such as files, metrics, quantitative results, etc.), provide brief descriptions of them.
+Your reply must be concise.
+{lanaguge_restruction}
+Directly output your reply content. Do not add any output format.
 """
 SUMMARY_PROMPT = """
 Summarize what you have accomplished lately. Be concise.
 If you produce any deliverables, include their short descriptions and file paths. If there are any metrics or quantitative results, include them, too.
+If the deliverable is code, only output the file path.
 """
