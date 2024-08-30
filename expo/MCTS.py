@@ -284,7 +284,7 @@ class MCTS():
         return self.root_node.visited
 
     async def search(self, task, data_config, name,
-                     rollout=3, load_tree=False, low_is_better=False, reflection=False):
+                     rollouts, load_tree=False, low_is_better=False, reflection=False):
         
         role, root = initialize_di_root_node(task, data_config, low_is_better=low_is_better, reflection=reflection, name=name)
         self.root_node = root
@@ -292,7 +292,12 @@ class MCTS():
         if load_tree:
             tree_loaded = self.load_tree()
             mcts_logger.log("MCTS", f"Number of simulations: {self.get_num_simulations()}")
+        
+
         if not tree_loaded:
+            rollouts -= 2
+            if rollouts < 0:
+                raise ValueError("Rollouts must be greater than 2 if there is no tree to load")
             self.children[root] = []
             reward = await self.simulate(root, role)
             self.backpropagate(root, reward)
@@ -307,7 +312,7 @@ class MCTS():
         else:
             root = self.root_node
         # 后续迭代：使用UCT进行选择，expand并模拟和反向传播
-        for _ in range(rollout):  # 迭代次数
+        for _ in range(rollouts):  # 迭代次数
             mcts_logger.log("MCTS", f"开始第{_+1}次迭代")
             leaf = self.select(root)
             if leaf.is_terminal():

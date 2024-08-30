@@ -17,7 +17,10 @@ Report {metric} on the eval data. Do not plot or make any visualizations.
 TASK_PROMPT = """\
 # User requirement
 {user_requirement}
-**Attention** Please do not leak the target label in any form during training.
+**Attention** 
+1. Please do not leak the target label in any form during training.
+2. Dev and Test sets do not have the target column.
+3. You should perform transformations on all sets at the same step.
 
 ## Saving Dev and Test Predictions
 Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 

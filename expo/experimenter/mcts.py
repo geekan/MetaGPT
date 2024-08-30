@@ -12,7 +12,7 @@ class MCTSExperimenter(Experimenter):
                                         low_is_better=self.args.low_is_better, 
                                         load_tree=self.args.load_tree,
                                         reflection=self.args.reflection, 
-                                        rollout=self.args.rollout, 
+                                        rollouts=self.args.rollouts, 
                                         name=self.args.name)
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]

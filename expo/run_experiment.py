@@ -16,12 +16,12 @@ def get_args():
 def get_mcts_args(parser):
     parser.add_argument("--load_tree", dest="load_tree", action="store_true")
     parser.add_argument("--no_load_tree", dest="load_tree", action="store_false")
-    parser.set_defaults(load_tree=True)
-    parser.add_argument("--rollout", type=int, default=3)
+    parser.set_defaults(load_tree=False)
+    parser.add_argument("--rollouts", type=int, default=3)
 
 def get_aug_exp_args(parser):
     parser.add_argument("--aug_mode", type=str, default="single", choices=["single", "set"])
-    parser.add_argument("--num_experiments", type=int, default=2)
+    parser.add_argument("--num_experiments", type=int, default=1)
 
 
 def get_di_args(parser):

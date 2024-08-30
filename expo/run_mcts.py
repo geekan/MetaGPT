@@ -18,7 +18,7 @@ def get_args():
     parser.add_argument("--reflection", dest="reflection", action="store_true")
     parser.add_argument("--no_reflection", dest="reflection", action="store_false")
     parser.set_defaults(reflection=True)
-    parser.add_argument("--rollout", type=int, default=3)
+    parser.add_argument("--rollouts", type=int, default=3)
     parser.add_argument("--name", type=str, default="")
     return parser.parse_args()
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     mcts = MCTS(root_node=None, max_depth=5)
     best_nodes = asyncio.run(mcts.search(args.task, data_config, 
                                         low_is_better=args.low_is_better, load_tree=args.load_tree,
-                                        reflection=args.reflection, rollout=args.rollout, name=args.name))
+                                        reflection=args.reflection, rollouts=args.rollouts, name=args.name))
     best_node = best_nodes["global_best"]
     dev_best_node = best_nodes["dev_best"]
     text, num_generated_codes = get_tree_text(mcts.root_node)

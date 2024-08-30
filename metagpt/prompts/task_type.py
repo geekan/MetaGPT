@@ -25,7 +25,7 @@ The current task is about feature engineering. when performing it, please adhere
 - Use available feature engineering tools if they are potential impactful.
 - Avoid creating redundant or excessively numerous features in one step.
 - Exclude ID columns from feature generation and remove them.
-- Each feature engineering operation performed on the train set must also applies to the test separately at the same time.
+- Each feature engineering operation performed on the train set must also applies to the dev/test separately at the same time.
 - Avoid using the label column to create features, except for cat encoding.
 - Use the data from previous task result if exist, do not mock or reload data yourself.
 - Always copy the DataFrame before processing it and use the copy to process.
