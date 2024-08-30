@@ -35,7 +35,7 @@ class BlockType(str, Enum):
     TASK = "Task"
     BROWSER = "Browser"
     BROWSER_RT = "Browser-RT"
-    FILE_IO_OPERATOR = "FileIOOperator"
+    EDITOR = "Editor"
     GALLERY = "Gallery"
     NOTEBOOK = "Notebook"
     DOCS = "Docs"
@@ -305,10 +305,10 @@ class DocsReporter(FileReporter):
     block: Literal[BlockType.DOCS] = BlockType.DOCS
 
 
-class FileIOOperatorReporter(FileReporter):
-    """Equivalent to FileReporter(block=BlockType.FileIOOperator)."""
+class EditorReporter(FileReporter):
+    """Equivalent to FileReporter(block=BlockType.EDITOR)."""
 
-    block: Literal[BlockType.FILE_IO_OPERATOR] = BlockType.FILE_IO_OPERATOR
+    block: Literal[BlockType.EDITOR] = BlockType.EDITOR
 
 
 class GalleryReporter(FileReporter):

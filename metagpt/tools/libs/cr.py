@@ -13,7 +13,7 @@ from metagpt.ext.cr.actions.modify_code import ModifyCode
 from metagpt.ext.cr.utils.schema import Point
 from metagpt.tools.libs.browser import Browser
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.report import FileIOOperatorReporter
+from metagpt.utils.report import EditorReporter
 
 
 @register_tool(tags=["codereview"], include_functions=["review", "fix"])
@@ -86,7 +86,7 @@ class CodeReview:
         else:
             async with aiofiles.open(patch_path, encoding="utf-8") as f:
                 patch_file_content = await f.read()
-                await FileIOOperatorReporter().async_report(patch_path)
+                await EditorReporter().async_report(patch_path)
             if not patch_path.endswith((".diff", ".patch")):
                 name = Path(patch_path).name
                 patch_file_content = "".join(

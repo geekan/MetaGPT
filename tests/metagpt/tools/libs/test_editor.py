@@ -13,17 +13,24 @@ def test_function_for_fm():
     # this is the 7th line
 """.strip()
 
-TEST_FILE_PATH = TEST_DATA_PATH / "tools/test_script_for_editor.py"
 WINDOW = 100
 
 
 @pytest.fixture
-def test_file():
-    with open(TEST_FILE_PATH, "w") as f:
-        f.write(TEST_FILE_CONTENT)
-    yield
-    with open(TEST_FILE_PATH, "w") as f:
-        f.write("")
+def temp_file_path(tmp_path):
+    assert tmp_path is not None
+    temp_file_path = tmp_path / "a.txt"
+    yield temp_file_path
+    temp_file_path.unlink()
+
+
+@pytest.fixture
+def temp_py_file(tmp_path):
+    assert tmp_path is not None
+    temp_file_path = tmp_path / "test_script_for_editor.py"
+    temp_file_path.write_text(TEST_FILE_CONTENT)
+    yield temp_file_path
+    temp_file_path.unlink()
 
 
 EXPECTED_CONTENT_AFTER_REPLACE = """
@@ -36,17 +43,17 @@ def test_function_for_fm():
 """.strip()
 
 
-def test_replace_content(test_file):
+def test_replace_content(temp_py_file):
     editor = Editor()
     editor._edit_file_impl(
-        file_name=TEST_FILE_PATH,
+        file_name=temp_py_file,
         start=3,
         end=5,
         content="    # This is the new line A replacing lines 3 to 5.\n    # This is the new line B.",
         is_insert=False,
         is_append=False,
     )
-    with open(TEST_FILE_PATH, "r") as f:
+    with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE.strip()
 
@@ -60,17 +67,17 @@ def test_function_for_fm():
 """.strip()
 
 
-def test_delete_content(test_file):
+def test_delete_content(temp_py_file):
     editor = Editor()
     editor._edit_file_impl(
-        file_name=TEST_FILE_PATH,
+        file_name=temp_py_file,
         start=3,
         end=5,
         content="",
         is_insert=False,
         is_append=False,
     )
-    with open(TEST_FILE_PATH, "r") as f:
+    with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_DELETE.strip()
 
@@ -87,17 +94,14 @@ def test_function_for_fm():
 """.strip()
 
 
-def test_insert_content(test_file):
-    editor = Editor()
-    editor._edit_file_impl(
-        file_name=TEST_FILE_PATH,
-        start=3,
-        end=3,
+def test_insert_content(temp_py_file):
+    editor = Editor(enable_auto_lint=True)
+    editor.insert_content_at_line(
+        file_name=temp_py_file,
+        line_number=3,
         content="    # This is the new line to be inserted, at line 3",
-        is_insert=True,
-        is_append=False,
     )
-    with open(TEST_FILE_PATH, "r") as f:
+    with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_INSERT.strip()
 
@@ -161,10 +165,8 @@ def test_open_file_unexist_path():
         editor.open_file("/unexist/path/a.txt")
 
 
-def test_open_file(tmp_path):
+def test_open_file(temp_file_path):
     editor = Editor()
-    assert tmp_path is not None
-    temp_file_path = tmp_path / "a.txt"
     temp_file_path.write_text("Line 1\nLine 2\nLine 3\nLine 4\nLine 5")
 
     result = editor.open_file(str(temp_file_path))
@@ -183,9 +185,8 @@ def test_open_file(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_open_file_with_indentation(tmp_path):
+def test_open_file_with_indentation(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     temp_file_path.write_text("Line 1\n    Line 2\nLine 3\nLine 4\nLine 5")
 
     result = editor.open_file(str(temp_file_path))
@@ -203,9 +204,8 @@ def test_open_file_with_indentation(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_open_file_long(tmp_path):
+def test_open_file_long(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 1001)])
     temp_file_path.write_text(content)
 
@@ -219,9 +219,8 @@ def test_open_file_long(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_open_file_long_with_lineno(tmp_path):
+def test_open_file_long_with_lineno(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 1001)])
     temp_file_path.write_text(content)
 
@@ -250,18 +249,16 @@ def test_create_file_unexist_path():
         editor.create_file("/unexist/path/a.txt")
 
 
-def test_create_file(tmp_path):
+def test_create_file(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     result = editor.create_file(str(temp_file_path))
 
     expected = f"[File {temp_file_path} created.]"
     assert result.split("\n") == expected.split("\n")
 
 
-def test_goto_line(tmp_path):
+def test_goto_line(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
@@ -296,9 +293,8 @@ def test_goto_line(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_goto_line_negative(tmp_path):
+def test_goto_line_negative(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 5)])
     temp_file_path.write_text(content)
 
@@ -307,9 +303,8 @@ def test_goto_line_negative(tmp_path):
         editor.goto_line(-1)
 
 
-def test_goto_line_out_of_bound(tmp_path):
+def test_goto_line_out_of_bound(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 5)])
     temp_file_path.write_text(content)
 
@@ -318,9 +313,8 @@ def test_goto_line_out_of_bound(tmp_path):
         editor.goto_line(100)
 
 
-def test_scroll_down(tmp_path):
+def test_scroll_down(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
@@ -360,9 +354,8 @@ def test_scroll_down(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_scroll_up(tmp_path):
+def test_scroll_up(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     total_lines = 1000
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
@@ -405,9 +398,8 @@ def test_scroll_up(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_scroll_down_edge(tmp_path):
+def test_scroll_down_edge(temp_file_path):
     editor = Editor()
-    temp_file_path = tmp_path / "a.txt"
     content = "\n".join([f"Line {i}" for i in range(1, 10)])
     temp_file_path.write_text(content)
 
@@ -426,36 +418,34 @@ def test_scroll_down_edge(tmp_path):
     assert result.split("\n") == expected.split("\n")
 
 
-def test_print_window_internal(tmp_path):
+def test_print_window_internal(temp_file_path):
     editor = Editor()
-    test_file_path = tmp_path / "a.txt"
-    editor.create_file(str(test_file_path))
-    with open(test_file_path, "w") as file:
+    editor.create_file(str(temp_file_path))
+    with open(temp_file_path, "w") as file:
         for i in range(1, 101):
             file.write(f"Line `{i}`\n")
 
     current_line = 50
     window = 2
 
-    result = editor._print_window(test_file_path, current_line, window)
+    result = editor._print_window(temp_file_path, current_line, window)
     expected = "(48 more lines above)\n" "49|Line `49`\n" "50|Line `50`\n" "51|Line `51`\n" "(49 more lines below)"
     assert result == expected
 
 
-def test_open_file_large_line_number(tmp_path):
+def test_open_file_large_line_number(temp_file_path):
     editor = Editor()
-    test_file_path = tmp_path / "a.txt"
-    editor.create_file(str(test_file_path))
-    with open(test_file_path, "w") as file:
+    editor.create_file(str(temp_file_path))
+    with open(temp_file_path, "w") as file:
         for i in range(1, 1000):
             file.write(f"Line `{i}`\n")
 
     current_line = 800
     window = 100
 
-    result = editor.open_file(str(test_file_path), current_line, window)
+    result = editor.open_file(str(temp_file_path), current_line, window)
 
-    expected = f"[File: {test_file_path} (999 lines total)]\n"
+    expected = f"[File: {temp_file_path} (999 lines total)]\n"
     expected += "(749 more lines above)\n"
     for i in range(750, 850 + 1):
         expected += f"{i}|Line `{i}`\n"
@@ -463,21 +453,20 @@ def test_open_file_large_line_number(tmp_path):
     assert result == expected
 
 
-def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
+def test_open_file_large_line_number_consecutive_diff_window(temp_file_path):
     editor = Editor()
-    test_file_path = tmp_path / "a.txt"
-    editor.create_file(str(test_file_path))
+    editor.create_file(str(temp_file_path))
     total_lines = 1000
-    with open(test_file_path, "w") as file:
+    with open(temp_file_path, "w") as file:
         for i in range(1, total_lines + 1):
             file.write(f"Line `{i}`\n")
 
     current_line = 800
     cur_window = 300
 
-    result = editor.open_file(str(test_file_path), current_line, cur_window)
+    result = editor.open_file(str(temp_file_path), current_line, cur_window)
 
-    expected = f"[File: {test_file_path} ({total_lines} lines total)]\n"
+    expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
     start, end = _calculate_window_bounds(current_line, total_lines, cur_window)
     if start == 1:
         expected += "(this is the beginning of the file)\n"
@@ -495,7 +484,7 @@ def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
 
     result = editor.scroll_up()
 
-    expected = f"[File: {test_file_path} ({total_lines} lines total)]\n"
+    expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
     start, end = _calculate_window_bounds(current_line, total_lines, WINDOW)
     if start == 1:
         expected += "(this is the beginning of the file)\n"
@@ -508,6 +497,117 @@ def test_open_file_large_line_number_consecutive_diff_window(tmp_path):
     else:
         expected += f"({total_lines - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
+
+
+EXPECTED_CONTENT_AFTER_REPLACE_TEXT = """
+# this is line one
+def test_function_for_fm():
+    "some docstring"
+    a = 1
+    b = 9
+    c = 3
+    # this is the 7th line
+""".strip()
+
+
+def test_edit_file_by_replace(temp_py_file):
+    editor = Editor()
+    editor.edit_file_by_replace(file_name=str(temp_py_file), to_replace="    b = 2", new_content="    b = 9")
+    with open(temp_py_file, "r") as f:
+        new_content = f.read()
+    assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
+
+
+def test_search_dir(tmp_path):
+    editor = Editor()
+    dir_path = tmp_path / "test_dir"
+    dir_path.mkdir()
+
+    # Create some files with specific content
+    (dir_path / "file1.txt").write_text("This is a test file with some content.")
+    (dir_path / "file2.txt").write_text("Another file with different content.")
+    sub_dir = dir_path / "sub_dir"
+    sub_dir.mkdir()
+    (sub_dir / "file3.txt").write_text("This file is inside a sub directory with some content.")
+
+    search_term = "some content"
+
+    result = editor.search_dir(search_term, str(dir_path))
+
+    assert "file1.txt" in result
+    assert "file3.txt" in result
+    assert "Another file with different content." not in result
+
+
+def test_search_file(temp_file_path):
+    editor = Editor()
+    file_path = temp_file_path
+    file_path.write_text("This is a test file with some content.\nAnother line with more content.")
+
+    search_term = "some content"
+
+    result = editor.search_file(search_term, str(file_path))
+
+    assert "Line 1: This is a test file with some content." in result
+    assert "Line 2: Another line with more content." not in result
+
+
+def test_find_file(tmp_path):
+    editor = Editor()
+    dir_path = tmp_path / "test_dir"
+    dir_path.mkdir()
+
+    # Create some files with specific names
+    (dir_path / "file1.txt").write_text("Content of file 1.")
+    (dir_path / "file2.txt").write_text("Content of file 2.")
+    sub_dir = dir_path / "sub_dir"
+    sub_dir.mkdir()
+    (sub_dir / "file3.txt").write_text("Content of file 3.")
+
+    file_name = "file1.txt"
+
+    result = editor.find_file(file_name, str(dir_path))
+
+    assert "file1.txt" in result
+    assert "file2.txt" not in result
+    assert "file3.txt" not in result
+
+
+# Test data for _append_impl method
+TEST_LINES = ["First line\n", "Second line\n", "Third line\n"]
+
+NEW_CONTENT = "Appended line\n"
+
+EXPECTED_APPEND_NON_EMPTY_FILE = ["First line\n", "Second line\n", "Third line\n", "Appended line\n"]
+
+EXPECTED_APPEND_EMPTY_FILE = ["Appended line\n"]
+
+
+def test_append_non_empty_file():
+    editor = Editor()
+    lines = TEST_LINES.copy()
+    content, n_added_lines = editor._append_impl(lines, NEW_CONTENT)
+
+    assert content.splitlines(keepends=True) == EXPECTED_APPEND_NON_EMPTY_FILE
+    assert n_added_lines == 1
+
+
+def test_append_empty_file():
+    editor = Editor()
+    lines = []
+    content, n_added_lines = editor._append_impl(lines, NEW_CONTENT)
+
+    assert content.splitlines(keepends=True) == EXPECTED_APPEND_EMPTY_FILE
+    assert n_added_lines == 1
+
+
+def test_append_to_single_empty_line_file():
+    editor = Editor()
+    lines = [""]
+    content, n_added_lines = editor._append_impl(lines, NEW_CONTENT)
+
+    assert content.splitlines(keepends=True) == EXPECTED_APPEND_EMPTY_FILE
+    assert n_added_lines == 1
 
 
 if __name__ == "__main__":
