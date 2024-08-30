@@ -5,7 +5,6 @@ from pathlib import Path
 
 from pydantic import Field
 
-from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.logs import logger
 
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
@@ -55,7 +54,7 @@ class Engineer2(RoleZero):
 
     async def _format_instruction(self):
         """
-        Formats the instruction message for the SWE agent.
+        Formats the instruction message for the Engineer2.
         Runs the "state" command in the terminal, parses its output as JSON,
         and uses it to format the `_instruction` template.
         """
@@ -64,7 +63,6 @@ class Engineer2(RoleZero):
         self.cmd_prompt_current_state = CURRENT_BASH_STATE.format(**bash_state).strip()
 
     def _update_tool_execution(self):
-        ValidateAndRewriteCode()
         self.tool_execution_map.update(
             {
                 "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
@@ -78,11 +76,11 @@ class Engineer2(RoleZero):
     async def eval_terminal_run(self, cmd):
         """change command pull/push/commit to end."""
         if any([cmd_key_word in cmd for cmd_key_word in ["pull", "push", "commit"]]):
-            # The SWEAgent attempts to submit the repository after fixing the bug, thereby reaching the end of the fixing process.
+            # The Engineer2 attempts to submit the repository after fixing the bug, thereby reaching the end of the fixing process.
             # Set self.rc.todo to None to stop the engineer and then will trigger _save_git_diff funcion to save difference.
-            logger.info("SWEAgent use cmd:{cmd}")
+            logger.info("Engineer2 use cmd:{cmd}")
             logger.info("Current test case is finished.")
-            # stop the sweagent
+            # stop the Engineer2
             self._set_state(-1)
             command_output = "Current test case is finished."
         else:
@@ -117,7 +115,7 @@ class Engineer2(RoleZero):
 
         This function is specifically added for SWE bench evaluation.
         """
-        # If todo switches to None, it indicates that this is the final round of reactions, and the Swe-Agent will stop. Use git diff to store any changes made.
+        # If todo switches to None, it indicates that this is the final round of reactions, and the Engineer2 will stop. Use git diff to store any changes made.
         if not self.rc.todo:
             print("finish current task *******************************************************")
             from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
