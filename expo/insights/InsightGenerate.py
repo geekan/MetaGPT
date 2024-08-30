@@ -23,7 +23,7 @@ import random
 import json
 from metagpt.llm import LLM
 from metagpt.schema import Message
-from expo.utils import load_data_config, mcts_logger
+from expo.utils import load_data_config, mcts_logger, clean_json_from_rsp
 DATA_CONFIG = load_data_config()
 
 
@@ -52,17 +52,6 @@ class InsightGenerator:
         for task_id in sorted(data_dict.keys()):
             instruction_set.append(random.choice(data_dict[task_id]))
         return instruction_set
-
-
-    @staticmethod
-    def clean_json_from_rsp(text):
-        pattern = r"```json(.*?)```"
-        matches = re.findall(pattern, text, re.DOTALL)
-        if matches:
-            json_str = "\n".join(matches)
-            return json_str
-        else:
-            return ""  
     
     @staticmethod
     def format_output(rsp):
@@ -109,6 +98,6 @@ class InsightGenerator:
         llm_response = await llm.aask(
             context, system_msgs=[REFLECTION_SYSTEM_MSG]
         )
-        rsp = InsightGenerator.clean_json_from_rsp(llm_response)
+        rsp = clean_json_from_rsp(llm_response)
         new_instruction = json.loads(rsp)["New Instruction"]
         return new_instruction

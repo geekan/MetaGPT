@@ -27,17 +27,19 @@ data_config = load_data_config()
 
 if __name__ == "__main__":
     args = get_args()
-    requirement = generate_task_requirement(args.task, data_config)
-    print(requirement)
+    # requirement = generate_task_requirement(args.task, data_config)
+    # print(requirement)
 
     # role, root_node = initialize_di_root_node(requirement, data_config)
     # asyncio.run(role.run(requirement))
 
     # asyncio.run(root_node.run_node())
     mcts = MCTS(root_node=None, max_depth=5)
-    best_node = asyncio.run(mcts.search(args.task, data_config, 
+    best_nodes = asyncio.run(mcts.search(args.task, data_config, 
                                         low_is_better=args.low_is_better, load_tree=args.load_tree,
                                         reflection=args.reflection, rollout=args.rollout, name=args.name))
+    best_node = best_nodes["global_best"]
+    dev_best_node = best_nodes["dev_best"]
     text, num_generated_codes = get_tree_text(mcts.root_node)
     print(text)
     print(f"Generated {num_generated_codes} unique codes.")
@@ -45,6 +47,7 @@ if __name__ == "__main__":
     with open(f"results/{args.task}_tree{args.name}.txt", "w") as f:
         f.write(f"Generated {num_generated_codes} unique codes.\n")
         f.write(f"Best node: {best_node}, score: {best_node.raw_reward}\n")
+        f.write(f"Dev best node: {dev_best_node}, score: {dev_best_node.raw_reward}\n")
         f.write(text)
 
 

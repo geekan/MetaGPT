@@ -1,7 +1,6 @@
 import yaml
 from metagpt.roles.role import Role
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.utils.save_code import save_code_file
 # from nbclient import NotebookClient
 from nbformat.notebooknode import NotebookNode
 import nbformat
@@ -86,7 +85,8 @@ def process_cells(nb: NotebookNode) -> NotebookNode:
 def save_notebook(role: Role, save_dir: str = "", name: str = ""):
     save_dir = Path(save_dir)
     nb = process_cells(role.execute_code.nb)
-    save_code_file(name=name, code_context=nb, file_format="ipynb", save_dir=save_dir)
+    file_path = save_dir / f"{name}.ipynb"
+    nbformat.write(nb, file_path)
 
 async def load_execute_notebook(role):
     tasks = role.planner.plan.tasks

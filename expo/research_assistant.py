@@ -8,7 +8,6 @@ from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.utils.common import CodeParser
 from metagpt.utils.common import write_json_file, read_json_file, format_trackback_info
 from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
-from metagpt.utils.recovery_util import save_history
 from expo.utils import mcts_logger, save_notebook
 from pydantic import Field, model_validator
 from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
@@ -126,7 +125,6 @@ class ResearchAssistant(DataInterpreter):
         role_path = os.path.join(stg_path, f"{name}.json")
         # 将状态保存为 JSON 文件
         write_json_file(role_path, self.model_dump())
-        save_history(role=self, save_dir=stg_path, name=name)
         
 
     def remap_tasks(self):

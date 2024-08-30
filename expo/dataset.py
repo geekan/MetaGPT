@@ -20,8 +20,8 @@ TASK_PROMPT = """\
 **Attention** Please do not leak the target label in any form during training.
 
 ## Saving Dev and Test Predictions
-Save the prediction results of the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory BEFORE printig out the results. 
-The file should contain a single `target` column with the predicted values.
+Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
+Both files should contain a single `target` column with the predicted values.
 Make sure the prediction results are in the same format as the target column in the training set. The labels should be transformed back to the original format if any transformation was applied during training.
 
 ## Output Training Set Performance
@@ -129,6 +129,7 @@ def generate_task_requirement(task_name, data_config):
     user_requirement = TASK_PROMPT.format(user_requirement=user_requirement, 
                                           train_path=train_path, dev_path=dev_path, test_path=test_path,
                                           output_dir=output_dir)
+    print(user_requirement)
     return user_requirement
 
 

@@ -1,7 +1,4 @@
-from expo.MCTS import MCTS, Node, initialize_di_root_node
-from expo.utils import load_data_config
-from expo.dataset import generate_task_requirement
-from expo.evaluation.visualize_mcts import get_tree_text
+from expo.experimenter import MCTSExperimenter, Experimenter, AugExperimenter
 import asyncio
 import argparse
 
@@ -9,11 +6,10 @@ import argparse
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
+    parser.add_argument("--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base"])
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
-    
-
     return parser.parse_args()
 
 
@@ -38,7 +34,15 @@ def get_di_args(parser):
     
 
 async def main(args):
-    pass
+    if args.exp_mode == "mcts":
+        experimenter = MCTSExperimenter(args)
+    elif args.exp_mode == "aug":
+        experimenter = AugExperimenter(args)
+    elif args.exp_mode == "base":
+        experimenter = Experimenter(args)
+    else:
+        raise ValueError(f"Invalid exp_mode: {args.exp_mode}")
+    await experimenter.run_experiment()
 
 if __name__ == "__main__":
     args = get_args()

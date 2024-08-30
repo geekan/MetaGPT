@@ -169,8 +169,8 @@ class Node():
     #     return evaluate_score(predictions, gt, metric)
     
     def evaluate_prediction(self, split):
-        pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}-predictions.csv")
-        pred_node_path = os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}-predictions.csv")
+        pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}_predictions.csv")
+        pred_node_path = os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}_predictions.csv")
         gt_path = os.path.join(self.state["datasets_dir"][f"{split}_target"])
         preds = pd.read_csv(pred_path)["target"]
         preds.to_csv(pred_node_path, index=False)
@@ -201,12 +201,12 @@ class Node():
         score_dict = await role.get_score()
         score_dict = self.evaluate_simulation(score_dict)
         self.raw_reward = score_dict
-
         if self.state["low_is_better"]:
             # normalized the score to be between 0 and 1, and higher is better
             def normalize_score(score):
                 return 1 / (1 + score)
             score_dict = {k: normalize_score(v) for k, v in score_dict.items()}
+        self.normalized_reward = score_dict
         return score_dict
     
 
@@ -262,19 +262,23 @@ class MCTS():
     def best_path(self, root : Node):
         best_child = root
         best_score = 0
-        def bfs(node : Node, best_score, best_child : Node):
+        def bfs(node : Node, best_score, best_child : Node, split):
+            assert split in ["test_score", "dev_score"]
             if node not in self.children:
                 return best_score, best_child
             for child in self.children[node]:
-                print(child.id, child.raw_value)
-                if child.raw_value > best_score:
-                    best_score = child.raw_value
+                score = child.normalized[split]
+                print(child.id, score)
+                if score > best_score:
+                    best_score = score
                     best_child = child
                 best_score, best_child = bfs(child, best_score, best_child)
             return best_score, best_child
-        best_score, best_child = bfs(root, best_score, best_child)
-        mcts_logger.log("MCTS", f"Best Score: {best_score}, Best Node ID: {best_child.id}")
-        return best_child
+        _, best_child = bfs(root, best_score, best_child, "test_score")
+        _, dev_best_child = bfs(root, best_score, best_child, "dev_score")
+
+        return {"dev_best": dev_best_child,
+                "global_best": best_child}   
     
     def get_num_simulations(self):
         return self.root_node.visited
