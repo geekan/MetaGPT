@@ -1,5 +1,4 @@
 import yaml
-from examples.MCTS_test.dataset import get_user_requirement, get_split_dataset_path
 from metagpt.roles.role import Role
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.utils.save_code import save_code_file
@@ -12,34 +11,6 @@ from datetime import datetime
 import sys
 import os
 import re
-
-TASK_PROMPT = """\
-# User requirement
-{user_requirement}
-**Attention** Please do not leak the target label in any form during training.
-
-## Saving Dev and Test Predictions
-Save the prediction results of the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory BEFORE printig out the results. 
-The file should contain a single `target` column with the predicted values.
-Make sure the prediction results are in the same format as the target column in the training set. The labels should be transformed back to the original format if any transformation was applied during training.
-
-## Output Training Set Performance
-Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.
-Print the training set performance in the last step. Write in this format:
-```python
-...
-print("Train score:", train_score)
-```
-
-# Data dir
-training: {train_path}
-dev: {dev_path}
-testing: {test_path}
-
-# Output dir
-{output_dir}
-
-"""
 
 def load_data_config(file_path="data.yaml"):
     with open(file_path, 'r') as stream:
@@ -78,18 +49,6 @@ def get_exp_pool_path(task_name, data_config, pool_name="analysis_pool"):
     exp_pool_path = os.path.join(data_path, f"{pool_name}.json")
     return exp_pool_path
 
-def generate_task_requirement(task_name, data_config):
-    user_requirement = get_user_requirement(task_name, data_config)
-    split_dataset_path = get_split_dataset_path(task_name, data_config)
-    train_path = split_dataset_path["train"]
-    dev_path = split_dataset_path["dev_wo_target"]
-    test_path = split_dataset_path["test_wo_target"]
-    work_dir = data_config["work_dir"]
-    output_dir = f"{work_dir}/{task_name}"
-    user_requirement = TASK_PROMPT.format(user_requirement=user_requirement, 
-                                          train_path=train_path, dev_path=dev_path, test_path=test_path,
-                                          output_dir=output_dir)
-    return user_requirement
 
 def change_plan(role, plan):
     print(f"Change next plan to: {plan}")

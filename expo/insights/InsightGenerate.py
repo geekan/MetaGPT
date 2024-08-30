@@ -23,7 +23,7 @@ import random
 import json
 from metagpt.llm import LLM
 from metagpt.schema import Message
-from examples.MCTS_test.utils import load_data_config, mcts_logger
+from expo.utils import load_data_config, mcts_logger
 DATA_CONFIG = load_data_config()
 
 

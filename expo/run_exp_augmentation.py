@@ -1,10 +1,11 @@
 import os
-from metagpt.roles.di.research_assistant import ResearchAssistant
+from expo.research_assistant import ResearchAssistant
 import asyncio
-from examples.MCTS_test.utils import DATA_CONFIG, generate_task_requirement, get_exp_pool_path
-from examples.MCTS_test.insights.InsightGenerate import InsightGenerator
-from examples.MCTS_test.MCTS import create_initial_state
-from examples.MCTS_test.evaluation.evaluation import evaluate_score
+from expo.utils import DATA_CONFIG, get_exp_pool_path
+from expo.dataset import generate_task_requirement
+from expo.insights.InsightGenerate import InsightGenerator
+from expo.MCTS import create_initial_state
+from expo.evaluation.evaluation import evaluate_score
 import json
 import argparse
 import pandas as pd

@@ -10,6 +10,9 @@ from metagpt.utils.common import write_json_file, read_json_file, format_trackba
 from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
 from metagpt.utils.recovery_util import save_history
 from expo.utils import mcts_logger, save_notebook
+from pydantic import Field, model_validator
+from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
+
 import re
 import os
 
@@ -84,6 +87,17 @@ class ResearchAssistant(DataInterpreter):
         json_block = CodeParser.parse_code(block=None, text=rsp)
         score_dict = json.loads(json_block)
         return score_dict
+    
+
+    @model_validator(mode="after")
+    def set_plan_and_tool(self) -> "Interpreter":
+        if self.planner.plan.goal != '':
+            self.set_actions([WriteAnalysisCode])
+            self._set_state(0)
+            print("Plan already exists, skipping initialization.")
+            return self
+        print("Initializing plan and tool...")
+        return super().set_plan_and_tool()
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""

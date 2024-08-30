@@ -5,7 +5,7 @@ import os
 import json
 import yaml
 import pandas as pd
-from examples.MCTS_test.insights.solution_designer import SolutionDesigner
+from expo.insights.solution_designer import SolutionDesigner
 import asyncio
 
 BASE_USER_REQUIREMENT = """\
@@ -13,6 +13,35 @@ This is a {datasetname} dataset. Your goal is to predict the target column `{tar
 Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. 
 Report {metric} on the eval data. Do not plot or make any visualizations.
 """
+
+TASK_PROMPT = """\
+# User requirement
+{user_requirement}
+**Attention** Please do not leak the target label in any form during training.
+
+## Saving Dev and Test Predictions
+Save the prediction results of the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory BEFORE printig out the results. 
+The file should contain a single `target` column with the predicted values.
+Make sure the prediction results are in the same format as the target column in the training set. The labels should be transformed back to the original format if any transformation was applied during training.
+
+## Output Training Set Performance
+Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.
+Print the training set performance in the last step. Write in this format:
+```python
+...
+print("Train score:", train_score)
+```
+
+# Data dir
+training: {train_path}
+dev: {dev_path}
+testing: {test_path}
+
+# Output dir
+{output_dir}
+
+"""
+
 
 SEED = 100
 TRAIN_TEST_SPLIT = 0.8
@@ -88,6 +117,20 @@ def create_dataset_dict(dataset):
         "metric": dataset.get_metric()
     }
     return dataset_dict
+
+def generate_task_requirement(task_name, data_config):
+    user_requirement = get_user_requirement(task_name, data_config)
+    split_dataset_path = get_split_dataset_path(task_name, data_config)
+    train_path = split_dataset_path["train"]
+    dev_path = split_dataset_path["dev_wo_target"]
+    test_path = split_dataset_path["test_wo_target"]
+    work_dir = data_config["work_dir"]
+    output_dir = f"{work_dir}/{task_name}"
+    user_requirement = TASK_PROMPT.format(user_requirement=user_requirement, 
+                                          train_path=train_path, dev_path=dev_path, test_path=test_path,
+                                          output_dir=output_dir)
+    return user_requirement
+
 
 class ExpDataset:
     description : str = None

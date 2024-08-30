@@ -152,6 +152,6 @@ datasets:
       \ eval data. Do not plot or make any visualizations.\n"
 
 
-work_dir: D:/work/MG-open/MetaGPT/workspace # path to the workspace directory
+work_dir: ../workspace # path to the workspace directory
 role_dir: storage/team/environment/roles/ResearchAssistant_David
 # analysis_pool_dir: D:/work/MG-open/MetaGPT/examples/MCTS_test/analysis_pool_sample.json

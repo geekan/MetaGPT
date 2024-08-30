@@ -4,9 +4,9 @@ import os
 import pandas as pd
 from expo.research_assistant import ResearchAssistant
 from expo.insights.InsightGenerate import InsightGenerator
-from expo.dataset import get_split_dataset_path
+from expo.dataset import get_split_dataset_path, generate_task_requirement
 from expo.evaluation.evaluation import evaluate_score
-from expo.utils import mcts_logger, load_execute_notebook, generate_task_requirement, get_exp_pool_path
+from expo.utils import mcts_logger, load_execute_notebook, get_exp_pool_path
 
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.utils.common import write_json_file, read_json_file, format_trackback_info
