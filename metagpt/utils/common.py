@@ -890,7 +890,7 @@ async def get_mime_type(filename: str | Path, force_read: bool = False) -> str:
     }
 
     try:
-        stdout, stderr, _ = await shell_execute(f"file --mime-type {str(filename)}")
+        stdout, stderr, _ = await shell_execute(f"file --mime-type '{str(filename)}'")
         if stderr:
             logger.debug(f"file:{filename}, error:{stderr}")
             return guess_mime_type
