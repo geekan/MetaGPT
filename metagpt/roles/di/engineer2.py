@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from pydantic import Field
@@ -9,11 +8,12 @@ from metagpt.logs import logger
 
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.prompts.di.engineer2 import (
-    CURRENT_BASH_STATE,
+    CURRENT_EDITOR_STATE,
     ENGINEER2_INSTRUCTION,
     WRITE_CODE_PROMPT,
     WRITE_CODE_SYSTEM_PROMPT,
 )
+from metagpt.prompts.di.role_zero import CMD_PROMPT
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message, UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
@@ -30,14 +30,17 @@ class Engineer2(RoleZero):
     profile: str = "Engineer"
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
-
+    cmd_prompt: str = (
+        CMD_PROMPT
+        + "\nWhen using the Editor tool, the command list must contain a single command. Because the command is mutually exclusive."
+    )
     terminal: Terminal = Field(default_factory=Bash, exclude=True)
 
     tools: list[str] = [
         "Plan",
-        "Editor:read",
+        "Editor",
         "RoleZero",
-        "Bash",
+        "Terminal",
         "Browser:goto,scroll",
         "git_create_pull",
         "Engineer2",
@@ -58,9 +61,8 @@ class Engineer2(RoleZero):
         Runs the "state" command in the terminal, parses its output as JSON,
         and uses it to format the `_instruction` template.
         """
-        state_output = await self.terminal.run("state")
-        bash_state = json.loads(state_output)
-        self.cmd_prompt_current_state = CURRENT_BASH_STATE.format(**bash_state).strip()
+        editor_state = {"open_file": self.editor.current_file, "working_dir": self.editor.working_dir}
+        self.cmd_prompt_current_state = CURRENT_EDITOR_STATE.format(**editor_state).strip()
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(

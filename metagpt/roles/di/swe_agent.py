@@ -33,7 +33,7 @@ class SWEAgent(RoleZero):
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {
-                "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
+                "Terminal.run_command": self.eval_terminal_run if self.run_eval else self.terminal.run_command,
                 "git_create_pull": git_create_pull,
             }
         )
@@ -49,7 +49,7 @@ class SWEAgent(RoleZero):
             self._set_state(-1)
             command_output = "Current test case is finished."
         else:
-            command_output = await self.terminal.run(cmd)
+            command_output = await self.terminal.run_command(cmd)
         return command_output
 
     async def _format_instruction(self):

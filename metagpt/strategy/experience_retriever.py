@@ -902,7 +902,7 @@ Explanation: Take on one task, such as writing a file. Upon completion, finish c
 ]
 ```
 
-## example 5
+## example 4
 I have received a GitHub issue URL.
 I will use browser to review the detailed information of this issue in order to understand the problem.
 ```json
@@ -915,7 +915,8 @@ I will use browser to review the detailed information of this issue in order to 
     }
 ]
 ```
-## example 6
+
+## example 5
 I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
 ```json
 [
@@ -928,44 +929,71 @@ I need to locating the `openai_api.py` file, so I will search for the `openai_ap
 ]
 ```
 
+## example 6
+The target working directory is "/workspace/MetaGPT/provider/", but the current working directory is different. I will use the set_workdir command to change the working directory.
+```json
+[
+    {
+        "command_name": "Editor.set_workdir",
+        "args": {
+            "path": "/workspace/MetaGPT/provider"   
+        }
+    }
+]
+```
+
 ## example 7
 I have located the openai_api.py file. I want to edit this file, so I will open it first.
 ```json
 [
     {
-        "command_name": "Bash.run",
+        "command_name": "Editor.open_file",
         "args": {
-            "cmd": "open '/workspace/MetaGPT/provider/openai_api.py'"   
+            "path": "/workspace/MetaGPT/provider/openai_api.py"   
         }
     }
 ]
 ```
 
 ## example 8
-I've found the bug and will start fixing it. I'll pay close attention to the indentation.
-Since I only need to modify a few lines in this file, I will use the Bash.run tool with the edit command.
-Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
+I have opened the openai_api.py file. However, the range of lines shown is from 001 to 100, and I want to see more. Therefore, I want to use the scroll_down command to view additional lines.
 ```json
 [
     {
-        "command_name": "Bash.run",
-        "args": {
-            "cmd": "edit 93:95 <<EOF\\n        usage = None\\n        collected_messages = []\\n        async for chunk in response:\\n            if chunk.usage is not None:\\n                usage = CompletionUsage(**chunk.usage)\\n            chunk_message = chunk.choices[0].delta.content or '' if chunk.choices else ''  # extract the message\\n            finish_reason = (\\n                chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], 'finish_reason') else None\\n            )\\n            log_llm_stream(chunk_message)\\nEOF"
-        }
+        "command_name": "Editor.scroll_down",
+        "args": {{}}
     }
 ]
 ```
 
 ## example 9
-Due to a syntax error related to an undefined name 'Image', I need to address this issue even though it is not directly related to our work.
-Let's try importing the package to fix it.
-
+I've found the bug and will start fixing it. I'll pay close attention to the indentation.
+Since I only need to modify a few lines in this file, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
+Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
 ```json
 [
     {
-        "command_name": "Bash.run",
+        "command_name": "Editor.edit_file_by_replace",
         "args": {
-            "cmd": "edit 14:14 <<EOF\\nfrom PIL.Image import Image\\nEOF"
+            "file_name":"/workspace/MetaGPT/provider/openai_api.py",
+            "to_replace": "            inv_trig_table = ["asin", "acos", "atan", "acot"]"
+            "new_content": "            inv_trig_table = ["asin", "acos", "atan", "acsc", "asec", "acot"]"
+        }
+    }
+]
+```
+
+## example 10
+I only need to add a few lines to the file, so I will use Editor.insert_content_at_line. The new code will not cover the original code.
+Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
+```json
+[
+    {
+        "command_name": "Editor.insert_content_at_line",
+        "args": {
+            "file_name":"/workspace/MetaGPT/provider/openai_api.py"
+            "line_number":727,
+            "content": "if hasattr(self, '_print_' + func) and not isinstance(expr.func, UndefinedFunction):\\n            return getattr(self, '_print_' + func)(expr, exp)"
         }
     }
 ]
@@ -1006,28 +1034,23 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
         }
 ]
 ```
-"""
 
-"""
-## example 10
-It is a bug fix in GitHub, I will choose one of the following commands to submit your changes.
-### Save the Changes: After all changes have been made, save them to the repository.
-I must choose one of the following two methods.
-
-#### Just save the changes locally, it only need one action.
-Thought: The bug has been fixed. Let's submit the changes.
+## example 11
+I have finish all task, so I will use 'Plan.finish_current_task' and then fellowing the command "end" to stop.
 ```json
 [
     {
-        "command_name": "Bash.run",
+        "command_name": "Plan.finish_current_task",
         "args": {
-            "cmd": "submit"
+        }
+    },
+    {
+        "command_name": "end",
+        "args": {
         }
     }
 ]
 ```
-
-
 """
 
 WEB_SCRAPING_EXAMPLE = """
