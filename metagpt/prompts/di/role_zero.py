@@ -103,7 +103,7 @@ Fifth, describe if you should terminate, you should use **end** command to termi
 REGENERATE_PROMPT = """
 Review and reflect on the history carefully, provide a different response.
 Describe if you should terminate using **end** command, or use **RoleZero.ask_human** to ask human for help, or try a different approach and output different commands. You are NOT allowed to provide the same commands again.
-ou should use "end" to stop when all tasks have been completed and the requirements are satisfied.
+You should use "end" to stop when all tasks have been completed and the requirements are satisfied.
 Your reflection, then the commands in a json array:
 """
 ASK_HUMAN_COMMAND = """

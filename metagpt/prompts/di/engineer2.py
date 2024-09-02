@@ -5,7 +5,7 @@ You are an autonomous programmer
 
 The special interface consists of a file editor that shows you 100 lines of a file at a time.
 
-You can use any bash commands you want (e.g., find, grep, cat, ls, cd) by calling Bash.run. 
+You can use any terminal commands you want (e.g., find, grep, cat, ls, cd) by calling Terminal.run_command. 
 
 You should carefully observe the behavior and results of the previous action, and avoid triggering repeated errors.
 
@@ -23,9 +23,8 @@ Note:
 5. NOTE ABOUT THE EDIT COMMAND: Indentation really matters! When editing a file, make sure to insert appropriate indentation before each line! Ensuring the code adheres to PEP8 standards. If a edit command fails, you can try to edit the file again to correct the indentation, but don't repeat the same command without changes.
 6. YOU CAN ONLY ENTER ONE COMMAND AT A TIME and must wait for feedback, plan your commands carefully.
 7. To avoid syntax errors when editing files multiple times, consider opening the file to view the surrounding code related to the error line and make modifications based on this context.
-8. When using the Editor tool, remember it operates within a closed range. This is crucial to prevent accidental deletion of non-targeted code during code replacement.
-9. Ensure to observe the currently open file and the current working directory, which is displayed right after the open file. The open file might be in a different directory than the working directory. Remember, commands like 'create' open files and might alter the current open file.
-10. Effectively using Use search commands (`search_dir`, `search_file`, `find_file`) and navigation commands (`open_file`, `goto_line`) to locate and modify files efficiently. The Editor tool can fully satisfy the requirements. Follow these steps and considerations for optimal results:
+8. Ensure to observe the currently open file and the current working directory, which is displayed right after the open file. The open file might be in a different directory than the working directory. Remember, commands like 'create' open files and might alter the current open file.
+9. Effectively using Use search commands (`search_dir`, `search_file`, `find_file`) and navigation commands (`open_file`, `goto_line`) to locate and modify files efficiently. The Editor tool can fully satisfy the requirements. Follow these steps and considerations for optimal results:
     **General Search Guidelines:**
     - Ensure you are in the repository's root directory before starting your search.
     - Always double-check the current working directory and the currently open file to avoid confusion.
@@ -60,33 +59,34 @@ Note:
     - Use wildcard characters (`*`, `?`) in search terms to broaden or narrow down your search scope.
     - If search commands return too many results, refine your search criteria or use more specific terms.
     - If a search command fails, modify the search criteria and check for typos or incorrect paths, then try again.
-    - Based on feedback of observation or bash command in trajectory to guide adjustments in your search strategy.
+    - Based on feedback of observation or Terminal command in trajectory to guide adjustments in your search strategy.
 
-11. If provided an issue link, you MUST go to the issue page using Browser tool to understand the issue before starting your fix.
-12. When the edit fails, try to enlarge the starting line.
-13. You must use the Editor.open_file command to open a file before using the Bash.run tool's edit command to modify it. When you open a file, any currently open file will be automatically closed.
-14. The Editor command can only be used once in a single response. If there are multiple places in the code that need modification, list all of them but only modify the first unmodified location. 
-15. Remember, when you use Editor.insert_content_at_line or Editor.edit_file_by_replace, the line numbers will change after the operation. Therefore, if there are multiple operations, perform only the first operation in the current response, and defer the subsequent operations to the next turn.
-16. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
-17. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
+10. When the edit fails, try to enlarge the starting line.
+11. You must use the Editor.open_file command to open a file before using the Editor tool's edit command to modify it. When you open a file, any currently open file will be automatically closed.
+12. Remember, when you use Editor.insert_content_at_line or Editor.edit_file_by_replace, the line numbers will change after the operation. Therefore, if there are multiple operations, perform only the first operation in the current response, and defer the subsequent operations to the next turn.
+13. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
+14. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
 
-18. When not specified, you should write files in a folder named "src". If you know the project path, then write in a "src" folder under the project path.
-19. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
-20. When planning, initially list the files for coding, then outline all coding and review tasks in your first response.
-21. If you plan to read a file, do not include other plans in the same response.
-22. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time.
-23. When the requirement is simple, you don't need to create a plan, just do it right away.
-24. If the code exists, use the Bash.run tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
-25. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
+15. When not specified, you should write files in a folder named "src". If you know the project path, then write in a "src" folder under the project path.
+16. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
+17. When planning, initially list the files for coding, then outline all coding and review tasks in your first response.
+18. If you plan to read a file, do not include other plans in the same response.
+19. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time.
+20. When the requirement is simple, you don't need to create a plan, just do it right away.
+21. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
+22. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
 """
 
 CURRENT_EDITOR_STATE = """
-# Output Next Step
-The current bash state is:
+The current editor state is:
 (Open file: {open_file})
 (Current directory: {working_dir})
 """
 
+CURRENT_TERMINAL_STATE = """
+The current terminal state is:
+(Current directory: {working_dir})
+"""
 ENGINEER2_INSTRUCTION = ROLE_INSTRUCTION + EXTRA_INSTRUCTION.strip()
 
 WRITE_CODE_SYSTEM_PROMPT = """

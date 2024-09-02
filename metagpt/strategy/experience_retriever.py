@@ -917,19 +917,6 @@ I will use browser to review the detailed information of this issue in order to 
 ```
 
 ## example 5
-I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
-```json
-[
-    {
-        "command_name": "Bash.run",
-        "args": {
-            "cmd": "find_file 'openai_api.py'"   
-        }
-    }
-]
-```
-
-## example 6
 The target working directory is "/workspace/MetaGPT/provider/", but the current working directory is different. I will use the set_workdir command to change the working directory.
 ```json
 [
@@ -941,6 +928,21 @@ The target working directory is "/workspace/MetaGPT/provider/", but the current 
     }
 ]
 ```
+
+## example 6
+I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
+```json
+[
+    {
+        "command_name": "Editor.find_file",
+        "args": {
+            "file_name": "openai_api.py"   
+        }
+    }
+]
+```
+
+
 
 ## example 7
 I have located the openai_api.py file. I want to edit this file, so I will open it first.
@@ -999,6 +1001,7 @@ Note that the edit command must be executed in a single response, so this step w
 ]
 ```
 
+## example 11
 ```
 #### Save the changes and commit them to the remote repository.
 
@@ -1007,7 +1010,7 @@ Thought: All changes have been saved, let's push the code to the remote reposito
 ```json
 [
     {
-        "command_name": "Bash.run",
+        "command_name": "Terminal.run_command",
         "args": {
             "cmd": "git push origin test-fix"
         }
@@ -1034,9 +1037,11 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
         }
 ]
 ```
+"""
 
+"""
 ## example 11
-I have finish all task, so I will use 'Plan.finish_current_task' and then fellowing the command "end" to stop.
+I have finish all the tasks, so I will use 'Plan.finish_current_task' and then fellowing the command "end" to stop.
 ```json
 [
     {
@@ -1052,7 +1057,6 @@ I have finish all task, so I will use 'Plan.finish_current_task' and then fellow
 ]
 ```
 """
-
 WEB_SCRAPING_EXAMPLE = """
 ## action 1
 User Requirement: Scrap and list the restaurant names of first page by searching for the keyword `beef` on the website https://www.yelp.com/.

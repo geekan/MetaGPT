@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic import Field
 
+from metagpt.config2 import Config
 from metagpt.logs import logger
 
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.prompts.di.engineer2 import (
     CURRENT_EDITOR_STATE,
+    CURRENT_TERMINAL_STATE,
     ENGINEER2_INSTRUCTION,
     WRITE_CODE_PROMPT,
     WRITE_CODE_SYSTEM_PROMPT,
@@ -18,7 +21,7 @@ from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message, UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.git import git_create_pull
-from metagpt.tools.libs.terminal import Bash, Terminal
+from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
 from metagpt.utils.report import EditorReporter
@@ -34,7 +37,7 @@ class Engineer2(RoleZero):
         CMD_PROMPT
         + "\nWhen using the Editor tool, the command list must contain a single command. Because the command is mutually exclusive."
     )
-    terminal: Terminal = Field(default_factory=Bash, exclude=True)
+    terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
     tools: list[str] = [
         "Plan",
@@ -58,16 +61,19 @@ class Engineer2(RoleZero):
     async def _format_instruction(self):
         """
         Formats the instruction message for the Engineer2.
-        Runs the "state" command in the terminal, parses its output as JSON,
-        and uses it to format the `_instruction` template.
+        Uses Editor's state to format the `_instruction` template.
         """
+        bash_working_dir = await self.terminal.run_command("pwd")
+        bash_state = {"working_dir": bash_working_dir}
         editor_state = {"open_file": self.editor.current_file, "working_dir": self.editor.working_dir}
-        self.cmd_prompt_current_state = CURRENT_EDITOR_STATE.format(**editor_state).strip()
+        self.cmd_prompt_current_state = CURRENT_EDITOR_STATE.format(
+            **editor_state
+        ).strip() + CURRENT_TERMINAL_STATE.format(**bash_state)
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {
-                "Bash.run": self.eval_terminal_run if self.run_eval else self.terminal.run,
+                "Terminal.run_command": self.eval_terminal_run if self.run_eval else self.terminal.run_command,
                 "git_create_pull": git_create_pull,
                 "Engineer2.write_new_code": self.write_new_code,
                 # "ValidateAndRewriteCode.run": validate.run,
@@ -86,7 +92,7 @@ class Engineer2(RoleZero):
             self._set_state(-1)
             command_output = "Current test case is finished."
         else:
-            command_output = await self.terminal.run(cmd)
+            command_output = await self.terminal.run_command(cmd)
         return command_output
 
     async def _act(self) -> Message:
@@ -112,19 +118,19 @@ class Engineer2(RoleZero):
         """
         Handles actions based on parsed commands.
 
-        Parses commands, checks for a "submit" action, and generates a patch using `git diff`.
+        When detecting engineer2 at the final action round, the process will stop immediately.
+        generates a patch using `git diff`.
         Stores the cleaned patch in `output_diff`. Logs any exceptions.
 
         This function is specifically added for SWE bench evaluation.
         """
         # If todo switches to None, it indicates that this is the final round of reactions, and the Engineer2 will stop. Use git diff to store any changes made.
         if not self.rc.todo:
-            print("finish current task *******************************************************")
             from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
 
             try:
-                logger.info(await self.terminal.run("submit"))
-                diff_output = await self.terminal.run("git diff --cached")
+                logger.info(await self.submit())
+                diff_output = await self.terminal.run_command("git diff --cached")
                 clear_diff = extract_patch(diff_output)
                 logger.info(f"Diff output: \n{clear_diff}")
                 if clear_diff:
@@ -132,9 +138,22 @@ class Engineer2(RoleZero):
             except Exception as e:
                 logger.error(f"Error during submission: {e}")
 
+    async def submit(self):
+        if "SWE_CMD_WORK_DIR" not in os.environ:
+            os.environ["SWE_CMD_WORK_DIR"] = str(Config.default().workspace.path)
+        if os.path.exists(os.environ["SWE_CMD_WORK_DIR"] + "/test.patch"):
+            await self.terminal.run_command('git apply -R < "$SWE_CMD_WORK_DIR/test.patch"')
+        cmd = """
+        git add -A
+        echo "<<SUBMISSION START||"
+        git diff --cached
+        echo "||SUBMISSION DONE>>"
+        """
+        diff_output = await self.terminal.run_command(cmd)
+        return diff_output
+
     async def write_new_code(self, path: str, instruction: str = "") -> str:
         """Write a new code file.
-        When used, make sure content arg contains the full content of the file.
         Args:
             path (str): The absolute path of the file to be created.
             instruction (optional, str): Further hints or notice other than the current task instruction, must be very concise and can be empty. Defaults to "".

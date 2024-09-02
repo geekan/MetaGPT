@@ -640,7 +640,7 @@ class Editor(BaseModel):
 
                     ret_str += "[This is how your edit would have looked if applied]\n"
                     ret_str += "-------------------------------------------------\n"
-                    ret_str += self._print_window(file_name, show_line, editor_lines, return_str=True) + "\n"
+                    ret_str += self._print_window(file_name, show_line, editor_lines) + "\n"
                     ret_str += "-------------------------------------------------\n\n"
 
                     ret_str += "[This is the original code before your edit]\n"

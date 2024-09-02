@@ -9,13 +9,14 @@ from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles.di.engineer2 import Engineer2
+from metagpt.tools.libs.editor import Editor
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
 config = Config.default()
 # Specify by yourself
 Role = Engineer2
-MAX_MINUTES_PRE_INSTANCE = 20
+MAX_MINUTES_PRE_INSTANCE = 5
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
@@ -75,8 +76,10 @@ async def run(instance, swe_result_dir):
     clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path}"
     checkout_command = f"cd {repo_path} && git checkout -f {base_commit}" if base_commit else ""
     await terminal.run_command(clone_command)
+    ignore_temp_file_cmd = "echo '.backup.*' >> .gitignore"
     logger.info(await terminal.run_command(checkout_command))
     logger.info(await terminal.run_command("git branch"))
+    await terminal.run_command(ignore_temp_file_cmd)
 
     user_requirement_and_issue = INSTANCE_TEMPLATE.format(
         issue=instance["problem_statement"],
@@ -89,9 +92,10 @@ async def run(instance, swe_result_dir):
     logger.info(f"**** Starting to run {instance['instance_id']}****")
     logger.info("User Requirement", user_requirement_and_issue)
     try:
-        role = Role(run_eval=True)
+        role = Role(run_eval=True, editor=Editor(enable_auto_lint=True))
         await asyncio.wait_for(role.run(user_requirement_and_issue), timeout=MAX_MINUTES_PRE_INSTANCE * 60)
-    except:
+    except Exception as e:
+        print(e)
         logger.info(f"**** exception lead to end: {instance['instance_id']}****")
         pass
 
@@ -103,7 +107,7 @@ def save_predictions(role, instance, swe_result_dir):
     output_file = swe_result_dir / "all_preds.jsonl"
     instance["model_name_or_path"] = role.config.llm.model
     instance["model_patch"] = role.output_diff
-    logger.info("model_patch", role.output_diff)
+    logger.info("model_patch:" + role.output_diff)
     logger.info(f"Preparing to save predictions to {output_file}")
 
     # Save the predictions to a JSONL file
@@ -122,12 +126,14 @@ async def async_main():
 
     exp_name = f"nano_mgx_{date_time}_{_round}"
 
-    # now = datetime.now()
-    # formatted_time = now.strftime("%Y_%m_%d_%H_%M_%S")
+    now = datetime.now()
+    formatted_time = now.strftime("%Y_%m_%d_%H_%M_%S")
+    swe_result_dir = (
+        DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}_start_time_{formatted_time}" / exp_name
+    )
     # swe_result_dir = (
-    #     DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}_start_time_{formatted_time}" / exp_name
+    #     DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}" / exp_name
     # )
-    swe_result_dir = DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}" / exp_name
     swe_result_dir.mkdir(parents=True, exist_ok=True)
     for index, instance in enumerate(dataset):
         # switch to a new logger file
