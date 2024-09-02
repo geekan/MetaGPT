@@ -269,7 +269,7 @@ class MCTS():
             if node not in self.children:
                 return best_score, best_child
             for child in self.children[node]:
-                score = child.normalized[split]
+                score = child.normalized_reward[split]
                 print(child.id, score)
                 if score > best_score:
                     best_score = score

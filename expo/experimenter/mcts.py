@@ -31,7 +31,7 @@ class MCTSExperimenter(Experimenter):
             "dev_best_node_score": dev_best_node.raw_reward,
             "num_generated_codes": num_generated_codes,
             "user_requirement": best_node.state["requirement"],
-            "args": self.args
+            "args": vars(self.args)
         }
         self.save_result(results)
 

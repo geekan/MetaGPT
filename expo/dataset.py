@@ -24,7 +24,7 @@ TASK_PROMPT = """\
 
 ## Saving Dev and Test Predictions
 Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
-Both files should contain a single `target` column with the predicted values.
+Both files should contain a single column named `target` with the predicted values.
 Make sure the prediction results are in the same format as the target column in the training set. The labels should be transformed back to the original format if any transformation was applied during training.
 
 ## Output Training Set Performance

@@ -80,3 +80,8 @@ boto3~=1.34.69
 spark_ai_python~=0.3.30
 agentops
 openml==0.14.2
+
+# ml module to run in DI
+xgboost
+catboost
+lightgbm

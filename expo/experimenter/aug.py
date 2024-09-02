@@ -34,12 +34,12 @@ class AugExperimenter(Experimenter):
         
         results = []
         for i in range(self.args.num_experiments):
-            di = ResearchAssistant(node_id=str(i), use_reflection=self.args.use_reflection)
+            di = ResearchAssistant(node_id=str(i), use_reflection=self.args.reflection)
             di.role_dir = f"{di.role_dir}_{self.args.task}"
             requirement = user_requirement + EXPS_PROMPT.format(experience=exps[i])
             print(requirement)
             await di.run(requirement)
-            score_dict = await di.get_score(low_is_better=False)
+            score_dict = await di.get_score()
             score_dict = self.evaluate(score_dict, state)
             results.append({
                 "idx": i,
@@ -47,14 +47,14 @@ class AugExperimenter(Experimenter):
                 "aug_mode": self.args.aug_mode,
                 "insights" : exps[i],
                 "user_requirement": user_requirement,
-                "args": self.args
+                "args": vars(self.args)
             })
-        scores = [score_dict["test_score"] for score_dict in scores]
+        scores = [result["score_dict"]["test_score"] for result in results]
         avg_score = sum(scores) / len(scores)
         best_score = max(scores) if not self.args.low_is_better else min(scores)
         best_score_idx = scores.index(best_score)
         results.insert(0, {"avg_score": avg_score, "best_score": best_score, "best_score_idx": best_score_idx})
-        self.save_results(results)
+        self.save_result(results)
 
         
         
