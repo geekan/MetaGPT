@@ -3,7 +3,7 @@ from expo.research_assistant import ResearchAssistant
 import asyncio
 from expo.utils import DATA_CONFIG, get_exp_pool_path
 from expo.dataset import generate_task_requirement
-from expo.insights.InsightGenerate import InsightGenerator
+from exp_optimizer.expo.insights.instruction_generator import InstructionGenerator
 from expo.MCTS import create_initial_state
 from expo.evaluation.evaluation import evaluate_score
 import json
@@ -48,12 +48,12 @@ async def main(task_name, use_reflection=True, mode="single", num_experiments=2)
     
     user_requirement = generate_task_requirement(task_name, data_config)
     exp_pool_path = get_exp_pool_path(task_name, data_config, pool_name="ds_analysis_pool")
-    exp_pool = InsightGenerator.load_analysis_pool(exp_pool_path)
+    exp_pool = InstructionGenerator.load_analysis_pool(exp_pool_path)
     if mode == "single":
-        exps = InsightGenerator._random_sample(exp_pool, num_experiments)
+        exps = InstructionGenerator._random_sample(exp_pool, num_experiments)
         exps = [exp["Analysis"] for exp in exps]
     elif mode == "set":
-        exp_set = InsightGenerator.sample_instruction_set(exp_pool)
+        exp_set = InstructionGenerator.sample_instruction_set(exp_pool)
         exp_set_text = "\n".join([f"{exp['task_id']}: {exp['Analysis']}" for exp in exp_set])
         exps = [exp_set_text] * num_experiments
     else:

@@ -3,7 +3,7 @@ import math
 import os
 import pandas as pd
 from expo.research_assistant import ResearchAssistant
-from expo.insights.InsightGenerate import InsightGenerator
+from exp_optimizer.expo.insights.instruction_generator import InstructionGenerator
 from expo.dataset import get_split_dataset_path, generate_task_requirement
 from expo.evaluation.evaluation import evaluate_score
 from expo.utils import mcts_logger, load_execute_notebook, get_exp_pool_path

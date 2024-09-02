@@ -27,7 +27,7 @@ from expo.utils import load_data_config, mcts_logger, clean_json_from_rsp
 DATA_CONFIG = load_data_config()
 
 
-class InsightGenerator:
+class InstructionGenerator:
     data_config = DATA_CONFIG
 
     @staticmethod
@@ -68,7 +68,7 @@ class InsightGenerator:
 
     @staticmethod
     def load_analysis_pool(file_path, task_id=None):
-        data = InsightGenerator.load_json_data(file_path)
+        data = InstructionGenerator.load_json_data(file_path)
         for item in data:
             if "task_id" not in item:
                 raise ValueError("task_id is not found in the analysis pool")
@@ -79,14 +79,14 @@ class InsightGenerator:
 
     @staticmethod
     async def generate_new_instructions(task_id, original_instruction, max_num, file_path):
-        data = InsightGenerator.load_analysis_pool(file_path, task_id)
+        data = InstructionGenerator.load_analysis_pool(file_path, task_id)
         new_instructions = []
         if len(data) == 0:
             mcts_logger.log("MCTS", f"No insights available for task {task_id}")
             return [original_instruction] # Return the original instruction if no insights are available
         for item in data[:max_num]:
             insights = item["Analysis"]
-            new_instruction = await InsightGenerator.generate_new_instruction(original_instruction, insights)
+            new_instruction = await InstructionGenerator.generate_new_instruction(original_instruction, insights)
             new_instructions.append(new_instruction)
         return new_instructions
     
