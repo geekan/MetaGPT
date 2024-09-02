@@ -1,10 +1,17 @@
 # Expo
 
 
+## Setup
+In the root directory, `pip install -e .`
+
+`cd expo`
+
+`pip install -r requirements.txt`
+
 ## Instruction
 
 - 下载数据集：https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink
-
+- 修改`data.yaml`的`datasets_dir`为数据集合集根目录存储位置
 
 ## Examples
 
@@ -28,6 +35,11 @@
 If the dataset has reg metric, remember to use `--low_is_better`:
 
 - `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 5 --low_is_better`
+
+## Custom Experimenter
+
+
+
 
 
 ## Code and Configs Explanation

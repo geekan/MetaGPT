@@ -2,34 +2,35 @@ datasets_dir: "D:/work/automl/datasets" # path to the datasets directory
 
 datasets:
   titanic:
-    dataset: "04_titanic"
-    user_requirement: "This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Don't plot."
-    metric: "accuracy"
+    dataset: 04_titanic
+    metric: f1
+    user_requirement: "This is a 04_titanic dataset. Your goal is to predict the target\
+      \ column `Survived`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
 
   house_prices:
-    dataset: "05_house-prices-advanced-regression-techniques"
-    user_requirement: "This is a house price dataset, your goal is to predict the sale price of a property based on its features. Make sure to generate at least 5 tasks each time, including eda, data preprocessing, feature engineering, model training to predict the target, and model evaluation. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sale prices on the eval data. The target column is 'SalePrice'. Please do not include any processing of the target column in the data preprocessing and feature engineering stages. Don't plot."
-    metric: "log rmse"
+    dataset: 05_house-prices-advanced-regression-techniques
+    metric: rmse
+    user_requirement: "This is a 05_house-prices-advanced-regression-techniques dataset.\
+      \ Your goal is to predict the target column `SalePrice`.\nPerform data analysis,\
+      \ data preprocessing, feature engineering, and modeling to predict the target.\
+      \ \nReport rmse on the eval data. Do not plot or make any visualizations.\n"
 
   santander_customers:
-    dataset: "06_santander-customer-transaction-prediction"
-    user_requirement: "This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report AUC on the eval data. Don't plot."
-    metric: "auc"
-
+    dataset: 06_santander-customer-transaction-prediction
+    metric: f1
+    user_requirement: "This is a 06_santander-customer-transaction-prediction dataset.\
+      \ Your goal is to predict the target column `target`.\nPerform data analysis,\
+      \ data preprocessing, feature engineering, and modeling to predict the target.\
+      \ \nReport f1 on the eval data. Do not plot or make any visualizations.\n"
   icr:
-    dataset: "07_icr-identify-age-related-conditions"
-    user_requirement: "ICR dataset is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions. Make sure to generate at least 5 tasks each time, including eda, data preprocessing, feature engineering, model training to predict the target, and model evaluation. The target column is Class. Report F1 Score on the eval data. Don't plot."
-    metric: "f1"
-
-  santander_value:
-    dataset: "08_santander-value-prediction-challenge"
-    user_requirement: "This is a regression problem. Your goal is to predict the value of transactions for potential customers. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE on the eval data. Don't plot."
-    metric: "rmse"
-
-  load_wine:
-    dataset: None
-    user_requirement: "Analyze the 'load_wine' dataset from sklearn to predict wine quality. Visualize relationships between features, use machine learning for classification, and report model accuracy. Include analysis and prediction visualizations. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Don't plot!"
-    metric: "accuracy"
+    dataset: 07_icr-identify-age-related-conditions
+    metric: f1
+    user_requirement: "This is a 07_icr-identify-age-related-conditions dataset. Your\
+      \ goal is to predict the target column `Class`.\nPerform data analysis, data\
+      \ preprocessing, feature engineering, and modeling to predict the target. \n\
+      Report f1 on the eval data. Do not plot or make any visualizations.\n"
 
   lick_prediction_small:
     dataset: Click_prediction_small
