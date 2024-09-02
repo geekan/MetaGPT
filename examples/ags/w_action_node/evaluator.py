@@ -2,15 +2,14 @@
 # @Date    : 8/23/2024 10:00 AM
 # @Author  : all
 # @Desc    : evaluate for different dataset
-import datetime
-import inspect
-import os
-from typing import Literal
+import asyncio
+import json
+import re
+from typing import List, Literal, Optional, Tuple
 
+import aiofiles
 import pandas as pd
-from deepeval.benchmarks import GSM8K
-
-from examples.ags.benchmark.gsm8k import GraphModel
+from tqdm.asyncio import tqdm_asyncio
 
 # TODO 完成实验数据集的手动划分
 
@@ -25,12 +24,13 @@ class Evaluator:
     def __init__(self, eval_path: str):
         self.eval_path = eval_path
 
-    def validation_evaluate(self, dataset: DatasetType, graph, params: dict):
+    def validation_evaluate(self, dataset: DatasetType, graph, params: dict, path):
         """
         Evaluates on validation dataset.
         """
         if dataset == "Gsm8K":
-            return self._gsm8k_eval(graph, params)
+            score = self._gsm8k_eval(graph, params, path)
+            return score
         pass
 
     def test_evaluate(self, dataset: DatasetType):
@@ -39,22 +39,70 @@ class Evaluator:
         """
         pass
 
-    def _gsm8k_eval(self, graph_class, params, samples: int = 1000):
+    async def _gsm8k_eval(self, graph_class, params, path, samples: int = 10):
         """
         Evaluate on GSM8K dataset.
         """
 
-        # TODO 划分验证集测试集
-        def _evaluate_problem(model, golden, benchmark):
-            prompt = golden.input
+        # 模拟加载模型的函数
+        async def load_graph():
+            dataset = params["dataset"]
+            llm_config = params["llm_config"]
+            graph = graph_class(name="Gsm8K", llm_config=llm_config, dataset=dataset)
+            return graph
 
-            max_retries = 50
+        # 清理文本并提取单个数字
+        def extract_number(text: str) -> Optional[float]:
+            # 使用正则表达式提取数字，包括整数和浮点数
+            matches = re.findall(r"[-+]?\d+(?:,\d{3})*(?:\.\d+)?|\d+\.\d+", text)
+            print(matches)
+            if matches:
+                # 获取最后一个匹配的数字
+                last_number = matches[-1]
+
+                # 移除逗号以统一格式
+                last_number = last_number.replace(",", "")
+
+                try:
+                    return float(last_number)
+                except ValueError:
+                    return None
+            else:
+                return None
+
+        # 宽松匹配分数计算函数
+        def loose_match_score(expected_output: str, prediction: str, tolerance: float = 1e-6) -> int:
+            expected_number = extract_number(expected_output)
+            predicted_number = extract_number(prediction)
+
+            print(predicted_number)
+
+            # 如果预期输出或预测输出为空，返回不匹配
+            if expected_number is None or predicted_number is None:
+                return 0
+
+            # 比较两个提取出的数字，允许一定的容差
+            if abs(expected_number - predicted_number) <= tolerance:
+                return 1  # 数字相近，认为匹配成功
+            else:
+                return 0  # 数字不匹配
+
+        # 异步评估单个问题
+        async def _evaluate_problem(input: str, graph, expected_output: str) -> Tuple[str, str, str, int]:
+            prompt = input
+
+            print("Question", prompt)
+            max_retries = 5
             retries = 0
 
             while retries < max_retries:
                 try:
-                    prediction = model.a_generate(prompt)
-                    score = benchmark.scorer.exact_match_score(golden.expected_output, prediction)
+                    # 假设模型有一个异步生成函数
+                    prediction = await graph(prompt) if graph else "None"  # 这是一个占位符，替换成实际的模型生成逻辑
+                    print(type(prediction))
+                    print("预测", prediction[0])
+
+                    score = loose_match_score(expected_output, prediction[0]["response"])
                     break
 
                 except Exception as e:
@@ -67,92 +115,87 @@ class Evaluator:
                         score = 0
                         break
 
-            return golden.input, str(prediction), golden.expected_output, score
+            return input, prediction, expected_output, score
 
-        def process_gsm8k_csv(file_path, tolerance=1e-6):
-            # 读取 CSV 文件
-            df = pd.read_csv(file_path, dtype=str)  # 使用默认逗号分隔符，并指定所有列为字符串类型
+        # 异步读取JSONL文件
+        async def load_data(file_path: str) -> List[dict]:
+            data = []
+            async with aiofiles.open(file_path, mode="r") as file:
+                async for line in file:
+                    data.append(json.loads(line))
+            return data[:samples]
 
-            # 清理预测和期望输出列
-            df["prediction"] = df["prediction"].str.strip()
-            df["prediction"] = df["prediction"].str.replace(",", "", regex=True)
-            df["expected output"] = df["expected output"].str.strip()
-            df["expected output"] = df["expected output"].str.replace(",", "", regex=True)
+        # 并行评估所有问题
+        async def evaluate_all_problems(data: List[dict], graph, max_concurrent_tasks: int = 1):
+            semaphore = asyncio.Semaphore(max_concurrent_tasks)
 
-            # 将列转换为数值类型
-            df["prediction"] = pd.to_numeric(df["prediction"], errors="coerce")
-            df["expected output"] = pd.to_numeric(df["expected output"], errors="coerce")
+            async def sem_evaluate(problem):
+                async with semaphore:
+                    input_text = problem["question"]
+                    expected_output = problem["answer"]
+                    return await _evaluate_problem(input_text, graph, expected_output)
 
-            # 计算 score 列
-            # 对于浮点数，使用近似相等的逻辑
-            df["score"] = (df["prediction"] - df["expected output"]).abs() <= tolerance
+            tasks = [sem_evaluate(problem) for problem in data]
 
-            # 将布尔值转换为整数
-            df["score"] = df["score"].astype(int)
+            # 使用tqdm.gather来显示进度条
+            return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
 
-            # 计算 score 列的平均值
+        # 保存结果到CSV文件
+        def save_results_to_csv(results: List[Tuple[str, str, str, int]], path):
+            df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score"])
             average_score = df["score"].mean()
 
-            # 获取输入文件的目录
-            input_dir = os.path.dirname(file_path)
-
-            # 创建输出文件路径
-            output_file_name = f"{average_score:.4f}.csv"
-            output_file_path = os.path.join(input_dir, output_file_name)
-
-            # 写入新的 CSV 文件
-            df.to_csv(output_file_path, index=False)
-
-            print(f"Data written to {output_file_path}")
-            print(f"Average score: {average_score:.4f}")
-
-            # 统计空值数量
-            num_empty_predictions = df["prediction"].isna().sum()
-
-            # 删除包含空 prediction 的行
-            df = df.dropna(subset=["prediction"])
-
-            # 重新计算正确的、错误的以及空的个数
-            num_correct = (df["score"] == 1).sum()
-            num_incorrect = (df["score"] == 0).sum()
-
-            print(f"Number of empty predictions: {num_empty_predictions}")
-            print(f"Number of correct predictions after removing empty ones: {num_correct}")
-            print(f"Number of incorrect predictions after removing empty ones: {num_incorrect}")
+            # 生成文件名，保留五位小数
+            output_file = f"{path}/{average_score:.5f}.csv"
+            df.to_csv(output_file, index=False)
+            print(f"Results saved to {output_file}")
 
             return average_score
 
-        dataset = params["dataset"]
-        llm_config = params["llm_config"]
+        async def gsm8k():
+            file_path = "examples/ags/data/gsm8k.jsonl"  # 替换为您的JSONL文件路径
+            data = await load_data(file_path)
 
-        # TODO 给到的是load出来的Graph，怎么让他做实例化？graph_class 可以跟我这样用吗？
-        graph = graph_class(name="Gsm8K", llm_config=llm_config, dataset=dataset)
-        model = GraphModel(graph)
-        benchmark = GSM8K(n_problems=samples, n_shots=0, enable_cot=False)
+            graph = await load_graph()
 
-        graph_module = inspect.getmodule(graph_class)
-        os.path.dirname(graph_module.__file__)
-        goldens = benchmark.load_benchmark_dataset()[: benchmark.n_problems]
+            # TODO 这里需要查看Graph的结构为什么没有办法实现
+            print("--------------")
+            print(graph)
+            print("--------------")
+            results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
 
-        results = [_evaluate_problem(model, golden, benchmark) for golden in goldens]
+            # 保存结果到CSV文件并获取平均分
+            average_score = save_results_to_csv(results, path=path)
 
-        overall_correct_predictions = sum(score for _, _, _, score in results)
-        overall_total_predictions = benchmark.n_problems
-        overall_accuracy = overall_correct_predictions / overall_total_predictions
+            print(f"Average score: {average_score:.5f}")
+            return average_score
 
-        predictions_row = [
-            (input, prediction, expected_output, score) for input, prediction, expected_output, score in results
-        ]
-        benchmark.predictions = pd.DataFrame(
-            predictions_row, columns=["input", "prediction", "expected output", "score"]
-        )
-        benchmark.overall_score = overall_accuracy
-        now = datetime.datetime.now()
-        now_time = now.strftime("%Y-%m-%d_%H-%M-%S").replace(":", "_")
+        score = await gsm8k()
 
-        file_path = f"{self.eval_path}/gsm8k_{overall_accuracy}_{now_time}.csv"
+        return score
 
-        benchmark.predictions.to_csv(file_path, index=False)
 
-        score = process_gsm8k_csv(file_path=file_path)
-        return {"score": score}
+if __name__ == "__main__":
+
+    def extract_number(text: str) -> Optional[float]:
+        # 使用正则表达式提取数字，包括整数和浮点数
+        matches = re.findall(r"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+\.\d+", text)
+        print(matches)
+        if matches:
+            # 获取最后一个匹配的数字
+            last_number = matches[-1]
+
+            # 移除逗号以统一格式
+            last_number = last_number.replace(",", "")
+
+            try:
+                return float(last_number)
+            except ValueError:
+                return None
+        else:
+            return None
+
+    num = extract_number(
+        r"To determine how much Janet makes every day at the farmers' market, we need to follow these steps:\n\n1. **Calculate the total number of eggs Janet uses daily:**\n   - She eats 3 eggs for breakfast.\n   - She uses 4 eggs to bake muffins.\n   - Total eggs used = 3 (for breakfast) + 4 (for muffins) = 7 eggs.\n\n2. **Determine the number of eggs left to sell:**\n   - Total eggs laid per day = 16 eggs.\n   - Eggs left after use = 16 (total eggs) - 7 (eggs used) = 9 eggs.\n\n3. **Calculate the revenue from selling the remaining eggs:**\n   - She sells each egg for $2.\n   - Total revenue = 9 (eggs left) * $2 (price per egg) = $18.\n\nThus, Janet makes $18,000 every day at the farmers' market."
+    )
+    print(num)

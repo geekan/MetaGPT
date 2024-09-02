@@ -41,6 +41,7 @@ class ReviseMode(Enum):
 TAG = "CONTENT"
 MODE_CODE_FILL = "code_fill"
 CONTEXT_FILL = "context_fill"
+SINGLE_FILL = "single_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
@@ -491,6 +492,8 @@ class ActionNode:
         return model_class.model_fields.keys()
 
     def xml_compile(self, context):
+        # TODO 再来一版
+
         field_names = self.get_field_names()
         # Construct the example using the field names
         examples = []
@@ -501,7 +504,7 @@ class ActionNode:
         example_str = "\n".join(examples)
         # Add the example to the context
         context += f"""
-### format example (must be strictly followed) (do not include any other formats except for the given XML format)
+### response format (must be strictly followed) (do not include any other formats except for the given XML format): \n
 {example_str}
 """
         return context
@@ -517,6 +520,13 @@ class ActionNode:
         result = {field_name: extracted_code}
         return result
 
+    async def single_fill(self, context):
+        field_name = self.get_field_name()
+        prompt = context
+        content = await self.llm.aask(prompt)
+        result = {field_name: content}
+        return result
+
     async def context_fill(self, context):
         """
         Fill Context with XML TAG
@@ -525,12 +535,15 @@ class ActionNode:
         extracted_data = {}
         content = await self.llm.aask(context)
 
+        # TODO 自动解析类型标注的功能
+
         for field_name in field_names:
             # Use regex to find content within XML tags matching the field name
             pattern = rf"<{field_name}>(.*?)</{field_name}>"
             match = re.search(pattern, content, re.DOTALL)
             if match:
                 extracted_data[field_name] = match.group(1).strip()
+
         return extracted_data
 
     async def fill(
@@ -581,6 +594,11 @@ class ActionNode:
             """
             context = self.xml_compile(context=self.context)
             result = await self.context_fill(context)
+            self.instruct_content = self.create_class()(**result)
+            return self
+
+        elif mode == SINGLE_FILL:
+            result = await self.single_fill(context)
             self.instruct_content = self.create_class()(**result)
             return self
 

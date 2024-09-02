@@ -52,17 +52,24 @@ class Operator:
         raise NotImplementedError
 
 
-class Generate(Operator):
-    """
-    基于Action Node Fill Function的 Generate 算子
-    """
+class Custom(Operator):
+    def __init__(self, llm: LLM, name: str = "Custom"):
+        super.__init__(name, llm)
 
+    async def __call__(self, input, instruction):
+        prompt = input + instruction
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm, mode="single_fill")
+        response = node.instruct_content.model_dump()
+        return response
+
+
+class Generate(Operator):
     def __init__(self, llm: LLM, name: str = "Generate"):
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description):
-        prompt = GENERATE_PROMPT.format(problem_description=problem_description)
-        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm)
+    async def __call__(self, problem):
+        prompt = GENERATE_PROMPT.format(problem_description=problem)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm, mode="single_fill")
         response = node.instruct_content.model_dump()
         return response
 
@@ -72,11 +79,9 @@ class ContextualGenerate(Operator):
         super().__init__(name, llm)
 
     @retry(stop=stop_after_attempt(3))
-    async def __call__(self, problem_description, thought, function_name):
-        prompt = CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem_description, thought=thought)
-        node = await ActionNode.from_pydantic(GenerateOp).fill(
-            context=prompt, llm=self.llm, function_name=function_name
-        )
+    async def __call__(self, problem, context):
+        prompt = CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem, thought=context)
+        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm, mode="single_fill")
         response = node.instruct_content.model_dump()
         return response
 
@@ -86,13 +91,13 @@ class CodeGenerate(Operator):
         super().__init__(name, llm)
 
     @retry(stop=stop_after_attempt(3))
-    async def __call__(self, problem_description, function_name):
-        prompt = GENERATE_CODEBLOCK_PROMPT.format(problem_description=problem_description)
+    async def __call__(self, problem, function_name):
+        prompt = GENERATE_CODEBLOCK_PROMPT.format(problem_description=problem)
         node = await ActionNode.from_pydantic(CodeGenerateOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
-        return response
+        return response  # {"code": "xxx"}
 
 
 class CodeContextualGenerate(Operator):
@@ -100,49 +105,48 @@ class CodeContextualGenerate(Operator):
         super().__init__(name, llm)
 
     @retry(stop=stop_after_attempt(3))
-    async def __call__(self, problem_description, thought, function_name):
-        prompt = CODE_CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem_description, thought=thought)
+    async def __call__(self, problem, thought, function_name):
+        prompt = CODE_CONTEXTUAL_GENERATE_PROMPT.format(problem_description=problem, thought=thought)
         node = await ActionNode.from_pydantic(CodeGenerateOp).fill(
             context=prompt, llm=self.llm, mode="code_fill", function_name=function_name
         )
         response = node.instruct_content.model_dump()
-        return response
+        return response  # {"code": "xxx"}
 
 
 class Format(Generate):
     def __init__(self, name: str = "Format", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description, solution):
-        prompt = FORMAT_PROMPT.format(problem_description=problem_description, solution=solution)
+    # 使用JSON MODE 输出 Formatted 的结果
+    async def __call__(self, problem, solution):
+        prompt = FORMAT_PROMPT.format(problem_description=problem, solution=solution)
         node = await ActionNode.from_pydantic(FormatOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
-        return response
+        return response  # {"solution":"xxx"}
 
 
 class Review(Operator):
-    def __init__(self, criteria, name: str = "Review", llm: LLM = LLM()):
+    def __init__(self, criteria: str = "accuracy", name: str = "Review", llm: LLM = LLM()):
         self.criteria = criteria
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description, solution):
-        prompt = REVIEW_PROMPT.format(
-            problem_description=problem_description, solution=solution, criteria=self.criteria
-        )
+    async def __call__(self, problem, solution):
+        prompt = REVIEW_PROMPT.format(problem_description=problem, solution=solution, criteria=self.criteria)
         node = await ActionNode.from_pydantic(ReviewOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
-        return response
+        return response  # {"review_result": True, "feedback": "xxx"}
 
 
 class Revise(Operator):
     def __init__(self, name: str = "Revise", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description, solution, feedback):
-        prompt = REVISE_PROMPT.format(problem_description=problem_description, solution=solution, feedback=feedback)
-        node = await ActionNode.from_pydantic(ReviseOp).fill(context=prompt, llm=self.llm)
+    async def __call__(self, problem, solution, feedback):
+        prompt = REVISE_PROMPT.format(problem_description=problem, solution=solution, feedback=feedback)
+        node = await ActionNode.from_pydantic(ReviseOp).fill(context=prompt, llm=self.llm, mode="single_fill")
         response = node.instruct_content.model_dump()
-        return response
+        return response  # {"solution": "xxx"}
 
 
 class FuEnsemble(Operator):
@@ -153,14 +157,14 @@ class FuEnsemble(Operator):
     def __init__(self, name: str = "FuEnsemble", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, solutions: List, problem_description):
+    async def __call__(self, solutions: List, problem):
         solution_text = ""
         for solution in solutions:
             solution_text += str(solution) + "\n"
-        prompt = FU_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+        prompt = FU_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem)
         node = await ActionNode.from_pydantic(FuEnsembleOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
-        return response
+        return {"solution": response["final_solution"]}  # {"final_solution": "xxx"}
 
 
 class MdEnsemble(Operator):
@@ -180,7 +184,7 @@ class MdEnsemble(Operator):
         answer_mapping = {chr(65 + i): solutions.index(solution) for i, solution in enumerate(shuffled_solutions)}
         return shuffled_solutions, answer_mapping
 
-    async def __call__(self, solutions: List[str], problem_description: str):
+    async def __call__(self, solutions: List[str], problem: str):
         print(f"solution count: {len(solutions)}")
         all_responses = []
 
@@ -191,7 +195,7 @@ class MdEnsemble(Operator):
             for index, solution in enumerate(shuffled_solutions):
                 solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
-            prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+            prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem)
             node = await ActionNode.from_pydantic(MdEnsembleOp).fill(context=prompt, llm=self.llm)
             response = node.instruct_content.model_dump()
 
@@ -204,7 +208,7 @@ class MdEnsemble(Operator):
 
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         final_answer = solutions[most_frequent_index]
-        return {"final_solution": final_answer}
+        return {"solution": final_answer}  # {"final_solution": "xxx"}
 
 
 class CodeEnsmble(Operator):
@@ -219,7 +223,7 @@ class CodeEnsmble(Operator):
         answer_mapping = {chr(65 + i): solutions.index(solution) for i, solution in enumerate(shuffled_solutions)}
         return shuffled_solutions, answer_mapping
 
-    async def __call__(self, solutions: List[str], problem_description: str):
+    async def __call__(self, solutions: List[str], problem: str):
         all_responses = []
 
         unique_structures = {}
@@ -263,7 +267,7 @@ class CodeEnsmble(Operator):
                     f"{chr(65 + index)}: \n weight(proportion of occurrences in all solutions):{weight} \n{code}\n\n\n"
                 )
 
-            prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+            prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem)
             node = await ActionNode.from_pydantic(MdEnsembleOp).fill(context=prompt, llm=self.llm)
             response = node.instruct_content.model_dump()
 
@@ -277,7 +281,7 @@ class CodeEnsmble(Operator):
 
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         final_answer = solutions[most_frequent_index]["code"]
-        return {"final_solution": final_answer}
+        return {"solution": final_answer}  # {"final_solution": "xxx"}
 
 
 class ScEnsemble(Operator):
@@ -291,21 +295,21 @@ class ScEnsemble(Operator):
     def __init__(self, name: str = "ScEnsemble", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, solutions: List[str], problem_description: str):
+    async def __call__(self, solutions: List[str], problem: str):
         answer_mapping = {}
         solution_text = ""
         for index, solution in enumerate(solutions):
             answer_mapping[chr(65 + index)] = index
             solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
-        prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem_description)
+        prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text, problem_description=problem)
         node = await ActionNode.from_pydantic(ScEnsembleOp).fill(context=prompt, llm=self.llm)
         response = node.instruct_content.model_dump()
 
         answer = response.get("solution_letter", "")
         answer = answer.strip().upper()
 
-        return {"final_solution": solutions[answer_mapping[answer]]}
+        return {"solution": solutions[answer_mapping[answer]]}  # {"final_solution": "xxx"}
 
 
 class Rephrase(Operator):
@@ -319,11 +323,11 @@ class Rephrase(Operator):
     def __init__(self, name: str = "Rephrase", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def __call__(self, problem_description: str) -> str:
-        prompt = REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem_description)
-        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm)
+    async def __call__(self, problem: str) -> str:
+        prompt = REPHRASE_ON_PROBLEM_PROMPT.format(problem_description=problem)
+        node = await ActionNode.from_pydantic(RephraseOp).fill(context=prompt, llm=self.llm, mode="single_fill")
         response = node.instruct_content.model_dump()
-        return response["rephrased_problem"]
+        return response  # {"rephrased_problem": "xxx"}
 
 
 class Test(Operator):
@@ -391,4 +395,5 @@ class Test(Operator):
                 node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
                 response = node.instruct_content.model_dump()
                 solution = response["refined_solution"]
-        return {"final_solution": solution}
+
+        return {"solution": solution}
