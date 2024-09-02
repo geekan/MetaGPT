@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from metagpt.config2 import Config
 from metagpt.logs import logger
+from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRankerConfig
 from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
@@ -99,8 +100,6 @@ class IndexRepo(BaseModel):
         await self._add_batch(filenames=filter_filenames, delete_filenames=delete_filenames)
 
     async def _add_batch(self, filenames: List[Union[str, Path]], delete_filenames: List[Union[str, Path]]):
-        from metagpt.rag.engines import SimpleEngine
-
         if not filenames:
             return
         engine = None
@@ -161,8 +160,6 @@ class IndexRepo(BaseModel):
         return pathnames, excludes
 
     async def _search(self, query: str, filters: Set[str]) -> List[NodeWithScore]:
-        from metagpt.rag.engines import SimpleEngine
-
         if not Path(self.filename).exists():
             return []
         engine = SimpleEngine.from_index(
