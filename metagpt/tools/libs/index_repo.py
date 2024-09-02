@@ -110,12 +110,15 @@ class IndexRepo(BaseModel):
         logger.info(f"update index repo, add {filenames}, remove {delete_filenames}")
         engine = None
         if Path(self.filename).exists():
+            logger.debug(f"load index from {self.filename}")
             engine = SimpleEngine.from_index(
                 index_config=FAISSIndexConfig(persist_path=self.filename), retriever_configs=[FAISSRetrieverConfig()]
             )
             try:
                 engine.delete_docs(filenames + delete_filenames)
+                logger.debug(f"delete docs {filenames + delete_filenames}")
                 engine.add_docs(input_files=filenames)
+                logger.debug(f"add docs {filenames}")
             except NotImplementedError as e:
                 logger.debug(f"{e}")
                 filenames = list(set([str(i) for i in filenames] + list(self.fingerprints.keys())))
@@ -127,6 +130,7 @@ class IndexRepo(BaseModel):
                 retriever_configs=[FAISSRetrieverConfig()],
                 ranker_configs=[LLMRankerConfig()],
             )
+            logger.debug(f"add docs {filenames}")
         engine.persist(persist_dir=self.filename)
         for i in filenames:
             content = await aread(i)
