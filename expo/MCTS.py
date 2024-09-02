@@ -205,6 +205,8 @@ class Node():
         if self.state["low_is_better"]:
             # normalized the score to be between 0 and 1, and higher is better
             def normalize_score(score):
+                if score == -1:
+                    return 0
                 return 1 / (1 + score)
             score_dict = {k: normalize_score(v) for k, v in score_dict.items()}
         self.normalized_reward = score_dict

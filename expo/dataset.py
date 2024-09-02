@@ -27,7 +27,7 @@ TASK_PROMPT = """\
 - Both files should contain a single column named `target` with the predicted values.
 2. Make sure the prediction results are in the same format as the target column in the training set. 
 - The labels should be transformed back to the original format if any transformation was applied during training.
-- If the original target column was categorical, the predictions should be in the same format.
+- If the original target column was categorical or string, the predictions MUST be in the same format.
 
 ## Output Training Set Performance
 Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.

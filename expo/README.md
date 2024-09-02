@@ -25,8 +25,9 @@
 ### Run DI MCTS
 `python run_experiment.py --exp_mode mcts --task titanic --rollout 5`
 
-If the dataset has reg metric, remember to use `--low_is_better`
-`python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 5 --low_is_better`
+If the dataset has reg metric, remember to use `--low_is_better`:
+
+- `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 5 --low_is_better`
 
 
 ## Code and Configs Explanation

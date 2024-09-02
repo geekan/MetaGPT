@@ -1,4 +1,4 @@
-from expo.experimenter import MCTSExperimenter, Experimenter, AugExperimenter
+from expo.experimenter import MCTSExperimenter, Experimenter, AugExperimenter, CustomExperimenter
 import asyncio
 import argparse
 
@@ -6,7 +6,7 @@ import argparse
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
-    parser.add_argument("--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base"])
+    parser.add_argument("--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base", "custom"])
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
@@ -17,7 +17,7 @@ def get_mcts_args(parser):
     parser.add_argument("--load_tree", dest="load_tree", action="store_true")
     parser.add_argument("--no_load_tree", dest="load_tree", action="store_false")
     parser.set_defaults(load_tree=False)
-    parser.add_argument("--rollouts", type=int, default=3)
+    parser.add_argument("--rollouts", type=int, default=5)
 
 def get_aug_exp_args(parser):
     parser.add_argument("--aug_mode", type=str, default="single", choices=["single", "set"])
@@ -40,6 +40,8 @@ async def main(args):
         experimenter = AugExperimenter(args)
     elif args.exp_mode == "base":
         experimenter = Experimenter(args)
+    elif args.exp_mode == "custom":
+        experimenter = CustomExperimenter(args)
     else:
         raise ValueError(f"Invalid exp_mode: {args.exp_mode}")
     await experimenter.run_experiment()
