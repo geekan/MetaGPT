@@ -98,10 +98,10 @@ class IndexRepo(BaseModel):
             token_count = len(encoding.encode(content))
             if self._is_buildable(token_count):
                 filter_filenames.append(i)
-                logger.debug(f"{i} is_buildable")
+                logger.debug(f"{i} is_buildable: {token_count}, {self.min_token_count}~{self.max_token_count}")
             else:
                 delete_filenames.append(i)
-                logger.debug(f"{i} not is_buildable")
+                logger.debug(f"{i} not is_buildable: {token_count}, {self.min_token_count}~{self.max_token_count}")
         await self._add_batch(filenames=filter_filenames, delete_filenames=delete_filenames)
 
     async def _add_batch(self, filenames: List[Union[str, Path]], delete_filenames: List[Union[str, Path]]):
