@@ -120,6 +120,7 @@ class IndexRepo(BaseModel):
                 logger.debug(f"{e}")
                 filenames = list(set([str(i) for i in filenames] + list(self.fingerprints.keys())))
                 engine = None
+                logger.info(f"{e}. Rebuild all.")
         if not engine:
             engine = SimpleEngine.from_docs(
                 input_files=[str(i) for i in filenames],
