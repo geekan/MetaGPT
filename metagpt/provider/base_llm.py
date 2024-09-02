@@ -27,7 +27,6 @@ from metagpt.configs.llm_config import LLMConfig
 from metagpt.const import IMAGES, LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.constant import MULTI_MODAL_MODELS
-from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.token_counter import TOKEN_MAX
@@ -80,7 +79,7 @@ class BaseLLM(ABC):
     def support_image_input(self) -> bool:
         return any([m in self.config.model for m in MULTI_MODAL_MODELS])
 
-    def format_msg(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    def format_msg(self, messages: Union[str, "Message", list[dict], list["Message"], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
         from metagpt.schema import Message
 
@@ -173,7 +172,9 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=USE_CONFIG_TIMEOUT, **kwargs) -> dict:
+    async def aask_code(
+        self, messages: Union[str, "Message", list[dict]], timeout=USE_CONFIG_TIMEOUT, **kwargs
+    ) -> dict:
         raise NotImplementedError
 
     @abstractmethod

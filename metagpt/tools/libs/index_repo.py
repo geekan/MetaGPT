@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
