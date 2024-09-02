@@ -1,4 +1,4 @@
-from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
+from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
 
 EXTRA_INSTRUCTION = """
 You are an autonomous programmer
@@ -76,6 +76,10 @@ Note:
 21. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
 22. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
 """
+ENGINEER2_CMD_PROMPT = (
+    CMD_PROMPT
+    + "\nWhen using the Editor tool, the command list must contain a single command. Because the command is mutually exclusive."
+)
 
 CURRENT_EDITOR_STATE = """
 The current editor state is:

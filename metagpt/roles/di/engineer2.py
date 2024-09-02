@@ -12,11 +12,11 @@ from metagpt.logs import logger
 from metagpt.prompts.di.engineer2 import (
     CURRENT_EDITOR_STATE,
     CURRENT_TERMINAL_STATE,
+    ENGINEER2_CMD_PROMPT,
     ENGINEER2_INSTRUCTION,
     WRITE_CODE_PROMPT,
     WRITE_CODE_SYSTEM_PROMPT,
 )
-from metagpt.prompts.di.role_zero import CMD_PROMPT
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message, UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
@@ -33,10 +33,7 @@ class Engineer2(RoleZero):
     profile: str = "Engineer"
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
-    cmd_prompt: str = (
-        CMD_PROMPT
-        + "\nWhen using the Editor tool, the command list must contain a single command. Because the command is mutually exclusive."
-    )
+    cmd_prompt: str = ENGINEER2_CMD_PROMPT
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
     tools: list[str] = [
