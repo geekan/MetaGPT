@@ -98,8 +98,10 @@ class IndexRepo(BaseModel):
             token_count = len(encoding.encode(content))
             if self._is_buildable(token_count):
                 filter_filenames.append(i)
+                logger.debug(f"{i} is_buildable")
             else:
                 delete_filenames.append(i)
+                logger.debug(f"{i} not is_buildable")
         await self._add_batch(filenames=filter_filenames, delete_filenames=delete_filenames)
 
     async def _add_batch(self, filenames: List[Union[str, Path]], delete_filenames: List[Union[str, Path]]):
@@ -149,6 +151,7 @@ class IndexRepo(BaseModel):
             path = Path(i).absolute()
             if not path.is_relative_to(root_path):
                 excludes.append(path)
+                logger.debug(f"{path} not is_relative_to {root_path})")
                 continue
             if not path.is_dir():
                 is_text, _ = await is_text_file(path)
@@ -161,6 +164,7 @@ class IndexRepo(BaseModel):
                 if is_text:
                     pathnames.append(j)
 
+        logger.debug(f"{pathnames}, excludes:{excludes})")
         return pathnames, excludes
 
     async def _search(self, query: str, filters: Set[str]) -> List[NodeWithScore]:
