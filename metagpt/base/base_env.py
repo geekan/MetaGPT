@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 # @Desc   : base environment
 
+import typing
 from abc import abstractmethod
 from typing import Any, Optional
 
 from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
-from metagpt.schema import Message
+from metagpt.base.base_serialization import BaseSerialization
+
+if typing.TYPE_CHECKING:
+    from metagpt.schema import Message
 
 
-class BaseEnvironment:
+class BaseEnvironment(BaseSerialization):
     """Base environment"""
 
     @abstractmethod
@@ -30,7 +34,7 @@ class BaseEnvironment:
         """Implement this to feed a action and then get new observation from the env"""
 
     @abstractmethod
-    def publish_message(self, message: Message, peekable: bool = True) -> bool:
+    def publish_message(self, message: "Message", peekable: bool = True) -> bool:
         """Distribute the message to the recipients."""
 
     @abstractmethod

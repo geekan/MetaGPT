@@ -582,20 +582,20 @@ def read_json_file(json_file: str, encoding: str = "utf-8") -> list[Any]:
 
 
 def handle_unknown_serialization(x: Any) -> str:
-    """For `to_jsonable_python` debug, unknown values will be logged instead of raising an exception."""
+    """For `to_jsonable_python` debug, get more detail about the x."""
 
     if inspect.ismethod(x):
-        logger.error(f"Method: {x.__self__.__class__.__name__}.{x.__func__.__name__}")
+        tip = f"Cannot serialize method '{x.__func__.__name__}' of class '{x.__self__.__class__.__name__}'"
     elif inspect.isfunction(x):
-        logger.error(f"Function: {x.__name__}")
+        tip = f"Cannot serialize function '{x.__name__}'"
     elif hasattr(x, "__class__"):
-        logger.error(f"Instance of: {x.__class__.__name__}")
+        tip = f"Cannot serialize instance of '{x.__class__.__name__}'"
     elif hasattr(x, "__name__"):
-        logger.error(f"Class or module: {x.__name__}")
+        tip = f"Cannot serialize class or module '{x.__name__}'"
     else:
-        logger.error(f"Unknown type: {type(x)}")
+        tip = f"Cannot serialize object of type '{type(x).__name__}'"
 
-    return f"<Unserializable {type(x).__name__} object>"
+    raise TypeError(tip)
 
 
 def write_json_file(json_file: str, data: Any, encoding: str = "utf-8", indent: int = 4, use_fallback: bool = False):

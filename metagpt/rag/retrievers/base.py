@@ -58,4 +58,18 @@ class QueryableRAGRetriever(RAGRetriever):
 
     @abstractmethod
     def query_total_count(self) -> int:
-        """To support querying total count, must implement this func"""
+        """To support querying total count, must implement this func."""
+
+
+class DeletableRAGRetriever(RAGRetriever):
+    """Support deleting all nodes."""
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is DeletableRAGRetriever:
+            return check_methods(C, "clear")
+        return NotImplemented
+
+    @abstractmethod
+    def clear(self, **kwargs) -> int:
+        """To support deleting all nodes, must implement this func."""

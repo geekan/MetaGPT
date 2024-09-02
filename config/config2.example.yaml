@@ -81,6 +81,8 @@ exp_pool:
   persist_path: .chroma_exp_data # The directory.
   retrieval_type: bm25 # Default is `bm25`, can be set to `chroma` for vector storage, which requires setting up embedding.
   use_llm_ranker: true # Default is `true`, it will use LLM Reranker to get better result.
+  collection_name: experience_pool  # When `retrieval_type` is `chroma`, `collection_name` is the collection name in chromadb.
+
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

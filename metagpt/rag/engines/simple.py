@@ -39,6 +39,7 @@ from metagpt.rag.factories import (
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
 from metagpt.rag.retrievers.base import (
+    DeletableRAGRetriever,
     ModifiableRAGRetriever,
     PersistableRAGRetriever,
     QueryableRAGRetriever,
@@ -220,7 +221,13 @@ class SimpleEngine(RetrieverQueryEngine):
         """Count."""
         self._ensure_retriever_queryable()
 
-        return self._retriever.query_total_count()
+        return self.retriever.query_total_count()
+
+    def clear(self, **kwargs):
+        """Clear."""
+        self._ensure_retriever_deletable()
+
+        return self.retriever.clear(**kwargs)
 
     def delete_docs(self, input_files: List[Union[str, Path]]):
         """Delete documents from the index and document store.
@@ -296,6 +303,9 @@ class SimpleEngine(RetrieverQueryEngine):
 
     def _ensure_retriever_queryable(self):
         self._ensure_retriever_of_type(QueryableRAGRetriever)
+
+    def _ensure_retriever_deletable(self):
+        self._ensure_retriever_of_type(DeletableRAGRetriever)
 
     def _ensure_retriever_of_type(self, required_type: BaseRetriever):
         """Ensure that self.retriever is required_type, or at least one of its components, if it's a SimpleHybridRetriever.
