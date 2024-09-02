@@ -93,6 +93,8 @@ class IndexRepo(BaseModel):
         delete_filenames = []
         for i in filenames:
             content = await aread(filename=i)
+            if not self._is_fingerprint_changed(filename=i, content=content):
+                continue
             token_count = len(encoding.encode(content))
             if self._is_buildable(token_count):
                 filter_filenames.append(i)
@@ -103,6 +105,7 @@ class IndexRepo(BaseModel):
     async def _add_batch(self, filenames: List[Union[str, Path]], delete_filenames: List[Union[str, Path]]):
         if not filenames:
             return
+        logger.info(f"update index repo, add {filenames}, remove {delete_filenames}")
         engine = None
         if Path(self.filename).exists():
             engine = SimpleEngine.from_index(
@@ -168,3 +171,10 @@ class IndexRepo(BaseModel):
         )
         rsp = await engine.aretrieve(query)
         return [i for i in rsp if i.metadata.get("file_path") in filters]
+
+    def _is_fingerprint_changed(self, filename: Union[str, Path], content: str) -> bool:
+        old_fp = self.fingerprints.get(str(filename))
+        if not old_fp:
+            return True
+        fp = generate_fingerprint(content)
+        return old_fp != fp
