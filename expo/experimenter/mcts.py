@@ -25,9 +25,9 @@ class MCTSExperimenter(Experimenter):
         self.save_tree(text)
 
         results = {
-            "best_node": best_node,
+            "best_node": best_node.id,
             "best_node_score": best_node.raw_reward,
-            "dev_best_node": dev_best_node,
+            "dev_best_node": dev_best_node.id,
             "dev_best_node_score": dev_best_node.raw_reward,
             "num_generated_codes": num_generated_codes,
             "user_requirement": best_node.state["requirement"],

@@ -23,9 +23,11 @@ TASK_PROMPT = """\
 3. You should perform transformations on all sets at the same step.
 
 ## Saving Dev and Test Predictions
-Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
-Both files should contain a single column named `target` with the predicted values.
-Make sure the prediction results are in the same format as the target column in the training set. The labels should be transformed back to the original format if any transformation was applied during training.
+1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
+- Both files should contain a single column named `target` with the predicted values.
+2. Make sure the prediction results are in the same format as the target column in the training set. 
+- The labels should be transformed back to the original format if any transformation was applied during training.
+- If the original target column was categorical, the predictions should be in the same format.
 
 ## Output Training Set Performance
 Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.

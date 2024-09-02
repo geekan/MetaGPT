@@ -46,7 +46,7 @@ class AugExperimenter(Experimenter):
                 "score_dict": score_dict,
                 "aug_mode": self.args.aug_mode,
                 "insights" : exps[i],
-                "user_requirement": user_requirement,
+                "user_requirement": requirement,
                 "args": vars(self.args)
             })
         scores = [result["score_dict"]["test_score"] for result in results]

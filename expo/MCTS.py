@@ -42,6 +42,7 @@ class Node():
     value : float = 0
     visited : int = 0
     children : list = []
+    normalized_reward : dict = {"train_score": 0, "dev_score": 0, "test_score": 0}
     parent = None
 
     def __init__(self, parent=None, state = None, action=None, value = 0, max_depth=4, **kwargs):
@@ -274,7 +275,7 @@ class MCTS():
                 if score > best_score:
                     best_score = score
                     best_child = child
-                best_score, best_child = bfs(child, best_score, best_child)
+                best_score, best_child = bfs(child, best_score, best_child, split)
             return best_score, best_child
         _, best_child = bfs(root, best_score, best_child, "test_score")
         _, dev_best_child = bfs(root, best_score, best_child, "dev_score")
