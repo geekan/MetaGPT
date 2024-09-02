@@ -2,7 +2,7 @@ from experimenter import Experimenter
 from expo.MCTS import create_initial_state
 from expo.dataset import generate_task_requirement
 from expo.utils import mcts_logger, load_execute_notebook, get_exp_pool_path
-from exp_optimizer.expo.insights.instruction_generator import InstructionGenerator
+from expo.insights.instruction_generator import InstructionGenerator
 from expo.research_assistant import ResearchAssistant
 
 EXPS_PROMPT = """

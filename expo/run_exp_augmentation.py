@@ -3,7 +3,7 @@ from expo.research_assistant import ResearchAssistant
 import asyncio
 from expo.utils import DATA_CONFIG, get_exp_pool_path
 from expo.dataset import generate_task_requirement
-from exp_optimizer.expo.insights.instruction_generator import InstructionGenerator
+from expo.insights.instruction_generator import InstructionGenerator
 from expo.MCTS import create_initial_state
 from expo.evaluation.evaluation import evaluate_score
 import json
