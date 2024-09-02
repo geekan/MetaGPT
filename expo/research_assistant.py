@@ -31,7 +31,7 @@ If you cannot find the scores, please still return a dictionary with the keys 't
 {{
     "train_score": x.x,
     "dev_score": x.x,
-    "test_score": x.x,
+    "test_score": x.x
 }}
 ```
 """
