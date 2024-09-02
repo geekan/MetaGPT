@@ -101,11 +101,8 @@ class ResearchAssistant(DataInterpreter):
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
         mcts_logger.info(f"The current_task is: {current_task}")
-
-        # 执行任务的代码
         code, result, is_success = await self._write_and_exec_code()
         task_result = TaskResult(code=code, result=result, is_success=is_success)
-        # 只在任务类型为 'feature engineering' 时保存状态
         if int(current_task.task_id) == self.start_task_id + 1:
             # fe_id = current_task.dependent_task_ids
             self.save_state()
