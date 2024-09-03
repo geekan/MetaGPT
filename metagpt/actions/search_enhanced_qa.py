@@ -9,6 +9,7 @@ from pydantic import Field, PrivateAttr, model_validator
 from metagpt.actions import Action
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
 from metagpt.logs import logger
+from metagpt.tools.tool_registry import register_tool
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import CodeParser
 from metagpt.utils.parse_html import WebPage
@@ -57,8 +58,9 @@ Remember, don't blindly repeat the contexts verbatim. And here is the user quest
 """
 
 
+@register_tool(include_functions=["run"])
 class SearchEnhancedQA(Action):
-    """Enhancing question-answering capabilities through search engine augmentation."""
+    """Question answering and info searching through search engine."""
 
     name: str = "SearchEnhancedQA"
     desc: str = "Integrating search engine results to anwser the question."
