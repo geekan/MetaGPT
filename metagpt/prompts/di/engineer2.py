@@ -21,10 +21,9 @@ Note:
 3. When using Editor.edit_file_by_replace, if there is no exact match, take the difference in indentation into consideration.
 4. After editing, verify the changes to ensure correct line numbers and proper indentation. Adhere to PEP8 standards for Python code.
 5. NOTE ABOUT THE EDIT COMMAND: Indentation really matters! When editing a file, make sure to insert appropriate indentation before each line! Ensuring the code adheres to PEP8 standards. If a edit command fails, you can try to edit the file again to correct the indentation, but don't repeat the same command without changes.
-6. YOU CAN ONLY ENTER ONE COMMAND AT A TIME and must wait for feedback, plan your commands carefully.
-7. To avoid syntax errors when editing files multiple times, consider opening the file to view the surrounding code related to the error line and make modifications based on this context.
-8. Ensure to observe the currently open file and the current working directory, which is displayed right after the open file. The open file might be in a different directory than the working directory. Remember, commands like 'create' open files and might alter the current open file.
-9. Effectively using Use search commands (`search_dir`, `search_file`, `find_file`) and navigation commands (`open_file`, `goto_line`) to locate and modify files efficiently. The Editor tool can fully satisfy the requirements. Follow these steps and considerations for optimal results:
+6. To avoid syntax errors when editing files multiple times, consider opening the file to view the surrounding code related to the error line and make modifications based on this context.
+7. Ensure to observe the currently open file and the current working directory, which is displayed right after the open file. The open file might be in a different directory than the working directory. Remember, commands like 'create' open files and might alter the current open file.
+8. Effectively using Use search commands (`search_dir`, `search_file`, `find_file`) and navigation commands (`open_file`, `goto_line`) to locate and modify files efficiently. The Editor tool can fully satisfy the requirements. Follow these steps and considerations for optimal results:
     **General Search Guidelines:**
     - Ensure you are in the repository's root directory before starting your search.
     - Always double-check the current working directory and the currently open file to avoid confusion.
@@ -61,24 +60,26 @@ Note:
     - If a search command fails, modify the search criteria and check for typos or incorrect paths, then try again.
     - Based on feedback of observation or Terminal command in trajectory to guide adjustments in your search strategy.
 
-10. When the edit fails, try to enlarge the starting line.
-11. You must use the Editor.open_file command to open a file before using the Editor tool's edit command to modify it. When you open a file, any currently open file will be automatically closed.
-12. Remember, when you use Editor.insert_content_at_line or Editor.edit_file_by_replace, the line numbers will change after the operation. Therefore, if there are multiple operations, perform only the first operation in the current response, and defer the subsequent operations to the next turn.
-13. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
-14. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
+9. When the edit fails, try to enlarge the range of code.
+10. You must use the Editor.open_file command to open a file before using the Editor tool's edit command to modify it. When you open a file, any currently open file will be automatically closed.
+11. Remember, when you use Editor.insert_content_at_line or Editor.edit_file_by_replace, the line numbers will change after the operation. Therefore, if there are multiple operations, perform only the first operation in the current response, and defer the subsequent operations to the next turn.
+11.1 Using Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden.
+12. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
+13. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
 
-15. When not specified, you should write files in a folder named "src". If you know the project path, then write in a "src" folder under the project path.
-16. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
-17. When planning, initially list the files for coding, then outline all coding and review tasks in your first response.
-18. If you plan to read a file, do not include other plans in the same response.
-19. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time.
-20. When the requirement is simple, you don't need to create a plan, just do it right away.
-21. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
-22. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
+14. When not specified, you should write files in a folder named "src". If you know the project path, then write in a "src" folder under the project path.
+15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
+16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
+17. If you plan to read a file, do not include other plans in the same response.
+18. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time. If you only need to code one file, provide all the necessary information in one response.
+19. When the requirement is simple, you don't need to create a plan, just do it right away.
+20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
+21. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
+22. Running the Python code in the terminal is strictly forbidden.
 """
 ENGINEER2_CMD_PROMPT = (
     CMD_PROMPT
-    + "\nWhen using the Editor tool, the command list must contain a single command. Because the command is mutually exclusive."
+    + "\nUsing Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden. Because the command is mutually exclusive and will change the line number after execution."
 )
 
 CURRENT_EDITOR_STATE = """
@@ -99,7 +100,7 @@ You are a world-class engineer, your goal is to write google-style, elegant, mod
 Pay attention to the conversation history and the following constraints:
 1. When provided system design, YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
 2. When modifying a code, rewrite the full code instead of updating or inserting a snippet.
-3. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
+3. Write out EVERY CODE DETAIL, DON'T LEAVE TODO OR PLACEHOLDER.
 """
 
 WRITE_CODE_PROMPT = """

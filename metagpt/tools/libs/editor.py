@@ -277,7 +277,7 @@ class Editor(BaseModel):
             return ""
         return f"[File: {current_file.resolve()} ({total_lines} lines total)]\n"
 
-    def set_workdir(self, path: str) -> None:
+    def _set_workdir(self, path: str) -> None:
         """
         Sets the working directory to the given path. eg: repo directory.
         You MUST to set it up before open the file.
@@ -499,6 +499,17 @@ class Editor(BaseModel):
         content = "".join(new_lines)
         return content, n_added_lines
 
+    def get_indentation_infromation(self, content, first_error_line):
+        content_lines = content.split("\n")
+        previous_line = content_lines[first_error_line - 2] if first_error_line - 2 >= 0 else ""
+        first_insert_line = content_lines[first_error_line - 1]
+        ret_str = f'the privous line is "{previous_line}", the indentation has {len(previous_line)-len(previous_line.lstrip())} space\n'
+        insert_line_indentation = len(first_insert_line) - len(first_insert_line.lstrip())
+        ret_str += f'the error line is "{first_insert_line}", the indentation has {insert_line_indentation} space\n'
+        ret_str += "Please check the indentation of the code to ensure that it is not causing any errors.\n"
+        ret_str += f"Try to use indentation that has {insert_line_indentation-4 if insert_line_indentation-4 >0 else 0} or {insert_line_indentation+4} space"
+        return ret_str
+
     def _edit_file_impl(
         self,
         file_name: Path,
@@ -655,6 +666,8 @@ class Editor(BaseModel):
                     )
                     ret_str += "-------------------------------------------------\n"
 
+                    ret_str += "\n" + self.get_indentation_infromation(content, first_error_line)
+
                     ret_str += (
                         "Your changes have NOT been applied. Please fix your edit command and try again.\n"
                         "You either need to 1) Specify the correct start/end line arguments or 2) Correct your edit code.\n"
@@ -674,11 +687,21 @@ class Editor(BaseModel):
         except ValueError as e:
             ret_str += f"Invalid input: {e}\n"
         except Exception as e:
+            error_str = ""
+            if is_append:
+                error_str += self.get_indentation_infromation(content, len(lines))
+            else:
+                # insert or replace
+                error_str += self.get_indentation_infromation(content, start)
             # Clean up the temporary file if an error occurs
+            with original_file_backup_path.open() as fin, file_name.open("w") as fout:
+                fout.write(fin.read())
             if temp_file_path and Path(temp_file_path).exists():
                 Path(temp_file_path).unlink()
+
             logger.warning(f"An unexpected error occurred: {e}")
-            raise e
+            raise Exception(f"{error_str}") from e
+            # raise e
 
         # Update the file information and print the updated content
         with file_name.open("r", encoding="utf-8") as file:

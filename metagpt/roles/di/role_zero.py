@@ -75,8 +75,14 @@ class RoleZero(Role):
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    exclusive_tool_commands: list[str] = [
+        "Editor.edit_file_by_replace",
+        "Editor.insert_content_at_line",
+        "Editor.append_file",
+    ]
+    exclusive_command_enable_flag: bool = True
     # Equipped with three basic tools by default for optional use
-    editor: Editor = Editor()
+    editor: Editor = Editor(enable_auto_lint=True)
     browser: Browser = Browser()
 
     # Experience
@@ -149,7 +155,7 @@ class RoleZero(Role):
                     "scroll_up",
                     "search_dir",
                     "search_file",
-                    "set_workdir",
+                    # "set_workdir",
                     "write",
                 ]
             }
@@ -221,6 +227,7 @@ class RoleZero(Role):
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
 
         self.rc.memory.add(AIMessage(content=self.command_rsp))
+        self.exclusive_command_enable_flag = True
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -420,14 +427,14 @@ class RoleZero(Role):
         for cmd in commands:
             output = f"Command {cmd['command_name']} executed"
             # handle special command first
-            if self._is_special_command(cmd):
-                special_command_output = await self._run_special_command(cmd)
-                outputs.append(output + ":" + special_command_output)
-                continue
-            # run command as specified by tool_execute_map
-            if cmd["command_name"] in self.tool_execution_map:
-                tool_obj = self.tool_execution_map[cmd["command_name"]]
-                try:
+            try:
+                if self._is_special_command(cmd):
+                    special_command_output = await self._run_special_command(cmd)
+                    outputs.append(output + ":" + special_command_output)
+                    continue
+                # run command as specified by tool_execute_map
+                if cmd["command_name"] in self.tool_execution_map:
+                    tool_obj = self.tool_execution_map[cmd["command_name"]]
                     if inspect.iscoroutinefunction(tool_obj):
                         tool_output = await tool_obj(**cmd["args"])
                     else:
@@ -435,20 +442,20 @@ class RoleZero(Role):
                     if tool_output:
                         output += f": {str(tool_output)}"
                     outputs.append(output)
-                except Exception as e:
-                    tb = traceback.format_exc()
-                    logger.exception(str(e) + tb)
-                    outputs.append(output + f": {tb}")
-                    break  # Stop executing if any command fails
-            else:
-                outputs.append(f"Command {cmd['command_name']} not found.")
-                break
+                else:
+                    outputs.append(f"Command {cmd['command_name']} not found.")
+                    break
+            except Exception as e:
+                tb = traceback.format_exc()
+                logger.exception(str(e) + tb)
+                outputs.append(output + f": {tb}")
+                break  # Stop executing if any command fails
         outputs = "\n\n".join(outputs)
 
         return outputs
 
     def _is_special_command(self, cmd) -> bool:
-        return cmd["command_name"] in self.special_tool_commands
+        return cmd["command_name"] in self.special_tool_commands or cmd["command_name"] in self.exclusive_tool_commands
 
     async def _run_special_command(self, cmd) -> str:
         """command requiring special check or parsing"""
@@ -472,6 +479,14 @@ class RoleZero(Role):
                 )
             else:
                 command_output += f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output}"
+
+        elif cmd["command_name"] in self.exclusive_tool_commands:
+            if self.exclusive_command_enable_flag is True:
+                tool_obj = self.tool_execution_map[cmd["command_name"]]
+                command_output += tool_obj(**cmd["args"])
+            else:
+                command_output += "This command has not been executed."
+            self.exclusive_command_enable_flag = False
         return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:
@@ -518,7 +533,9 @@ class RoleZero(Role):
 
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
-        return await self.rc.env.reply_to_human(content, sent_from=self)
+        rsp = await self.rc.env.reply_to_human(content, sent_from=self)
+        rsp += " If all tasks are finished, use 'end' to stop."
+        return
 
     async def _end(self):
         self._set_state(-1)

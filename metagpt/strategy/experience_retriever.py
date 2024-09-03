@@ -842,7 +842,7 @@ Explanation: I will first need to read the system design document and the projec
 
 ## example 2
 Consider this example only after you have obtained the content of system design and project schedule documents.
-Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. Following the completion of these tasks, I will add a code review task for each file to ensure the implementation aligns with the provided system design and project schedule documents.
+Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. 
 
 Here's the plan:
 
@@ -911,19 +911,6 @@ I will use browser to review the detailed information of this issue in order to 
         "command_name": "Browser.goto",
         "args": {
             "url": "https://github.com/geekan/MetaGPT/issues/1275"
-        }
-    }
-]
-```
-
-## example 5
-The target working directory is "/workspace/MetaGPT/provider/", but the current working directory is different. I will use the set_workdir command to change the working directory.
-```json
-[
-    {
-        "command_name": "Editor.set_workdir",
-        "args": {
-            "path": "/workspace/MetaGPT/provider"   
         }
     }
 ]
