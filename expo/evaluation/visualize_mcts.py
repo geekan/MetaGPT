@@ -48,7 +48,9 @@ def get_tree_text(node : Node):
             for child in node.children:
                 text += textwrap.indent(visualize_tree(child, depth+1, previous_plans), "\t")
         return text
-    
-    return visualize_tree(node), len(code_set)
+    num_simulations = node.visited
+    text = f"Number of simulations: {num_simulations}\n"
+    text += visualize_tree(node)
+    return text, len(code_set)
 
 

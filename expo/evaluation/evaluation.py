@@ -5,7 +5,7 @@ def evaluate_score(pred, gt, metric):
     if metric == "accuracy":
         return accuracy_score(gt, pred)
     elif metric == "f1":
-        unique_classes = np.unique(gt)
+        unique_classes = sorted(list(np.unique(gt)))
         if 1 in unique_classes and 0 in unique_classes:
             pos_label = 1
         else:

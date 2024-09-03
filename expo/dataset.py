@@ -20,7 +20,7 @@ TASK_PROMPT = """\
 **Attention** 
 1. Please do not leak the target label in any form during training.
 2. Dev and Test sets do not have the target column.
-3. You should perform transformations on all sets at the same step.
+3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
 4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
 
 ## Saving Dev and Test Predictions
@@ -38,9 +38,9 @@ print("Train score:", train_score)
 ```
 
 # Data dir
-training: {train_path}
-dev: {dev_path}
-testing: {test_path}
+training (with labels): {train_path}
+dev (without labels): {dev_path}
+testing (without labels): {test_path}
 
 # Output dir
 {output_dir}
