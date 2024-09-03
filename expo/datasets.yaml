@@ -1,28 +1,32 @@
 datasets:
-  04_titanic:
+  titanic:
     dataset: 04_titanic
     metric: f1
+    target_col: Survived
     user_requirement: "This is a 04_titanic dataset. Your goal is to predict the target\
       \ column `Survived`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
       \ or make any visualizations.\n"
-  05_house-prices-advanced-regression-techniques:
+  house-prices:
     dataset: 05_house-prices-advanced-regression-techniques
     metric: rmse
+    target_col: SalePrice
     user_requirement: "This is a 05_house-prices-advanced-regression-techniques dataset.\
       \ Your goal is to predict the target column `SalePrice`.\nPerform data analysis,\
       \ data preprocessing, feature engineering, and modeling to predict the target.\
       \ \nReport rmse on the eval data. Do not plot or make any visualizations.\n"
-  06_santander-customer-transaction-prediction:
+  santander-customer:
     dataset: 06_santander-customer-transaction-prediction
     metric: f1
+    target_col: target
     user_requirement: "This is a 06_santander-customer-transaction-prediction dataset.\
       \ Your goal is to predict the target column `target`.\nPerform data analysis,\
       \ data preprocessing, feature engineering, and modeling to predict the target.\
       \ \nReport f1 on the eval data. Do not plot or make any visualizations.\n"
-  07_icr-identify-age-related-conditions:
+  icr:
     dataset: 07_icr-identify-age-related-conditions
     metric: f1
+    target_col: Class
     user_requirement: "This is a 07_icr-identify-age-related-conditions dataset. Your\
       \ goal is to predict the target column `Class`.\nPerform data analysis, data\
       \ preprocessing, feature engineering, and modeling to predict the target. \n\
@@ -30,6 +34,7 @@ datasets:
   Click_prediction_small:
     dataset: Click_prediction_small
     metric: f1
+    target_col: click
     user_requirement: "This is a Click_prediction_small dataset. Your goal is to predict\
       \ the target column `click`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
@@ -37,6 +42,7 @@ datasets:
   GesturePhaseSegmentationProcessed:
     dataset: GesturePhaseSegmentationProcessed
     metric: f1 weighted
+    target_col: Phase
     user_requirement: "This is a GesturePhaseSegmentationProcessed dataset. Your goal\
       \ is to predict the target column `Phase`.\nPerform data analysis, data preprocessing,\
       \ feature engineering, and modeling to predict the target. \nReport f1 weighted\
@@ -44,6 +50,7 @@ datasets:
   Moneyball:
     dataset: Moneyball
     metric: rmse
+    target_col: RS
     user_requirement: "This is a Moneyball dataset. Your goal is to predict the target\
       \ column `RS`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
@@ -51,6 +58,7 @@ datasets:
   SAT11-HAND-runtime-regression:
     dataset: SAT11-HAND-runtime-regression
     metric: rmse
+    target_col: runtime
     user_requirement: "This is a SAT11-HAND-runtime-regression dataset. Your goal\
       \ is to predict the target column `runtime`.\nPerform data analysis, data preprocessing,\
       \ feature engineering, and modeling to predict the target. \nReport rmse on\
@@ -58,6 +66,7 @@ datasets:
   boston:
     dataset: boston
     metric: rmse
+    target_col: MEDV
     user_requirement: "This is a boston dataset. Your goal is to predict the target\
       \ column `MEDV`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
@@ -65,6 +74,7 @@ datasets:
   colleges:
     dataset: colleges
     metric: rmse
+    target_col: percent_pell_grant
     user_requirement: "This is a colleges dataset. Your goal is to predict the target\
       \ column `percent_pell_grant`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport rmse on the eval\
@@ -72,6 +82,7 @@ datasets:
   credit-g:
     dataset: credit-g
     metric: f1
+    target_col: class
     user_requirement: "This is a credit-g dataset. Your goal is to predict the target\
       \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
@@ -79,6 +90,7 @@ datasets:
   diamonds:
     dataset: diamonds
     metric: rmse
+    target_col: price
     user_requirement: "This is a diamonds dataset. Your goal is to predict the target\
       \ column `price`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
@@ -86,6 +98,7 @@ datasets:
   jasmine:
     dataset: jasmine
     metric: f1
+    target_col: class
     user_requirement: "This is a jasmine dataset. Your goal is to predict the target\
       \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
@@ -93,6 +106,7 @@ datasets:
   kc1:
     dataset: kc1
     metric: f1
+    target_col: defects
     user_requirement: "This is a kc1 dataset. Your goal is to predict the target column\
       \ `defects`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
@@ -100,6 +114,7 @@ datasets:
   kick:
     dataset: kick
     metric: f1
+    target_col: IsBadBuy
     user_requirement: "This is a kick dataset. Your goal is to predict the target\
       \ column `IsBadBuy`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
@@ -107,6 +122,7 @@ datasets:
   mfeat-factors:
     dataset: mfeat-factors
     metric: f1 weighted
+    target_col: class
     user_requirement: "This is a mfeat-factors dataset. Your goal is to predict the\
       \ target column `class`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
@@ -114,6 +130,7 @@ datasets:
   segment:
     dataset: segment
     metric: f1 weighted
+    target_col: class
     user_requirement: "This is a segment dataset. Your goal is to predict the target\
       \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
@@ -121,6 +138,7 @@ datasets:
   steel-plates-fault:
     dataset: steel-plates-fault
     metric: f1 weighted
+    target_col: target
     user_requirement: "This is a steel-plates-fault dataset. Your goal is to predict\
       \ the target column `target`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
@@ -128,6 +146,7 @@ datasets:
   wine-quality-white:
     dataset: wine-quality-white
     metric: f1 weighted
+    target_col: Class
     user_requirement: "This is a wine-quality-white dataset. Your goal is to predict\
       \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 weighted on the\

@@ -9,10 +9,12 @@ class CustomExperimenter(Experimenter):
     
     def __init__(self, args, **kwargs):
         super().__init__(args, **kwargs)
-        self.framework = kwargs["framework"]
+        self.framework = kwargs["framework"] # todo
+        self.task = kwargs.get("task", self.args.task)
+        self.low_is_better = kwargs.get("low_is_better", self.args.low_is_better)
         self.name = kwargs.get("name", "")
         self.result_path = f"results/custom_{self.name}"
-        self.state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
+        self.state = create_initial_state(self.task, start_task_id=1, data_config=self.data_config, low_is_better=self.low_is_better, name=self.name)
     
     async def run_experiment(self):
         user_requirement = self.state["requirement"]
@@ -29,6 +31,15 @@ class CustomExperimenter(Experimenter):
             "args": vars(self.args)
         }
         self.save_result(results)
+
+    def evaluate_pred_files(self, dev_pred_path, test_pred_path):
+        dev_preds = pd.read_csv(dev_pred_path)["target"]
+        test_preds = pd.read_csv(test_pred_path)["target"]
+        score_dict = {
+            "dev_score": self.evaluate_score(dev_preds, "dev"),
+            "test_score": self.evaluate_score(test_preds, "test")
+        }
+        return score_dict
 
     def evaluate_predictions(self, preds, split):
         metric = self.state["dataset_config"]["metric"]

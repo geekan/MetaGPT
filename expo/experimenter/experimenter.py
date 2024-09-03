@@ -20,16 +20,24 @@ class Experimenter:
     async def run_experiment(self):
         state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
         user_requirement = state["requirement"]
-        di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
-        await di.run(user_requirement)
-    
-        score_dict = await di.get_score()
-        score_dict = self.evaluate(score_dict, state)
-        results = {
-            "score_dict": score_dict,
-            "user_requirement": user_requirement,
-            "args": vars(self.args)
-        }
+        results = []
+
+        for i in range(self.args.num_experiments):
+            di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
+            await di.run(user_requirement)
+            score_dict = await di.get_score()
+            score_dict = self.evaluate(score_dict, state)
+            results.append({
+                "idx": i,
+                "score_dict": score_dict,
+                "user_requirement": user_requirement,
+                "args": vars(self.args)
+            })
+        scores = [result["score_dict"]["test_score"] for result in results]
+        avg_score = sum(scores) / len(scores)
+        best_score = max(scores) if not self.args.low_is_better else min(scores)
+        best_score_idx = scores.index(best_score)
+        results.insert(0, {"avg_score": avg_score, "best_score": best_score, "best_score_idx": best_score_idx})
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):

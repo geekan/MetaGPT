@@ -21,13 +21,13 @@ TASK_PROMPT = """\
 1. Please do not leak the target label in any form during training.
 2. Dev and Test sets do not have the target column.
 3. You should perform transformations on all sets at the same step.
+4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
 
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
 2. Make sure the prediction results are in the same format as the target column in the training set. 
 - The labels should be transformed back to the original format if any transformation was applied during training.
-- If the original target column was categorical or string, the predictions MUST be in the same format.
 
 ## Output Training Set Performance
 Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.
@@ -119,7 +119,8 @@ def create_dataset_dict(dataset):
     dataset_dict = {
         "dataset": dataset.name,
         "user_requirement": dataset.create_base_requirement(),
-        "metric": dataset.get_metric()
+        "metric": dataset.get_metric(),
+        "target_col": dataset.target_col
     }
     return dataset_dict
 
@@ -289,23 +290,24 @@ class OpenMLExpDataset(ExpDataset):
 #     def __init__(self, name, dataset_dir, dataset_name, **kwargs):
 #         super().__init__(name, dataset_dir, **kwargs)
 
-
+async def process_dataset(dataset, solution_designer, save_analysis_pool, datasets_dict):
+    if save_analysis_pool:
+        asyncio.run(solution_designer.generate_solutions(dataset.get_dataset_info(), dataset.name))
+    dataset_dict = create_dataset_dict(dataset)
+    datasets_dict["datasets"][dataset.name] = dataset_dict
 
 if __name__ == "__main__":
     datasets_dir = "D:/work/automl/datasets"
-    force_update = True
+    force_update = False
+    save_analysis_pool = False
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
     for dataset_id in OPENML_DATASET_IDS:
         openml_dataset = OpenMLExpDataset("", datasets_dir, dataset_id, force_update=force_update)
-        asyncio.run(solution_designer.generate_solutions(openml_dataset.get_dataset_info(), openml_dataset.name))
-        dataset_dict = create_dataset_dict(openml_dataset)
-        datasets_dict["datasets"][openml_dataset.name] = dataset_dict
+        asyncio.run(process_dataset(openml_dataset, solution_designer, save_analysis_pool, datasets_dict))
 
     for dataset_name, target_col in CUSTOM_DATASETS:
         custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
-        asyncio.run(solution_designer.generate_solutions(custom_dataset.get_dataset_info(), custom_dataset.name))
-        dataset_dict = create_dataset_dict(custom_dataset)
-        datasets_dict["datasets"][custom_dataset.name] = dataset_dict
-    
+        asyncio.run(process_dataset(custom_dataset, solution_designer, save_analysis_pool, datasets_dict))
+
     save_datasets_dict_to_yaml(datasets_dict)

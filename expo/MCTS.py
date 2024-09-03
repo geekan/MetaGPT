@@ -300,7 +300,7 @@ class MCTS():
             mcts_logger.log("MCTS", f"Tree loaded: {tree_loaded}")
 
         if not tree_loaded:
-            rollouts -= 2
+            rollouts -= 2 # 2 rollouts for the initial tree
             if rollouts < 0:
                 raise ValueError("Rollouts must be greater than 2 if there is no tree to load")
             self.children[root] = []
