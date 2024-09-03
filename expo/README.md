@@ -42,11 +42,7 @@ llm:
 
 运行各个框架，运行后框架需要提供Dev和Test的`dev_predictions.csv`和`test_predictions.csv`， column name为target
 
-两种评估方式
-
-1. `evaluation.py` 提供pred和原始的gt（1D iterable）以及需要使用的metric，返回evaluation score
-
-2. 使用`CustomExperimenter`
+- 使用`CustomExperimenter`
 ```
 experimenter = CustomExperimenter(task="titanic")
 score_dict = experimenter.evaluate_pred_files(dev_pred_path, test_pred_path)
