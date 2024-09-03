@@ -69,7 +69,7 @@ Output a json following the format:
 ```json
 {{
     "reflection": str = "Reflection on previous implementation",
-    "improved_impl": str = "Refined code after reflection.",
+    "improved_impl": str = "Refined code after reflection (do not include nested code block here).",
 }}
 ```
 """
