@@ -77,7 +77,7 @@ class Experimenter:
         time_info = {
             "start_time": self.start_time,
             "end_time": end_time,
-            "duration (seconds)": float(end_time) - float(self.start_time)
+            "duration (minutes)": float(end_time) - float(self.start_time)
         }
         result = result.copy()
         result.insert(0, time_info)

@@ -57,6 +57,18 @@ score_dict = experimenter.evaluate_pred_files(dev_pred_path, test_pred_path)
 提供github链接，并说明使用的命令以及参数设置
 
 ### Autogluon
+#### Setup
+```
+pip install -U pip
+pip install -U setuptools wheel
+
+CPU version of pytorch has smaller footprint - see installation instructions in
+pytorch documentation - https://pytorch.org/get-started/locally/
+pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cpu
+
+pip install autogluon
+```
+
 提供github链接，并说明使用的命令以及参数设置
 
 ### Base DI 
