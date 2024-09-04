@@ -1,5 +1,5 @@
 from expo.evaluation.visualize_mcts import get_tree_text
-from expo.experimenter import Experimenter
+from expo.experimenter.experimenter import Experimenter
 from expo.MCTS import MCTS
 
 

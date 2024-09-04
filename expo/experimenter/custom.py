@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from expo.evaluation.evaluation import evaluate_score
-from expo.experimenter import Experimenter
+from expo.experimenter.experimenter import Experimenter
 from expo.MCTS import create_initial_state
 
 

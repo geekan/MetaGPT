@@ -1,5 +1,4 @@
-from experimenter import Experimenter
-
+from expo.experimenter.experimenter import Experimenter
 from expo.insights.instruction_generator import InstructionGenerator
 from expo.research_assistant import ResearchAssistant
 from expo.utils import get_exp_pool_path
