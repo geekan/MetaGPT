@@ -16,7 +16,8 @@ from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 config = Config.default()
 # Specify by yourself
 Role = Engineer2
-MAX_MINUTES_PRE_INSTANCE = 5
+# 调整每个样例的执行时间，太低容易出现提交u数量少的情况
+MAX_MINUTES_PRE_INSTANCE = 20
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
