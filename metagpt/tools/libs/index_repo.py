@@ -26,7 +26,7 @@ class TextScore(BaseModel):
 
 
 class IndexRepo(BaseModel):
-    filename: str
+    filename: str  # The filename of the index repo, {DEFAULT_WORKSPACE_ROOT}/.index/{chat_id or 'uploads'}/
     root_path: str  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
     fingerprint_filename: str = "fingerprint.json"
     model: Optional[str] = None
