@@ -29,7 +29,7 @@ class IndexRepo(BaseModel):
     filename: str
     root_path: str
     fingerprint_filename: str = "fingerprint.json"
-    model: str = "text-embedding-ada-002"
+    model: Optional[str] = None
     min_token_count: int = 5000
     max_token_count: int = 100000
     recall_count: int = 5
@@ -95,7 +95,8 @@ class IndexRepo(BaseModel):
         """
         if not self.embedding:
             config = Config.default()
-            config.embedding.model = self.model
+            if self.model:
+                config.embedding.model = self.model
             factory = RAGEmbeddingFactory(config)
             self.embedding = factory.get_rag_embedding()
 
