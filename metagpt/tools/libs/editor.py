@@ -633,9 +633,11 @@ class Editor(BaseModel):
                         first_error_line = None
 
                 if lint_error is not None:
-                    if first_error_line is not None:
-                        show_line = int(first_error_line)
-                    elif is_append:
+                    # if first_error_line is not None:
+                    #     show_line = int(first_error_line)
+
+                    # show the first insert line.
+                    if is_append:
                         # original end-of-file
                         show_line = len(lines)
                     # insert OR edit WILL provide meaningful line numbers
@@ -666,7 +668,7 @@ class Editor(BaseModel):
                     )
                     ret_str += "-------------------------------------------------\n"
 
-                    ret_str += "\n" + self.get_indentation_infromation(content, first_error_line)
+                    ret_str += self.get_indentation_infromation(content, start or len(lines))
 
                     ret_str += (
                         "Your changes have NOT been applied. Please fix your edit command and try again.\n"
@@ -687,12 +689,14 @@ class Editor(BaseModel):
         except ValueError as e:
             ret_str += f"Invalid input: {e}\n"
         except Exception as e:
-            error_str = ""
-            if is_append:
-                error_str += self.get_indentation_infromation(content, len(lines))
-            else:
-                # insert or replace
-                error_str += self.get_indentation_infromation(content, start)
+            error_str = "[This is how your edit would have looked if applied]\n"
+            error_str += "-------------------------------------------------\n"
+            error_str += self._print_window(file_name, start or len(lines), 40) + "\n"
+            error_str += "-------------------------------------------------\n"
+            error_str += self.get_indentation_infromation(content, start or len(lines))
+            if not is_insert and not is_append:
+                error_str += "enlarge the range of original code."
+            error_str += "\nTry to enlarge the range of the orginal code"
             # Clean up the temporary file if an error occurs
             with original_file_backup_path.open() as fin, file_name.open("w") as fout:
                 fout.write(fin.read())
@@ -720,7 +724,8 @@ class Editor(BaseModel):
         return ret_str
 
     def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
-        """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
+        """
+        Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
 
         Every *to_replace* must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
 
@@ -764,6 +769,10 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             to_replace: str: The content to search for and replace.
             new_content: str: The new content to replace the old content with.
+
+        NOTE:
+        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+        If you need to use it multiple times, wait for the next turn.
         """
         # FIXME: support replacing *all* occurrences
         if to_replace.strip() == "":
@@ -839,6 +848,9 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             line_number: int: The line number (starting from 1) to insert the content after.
             content: str: The content to insert.
+        NOTE:
+        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+        If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 
@@ -859,6 +871,9 @@ class Editor(BaseModel):
         Args:
             file_name: str: The name of the file to edit.
             content: str: The content to insert.
+        NOTE:
+        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+        If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 

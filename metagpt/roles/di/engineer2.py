@@ -77,6 +77,13 @@ class Engineer2(RoleZero):
                 # "ValidateAndRewriteCode": validate.run,
             }
         )
+        if self.run_eval:
+            self.tool_execution_map.update(
+                {
+                    "RoleZero.ask_human": self._end,
+                    "RoleZero.reply_to_human": self._end,
+                }
+            )
 
     async def eval_terminal_run(self, cmd):
         """change command pull/push/commit to end."""

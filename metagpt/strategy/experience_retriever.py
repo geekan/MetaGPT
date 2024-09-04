@@ -988,6 +988,24 @@ Note that the edit command must be executed in a single response, so this step w
 ]
 ```
 
+## example 10.1
+To enhance the functionality of the 2048 game, including game end detection and score tracking, we need to add these features to the existing game_2048.py file. First, we will add a score tracking feature, and then we will insert game end detection logic into the game loop.
+We will use the Editor.insert_content_at_line command to insert new code into the file for adding score tracking and game end detection.
+Since Editor.insert_content_at_line can only be used once per response, this time I will use it to create the variable self.score
+```json
+[
+    {
+        "command_name": "Editor.insert_content_at_line",
+        "args": {
+            "file_name": "/home/mgx/mgx/MetaGPT/workspace/2048_game_py/game_2048.py",
+            "line_number": 4,
+            "content": "        self.score = 0\n"
+        }
+    }
+]
+```
+In the next turn, I will try to add another code snippet
+
 ## example 11
 ```
 #### Save the changes and commit them to the remote repository.
@@ -1028,14 +1046,9 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
 
 """
 ## example 11
-I have finish all the tasks, so I will use 'Plan.finish_current_task' and then fellowing the command "end" to stop.
+I have finished all the tasks, so I will use Plan.finish_current_task and then follow the command ‘end’ to stop.
 ```json
 [
-    {
-        "command_name": "Plan.finish_current_task",
-        "args": {
-        }
-    },
     {
         "command_name": "end",
         "args": {
