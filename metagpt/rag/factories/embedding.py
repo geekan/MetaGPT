@@ -5,9 +5,6 @@ from typing import Any, Optional
 
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-from llama_index.embeddings.gemini import GeminiEmbedding
-from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.embeddings.openai import OpenAIEmbedding
 
 from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType
@@ -49,7 +46,9 @@ class RAGEmbeddingFactory(GenericFactory):
 
         raise TypeError("To use RAG, please set your embedding in config2.yaml.")
 
-    def _create_openai(self) -> OpenAIEmbedding:
+    def _create_openai(self) -> "OpenAIEmbedding":
+        from llama_index.embeddings.openai import OpenAIEmbedding
+
         params = dict(
             api_key=self.config.embedding.api_key or self.config.llm.api_key,
             api_base=self.config.embedding.base_url or self.config.llm.base_url,
@@ -70,7 +69,9 @@ class RAGEmbeddingFactory(GenericFactory):
 
         return AzureOpenAIEmbedding(**params)
 
-    def _create_gemini(self) -> GeminiEmbedding:
+    def _create_gemini(self) -> "GeminiEmbedding":
+        from llama_index.embeddings.gemini import GeminiEmbedding
+
         params = dict(
             api_key=self.config.embedding.api_key,
             api_base=self.config.embedding.base_url,
@@ -80,7 +81,9 @@ class RAGEmbeddingFactory(GenericFactory):
 
         return GeminiEmbedding(**params)
 
-    def _create_ollama(self) -> OllamaEmbedding:
+    def _create_ollama(self) -> "OllamaEmbedding":
+        from llama_index.embeddings.ollama import OllamaEmbedding
+
         params = dict(
             base_url=self.config.embedding.base_url,
         )
