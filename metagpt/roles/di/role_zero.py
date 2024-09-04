@@ -31,7 +31,6 @@ from metagpt.prompts.di.role_zero import (
     ROLE_INSTRUCTION,
     SUMMARY_PROMPT,
     SYSTEM_PROMPT,
-    THOUGHT_GUIDANCE,
 )
 from metagpt.roles import Role
 from metagpt.schema import AIMessage, Message, UserMessage
@@ -62,7 +61,6 @@ class RoleZero(Role):
     system_prompt: str = SYSTEM_PROMPT  # Use None to conform to the default value at llm.aask
     cmd_prompt: str = CMD_PROMPT
     cmd_prompt_current_state: str = ""
-    thought_guidance: str = THOUGHT_GUIDANCE
     instruction: str = ROLE_INSTRUCTION
     task_type_desc: Optional[str] = None
 
@@ -85,7 +83,7 @@ class RoleZero(Role):
     # Others
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
-    memory_k: int = 20  # number of memories (messages) to use as historical context
+    memory_k: int = 100  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
     use_summary: bool = True  # whether to summarize at the end
@@ -115,6 +113,7 @@ class RoleZero(Role):
             "Plan.replace_task": self.planner.plan.replace_task,
             "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
+            "SearchEnhancedQA.run": SearchEnhancedQA().run,
         }
         self.tool_execution_map.update(
             {

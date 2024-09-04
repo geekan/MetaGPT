@@ -28,7 +28,7 @@ class Engineer2(RoleZero):
 
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
-    tools: list[str] = ["Plan", "Editor:read", "RoleZero", "Terminal:run_command", "Engineer2"]
+    tools: list[str] = ["Plan", "Editor:read", "RoleZero", "Terminal:run_command", "SearchEnhancedQA", "Engineer2"]
 
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
