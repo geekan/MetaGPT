@@ -18,8 +18,8 @@ class AugExperimenter(Experimenter):
     result_path : str = "results/aug"
 
     async def run_experiment(self):
-        state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
-        user_requirement = state["requirement"]
+        # state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
+        user_requirement = self.state["requirement"]
         exp_pool_path = get_exp_pool_path(self.args.task, self.data_config, pool_name="ds_analysis_pool")
         exp_pool = InstructionGenerator.load_analysis_pool(exp_pool_path)
         if self.args.aug_mode == "single":
@@ -38,9 +38,7 @@ class AugExperimenter(Experimenter):
             di.role_dir = f"{di.role_dir}_{self.args.task}"
             requirement = user_requirement + EXPS_PROMPT.format(experience=exps[i])
             print(requirement)
-            await di.run(requirement)
-            score_dict = await di.get_score()
-            score_dict = self.evaluate(score_dict, state)
+            score_dict = await self.run_di(di, requirement)
             results.append({
                 "idx": i,
                 "score_dict": score_dict,

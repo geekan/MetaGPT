@@ -35,7 +35,8 @@ llm:
 
 ### 提示词使用
 
-通过执行`dataset.py`中的`generate_task_requirement`函数获取提示词
+- 通过执行`dataset.py`中的`generate_task_requirement`函数获取提示词
+- 每一个数据集里有`dataset_info.json`，里面的内容需要提供给baselines以保证公平
 
 
 ## 3. Evaluation
@@ -74,7 +75,7 @@ pip install autogluon
 ### Base DI 
 For setup, check 5.
 
-- `python run_experiment.py --exp_mode base --task titanic`
+- `python run_experiment.py --exp_mode base --task titanic --num_experiments 10`
 
 
 ### DI RandomSearch

@@ -194,13 +194,25 @@ class Node():
         if self.is_terminal() and role is not None:
             if role.state_saved:
                 return self.raw_reward
-            
-        if not role:
-            role = self.load_role()
-            await load_execute_notebook(role) # execute previous notebook's code
-            await role.run(with_message='continue')
-        else:
-            await role.run(with_message=self.state['requirement'])
+        
+        max_retries = 3
+        num_runs = 1
+        run_finished = False
+        while num_runs <= max_retries and not run_finished:
+            try:
+                if not role:
+                    role = self.load_role()
+                    await load_execute_notebook(role) # execute previous notebook's code
+                    await role.run(with_message='continue')
+                else:
+                    await role.run(with_message=self.state['requirement'])
+                run_finished = True
+            except Exception as e:
+                mcts_logger.log("MCTS", f"Error in running the role: {e}")
+                num_runs += 1
+        if not run_finished:
+            mcts_logger.log("MCTS", f"Role {role.node_id} failed to run")
+            return {"test_score": 0, "dev_score": 0, "score": 0}
         score_dict = await role.get_score()
         score_dict = self.evaluate_simulation(score_dict)
         self.raw_reward = score_dict
