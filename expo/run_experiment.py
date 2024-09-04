@@ -1,12 +1,10 @@
 import argparse
 import asyncio
 
-from expo.experimenter import (
-    AugExperimenter,
-    CustomExperimenter,
-    Experimenter,
-    MCTSExperimenter,
-)
+from expo.experimenter.aug import AugExperimenter
+from expo.experimenter.custom import CustomExperimenter
+from expo.experimenter.experimenter import Experimenter
+from expo.experimenter.mcts import MCTSExperimenter
 
 
 def get_args():
