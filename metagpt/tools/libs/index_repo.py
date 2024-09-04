@@ -27,7 +27,7 @@ class TextScore(BaseModel):
 
 class IndexRepo(BaseModel):
     filename: str
-    root_path: str
+    root_path: str  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
     fingerprint_filename: str = "fingerprint.json"
     model: Optional[str] = None
     min_token_count: int = 10000
