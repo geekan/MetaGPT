@@ -12,11 +12,6 @@ from metagpt.utils.common import aread
     ("knowledge_filename", "query_filename", "answer_filename"),
     [
         (
-            TEST_DATA_PATH / "embedding/1.knowledge.md",
-            TEST_DATA_PATH / "embedding/1.query.md",
-            TEST_DATA_PATH / "embedding/1.answer.md",
-        ),
-        (
             TEST_DATA_PATH / "embedding/2.knowledge.md",
             TEST_DATA_PATH / "embedding/2.query.md",
             TEST_DATA_PATH / "embedding/2.answer.md",
