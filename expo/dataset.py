@@ -1,12 +1,14 @@
-import openml
-from pathlib import Path
-from sklearn.model_selection import train_test_split
-import os
-import json
-import yaml
-import pandas as pd
-from expo.insights.solution_designer import SolutionDesigner
 import asyncio
+import json
+import os
+from pathlib import Path
+
+import openml
+import pandas as pd
+import yaml
+from sklearn.model_selection import train_test_split
+
+from expo.insights.solution_designer import SolutionDesigner
 
 BASE_USER_REQUIREMENT = """\
 This is a {datasetname} dataset. Your goal is to predict the target column `{target_col}`.
@@ -59,14 +61,12 @@ OPENML_DATASET_IDS = [
     41980,
     42225,
     531,
-
     # cls
     41143,
     31,
     42733,
     41162,
     1067,
-
     # multi cls
     40498,
     40982,
@@ -79,14 +79,15 @@ CUSTOM_DATASETS = [
     ("04_titanic", "Survived"),
     ("05_house-prices-advanced-regression-techniques", "SalePrice"),
     ("06_santander-customer-transaction-prediction", "target"),
-    ("07_icr-identify-age-related-conditions", "Class")
+    ("07_icr-identify-age-related-conditions", "Class"),
 ]
 
+
 def get_split_dataset_path(dataset_name, config):
-    datasets_dir = config['datasets_dir']
-    if dataset_name in config['datasets']:
-        dataset = config['datasets'][dataset_name]
-        data_path = os.path.join(datasets_dir, dataset['dataset'])
+    datasets_dir = config["datasets_dir"]
+    if dataset_name in config["datasets"]:
+        dataset = config["datasets"][dataset_name]
+        data_path = os.path.join(datasets_dir, dataset["dataset"])
         split_datasets = {
             "train": os.path.join(data_path, "split_train.csv"),
             "dev": os.path.join(data_path, "split_dev.csv"),
@@ -98,31 +99,38 @@ def get_split_dataset_path(dataset_name, config):
         }
         return split_datasets
     else:
-        raise ValueError(f"Dataset {dataset_name} not found in config file. Available datasets: {config['datasets'].keys()}")
+        raise ValueError(
+            f"Dataset {dataset_name} not found in config file. Available datasets: {config['datasets'].keys()}"
+        )
+
 
 def get_user_requirement(task_name, config):
-    datasets_dir = config['datasets_dir']
-    if task_name in config['datasets']:
-        dataset = config['datasets'][task_name]
-        data_path = os.path.join(datasets_dir, dataset['dataset'])
-        user_requirement = dataset['user_requirement']
+    datasets_dir = config["datasets_dir"]
+    if task_name in config["datasets"]:
+        dataset = config["datasets"][task_name]
+        data_path = os.path.join(datasets_dir, dataset["dataset"])
+        user_requirement = dataset["user_requirement"]
         return data_path, user_requirement
     else:
-        raise ValueError(f"Dataset {task_name} not found in config file. Available datasets: {config['datasets'].keys()}")
+        raise ValueError(
+            f"Dataset {task_name} not found in config file. Available datasets: {config['datasets'].keys()}"
+        )
 
 
 def save_datasets_dict_to_yaml(datasets_dict):
     with open("datasets.yaml", "w") as file:
         yaml.dump(datasets_dict, file)
 
+
 def create_dataset_dict(dataset):
     dataset_dict = {
         "dataset": dataset.name,
         "user_requirement": dataset.create_base_requirement(),
         "metric": dataset.get_metric(),
-        "target_col": dataset.target_col
+        "target_col": dataset.target_col,
     }
     return dataset_dict
+
 
 def generate_task_requirement(task_name, data_config):
     user_requirement = get_user_requirement(task_name, data_config)
@@ -132,19 +140,23 @@ def generate_task_requirement(task_name, data_config):
     test_path = split_dataset_path["test_wo_target"]
     work_dir = data_config["work_dir"]
     output_dir = f"{work_dir}/{task_name}"
-    user_requirement = TASK_PROMPT.format(user_requirement=user_requirement, 
-                                          train_path=train_path, dev_path=dev_path, test_path=test_path,
-                                          output_dir=output_dir)
+    user_requirement = TASK_PROMPT.format(
+        user_requirement=user_requirement,
+        train_path=train_path,
+        dev_path=dev_path,
+        test_path=test_path,
+        output_dir=output_dir,
+    )
     print(user_requirement)
     return user_requirement
 
 
 class ExpDataset:
-    description : str = None
-    metadata : dict = None
-    dataset_dir : str = None
-    target_col : str = None
-    name : str = None
+    description: str = None
+    metadata: dict = None
+    dataset_dir: str = None
+    target_col: str = None
+    name: str = None
 
     def __init__(self, name, dataset_dir, **kwargs):
         self.name = name
@@ -154,18 +166,23 @@ class ExpDataset:
         self.save_dataset(target_col=self.target_col)
 
     def check_dataset_exists(self):
-        fnames = ["split_train.csv", "split_dev.csv", "split_test.csv",
-                  "split_dev_wo_target.csv", "split_dev_target.csv",
-                  "split_test_wo_target.csv", "split_test_target.csv"]
+        fnames = [
+            "split_train.csv",
+            "split_dev.csv",
+            "split_test.csv",
+            "split_dev_wo_target.csv",
+            "split_dev_target.csv",
+            "split_test_wo_target.csv",
+            "split_test_target.csv",
+        ]
         for fname in fnames:
             if not os.path.exists(Path(self.dataset_dir, self.name, fname)):
                 return False
         return True
-    
+
     def check_datasetinfo_exists(self):
         return os.path.exists(Path(self.dataset_dir, self.name, "dataset_info.json"))
 
-    
     def get_raw_dataset(self):
         raw_dir = Path(self.dataset_dir, self.name, "raw")
         if not os.path.exists(Path(raw_dir, "train.csv")):
@@ -173,17 +190,17 @@ class ExpDataset:
         else:
             df = pd.read_csv(Path(raw_dir, "train.csv"))
             return df
-        
+
     def get_dataset_info(self):
         raw_df = pd.read_csv(Path(self.dataset_dir, self.name, "raw", "train.csv"))
         metadata = {
-            'NumberOfClasses': raw_df[self.target_col].nunique(),
-            'NumberOfFeatures': raw_df.shape[1],
-            'NumberOfInstances': raw_df.shape[0],
-            'NumberOfInstancesWithMissingValues': int(raw_df.isnull().any(axis=1).sum()),
-            'NumberOfMissingValues': int(raw_df.isnull().sum().sum()),
-            'NumberOfNumericFeatures': raw_df.select_dtypes(include=['number']).shape[1],
-            'NumberOfSymbolicFeatures': raw_df.select_dtypes(include=['object']).shape[1],
+            "NumberOfClasses": raw_df[self.target_col].nunique(),
+            "NumberOfFeatures": raw_df.shape[1],
+            "NumberOfInstances": raw_df.shape[0],
+            "NumberOfInstancesWithMissingValues": int(raw_df.isnull().any(axis=1).sum()),
+            "NumberOfMissingValues": int(raw_df.isnull().sum().sum()),
+            "NumberOfNumericFeatures": raw_df.select_dtypes(include=["number"]).shape[1],
+            "NumberOfSymbolicFeatures": raw_df.select_dtypes(include=["object"]).shape[1],
         }
 
         df_head_text = raw_df.head().to_string(index=False)
@@ -193,10 +210,10 @@ class ExpDataset:
             "description": "",
             "target_col": self.target_col,
             "metadata": metadata,
-            "df_head": df_head_text
+            "df_head": df_head_text,
         }
         return dataset_info
-    
+
     def get_metric(self):
         dataset_info = self.get_dataset_info()
         num_classes = dataset_info["metadata"]["NumberOfClasses"]
@@ -216,7 +233,6 @@ class ExpDataset:
         return req
 
     def save_dataset(self, target_col):
-        
         df = self.get_raw_dataset()
         if not self.check_dataset_exists() or self.force_update:
             print(f"Saving Dataset {self.name} in {self.dataset_dir}")
@@ -249,25 +265,22 @@ class ExpDataset:
     def split_and_save(self, df, target_col):
         if not target_col:
             raise ValueError("Target column not provided")
-        train, test = train_test_split(df, test_size=1-TRAIN_TEST_SPLIT, random_state=SEED)
-        train, dev = train_test_split(train, test_size=1-TRAIN_DEV_SPLIT, random_state=SEED)
+        train, test = train_test_split(df, test_size=1 - TRAIN_TEST_SPLIT, random_state=SEED)
+        train, dev = train_test_split(train, test_size=1 - TRAIN_DEV_SPLIT, random_state=SEED)
         self.save_split_datasets(train, "train")
         self.save_split_datasets(dev, "dev", target_col)
         self.save_split_datasets(test, "test", target_col)
-        
-        
+
 
 class OpenMLExpDataset(ExpDataset):
     def __init__(self, name, dataset_dir, dataset_id, **kwargs):
         self.dataset_id = dataset_id
-        self.dataset = openml.datasets.get_dataset(self.dataset_id, 
-                                                   download_data=False, 
-                                                   download_qualities=False,
-                                                   download_features_meta_data=True)
+        self.dataset = openml.datasets.get_dataset(
+            self.dataset_id, download_data=False, download_qualities=False, download_features_meta_data=True
+        )
         self.name = self.dataset.name
         self.target_col = self.dataset.default_target_attribute
         super().__init__(self.name, dataset_dir, target_col=self.target_col, **kwargs)
-        
 
     def get_raw_dataset(self):
         dataset = self.dataset
@@ -276,7 +289,7 @@ class OpenMLExpDataset(ExpDataset):
         os.makedirs(raw_dir, exist_ok=True)
         dataset_df.to_csv(Path(raw_dir, "train.csv"), index=False)
         return dataset_df
-    
+
     def get_dataset_info(self):
         dataset_info = super().get_dataset_info()
         dataset = self.dataset
@@ -290,11 +303,13 @@ class OpenMLExpDataset(ExpDataset):
 #     def __init__(self, name, dataset_dir, dataset_name, **kwargs):
 #         super().__init__(name, dataset_dir, **kwargs)
 
+
 async def process_dataset(dataset, solution_designer, save_analysis_pool, datasets_dict):
     if save_analysis_pool:
         asyncio.run(solution_designer.generate_solutions(dataset.get_dataset_info(), dataset.name))
     dataset_dict = create_dataset_dict(dataset)
     datasets_dict["datasets"][dataset.name] = dataset_dict
+
 
 if __name__ == "__main__":
     datasets_dir = "D:/work/automl/datasets"

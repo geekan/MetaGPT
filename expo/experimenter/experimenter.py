@@ -1,23 +1,29 @@
-from expo.utils import DATA_CONFIG
-import os
-import pandas as pd
-from expo.evaluation.evaluation import evaluate_score
 import datetime
 import json
+import os
+
+import pandas as pd
+
+from expo.evaluation.evaluation import evaluate_score
 from expo.MCTS import create_initial_state
 from expo.research_assistant import ResearchAssistant
+from expo.utils import DATA_CONFIG
 
 
 class Experimenter:
-    result_path : str = "results/base"
+    result_path: str = "results/base"
     data_config = DATA_CONFIG
-    
 
     def __init__(self, args, **kwargs):
         self.args = args
         self.start_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        self.state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
-
+        self.state = create_initial_state(
+            self.args.task,
+            start_task_id=1,
+            data_config=self.data_config,
+            low_is_better=self.args.low_is_better,
+            name="",
+        )
 
     async def run_di(self, di, user_requirement):
         max_retries = 3
@@ -33,14 +39,8 @@ class Experimenter:
                 print(f"Error: {e}")
                 num_runs += 1
         if not run_finished:
-            score_dict = {
-                "train_score": -1,
-                "dev_score": -1,
-                "test_score": -1,
-                "score": -1
-            }
+            score_dict = {"train_score": -1, "dev_score": -1, "test_score": -1, "score": -1}
         return score_dict
-        
 
     async def run_experiment(self):
         state = self.state
@@ -50,28 +50,28 @@ class Experimenter:
         for i in range(self.args.num_experiments):
             di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
             score_dict = await self.run_di(di, user_requirement)
-            results.append({
-                "idx": i,
-                "score_dict": score_dict,
-                "user_requirement": user_requirement,
-                "args": vars(self.args)
-            })
-            self.save_result(results) # save intermediate results
+            results.append(
+                {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
+            )
+            self.save_result(results)  # save intermediate results
         dev_scores = [result["score_dict"]["dev_score"] for result in results]
         best_dev_score = max(dev_scores) if not self.args.low_is_better else min(dev_scores)
         best_score_idx = dev_scores.index(best_dev_score)
-        
+
         test_scores = [result["score_dict"]["test_score"] for result in results]
         avg_score = sum(test_scores) / len(test_scores)
         global_best_score = max(test_scores) if not self.args.low_is_better else min(test_scores)
 
-        results.insert(0, {
-                           "best_dev_score": best_dev_score, 
-                           "best_score_idx": best_score_idx,
-                           "best_test_score": test_scores[best_score_idx],
-                           "avg_test_score": avg_score, 
-                           "best_score": global_best_score
-                           })
+        results.insert(
+            0,
+            {
+                "best_dev_score": best_dev_score,
+                "best_score_idx": best_score_idx,
+                "best_test_score": test_scores[best_score_idx],
+                "avg_test_score": avg_score,
+                "best_score": global_best_score,
+            },
+        )
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):
@@ -85,7 +85,7 @@ class Experimenter:
         metric = state["dataset_config"]["metric"]
         os.remove(pred_path)
         return evaluate_score(preds, gt, metric)
-    
+
     def evaluate(self, score_dict, state):
         scores = {
             "dev_score": self.evaluate_prediction("dev", state),
@@ -94,13 +94,12 @@ class Experimenter:
         score_dict.update(scores)
         return score_dict
 
-
     def save_result(self, result):
         end_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
         time_info = {
             "start_time": self.start_time,
             "end_time": end_time,
-            "duration (minutes)": float(end_time) - float(self.start_time)
+            "duration (minutes)": float(end_time) - float(self.start_time),
         }
         result = result.copy()
         result.insert(0, time_info)

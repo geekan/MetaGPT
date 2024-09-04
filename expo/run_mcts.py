@@ -1,10 +1,9 @@
-from expo.MCTS import MCTS, Node, initialize_di_root_node
-from expo.utils import load_data_config
-from expo.dataset import generate_task_requirement
+import argparse
+import asyncio
 
 from expo.evaluation.visualize_mcts import get_tree_text
-import asyncio
-import argparse
+from expo.MCTS import MCTS
+from expo.utils import load_data_config
 
 
 def get_args():
@@ -35,9 +34,17 @@ if __name__ == "__main__":
 
     # asyncio.run(root_node.run_node())
     mcts = MCTS(root_node=None, max_depth=5)
-    best_nodes = asyncio.run(mcts.search(args.task, data_config, 
-                                        low_is_better=args.low_is_better, load_tree=args.load_tree,
-                                        reflection=args.reflection, rollouts=args.rollouts, name=args.name))
+    best_nodes = asyncio.run(
+        mcts.search(
+            args.task,
+            data_config,
+            low_is_better=args.low_is_better,
+            load_tree=args.load_tree,
+            reflection=args.reflection,
+            rollouts=args.rollouts,
+            name=args.name,
+        )
+    )
     best_node = best_nodes["global_best"]
     dev_best_node = best_nodes["dev_best"]
     text, num_generated_codes = get_tree_text(mcts.root_node)
@@ -49,5 +56,3 @@ if __name__ == "__main__":
         f.write(f"Best node: {best_node}, score: {best_node.raw_reward}\n")
         f.write(f"Dev best node: {dev_best_node}, score: {dev_best_node.raw_reward}\n")
         f.write(text)
-
-

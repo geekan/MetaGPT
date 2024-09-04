@@ -1,5 +1,6 @@
-from sklearn.metrics import f1_score, accuracy_score, roc_auc_score, mean_squared_error
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, roc_auc_score
+
 
 def evaluate_score(pred, gt, metric):
     if metric == "accuracy":

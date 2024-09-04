@@ -1,19 +1,16 @@
 from __future__ import annotations
 
 import json
+import os
+
+from pydantic import model_validator
+
+from expo.utils import mcts_logger, save_notebook
+from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
+from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, Task, TaskResult
-from metagpt.strategy.task_type import TaskType
-from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
-from metagpt.utils.common import CodeParser
-from metagpt.utils.common import write_json_file, read_json_file, format_trackback_info
-from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
-from expo.utils import mcts_logger, save_notebook
-from pydantic import Field, model_validator
-from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
-
-import re
-import os
+from metagpt.utils.common import CodeParser, write_json_file
 
 EXTRACT_SCORE_PROMPT = """
 # Code:
@@ -36,39 +33,48 @@ If you cannot find the scores, please still return a dictionary with the keys 't
 ```
 """
 
+
 class ResearchAssistant(DataInterpreter):
     node_id: str = "0"
     start_task_id: int = 1
-    state_saved : bool = False
-    role_dir : str = SERDESER_PATH.joinpath("team", "environment", "roles", f"Experimenter")
+    state_saved: bool = False
+    role_dir: str = SERDESER_PATH.joinpath("team", "environment", "roles", "Experimenter")
 
     def get_node_name(self):
         return f"Node-{self.node_id}"
-    
+
     def get_next_instruction(self):
         return self.planner.plan.tasks[self.start_task_id]
-    
+
     def change_next_instruction(self, new_instruction):
         if new_instruction is not None:
             self.planner.plan.task_map[str(self.start_task_id)].instruction = new_instruction
             self.remap_tasks()
-        
 
     def update_til_start_task(self, role: ResearchAssistant, backward: bool = True):
         if backward:
             # make sure the previous task instructions are matched
-            assert self.start_task_id == role.start_task_id - 1, f"start_task_id: {self.start_task_id}, role.start_task_id: {role.start_task_id}"
+            assert (
+                self.start_task_id == role.start_task_id - 1
+            ), f"start_task_id: {self.start_task_id}, role.start_task_id: {role.start_task_id}"
             for i in range(self.start_task_id):
-                if self.planner.plan.task_map[str(self.start_task_id)].instruction != role.planner.plan.task_map[str(self.start_task_id)].instruction:
+                if (
+                    self.planner.plan.task_map[str(self.start_task_id)].instruction
+                    != role.planner.plan.task_map[str(self.start_task_id)].instruction
+                ):
                     mcts_logger.info("Previous task instructions not matched")
                     self.remap_tasks()
                     return
             # copy new role's task (self.start_task_id) to current role
-            self.planner.plan.task_map[str(self.start_task_id)] = role.planner.plan.task_map[str(self.start_task_id)].model_copy()
+            self.planner.plan.task_map[str(self.start_task_id)] = role.planner.plan.task_map[
+                str(self.start_task_id)
+            ].model_copy()
             self.remap_tasks()
 
         else:
-            assert self.start_task_id == role.start_task_id + 1, f"start_task_id: {self.start_task_id}, role.start_task_id: {role.start_task_id}"
+            assert (
+                self.start_task_id == role.start_task_id + 1
+            ), f"start_task_id: {self.start_task_id}, role.start_task_id: {role.start_task_id}"
             if int(role.planner.plan.current_task_id) > self.start_task_id:
                 for i in range(role.start_task_id):
                     self.planner.plan.task_map[str(i)] = role.planner.plan.task_map[str(i)].model_copy()
@@ -86,11 +92,10 @@ class ResearchAssistant(DataInterpreter):
         json_block = CodeParser.parse_code(block=None, text=rsp)
         score_dict = json.loads(json_block)
         return score_dict
-    
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "Interpreter":
-        if self.planner.plan.goal != '':
+        if self.planner.plan.goal != "":
             self.set_actions([WriteAnalysisCode])
             self._set_state(0)
             print("Plan already exists, skipping initialization.")
@@ -116,17 +121,17 @@ class ResearchAssistant(DataInterpreter):
             self.state_saved = True
             mcts_logger.log("MCTS", f"Saving state at task {self.start_task_id}")
         else:
-            mcts_logger.log("MCTS", f"Static Saving")
+            mcts_logger.log("MCTS", "Static Saving")
         stg_path = self.role_dir
         name = self.get_node_name()
         role_path = os.path.join(stg_path, f"{name}.json")
         # 将状态保存为 JSON 文件
         write_json_file(role_path, self.model_dump())
-        
 
     def remap_tasks(self):
-        self.planner.plan.tasks = [self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())]
-
+        self.planner.plan.tasks = [
+            self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())
+        ]
 
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
@@ -138,13 +143,9 @@ class ResearchAssistant(DataInterpreter):
             self.rc.working_memory.clear()
             self.working_memory.clear()
             # self.rc.todo = WriteAnalysisCode()
-            rsp = await self.react()            
+            rsp = await self.react()
             # 发送响应消息给 Environment 对象，以便它将消息传递给订阅者
             self.set_todo(None)
             self.publish_message(rsp)
             return rsp
         return await super().run(with_message)
-
-    
-
-    
