@@ -177,6 +177,8 @@ class Node():
         preds.to_csv(pred_node_path, index=False)
         gt = pd.read_csv(gt_path)["target"]
         metric = self.state["dataset_config"]["metric"]
+        # remove original predictions.csv
+        os.remove(pred_path)
         return evaluate_score(preds, gt, metric)
     
     def evaluate_simulation(self, score_dict):

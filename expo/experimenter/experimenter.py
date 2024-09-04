@@ -33,11 +33,22 @@ class Experimenter:
                 "user_requirement": user_requirement,
                 "args": vars(self.args)
             })
-        scores = [result["score_dict"]["test_score"] for result in results]
-        avg_score = sum(scores) / len(scores)
-        best_score = max(scores) if not self.args.low_is_better else min(scores)
-        best_score_idx = scores.index(best_score)
-        results.insert(0, {"avg_score": avg_score, "best_score": best_score, "best_score_idx": best_score_idx})
+            self.save_result(results) # save intermediate results
+        dev_scores = [result["score_dict"]["dev_score"] for result in results]
+        best_dev_score = max(dev_scores) if not self.args.low_is_better else min(dev_scores)
+        best_score_idx = dev_scores.index(best_dev_score)
+        
+        test_scores = [result["score_dict"]["test_score"] for result in results]
+        avg_score = sum(test_scores) / len(test_scores)
+        global_best_score = max(test_scores) if not self.args.low_is_better else min(test_scores)
+
+        results.insert(0, {
+                           "best_dev_score": best_dev_score, 
+                           "best_score_idx": best_score_idx,
+                           "best_test_score": test_scores[best_score_idx],
+                           "avg_test_score": avg_score, 
+                           "best_score": global_best_score
+                           })
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):
@@ -49,6 +60,7 @@ class Experimenter:
         preds.to_csv(pred_node_path, index=False)
         gt = pd.read_csv(gt_path)["target"]
         metric = state["dataset_config"]["metric"]
+        os.remove(pred_path)
         return evaluate_score(preds, gt, metric)
     
     def evaluate(self, score_dict, state):
@@ -61,6 +73,14 @@ class Experimenter:
 
 
     def save_result(self, result):
+        end_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        time_info = {
+            "start_time": self.start_time,
+            "end_time": end_time,
+            "duration (seconds)": float(end_time) - float(self.start_time)
+        }
+        result = result.copy()
+        result.insert(0, time_info)
         os.makedirs(self.result_path, exist_ok=True)
         with open(f"{self.result_path}/{self.args.exp_mode}-{self.args.task}_{self.start_time}.json", "w") as f:
             json.dump(result, f, indent=4)

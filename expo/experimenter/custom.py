@@ -16,9 +16,9 @@ class CustomExperimenter(Experimenter):
         self.result_path = f"results/custom_{self.name}"
         self.state = create_initial_state(self.task, start_task_id=1, data_config=self.data_config, low_is_better=self.low_is_better, name=self.name)
     
-    async def run_experiment(self):
+    def run_experiment(self):
         user_requirement = self.state["requirement"]
-        preds = await self.framework.run(user_requirement)
+        preds = self.framework.run(user_requirement)
         test_preds = preds["test_preds"]
         dev_preds = preds["dev_preds"]
         score_dict = {
