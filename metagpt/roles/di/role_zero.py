@@ -113,9 +113,6 @@ class RoleZero(Role):
             "Plan.append_task": self.planner.plan.append_task,
             "Plan.reset_task": self.planner.plan.reset_task,
             "Plan.replace_task": self.planner.plan.replace_task,
-            "Editor.write": self.editor.write,
-            "Editor.write_content": self.editor.write_content,
-            "Editor.read": self.editor.read,
             "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
         }
@@ -133,6 +130,27 @@ class RoleZero(Role):
                     "scroll",
                     "tab_focus",
                     "type",
+                ]
+            }
+        )
+        self.tool_execution_map.update(
+            {
+                f"Editor.{i}": getattr(self.editor, i)
+                for i in [
+                    "append_file",
+                    "create_file",
+                    "edit_file_by_replace",
+                    "find_file",
+                    "goto_line",
+                    "insert_content_at_line",
+                    "open_file",
+                    "read",
+                    "scroll_down",
+                    "scroll_up",
+                    "search_dir",
+                    "search_file",
+                    "set_workdir",
+                    "write",
                 ]
             }
         )
