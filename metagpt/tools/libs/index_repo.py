@@ -30,8 +30,8 @@ class IndexRepo(BaseModel):
     root_path: str
     fingerprint_filename: str = "fingerprint.json"
     model: Optional[str] = None
-    min_token_count: int = 5000
-    max_token_count: int = 100000
+    min_token_count: int = 10000
+    max_token_count: int = 100000000
     recall_count: int = 5
     embedding: Optional[BaseEmbedding] = Field(default=None, exclude=True)
     fingerprints: Dict[str, str] = Field(default_factory=dict)
