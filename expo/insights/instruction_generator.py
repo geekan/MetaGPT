@@ -1,3 +1,10 @@
+import json
+import random
+
+from expo.utils import clean_json_from_rsp, load_data_config, mcts_logger
+from metagpt.llm import LLM
+from metagpt.schema import Message
+
 REFLECTION_SYSTEM_MSG = "As a Kaggle grandmaster participating in a competition, you need to analyze your experience and propose evolutionary points that are more likely to improve the performance of baseline code."
 
 CHANGE_INSTRUCTION = """
@@ -18,12 +25,6 @@ Rewrite the original instruction according to the insights
 ```
 """
 
-import re
-import random
-import json
-from metagpt.llm import LLM
-from metagpt.schema import Message
-from expo.utils import load_data_config, mcts_logger, clean_json_from_rsp
 DATA_CONFIG = load_data_config()
 
 
@@ -31,7 +32,7 @@ class InstructionGenerator:
     data_config = DATA_CONFIG
 
     @staticmethod
-    def load_json_data(json_dir):      
+    def load_json_data(json_dir):
         with open(json_dir, "r") as file:
             json_data = json.load(file)
             return json_data
@@ -39,7 +40,7 @@ class InstructionGenerator:
     @staticmethod
     def _random_sample(analysis, num_samples):
         return random.sample(analysis, num_samples)
-    
+
     @staticmethod
     def sample_instruction_set(data):
         data_dict = {}
@@ -52,12 +53,12 @@ class InstructionGenerator:
         for task_id in sorted(data_dict.keys()):
             instruction_set.append(random.choice(data_dict[task_id]))
         return instruction_set
-    
+
     @staticmethod
     def format_output(rsp):
         rsp_list = []
-        new_data = [] 
-        rsp_list.append(rsp)              
+        new_data = []
+        rsp_list.append(rsp)
         for item in rsp_list:
             item_dict = json.loads(item)
             data = {
@@ -83,21 +84,19 @@ class InstructionGenerator:
         new_instructions = []
         if len(data) == 0:
             mcts_logger.log("MCTS", f"No insights available for task {task_id}")
-            return [original_instruction] # Return the original instruction if no insights are available
+            return [original_instruction]  # Return the original instruction if no insights are available
         for item in data[:max_num]:
             insights = item["Analysis"]
             new_instruction = await InstructionGenerator.generate_new_instruction(original_instruction, insights)
             new_instructions.append(new_instruction)
         return new_instructions
-    
+
     @staticmethod
     async def generate_new_instruction(original_instruction, insights):
         prompt = CHANGE_INSTRUCTION.format(instruction=original_instruction, insights=insights)
         llm = LLM()
-        context = llm.format_msg([Message(content=prompt, role="user")]) 
-        llm_response = await llm.aask(
-            context, system_msgs=[REFLECTION_SYSTEM_MSG]
-        )
+        context = llm.format_msg([Message(content=prompt, role="user")])
+        llm_response = await llm.aask(context, system_msgs=[REFLECTION_SYSTEM_MSG])
         rsp = clean_json_from_rsp(llm_response)
         new_instruction = json.loads(rsp)["New Instruction"]
         return new_instruction
