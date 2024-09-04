@@ -48,7 +48,6 @@ class CodeReview:
         async with aiofiles.open(point_file, "rb") as f:
             cr_point_content = await f.read()
             cr_points = [Point(**i) for i in json.loads(cr_point_content)]
-
         comments = await CodeReview_().run(patch, cr_points, output_file)
         return f"The number of defects: {len(comments)} and the comments are stored in {output_file}"
 
