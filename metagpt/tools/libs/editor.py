@@ -724,8 +724,7 @@ class Editor(BaseModel):
         return ret_str
 
     def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
-        """
-        Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
+        """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
 
         Every *to_replace* must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
 

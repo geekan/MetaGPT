@@ -79,7 +79,7 @@ Output should adhere to the following format.
 ```json
 [
     {{
-        "command_name": str,
+        "command_name": "ClassName.method_name" or "function_name",
         "args": {{"arg_name": arg_value, ...}}
     }},
     ...

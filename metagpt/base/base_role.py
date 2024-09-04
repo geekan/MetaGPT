@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from typing import Optional, Union
 
-from metagpt.schema import Message
+from metagpt.base.base_serialization import BaseSerialization
 
 
-class BaseRole:
+class BaseRole(BaseSerialization):
     """Abstract base class for all roles."""
 
     name: str
@@ -24,13 +24,13 @@ class BaseRole:
         raise NotImplementedError
 
     @abstractmethod
-    async def react(self) -> Message:
+    async def react(self) -> "Message":
         """Entry to one of three strategies by which Role reacts to the observed Message."""
 
     @abstractmethod
-    async def run(self, with_message: Optional[Union[str, Message, list[str]]] = None) -> Optional[Message]:
+    async def run(self, with_message: Optional[Union[str, "Message", list[str]]] = None) -> Optional["Message"]:
         """Observe, and think and act based on the results of the observation."""
 
     @abstractmethod
-    def get_memories(self, k: int = 0) -> list[Message]:
+    def get_memories(self, k: int = 0) -> list["Message"]:
         """Return the most recent k memories of this role."""

@@ -40,9 +40,10 @@ class Engineer2(RoleZero):
         "Plan",
         "Editor",
         "RoleZero",
-        "Terminal",
+        "Terminal:run_command",
         "Browser:goto,scroll",
         "git_create_pull",
+        "SearchEnhancedQA",
         "Engineer2",
     ]
     # SWE Agent parameter
