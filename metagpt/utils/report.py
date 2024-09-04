@@ -306,7 +306,7 @@ class DocsReporter(FileReporter):
 
 
 class EditorReporter(FileReporter):
-    """Equivalent to FileReporter(block=BlockType.Editor)."""
+    """Equivalent to FileReporter(block=BlockType.EDITOR)."""
 
     block: Literal[BlockType.EDITOR] = BlockType.EDITOR
 
