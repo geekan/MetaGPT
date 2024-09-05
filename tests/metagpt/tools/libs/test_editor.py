@@ -665,7 +665,7 @@ async def mock_index_repo():
     command = f"cp -rf {str(src_path)} {str(chat_path)}"
     os.system(command)
     filenames = list_files(chat_path)
-    chat_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json"}]
+    chat_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
     chat_repo = IndexRepo(
         persist_path=str(Path(CHATS_INDEX_ROOT) / chat_id), root_path=str(chat_path), min_token_count=0
     )
@@ -675,12 +675,12 @@ async def mock_index_repo():
     command = f"cp -rf {str(src_path)} {str(UPLOAD_ROOT)}"
     os.system(command)
     filenames = list_files(UPLOAD_ROOT)
-    uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json"}]
+    uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
     uploads_repo = IndexRepo(persist_path=UPLOADS_INDEX_ROOT, root_path=UPLOAD_ROOT, min_token_count=0)
     await uploads_repo.add(uploads_files)
 
     filenames = list_files(src_path)
-    other_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json"}]
+    other_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
 
     return chat_files, uploads_files, other_files
 
@@ -692,7 +692,9 @@ async def test_index_repo():
     chat_files, uploads_files, other_files = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.vsearch(query="业务线", files_or_paths=chat_files + uploads_files + other_files, min_token_count=0)
+    rsp = await editor.search_index_repo(
+        query="业务线", files_or_paths=chat_files + uploads_files + other_files, min_token_count=0
+    )
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)

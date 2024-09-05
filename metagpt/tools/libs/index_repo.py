@@ -16,8 +16,8 @@ from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRankerConfig
-from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
-from metagpt.utils.repo_to_markdown import is_text_file
+from metagpt.utils.common import awrite, generate_fingerprint, list_files
+from metagpt.utils.file import File
 
 UPLOADS_INDEX_ROOT = "/data/.index/uploads"
 DEFAULT_INDEX_ROOT = UPLOADS_INDEX_ROOT
@@ -82,13 +82,13 @@ class IndexRepo(BaseModel):
         filenames, _ = await self._filter(filenames)
         filter_filenames = set()
         for i in filenames:
-            content = await aread(filename=i)
+            content = await File.read_text_file(i)
             token_count = len(encoding.encode(content))
             if not self._is_buildable(token_count):
                 result.append(TextScore(filename=str(i), text=content))
                 continue
             file_fingerprint = generate_fingerprint(content)
-            if self.fingerprints.get(str(i)) != file_fingerprint:
+            if self.fingerprints.get(str(i)) != file_fingerprint and Path(i).suffix.lower() not in {".pdf"}:
                 logger.error(f'file: "{i}" changed but not indexed')
                 continue
             filter_filenames.add(str(i))
@@ -107,7 +107,7 @@ class IndexRepo(BaseModel):
         Returns:
             List[Union[NodeWithScore, TextScore]]: A list of merged results sorted by similarity.
         """
-        flat_nodes = [node for indices in indices_list for node in indices]
+        flat_nodes = [node for indices in indices_list if indices for node in indices if node]
         if len(flat_nodes) <= self.recall_count:
             return flat_nodes
 
@@ -138,7 +138,7 @@ class IndexRepo(BaseModel):
         filter_filenames = []
         delete_filenames = []
         for i in filenames:
-            content = await aread(filename=i)
+            content = await File.read_text_file(i)
             if not self._is_fingerprint_changed(filename=i, content=content):
                 continue
             token_count = len(encoding.encode(content))
@@ -186,7 +186,7 @@ class IndexRepo(BaseModel):
             logger.debug(f"add docs {filenames}")
         engine.persist(persist_dir=self.persist_path)
         for i in filenames:
-            content = await aread(i)
+            content = await File.read_text_file(i)
             fp = generate_fingerprint(content)
             self.fingerprints[str(i)] = fp
         await awrite(filename=Path(self.persist_path) / self.fingerprint_filename, data=json.dumps(self.fingerprints))
@@ -233,13 +233,13 @@ class IndexRepo(BaseModel):
                 logger.debug(f"{path} not is_relative_to {root_path})")
                 continue
             if not path.is_dir():
-                is_text, _ = await is_text_file(path)
+                is_text = await File.is_textual_file(path)
                 if is_text:
                     pathnames.append(path)
                 continue
             subfiles = list_files(path)
             for j in subfiles:
-                is_text, _ = await is_text_file(j)
+                is_text = await File.is_textual_file(j)
                 if is_text:
                     pathnames.append(j)
 
