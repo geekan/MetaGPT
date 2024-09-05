@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import json
+import re
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import tiktoken
 from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -18,6 +19,14 @@ from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRanker
 from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
 from metagpt.utils.repo_to_markdown import is_text_file
 
+UPLOADS_INDEX_ROOT = "/data/.index/uploads"
+DEFAULT_INDEX_ROOT = UPLOADS_INDEX_ROOT
+UPLOAD_ROOT = "/data/uploads"
+DEFAULT_ROOT = UPLOAD_ROOT
+CHATS_INDEX_ROOT = "/data/.index/chats"
+CHATS_ROOT = "/data/chats/"
+OTHER_TYPE = "other"
+
 
 class TextScore(BaseModel):
     filename: str
@@ -26,8 +35,10 @@ class TextScore(BaseModel):
 
 
 class IndexRepo(BaseModel):
-    persist_path: str  # The persist path of the index repo, `/data/.index/uploads/` or `/data/.index/chats/{chat_id}/`
-    root_path: str  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
+    persist_path: str = DEFAULT_INDEX_ROOT  # The persist path of the index repo, `/data/.index/uploads/` or `/data/.index/chats/{chat_id}/`
+    root_path: str = (
+        DEFAULT_ROOT  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
+    )
     fingerprint_filename: str = "fingerprint.json"
     model: Optional[str] = None
     min_token_count: int = 10000
@@ -93,6 +104,10 @@ class IndexRepo(BaseModel):
         Returns:
             List[Union[NodeWithScore, TextScore]]: A list of merged results sorted by similarity.
         """
+        flat_nodes = [node for indices in indices_list for node in indices]
+        if len(flat_nodes) <= self.recall_count:
+            return flat_nodes
+
         if not self.embedding:
             config = Config.default()
             if self.model:
@@ -102,7 +117,6 @@ class IndexRepo(BaseModel):
 
         scores = []
         query_embedding = await self.embedding.aget_text_embedding(query)
-        flat_nodes = [node for indices in indices_list for node in indices]
         for i in flat_nodes:
             text_embedding = await self.embedding.aget_text_embedding(i.text)
             similarity = self.embedding.similarity(query_embedding, text_embedding)
@@ -262,3 +276,33 @@ class IndexRepo(BaseModel):
             return True
         fp = generate_fingerprint(content)
         return old_fp != fp
+
+    @staticmethod
+    def classify_path(files_or_paths: List[Union[str, Path]]) -> Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+        mappings = {
+            UPLOADS_INDEX_ROOT: re.compile(r"^/data/uploads($|/.*)"),
+            CHATS_INDEX_ROOT: re.compile(r"^/data/chats/\d+($|/.*)"),
+        }
+
+        clusters = {}
+        roots = {}
+        for i in files_or_paths:
+            path = Path(i).absolute()
+            path_type = OTHER_TYPE
+            for type_, pattern in mappings.items():
+                if re.match(pattern, str(i)):
+                    path_type = type_
+                    break
+            if path_type == CHATS_INDEX_ROOT:
+                chat_id = path.parts[3]
+                path_type = str(Path(path_type) / chat_id)
+                roots[path_type] = str(Path(CHATS_ROOT) / chat_id)
+            elif path_type == UPLOADS_INDEX_ROOT:
+                roots[path_type] = UPLOAD_ROOT
+
+            if path_type in clusters:
+                clusters[path_type].add(path)
+            else:
+                clusters[path_type] = {path}
+
+        return clusters, roots

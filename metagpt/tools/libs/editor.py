@@ -3,6 +3,7 @@ This file is borrowed from OpenDevin
 You can find the original repository here:
 https://github.com/All-Hands-AI/OpenHands/blob/main/openhands/runtime/plugins/agent_skills/file_ops/file_ops.py
 """
+import asyncio
 import base64
 import os
 import re
@@ -16,6 +17,7 @@ from pydantic import BaseModel, ConfigDict
 from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
+from metagpt.tools.libs.index_repo import OTHER_TYPE, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
@@ -951,3 +953,52 @@ class Editor(BaseModel):
         if not path.is_absolute():
             path = self.working_dir / path
         return path
+
+    @staticmethod
+    async def search_index_repo(
+        query: str, files_or_paths: List[Union[str, Path]], min_token_count: int = 0
+    ) -> List[str]:
+        """Searches the index repository for a given query across specified files or paths.
+
+        This method classifies the provided files or paths, performing a search on each cluster
+        of files while handling other types of files separately. It merges results from structured
+        indices with any results from non-indexed files.
+
+        Args:
+            query (str): The search query string to look for in the indexed files.
+            files_or_paths (List[Union[str, Path]]): A list of file paths or names to search within.
+            min_token_count (int, optional): The minimum token count to consider for indexing. Defaults to 0.
+
+        Returns:
+            List[str]: A list of search results as strings, containing the text from the merged results
+                        and any direct results from other files.
+        """
+        clusters, roots = IndexRepo.classify_path(files_or_paths)
+        futures = []
+        others = set()
+        for persist_path, filenames in clusters.items():
+            if persist_path == OTHER_TYPE:
+                others.update(filenames)
+                continue
+            root = roots[persist_path]
+            repo = IndexRepo(persist_path=persist_path, root_path=root, min_token_count=min_token_count)
+            futures.append(repo.search(query=query, filenames=list(filenames)))
+
+        for i in others:
+            futures.append(aread(filename=i))
+
+        futures_results = []
+        if futures:
+            futures_results = await asyncio.gather(*futures)
+
+        result = []
+        v_result = []
+        for i in futures_results:
+            if isinstance(i, str):
+                result.append(i)
+            else:
+                v_result.append(i)
+
+        repo = IndexRepo(min_token_count=min_token_count)
+        merged = await repo.merge(query=query, indices_list=v_result)
+        return [i.text for i in merged] + result
