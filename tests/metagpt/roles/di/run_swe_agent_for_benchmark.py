@@ -17,8 +17,7 @@ from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
 config = Config.default()
 # Specify by yourself
-Role = Engineer2
-global_terminal = Terminal()
+GLOBAL_TERMINAL = Terminal()
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
@@ -60,7 +59,7 @@ def check_instance_status(instance, swe_result_dir):
 
 
 async def terminal_run_command(cmd):
-    cmd_output = await global_terminal.run_command(cmd)
+    cmd_output = await GLOBAL_TERMINAL.run_command(cmd)
     logger.info(f"command:{cmd} output:\n {cmd_output}")
     return cmd_output
 
@@ -118,7 +117,7 @@ async def run(instance, swe_result_dir, args):
     logger.info(f"**** Starting to run {instance['instance_id']}****")
     logger.info("User Requirement", user_requirement_and_issue)
     try:
-        role = Role(run_eval=True, editor=Editor(enable_auto_lint=True))
+        role = Engineer2(run_eval=True, editor=Editor(enable_auto_lint=True))
         await asyncio.wait_for(role.run(user_requirement_and_issue), timeout=args.max_wait_time_per_case * 60)
     except Exception as e:
         print(e)
@@ -156,9 +155,9 @@ async def async_main(args):
 
     swe_result_dir.mkdir(parents=True, exist_ok=True)
     for index, instance in enumerate(dataset):
-        # switch to a new logger file
         if index < args.ignore_first_n:
             continue
+        # switch to a new logger file
         logger.remove()
         logger.add(sys.stderr, level="INFO")
         logger.add(swe_result_dir / "logs" / f"{index+1}_{instance['instance_id']}.log", level="DEBUG")
