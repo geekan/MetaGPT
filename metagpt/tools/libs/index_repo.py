@@ -27,6 +27,9 @@ CHATS_INDEX_ROOT = "/data/.index/chats"
 CHATS_ROOT = "/data/chats/"
 OTHER_TYPE = "other"
 
+DEFAULT_MIN_TOKEN_COUNT = 10000
+DEFAULT_MAX_TOKEN_COUNT = 100000000
+
 
 class TextScore(BaseModel):
     filename: str
@@ -41,8 +44,8 @@ class IndexRepo(BaseModel):
     )
     fingerprint_filename: str = "fingerprint.json"
     model: Optional[str] = None
-    min_token_count: int = 10000
-    max_token_count: int = 100000000
+    min_token_count: int = DEFAULT_MIN_TOKEN_COUNT
+    max_token_count: int = DEFAULT_MAX_TOKEN_COUNT
     recall_count: int = 5
     embedding: Optional[BaseEmbedding] = Field(default=None, exclude=True)
     fingerprints: Dict[str, str] = Field(default_factory=dict)

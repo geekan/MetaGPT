@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict
 from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.tools.libs.index_repo import OTHER_TYPE, IndexRepo
+from metagpt.tools.libs.index_repo import DEFAULT_MIN_TOKEN_COUNT, OTHER_TYPE, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils import read_docx
@@ -956,7 +956,7 @@ class Editor(BaseModel):
 
     @staticmethod
     async def search_index_repo(
-        query: str, files_or_paths: List[Union[str, Path]], min_token_count: int = 0
+        query: str, files_or_paths: List[Union[str, Path]], min_token_count: int = DEFAULT_MIN_TOKEN_COUNT
     ) -> List[str]:
         """Searches the index repository for a given query across specified files or paths.
 
