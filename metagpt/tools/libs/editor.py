@@ -321,6 +321,7 @@ class Editor(BaseModel):
 
         output = self._cur_file_header(path, total_lines)
         output += self._print_window(path, self.current_line, self._clamp(context_lines, 1, 2000))
+        self.resource.report(path, "path")
         return output
 
     def goto_line(self, line_number: int) -> str:
@@ -792,6 +793,7 @@ class Editor(BaseModel):
         )
         # lint_error = bool(LINTER_ERROR_MSG in ret_str)
         # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
+        self.resource.report(file_name, "path")
         return ret_str
 
     def insert_content_at_line(self, file_name: str, line_number: int, content: str) -> str:
@@ -914,6 +916,9 @@ class Editor(BaseModel):
             res_list.append(f'[End of matches for "{search_term}" in {file_path}]')
         else:
             res_list.append(f'[No matches found for "{search_term}" in {file_path}]')
+
+        extra = {"type": "search", "symbol": search_term, "lines": [i[0] - 1 for i in matches]} if matches else None
+        self.resource.report(file_path, "path", extra=extra)
         return "\n".join(res_list)
 
     def find_file(self, file_name: str, dir_path: str = "./") -> str:
