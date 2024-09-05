@@ -33,15 +33,17 @@ llm:
 实验轮次 k = 10, 20
 
 
-### 提示词使用
+### Prompt Usage
 
 - 通过执行`dataset.py`中的`generate_task_requirement`函数获取提示词
-- 每一个数据集里有`dataset_info.json`，里面的内容需要提供给baselines以保证公平
+  - 非DI-based方法设置`is_di=False`
+  - `data_config`用`utils.DATA_CONFIG`
+- 每一个数据集里有`dataset_info.json`，里面的内容需要提供给baselines以保证公平（`generate_task_requirement`已经默认提供）
 
 
 ## 3. Evaluation
 
-运行各个框架，运行后框架需要提供Dev和Test的`dev_predictions.csv`和`test_predictions.csv`， column name为target
+运行各个框架，运行后框架需要提供Dev和Test的`dev_predictions.csv`和`test_predictions.csv`，每个csv文件只需要单个名为target的列
 
 - 使用`CustomExperimenter`
 ```
@@ -62,11 +64,6 @@ score_dict = experimenter.evaluate_pred_files(dev_pred_path, test_pred_path)
 ```
 pip install -U pip
 pip install -U setuptools wheel
-
-CPU version of pytorch has smaller footprint - see installation instructions in
-pytorch documentation - https://pytorch.org/get-started/locally/
-pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cpu
-
 pip install autogluon
 ```
 
@@ -105,11 +102,11 @@ pip install -r requirements.txt
 
 #### Run
 
-- `python run_experiment.py --exp_mode mcts --task titanic --rollout 5`
+- `python run_experiment.py --exp_mode mcts --task titanic --rollout 10`
 
 If the dataset has reg metric, remember to use `--low_is_better`:
 
-- `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 5 --low_is_better`
+- `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 10 --low_is_better`
 
 
 
