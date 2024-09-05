@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 from typing import Any, Callable, Coroutine, Optional, Union
 
 from pydantic import TypeAdapter, model_validator
@@ -43,7 +44,9 @@ COLLECT_AND_RANKURLS_PROMPT = """### Topic
 {results}
 
 ### Requirements
-Please remove irrelevant search results that are not related to the query or topic. Then, sort the remaining search results \
+Please remove irrelevant search results that are not related to the query or topic.
+If the query is time-sensitive or specifies a certain time frame, please also remove search results that are outdated or outside the specified time frame. Notice that the current time is {time_stamp}.
+Then, sort the remaining search results
 based on the link credibility. If two results have equal credibility, prioritize them based on the relevance. Provide the
 ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
 """
@@ -165,7 +168,8 @@ class CollectLinks(Action):
         max_results = max_num_results or max(num_results * 2, 6)
         results = await self._search_urls(query, max_results=max_results)
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
-        prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results)
+        time_stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results, time_stamp=time_stamp)
         logger.debug(prompt)
         indices = await self._aask(prompt)
         try:
