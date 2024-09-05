@@ -13,6 +13,7 @@ from metagpt.prompts.di.engineer2 import (
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
+from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
@@ -28,14 +29,17 @@ class Engineer2(RoleZero):
 
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
-    tools: list[str] = ["Plan", "Editor:read", "RoleZero", "Terminal:run_command", "Engineer2"]
+    tools: list[str] = ["Plan", "Editor:read", "RoleZero", "Terminal:run_command", "Engineer2", "SearchEnhancedQA", "CodeReview"]
 
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
+        cr = CodeReview()
         self.tool_execution_map.update(
             {
                 "Terminal.run_command": self.terminal.run_command,
                 "Engineer2.write_new_code": self.write_new_code,
+                "CodeReview.review": cr.review,
+                "CodeReview.fix": cr.fix,
                 # "ValidateAndRewriteCode.run": validate.run,
                 # "ValidateAndRewriteCode": validate.run,
             }
