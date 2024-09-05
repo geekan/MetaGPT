@@ -45,11 +45,15 @@ class CodeReview:
         """
         patch = await self._get_patch_content(patch_path)
         point_file = point_file if point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"
+        await EditorReporter().async_report(str(point_file), "path")
         async with aiofiles.open(point_file, "rb") as f:
             cr_point_content = await f.read()
             cr_points = [Point(**i) for i in json.loads(cr_point_content)]
-        comments = await CodeReview_().run(patch, cr_points, output_file)
-        return f"The number of defects: {len(comments)} and the comments are stored in {output_file}"
+        try:
+            comments = await CodeReview_().run(patch, cr_points, output_file)
+        except ValueError as e:
+            return str(e)
+        return f"The number of defects: {len(comments)}, the comments are stored in {output_file}, and the checkpoints are stored in {str(point_file)}"
 
     async def fix(
         self,
