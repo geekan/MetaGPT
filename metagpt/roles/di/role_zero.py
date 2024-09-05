@@ -83,7 +83,7 @@ class RoleZero(Role):
     # Others
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
-    memory_k: int = 100  # number of memories (messages) to use as historical context
+    memory_k: int = 200  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
     use_summary: bool = True  # whether to summarize at the end
