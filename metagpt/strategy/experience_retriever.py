@@ -958,7 +958,7 @@ I have opened the openai_api.py file. However, the range of lines shown is from 
 ## example 9
 I've found the bug and will start fixing it. I'll pay close attention to the indentation.
 Since I only need to modify a few lines in this file, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
-Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
+Editor tool is exclusive. If I use this tool, I cannot use any other commands in the current response.
 ```json
 [
     {
@@ -974,7 +974,7 @@ Note that the edit command must be executed in a single response, so this step w
 
 ## example 10
 I only need to add a few lines to the file, so I will use Editor.insert_content_at_line. The new code will not cover the original code.
-Note that the edit command must be executed in a single response, so this step will only involve using the edit command.
+Note that the Editor command must be executed in a single response, so this step will only involve using the Editor command.
 ```json
 [
     {

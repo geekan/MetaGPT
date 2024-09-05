@@ -24,8 +24,45 @@ from metagpt.utils.repo_to_markdown import is_text_file
 from metagpt.utils.report import EditorReporter
 
 # This is also used in unit tests!
-MSG_FILE_UPDATED = "[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]"
 LINTER_ERROR_MSG = "[Your proposed edit has introduced new syntax error(s). Please understand the errors and retry your edit command.]\n"
+
+
+INDENTATION_INFO = """
+The previous line is:
+"{pre_line}"
+The indentation has {pre_line_indent} spaces.
+
+The error line is:
+"{insert_line}"
+The indentation has {insert_line_indent} spaces.
+
+Please check the indentation of the code to ensure that it is not causing any errors.
+Try using indentation with either {sub_4_space} or {add_4_space} spaces.
+"""
+
+ERROR_GUIDANCE = """
+{linter_error_msg}
+
+[This is how your edit would have looked if applied]
+-------------------------------------------------
+{window_after_applied}
+-------------------------------------------------
+
+[This is the original code before your edit]
+-------------------------------------------------
+{window_before_applied}
+-------------------------------------------------
+
+Your changes have NOT been applied. Please fix your edit command and try again
+{guidance_message}
+
+"""
+
+SUCCESS_EDITE_INFO = """
+[File: {file_name} ({n_total_lines} lines total after edit)]
+{window_after_applied}
+[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
+"""
 
 
 class FileBlock(BaseModel):
@@ -499,15 +536,24 @@ class Editor(BaseModel):
         content = "".join(new_lines)
         return content, n_added_lines
 
-    def get_indentation_infromation(self, content, first_error_line):
+    def _get_indentation_info(self, content, first_error_line):
+        """
+        Information about the current edit's indentation.
+        Includes guidance on how to fix it.
+        """
         content_lines = content.split("\n")
-        previous_line = content_lines[first_error_line - 2] if first_error_line - 2 >= 0 else ""
-        first_insert_line = content_lines[first_error_line - 1]
-        ret_str = f'the privous line is "{previous_line}", the indentation has {len(previous_line)-len(previous_line.lstrip())} space\n'
-        insert_line_indentation = len(first_insert_line) - len(first_insert_line.lstrip())
-        ret_str += f'the error line is "{first_insert_line}", the indentation has {insert_line_indentation} space\n'
-        ret_str += "Please check the indentation of the code to ensure that it is not causing any errors.\n"
-        ret_str += f"Try to use indentation that has {insert_line_indentation-4 if insert_line_indentation-4 >0 else 0} or {insert_line_indentation+4} space"
+        pre_line = content_lines[first_error_line - 2] if first_error_line - 2 >= 0 else ""
+        pre_line_indent = len(pre_line) - len(pre_line.lstrip())
+        insert_line = content_lines[first_error_line - 1]
+        insert_line_indent = len(insert_line) - len(insert_line.lstrip())
+        ret_str = INDENTATION_INFO.format(
+            pre_line=pre_line,
+            pre_line_indent=pre_line_indent,
+            insert_line=insert_line,
+            insert_line_indent=insert_line_indent,
+            sub_4_space=max(insert_line_indent - 4, 0),
+            add_4_space=insert_line_indent + 4,
+        )
         return ret_str
 
     def _edit_file_impl(
@@ -529,7 +575,6 @@ class Editor(BaseModel):
             is_insert: bool = False: Whether to insert content at the given line number instead of editing.
             is_append: bool = False: Whether to append content to the file instead of editing.
         """
-        ret_str = ""
 
         ERROR_MSG = f"[Error editing file {file_name}. Please confirm the file is correct.]"
         ERROR_MSG_SUFFIX = (
@@ -579,14 +624,12 @@ class Editor(BaseModel):
                     try:
                         content, n_added_lines = self._insert_impl(lines, start, content)
                     except LineNumberError as e:
-                        ret_str += (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
-                        return ret_str
+                        return (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
                 else:
                     try:
                         content, n_added_lines = self._edit_impl(lines, start, end, content)
                     except LineNumberError as e:
-                        ret_str += (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
-                        return ret_str
+                        return (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
 
                 if not content.endswith("\n"):
                     content += "\n"
@@ -646,66 +689,52 @@ class Editor(BaseModel):
                     else:
                         raise ValueError("Invalid state. This should never happen.")
 
-                    ret_str += LINTER_ERROR_MSG
-                    ret_str += lint_error + "\n"
-
-                    editor_lines = n_added_lines + 20
-
-                    ret_str += "[This is how your edit would have looked if applied]\n"
-                    ret_str += "-------------------------------------------------\n"
-                    ret_str += self._print_window(file_name, show_line, editor_lines) + "\n"
-                    ret_str += "-------------------------------------------------\n\n"
-
-                    ret_str += "[This is the original code before your edit]\n"
-                    ret_str += "-------------------------------------------------\n"
-                    ret_str += (
-                        self._print_window(
-                            original_file_backup_path,
-                            show_line,
-                            editor_lines,
-                        )
-                        + "\n"
-                    )
-                    ret_str += "-------------------------------------------------\n"
-
-                    ret_str += self.get_indentation_infromation(content, start or len(lines))
-
-                    ret_str += (
-                        "Your changes have NOT been applied. Please fix your edit command and try again.\n"
+                    guidance_message = self._get_indentation_info(content, start or len(lines))
+                    guidance_message += (
                         "You either need to 1) Specify the correct start/end line arguments or 2) Correct your edit code.\n"
                         "DO NOT re-run the same failed edit command. Running it again will lead to the same error."
                     )
+                    lint_error_info = ERROR_GUIDANCE.format(
+                        linter_error_msg=LINTER_ERROR_MSG + lint_error,
+                        window_after_applied=self._print_window(file_name, show_line, n_added_lines + 20),
+                        window_before_applied=self._print_window(
+                            original_file_backup_path, show_line, n_added_lines + 20
+                        ),
+                        guidance_message=guidance_message,
+                    ).strip()
 
                     # recover the original file
                     with original_file_backup_path.open() as fin, file_name.open("w") as fout:
                         fout.write(fin.read())
                     original_file_backup_path.unlink()
-                    return ret_str
+                    return lint_error_info
 
         except FileNotFoundError as e:
-            ret_str += f"File not found: {e}\n"
+            return f"File not found: {e}\n"
         except IOError as e:
-            ret_str += f"An error occurred while handling the file: {e}\n"
+            return f"An error occurred while handling the file: {e}\n"
         except ValueError as e:
-            ret_str += f"Invalid input: {e}\n"
+            return f"Invalid input: {e}\n"
         except Exception as e:
-            error_str = "[This is how your edit would have looked if applied]\n"
-            error_str += "-------------------------------------------------\n"
-            error_str += self._print_window(file_name, start or len(lines), 40) + "\n"
-            error_str += "-------------------------------------------------\n"
-            error_str += self.get_indentation_infromation(content, start or len(lines))
-            if not is_insert and not is_append:
-                error_str += "enlarge the range of original code."
-            error_str += "\nTry to enlarge the range of the orginal code"
+            guidance_message = self._get_indentation_info(content, start or len(lines))
+            guidance_message += (
+                "You either need to 1) Specify the correct start/end line arguments or 2) Enlarge the range of original code.\n"
+                "DO NOT re-run the same failed edit command. Running it again will lead to the same error."
+            )
+            error_info = ERROR_GUIDANCE.format(
+                linter_error_msg=LINTER_ERROR_MSG + str(e),
+                window_after_applied=self._print_window(file_name, start or len(lines), 40),
+                window_before_applied=self._print_window(original_file_backup_path, start or len(lines), 40),
+                guidance_message=guidance_message,
+            ).strip()
             # Clean up the temporary file if an error occurs
             with original_file_backup_path.open() as fin, file_name.open("w") as fout:
                 fout.write(fin.read())
             if temp_file_path and Path(temp_file_path).exists():
                 Path(temp_file_path).unlink()
 
-            logger.warning(f"An unexpected error occurred: {e}")
-            raise Exception(f"{error_str}") from e
-            # raise e
+            # logger.warning(f"An unexpected error occurred: {e}")
+            raise Exception(f"{error_info}") from e
 
         # Update the file information and print the updated content
         with file_name.open("r", encoding="utf-8") as file:
@@ -717,11 +746,13 @@ class Editor(BaseModel):
                 self.current_line = max(1, len(lines))  # end of original file
             else:
                 self.current_line = start or n_total_lines or 1
-        ret_str += f"[File: {file_name.resolve()} ({n_total_lines} lines total after edit)]\n"
-        CURRENT_FILE = file_name
-        ret_str += self._print_window(CURRENT_FILE, self.current_line, self.window) + "\n"
-        ret_str += MSG_FILE_UPDATED.format(line_number=self.current_line)
-        return ret_str
+        cuccess_edit_info = SUCCESS_EDITE_INFO.format(
+            file_name=file_name.resolve(),
+            n_total_lines=n_total_lines,
+            window_after_applied=self._print_window(file_name, self.current_line, self.window),
+            line_number=self.current_line,
+        ).strip()
+        return cuccess_edit_info
 
     def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
         """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.

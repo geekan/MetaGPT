@@ -71,6 +71,7 @@ Pay close attention to the Example provided, you can reuse the example for your 
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
+Using Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden. Because the command is mutually exclusive and will change the line number after execution.
 In your response, include at least one command.
 
 # Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:

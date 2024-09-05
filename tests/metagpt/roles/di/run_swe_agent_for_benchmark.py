@@ -1,9 +1,11 @@
+import argparse
 import asyncio
 import json
 import os
 import shutil
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
@@ -16,8 +18,7 @@ from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 config = Config.default()
 # Specify by yourself
 Role = Engineer2
-# 调整每个样例的执行时间，太低容易出现提交u数量少的情况
-MAX_MINUTES_PRE_INSTANCE = 20
+global_terminal = Terminal()
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
@@ -58,29 +59,53 @@ def check_instance_status(instance, swe_result_dir):
     return True
 
 
-async def run(instance, swe_result_dir):
-    if not check_instance_status(instance, swe_result_dir):
-        logger.info(f"Instance {instance['instance_id']} already exists, skipping execution.")
-        return
+async def terminal_run_command(cmd):
+    cmd_output = await global_terminal.run_command(cmd)
+    logger.info(f"command:{cmd} output:\n {cmd_output}")
+    return cmd_output
 
-    repo_path = TEST_REPO_DIR / (instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"])
-    # 下载仓库
-    logger.info(f"repo_path:{repo_path}")
-    if os.path.exists(repo_path):
-        # 删除已有的仓库
-        logger.info(f"remove exist repo path:{repo_path}")
-        shutil.rmtree(repo_path)
-    # 下载仓库 并切换分支
-    terminal = Terminal()
+
+async def refresh_repo(instance, test_repo_dir):
+    repo_path = Path(test_repo_dir) / (
+        instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
+    )
     repo_identifier = instance["repo"]
     base_commit = instance["base_commit"]
     clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path}"
     checkout_command = f"cd {repo_path} && git checkout -f {base_commit}" if base_commit else ""
-    await terminal.run_command(clone_command)
-    ignore_temp_file_cmd = "echo '.backup.*' >> .gitignore"
-    logger.info(await terminal.run_command(checkout_command))
-    logger.info(await terminal.run_command("git branch"))
-    await terminal.run_command(ignore_temp_file_cmd)
+
+    if os.path.exists(repo_path):
+        # 删除已有的仓库
+        logger.info(f"remove exist repo path:{repo_path}")
+        shutil.rmtree(repo_path)
+
+    await terminal_run_command(clone_command)
+    await terminal_run_command(checkout_command)
+    await terminal_run_command("git branch")
+    await terminal_run_command("echo '.backup.*' >> .gitignore")
+
+    return repo_path
+
+
+async def get_git_diff():
+    git_diff = ""
+    try:
+        await terminal_run_command("git add -A")
+        git_diff = await terminal_run_command("git diff --cached")
+    except Exception as e:
+        logger.error(f"Error during submission: {e}")
+    return git_diff
+
+
+async def run(instance, swe_result_dir, args):
+    if not check_instance_status(instance, swe_result_dir) and not args.cover:
+        logger.info(f"Instance {instance['instance_id']} already exists, skipping execution.")
+        return
+
+    # preparation for the repo
+    logger.info(f"**** Preparing to run {instance['instance_id']}****")
+    test_repo_dir = args.test_repo_dir
+    repo_path = await refresh_repo(instance, test_repo_dir)
 
     user_requirement_and_issue = INSTANCE_TEMPLATE.format(
         issue=instance["problem_statement"],
@@ -94,21 +119,21 @@ async def run(instance, swe_result_dir):
     logger.info("User Requirement", user_requirement_and_issue)
     try:
         role = Role(run_eval=True, editor=Editor(enable_auto_lint=True))
-        await asyncio.wait_for(role.run(user_requirement_and_issue), timeout=MAX_MINUTES_PRE_INSTANCE * 60)
+        await asyncio.wait_for(role.run(user_requirement_and_issue), timeout=args.max_wait_time_per_case * 60)
     except Exception as e:
         print(e)
         logger.info(f"**** exception lead to end: {instance['instance_id']}****")
         pass
-
-    save_predictions(role, instance, swe_result_dir)
+    # save the difference of repo
+    await save_predictions(role, instance, swe_result_dir)
     logger.info(f"**** Finished running {instance['instance_id']}****")
 
 
-def save_predictions(role, instance, swe_result_dir):
+async def save_predictions(role, instance, swe_result_dir):
     output_file = swe_result_dir / "all_preds.jsonl"
     instance["model_name_or_path"] = role.config.llm.model
-    instance["model_patch"] = role.output_diff
-    logger.info("model_patch:" + role.output_diff)
+    instance["model_patch"] = await get_git_diff()
+    logger.info(f"{instance['model_patch']=}")
     logger.info(f"Preparing to save predictions to {output_file}")
 
     # Save the predictions to a JSONL file
@@ -118,31 +143,63 @@ def save_predictions(role, instance, swe_result_dir):
     logger.info(f"Saved prediction of {instance['instance_id']} to {output_file}")
 
 
-async def async_main():
+async def async_main(args):
     dataset_path = "manna-ai/SWE-bench_Nano"  # "princeton-nlp/SWE-bench_Lite" #"manna-ai/SWE-bench_Nano"
-
     dataset = load_hf_dataset(dataset_name_or_path=dataset_path, cache_dir=DATA_DIR, split="test")
-    date_time = datetime.now().strftime("%m%d")
-    _round = "first"
+    swe_result_dir = Path(args.save_folder)
+    if swe_result_dir.exists():
+        if args.cover:
+            logger.info(f"{swe_result_dir} exists and original result remove")
+            shutil.rmtree(swe_result_dir.absolute())
+        else:
+            logger.info(f"{swe_result_dir} exists and continue test")
 
-    exp_name = f"nano_mgx_{date_time}_{_round}"
-
-    now = datetime.now()
-    formatted_time = now.strftime("%Y_%m_%d_%H_%M_%S")
-    swe_result_dir = (
-        DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}_start_time_{formatted_time}" / exp_name
-    )
-    # swe_result_dir = (
-    #     DEFAULT_WORKSPACE_ROOT / f"result_{config.llm.model.replace('/', '_')}" / exp_name
-    # )
     swe_result_dir.mkdir(parents=True, exist_ok=True)
     for index, instance in enumerate(dataset):
         # switch to a new logger file
+        if index < args.ignore_first_n:
+            continue
         logger.remove()
         logger.add(sys.stderr, level="INFO")
-        logger.add(swe_result_dir / f"{index+1}_{instance['instance_id']}.log", level="DEBUG")
-        await run(instance, swe_result_dir)
+        logger.add(swe_result_dir / "logs" / f"{index+1}_{instance['instance_id']}.log", level="DEBUG")
+        await run(instance, swe_result_dir, args)
 
 
 if __name__ == "__main__":
-    asyncio.run(async_main())
+    parser = argparse.ArgumentParser(description="the argument of scripts")
+    # 添加参数
+    swe_result_dir = (
+        DEFAULT_WORKSPACE_ROOT
+        / f"result_{config.llm.model.replace('/', '_')}_start_time_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S') }"
+    )
+    test_repo_dir = TEST_REPO_DIR.absolute()
+    swe_result_dir = swe_result_dir.absolute()
+    parser.add_argument(
+        "-rw", "--test_repo_dir", default=test_repo_dir, help="The directory to save temporary repositories", type=str
+    )
+    parser.add_argument("-s", "--save_folder", default=swe_result_dir, help="Folder to save results and logs", type=str)
+    parser.add_argument(
+        "-mwtc", "--max_wait_time_per_case", help="Maximum wait time allowed per test case (in minutes)", type=int
+    )
+    parser.add_argument("-n", "--ignore_first_n", default=0, help="Cover the original flag", type=int)
+    parser.add_argument("-c", "--cover", default=False, help="Cover the original flag", type=bool)
+    # 解析命令行参数
+    args = parser.parse_args()
+    asyncio.run(async_main(args))
+
+
+"""
+python tests/metagpt/roles/di/run_swe_agent_for_benchmark.py \
+--test_repo_dir "./data/test_repo" \
+--save_folder "./workspace/deepseek_coder_test1" \
+--max_wait_time_per_case 10 
+"""
+
+"""
+Cover Mode:
+python tests/metagpt/roles/di/run_swe_agent_for_benchmark.py \
+--test_repo_dir "./data/test_repo" \
+--save_folder "./workspace/deepseek_coder_test1" \
+--max_wait_time_per_case 10 \
+--cover
+"""

@@ -1,4 +1,4 @@
-from metagpt.prompts.di.role_zero import CMD_PROMPT, ROLE_INSTRUCTION
+from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 
 EXTRA_INSTRUCTION = """
 You are an autonomous programmer
@@ -58,7 +58,7 @@ Note:
     - Enclose terms like `def` or `class` in quotes when searching for functions or classes (e.g., `search_dir 'def apow'` or `search_file 'class Pow'`).
     - Use wildcard characters (`*`, `?`) in search terms to broaden or narrow down your search scope.
     - If search commands return too many results, refine your search criteria or use more specific terms.
-    - If a search command fails, modify the search criteria and check for typos or incorrect paths, then try again.
+    - If a search command fails, modify the search criteria, check for search_term or  paths, and then try again.
     - Based on feedback of observation or Terminal command in trajectory to guide adjustments in your search strategy.
 
 9. When the edit fails, try to enlarge the range of code.
@@ -75,23 +75,16 @@ Note:
 18. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time. If you only need to code one file, provide all the necessary information in one response.
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
-21. Aways user absolute path as parameter. if no specific root path given, use "workspace/'project_name'" as default work space. 
-22. Forbidden to run code in the terminal.
+21. Forbidden to run code in the terminal.
+22. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
 """
-ENGINEER2_CMD_PROMPT = (
-    CMD_PROMPT
-    + "\nUsing Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden. Because the command is mutually exclusive and will change the line number after execution."
-)
 
-CURRENT_EDITOR_STATE = """
+CURRENT_STATE = """
 The current editor state is:
-(Open file: {open_file})
-(Current directory: {working_dir})
-"""
-
-CURRENT_TERMINAL_STATE = """
+(Editor current directory: {editor_current_directory})
+(Editor open file: {editor_open_file})
 The current terminal state is:
-(Current directory: {working_dir})
+(Terminal current directory: {terminal_current_directory})
 """
 ENGINEER2_INSTRUCTION = ROLE_INSTRUCTION + EXTRA_INSTRUCTION.strip()
 

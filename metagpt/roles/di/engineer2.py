@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from pydantic import Field
 
-from metagpt.config2 import Config
 from metagpt.logs import logger
 
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.prompts.di.engineer2 import (
-    CURRENT_EDITOR_STATE,
-    CURRENT_TERMINAL_STATE,
-    ENGINEER2_CMD_PROMPT,
+    CURRENT_STATE,
     ENGINEER2_INSTRUCTION,
     WRITE_CODE_PROMPT,
     WRITE_CODE_SYSTEM_PROMPT,
@@ -33,7 +29,6 @@ class Engineer2(RoleZero):
     profile: str = "Engineer"
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
-    cmd_prompt: str = ENGINEER2_CMD_PROMPT
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
     tools: list[str] = [
@@ -58,52 +53,38 @@ class Engineer2(RoleZero):
 
     async def _format_instruction(self):
         """
-        Formats the instruction message for the Engineer2.
-        Uses Editor's state to format the `_instruction` template.
+        Display the current terminal and editor state.
+        This information will be dynamically added to the command prompt.
         """
-        bash_working_dir = await self.terminal.run_command("pwd")
-        bash_state = {"working_dir": bash_working_dir}
-        editor_state = {"open_file": self.editor.current_file, "working_dir": self.editor.working_dir}
-        self.cmd_prompt_current_state = CURRENT_EDITOR_STATE.format(
-            **editor_state
-        ).strip() + CURRENT_TERMINAL_STATE.format(**bash_state)
+        state = {
+            "editor_open_file": self.editor.current_file,
+            "editor_current_directory": self.editor.working_dir,
+            "terminal_current_directory": await self.terminal.run_command("pwd"),
+        }
+        self.cmd_prompt_current_state = CURRENT_STATE.format(**state).strip()
 
     def _update_tool_execution(self):
         self.tool_execution_map.update(
             {
-                "Terminal.run_command": self.eval_terminal_run if self.run_eval else self.terminal.run_command,
+                "Terminal.run_command": self.terminal.run_command,
                 "git_create_pull": git_create_pull,
                 "Engineer2.write_new_code": self.write_new_code,
                 # "ValidateAndRewriteCode.run": validate.run,
                 # "ValidateAndRewriteCode": validate.run,
             }
         )
+        self.exclusive_tool_commands.append("Engineer2.write_new_code")
         if self.run_eval:
             self.tool_execution_map.update(
                 {
+                    "Terminal.run_command": self._eval_terminal_run,
                     "RoleZero.ask_human": self._end,
                     "RoleZero.reply_to_human": self._end,
                 }
             )
 
-    async def eval_terminal_run(self, cmd):
-        """change command pull/push/commit to end."""
-        if any([cmd_key_word in cmd for cmd_key_word in ["pull", "push", "commit"]]):
-            # The Engineer2 attempts to submit the repository after fixing the bug, thereby reaching the end of the fixing process.
-            # Set self.rc.todo to None to stop the engineer and then will trigger _save_git_diff funcion to save difference.
-            logger.info("Engineer2 use cmd:{cmd}")
-            logger.info("Current test case is finished.")
-            # stop the Engineer2
-            self._set_state(-1)
-            command_output = "Current test case is finished."
-        else:
-            command_output = await self.terminal.run_command(cmd)
-        return command_output
-
     async def _act(self) -> Message:
         message = await super()._act()
-        if self.run_eval:
-            await self._save_git_diff()
         return message
 
     def _retrieve_experience(self) -> str:
@@ -118,44 +99,6 @@ class Engineer2(RoleZero):
             command_output += "All tasks are finished.\n"
         command_output += await super()._run_special_command(cmd)
         return command_output
-
-    async def _save_git_diff(self):
-        """
-        Handles actions based on parsed commands.
-
-        When detecting engineer2 at the final action round, the process will stop immediately.
-        generates a patch using `git diff`.
-        Stores the cleaned patch in `output_diff`. Logs any exceptions.
-
-        This function is specifically added for SWE bench evaluation.
-        """
-        # If todo switches to None, it indicates that this is the final round of reactions, and the Engineer2 will stop. Use git diff to store any changes made.
-        if not self.rc.todo:
-            from metagpt.tools.swe_agent_commands.swe_agent_utils import extract_patch
-
-            try:
-                logger.info(await self.submit())
-                diff_output = await self.terminal.run_command("git diff --cached")
-                clear_diff = extract_patch(diff_output)
-                logger.info(f"Diff output: \n{clear_diff}")
-                if clear_diff:
-                    self.output_diff = clear_diff
-            except Exception as e:
-                logger.error(f"Error during submission: {e}")
-
-    async def submit(self):
-        if "SWE_CMD_WORK_DIR" not in os.environ:
-            os.environ["SWE_CMD_WORK_DIR"] = str(Config.default().workspace.path)
-        if os.path.exists(os.environ["SWE_CMD_WORK_DIR"] + "/test.patch"):
-            await self.terminal.run_command('git apply -R < "$SWE_CMD_WORK_DIR/test.patch"')
-        cmd = """
-        git add -A
-        echo "<<SUBMISSION START||"
-        git diff --cached
-        echo "||SUBMISSION DONE>>"
-        """
-        diff_output = await self.terminal.run_command(cmd)
-        return diff_output
 
     async def write_new_code(self, path: str, instruction: str = "") -> str:
         """Write a new code file.
@@ -180,3 +123,14 @@ class Engineer2(RoleZero):
 
         # TODO: Consider adding line no to be ready for editing.
         return f"The file {path} has been successfully created, with content:\n{code}"
+
+    async def _eval_terminal_run(self, cmd):
+        """change command pull/push/commit to end."""
+        if any([cmd_key_word in cmd for cmd_key_word in ["pull", "push", "commit"]]):
+            # The Engineer2 attempts to submit the repository after fixing the bug, thereby reaching the end of the fixing process.
+            logger.info("Engineer2 use cmd:{cmd}\nCurrent test case is finished.")
+            # Set self.rc.todo to None to stop the engineer.
+            self._set_state(-1)
+        else:
+            command_output = await self.terminal.run_command(cmd)
+        return command_output

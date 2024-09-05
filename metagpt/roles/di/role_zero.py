@@ -73,6 +73,7 @@ class RoleZero(Role):
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    # List of exclusive tool commands
     exclusive_tool_commands: list[str] = [
         "Editor.edit_file_by_replace",
         "Editor.insert_content_at_line",
@@ -420,11 +421,13 @@ class RoleZero(Role):
         # Set the exclusive command flag to False.
         command_flag = [command["command_name"] not in self.exclusive_tool_commands for command in commands]
         if command_flag.count(False) > 1:
-            # Set the flag of the first exclusive command to True.
+            # Keep only the first exclusive command
             index_of_first_exclusive = command_flag.index(False)
-            command_flag[index_of_first_exclusive] = True
-            # Select command which flag is True.
-            commands = [commands[index] for index, flag in enumerate(command_flag) if flag is True]
+            commands = [
+                cmd
+                for index, cmd in enumerate(commands)
+                if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
+            ]
             command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```json"
             logger.info(
                 "exclusive command more than one in current command list. change the command list.\n" + command_rsp
@@ -436,14 +439,14 @@ class RoleZero(Role):
         for cmd in commands:
             output = f"Command {cmd['command_name']} executed"
             # handle special command first
-            try:
-                if self._is_special_command(cmd):
-                    special_command_output = await self._run_special_command(cmd)
-                    outputs.append(output + ":" + special_command_output)
-                    continue
-                # run command as specified by tool_execute_map
-                if cmd["command_name"] in self.tool_execution_map:
-                    tool_obj = self.tool_execution_map[cmd["command_name"]]
+            if self._is_special_command(cmd):
+                special_command_output = await self._run_special_command(cmd)
+                outputs.append(output + ":" + special_command_output)
+                continue
+            # run command as specified by tool_execute_map
+            if cmd["command_name"] in self.tool_execution_map:
+                tool_obj = self.tool_execution_map[cmd["command_name"]]
+                try:
                     if inspect.iscoroutinefunction(tool_obj):
                         tool_output = await tool_obj(**cmd["args"])
                     else:
@@ -451,14 +454,14 @@ class RoleZero(Role):
                     if tool_output:
                         output += f": {str(tool_output)}"
                     outputs.append(output)
-                else:
-                    outputs.append(f"Command {cmd['command_name']} not found.")
-                    break
-            except Exception as e:
-                tb = traceback.format_exc()
-                logger.exception(str(e) + tb)
-                outputs.append(output + f": {tb}")
-                break  # Stop executing if any command fails
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    logger.exception(str(e) + tb)
+                    outputs.append(output + f": {tb}")
+                    break  # Stop executing if any command fails
+            else:
+                outputs.append(f"Command {cmd['command_name']} not found.")
+                break
         outputs = "\n\n".join(outputs)
 
         return outputs
@@ -536,11 +539,8 @@ class RoleZero(Role):
         from metagpt.environment.mgx.mgx_env import MGXEnv  # avoid circular import
 
         if not isinstance(self.rc.env, MGXEnv):
-            rsp = "Not in MGXEnv, command will not be executed."
-        else:
-            rsp = await self.rc.env.reply_to_human(content, sent_from=self)
-        rsp += " If you no longer need to take action, use the command ‘end’ to stop."
-        return rsp
+            return "Not in MGXEnv, command will not be executed."
+        return await self.rc.env.reply_to_human(content, sent_from=self)
 
     async def _end(self, **kwarg):
         self._set_state(-1)
