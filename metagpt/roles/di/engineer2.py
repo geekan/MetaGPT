@@ -16,6 +16,7 @@ from metagpt.prompts.di.engineer2 import (
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message, UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
+from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
@@ -40,6 +41,7 @@ class Engineer2(RoleZero):
         "git_create_pull",
         "SearchEnhancedQA",
         "Engineer2",
+        "CodeReview",
     ]
     # SWE Agent parameter
     run_eval: bool = False
@@ -64,11 +66,15 @@ class Engineer2(RoleZero):
         self.cmd_prompt_current_state = CURRENT_STATE.format(**state).strip()
 
     def _update_tool_execution(self):
+        # validate = ValidateAndRewriteCode()
+        cr = CodeReview()
         self.tool_execution_map.update(
             {
                 "Terminal.run_command": self.terminal.run_command,
                 "git_create_pull": git_create_pull,
                 "Engineer2.write_new_code": self.write_new_code,
+                "CodeReview.review": cr.review,
+                "CodeReview.fix": cr.fix,
                 # "ValidateAndRewriteCode.run": validate.run,
                 # "ValidateAndRewriteCode": validate.run,
             }

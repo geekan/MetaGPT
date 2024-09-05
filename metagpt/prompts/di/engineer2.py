@@ -75,12 +75,7 @@ Note:
 18. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time. If you only need to code one file, provide all the necessary information in one response.
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
-
-22. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
-"""
-"""
-21. Forbidden to run code in the terminal.
-Do Not run the code. 
+21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
 """
 CURRENT_STATE = """
 The current editor state is:
