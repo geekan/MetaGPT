@@ -13,7 +13,6 @@ from llama_index.core.llms.callbacks import llm_completion_callback
 from pydantic import Field
 
 from metagpt.config2 import Config
-from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.token_counter import TOKEN_MAX
@@ -79,4 +78,6 @@ class RAGLLM(CustomLLM):
 
 def get_rag_llm(model_infer: BaseLLM = None) -> RAGLLM:
     """Get llm that can be used by LlamaIndex."""
+    from metagpt.llm import LLM
+
     return RAGLLM(model_infer=model_infer or LLM())

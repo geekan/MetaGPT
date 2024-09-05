@@ -74,3 +74,5 @@ pylint~=3.0.3
 pygithub~=2.3
 htmlmin
 fsspec
+grep-ast~=0.3.3  # linter
+tree-sitter~=0.21.3  # linter
