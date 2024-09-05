@@ -72,7 +72,7 @@ Note:
 15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
 16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
 17. If you plan to read a file, do not include other plans in the same response.
-18. Use Engineer2.write_new_code to create or modify a file. Write only one code file each time. Write only one code file each time and provide its full implementation.
+18. Write only one code file each time and provide its full implementation.
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
 21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
