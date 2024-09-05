@@ -18,7 +18,7 @@ from metagpt.ext.cr.utils.cleaner import (
 from metagpt.ext.cr.utils.schema import Point
 from metagpt.logs import logger
 from metagpt.utils.common import parse_json_code_block
-from metagpt.utils.report import EditorReporter, ThoughtReporter
+from metagpt.utils.report import EditorReporter
 
 CODE_REVIEW_PROMPT_TEMPLATE = """
 NOTICE
