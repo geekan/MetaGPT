@@ -202,7 +202,6 @@ class CodeReview(Action):
                     comments.extend(comments_batch)
 
         if valid_patch_count == 0:
-            await ThoughtReporter().async_report(value={"type": "limit", "classify": "language"})
             raise ValueError("Only code reviews for Python and Java languages are supported.")
 
         return comments
