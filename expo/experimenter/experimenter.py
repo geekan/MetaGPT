@@ -54,11 +54,15 @@ class Experimenter:
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
             )
             self.save_result(results)  # save intermediate results
-        dev_scores = [result["score_dict"]["dev_score"] for result in results]
+        dev_scores = [
+            result["score_dict"]["dev_score"] for result in results if result["score_dict"]["dev_score"] != -1
+        ]
         best_dev_score = max(dev_scores) if not self.args.low_is_better else min(dev_scores)
         best_score_idx = dev_scores.index(best_dev_score)
 
-        test_scores = [result["score_dict"]["test_score"] for result in results]
+        test_scores = [
+            result["score_dict"]["test_score"] for result in results if result["score_dict"]["dev_score"] != -1
+        ]
         avg_score = sum(test_scores) / len(test_scores)
         global_best_score = max(test_scores) if not self.args.low_is_better else min(test_scores)
 
