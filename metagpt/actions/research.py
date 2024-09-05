@@ -46,9 +46,8 @@ COLLECT_AND_RANKURLS_PROMPT = """### Topic
 ### Requirements
 Please remove irrelevant search results that are not related to the query or topic.
 If the query is time-sensitive or specifies a certain time frame, please also remove search results that are outdated or outside the specified time frame. Notice that the current time is {time_stamp}.
-Then, sort the remaining search results
-based on the link credibility. If two results have equal credibility, prioritize them based on the relevance. Provide the
-ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
+Then, sort the remaining search results based on the link credibility. If two results have equal credibility, prioritize them based on the relevance.
+Provide the ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
 """
 
 WEB_BROWSE_AND_SUMMARIZE_PROMPT = """### Requirements
