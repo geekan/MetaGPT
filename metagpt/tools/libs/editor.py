@@ -747,13 +747,13 @@ class Editor(BaseModel):
                 self.current_line = max(1, len(lines))  # end of original file
             else:
                 self.current_line = start or n_total_lines or 1
-        cuccess_edit_info = SUCCESS_EDITE_INFO.format(
+        success_edit_info = SUCCESS_EDITE_INFO.format(
             file_name=file_name.resolve(),
             n_total_lines=n_total_lines,
             window_after_applied=self._print_window(file_name, self.current_line, self.window),
             line_number=self.current_line,
         ).strip()
-        return cuccess_edit_info
+        return success_edit_info
 
     def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
         """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.

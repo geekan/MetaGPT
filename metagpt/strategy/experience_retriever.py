@@ -1007,24 +1007,8 @@ Since Editor.insert_content_at_line can only be used once per response, this tim
 In the next turn, I will try to add another code snippet
 
 ## example 11
-```
-#### Save the changes and commit them to the remote repository.
 
-##### Push the changes from the local repository to the remote repository.
-Thought: All changes have been saved, let's push the code to the remote repository.
-```json
-[
-    {
-        "command_name": "Terminal.run_command",
-        "args": {
-            "cmd": "git push origin test-fix"
-        }
-    }
-]
-```
-
-
-##### Create a pull request (Optional): Merge the changes from the new branch into the master branch.
+Create a pull request (Optional): Merge the changes from the new branch into the master branch.
 Thought: Now that the changes have been pushed to the remote repository, due to the user's requirement, let's create a pull request to merge the changes into the master branch.
 ```json
 [
@@ -1044,19 +1028,6 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
 ```
 """
 
-"""
-## example 11
-I have finished all the tasks, so I will use Plan.finish_current_task and then follow the command ‘end’ to stop.
-```json
-[
-    {
-        "command_name": "end",
-        "args": {
-        }
-    }
-]
-```
-"""
 WEB_SCRAPING_EXAMPLE = """
 ## action 1
 User Requirement: Scrap and list the restaurant names of first page by searching for the keyword `beef` on the website https://www.yelp.com/.
