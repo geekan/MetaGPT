@@ -279,6 +279,16 @@ class IndexRepo(BaseModel):
 
     @staticmethod
     def classify_path(files_or_paths: List[Union[str, Path]]) -> Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+        """Classify a list of file paths or Path objects into different categories.
+
+        Args:
+            files_or_paths (List[Union[str, Path]]): A list of file paths or Path objects to be classified.
+
+        Returns:
+            Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+                - A dictionary mapping the classified path types to sets of corresponding Path objects.
+                - A dictionary mapping the classified path types to their corresponding root directories.
+        """
         mappings = {
             UPLOADS_INDEX_ROOT: re.compile(r"^/data/uploads($|/.*)"),
             CHATS_INDEX_ROOT: re.compile(r"^/data/chats/\d+($|/.*)"),
