@@ -22,8 +22,8 @@ class MCTSExperimenter(Experimenter):
 
         text, num_generated_codes = get_tree_text(mcts.root_node)
         text += f"Generated {num_generated_codes} unique codes.\n"
-        text += f"Best node: {best_node}, score: {best_node.raw_reward}\n"
-        text += f"Dev best node: {dev_best_node}, score: {dev_best_node.raw_reward}\n"
+        text += f"Best node: {best_node.id}, score: {best_node.raw_reward}\n"
+        text += f"Dev best node: {dev_best_node.id}, score: {dev_best_node.raw_reward}\n"
         print(text)
         self.save_tree(text)
 

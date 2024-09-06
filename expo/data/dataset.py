@@ -86,6 +86,8 @@ CUSTOM_DATASETS = [
     ("07_icr-identify-age-related-conditions", "Class"),
 ]
 
+DSAGENT_DATASETS = [("concrete-strength", "Strength"), ("smoker-status", "smoking"), ("software-defects", "defects")]
+
 
 def get_split_dataset_path(dataset_name, config):
     datasets_dir = config["datasets_dir"]
@@ -121,8 +123,8 @@ def get_user_requirement(task_name, config):
         )
 
 
-def save_datasets_dict_to_yaml(datasets_dict):
-    with open("datasets.yaml", "w") as file:
+def save_datasets_dict_to_yaml(datasets_dict, name="datasets.yaml"):
+    with open(name, "w") as file:
         yaml.dump(datasets_dict, file)
 
 
@@ -201,11 +203,15 @@ class ExpDataset:
 
     def get_raw_dataset(self):
         raw_dir = Path(self.dataset_dir, self.name, "raw")
+        train_df = None
+        test_df = None
         if not os.path.exists(Path(raw_dir, "train.csv")):
             raise FileNotFoundError(f"Raw dataset `train.csv` not found in {raw_dir}")
         else:
-            df = pd.read_csv(Path(raw_dir, "train.csv"))
-            return df
+            train_df = pd.read_csv(Path(raw_dir, "train.csv"))
+        if os.path.exists(Path(raw_dir, "test.csv")):
+            test_df = pd.read_csv(Path(raw_dir, "test.csv"))
+        return train_df, test_df
 
     def get_dataset_info(self):
         raw_df = pd.read_csv(Path(self.dataset_dir, self.name, "raw", "train.csv"))
@@ -249,10 +255,10 @@ class ExpDataset:
         return req
 
     def save_dataset(self, target_col):
-        df = self.get_raw_dataset()
+        df, test_df = self.get_raw_dataset()
         if not self.check_dataset_exists() or self.force_update:
             print(f"Saving Dataset {self.name} in {self.dataset_dir}")
-            self.split_and_save(df, target_col)
+            self.split_and_save(df, target_col, test_df=test_df)
         else:
             print(f"Dataset {self.name} already exists")
         if not self.check_datasetinfo_exists() or self.force_update:
@@ -278,10 +284,13 @@ class ExpDataset:
                 df_target = df_target.drop(columns=[target_col])
             df_target.to_csv(Path(path, f"split_{split}_target.csv"), index=False)
 
-    def split_and_save(self, df, target_col):
+    def split_and_save(self, df, target_col, test_df=None):
         if not target_col:
             raise ValueError("Target column not provided")
-        train, test = train_test_split(df, test_size=1 - TRAIN_TEST_SPLIT, random_state=SEED)
+        if test_df is None:
+            train, test = train_test_split(df, test_size=1 - TRAIN_TEST_SPLIT, random_state=SEED)
+        else:
+            train = df
         train, dev = train_test_split(train, test_size=1 - TRAIN_DEV_SPLIT, random_state=SEED)
         self.save_split_datasets(train, "train")
         self.save_split_datasets(dev, "dev", target_col)
@@ -304,7 +313,7 @@ class OpenMLExpDataset(ExpDataset):
         raw_dir = Path(self.dataset_dir, self.name, "raw")
         os.makedirs(raw_dir, exist_ok=True)
         dataset_df.to_csv(Path(raw_dir, "train.csv"), index=False)
-        return dataset_df
+        return dataset_df, None
 
     def get_dataset_info(self):
         dataset_info = super().get_dataset_info()
@@ -315,14 +324,9 @@ class OpenMLExpDataset(ExpDataset):
         return dataset_info
 
 
-# class HFExpDataset(ExpDataset):
-#     def __init__(self, name, dataset_dir, dataset_name, **kwargs):
-#         super().__init__(name, dataset_dir, **kwargs)
-
-
-async def process_dataset(dataset, solution_designer, save_analysis_pool, datasets_dict):
+async def process_dataset(dataset, solution_designer: SolutionDesigner, save_analysis_pool, datasets_dict):
     if save_analysis_pool:
-        asyncio.run(solution_designer.generate_solutions(dataset.get_dataset_info(), dataset.name))
+        await solution_designer.generate_solutions(dataset.get_dataset_info(), dataset.name)
     dataset_dict = create_dataset_dict(dataset)
     datasets_dict["datasets"][dataset.name] = dataset_dict
 
@@ -330,14 +334,18 @@ async def process_dataset(dataset, solution_designer, save_analysis_pool, datase
 if __name__ == "__main__":
     datasets_dir = "D:/work/automl/datasets"
     force_update = False
-    save_analysis_pool = False
+    save_analysis_pool = True
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
-    for dataset_id in OPENML_DATASET_IDS:
-        openml_dataset = OpenMLExpDataset("", datasets_dir, dataset_id, force_update=force_update)
-        asyncio.run(process_dataset(openml_dataset, solution_designer, save_analysis_pool, datasets_dict))
+    # for dataset_id in OPENML_DATASET_IDS:
+    #     openml_dataset = OpenMLExpDataset("", datasets_dir, dataset_id, force_update=force_update)
+    #     asyncio.run(process_dataset(openml_dataset, solution_designer, save_analysis_pool, datasets_dict))
 
-    for dataset_name, target_col in CUSTOM_DATASETS:
+    # for dataset_name, target_col in CUSTOM_DATASETS:
+    #     custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
+    #     asyncio.run(process_dataset(custom_dataset, solution_designer, save_analysis_pool, datasets_dict))
+
+    for dataset_name, target_col in DSAGENT_DATASETS:
         custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
         asyncio.run(process_dataset(custom_dataset, solution_designer, save_analysis_pool, datasets_dict))
 

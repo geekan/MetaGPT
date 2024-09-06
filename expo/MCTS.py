@@ -6,7 +6,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from expo.dataset import generate_task_requirement, get_split_dataset_path
+from expo.data.dataset import generate_task_requirement, get_split_dataset_path
 from expo.evaluation.evaluation import evaluate_score
 from expo.insights.instruction_generator import InstructionGenerator
 from expo.research_assistant import ResearchAssistant
