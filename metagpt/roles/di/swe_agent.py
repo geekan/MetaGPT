@@ -46,7 +46,6 @@ class SWEAgent(RoleZero):
     async def _format_instruction(self):
         """
         Formats the instruction message for the SWE agent.
-
         Runs the "state" command in the terminal, parses its output as JSON,
         and uses it to format the `_instruction` template.
         """
@@ -63,10 +62,8 @@ class SWEAgent(RoleZero):
     async def _parse_commands_for_eval(self):
         """
         Handles actions based on parsed commands.
-
         Parses commands, checks for a "submit" action, and generates a patch using `git diff`.
         Stores the cleaned patch in `output_diff`. Logs any exceptions.
-
         This function is specifically added for SWE bench evaluation.
         """
         # If todo switches to None, it indicates that this is the final round of reactions, and the Swe-Agent will stop. Use git diff to store any changes made.
@@ -79,7 +76,6 @@ class SWEAgent(RoleZero):
                 logger.info(f"Diff output: \n{clear_diff}")
                 if clear_diff:
                     self.output_diff = clear_diff
-
             except Exception as e:
                 logger.error(f"Error during submission: {e}")
 

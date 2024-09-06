@@ -4,8 +4,11 @@ from pathlib import Path
 
 from pydantic import Field
 
+from metagpt.logs import logger
+
 # from metagpt.actions.write_code_review import ValidateAndRewriteCode
 from metagpt.prompts.di.engineer2 import (
+    CURRENT_STATE,
     ENGINEER2_INSTRUCTION,
     WRITE_CODE_PROMPT,
     WRITE_CODE_SYSTEM_PROMPT,
@@ -14,6 +17,7 @@ from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
+from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
@@ -26,24 +30,69 @@ class Engineer2(RoleZero):
     profile: str = "Engineer"
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
-
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
 
-    tools: list[str] = ["Plan", "Editor:read", "RoleZero", "Terminal:run_command", "Engineer2", "SearchEnhancedQA", "CodeReview"]
+    tools: list[str] = [
+        "Plan",
+        "Editor",
+        "RoleZero",
+        "Terminal:run_command",
+        "Browser:goto,scroll",
+        "git_create_pull",
+        "SearchEnhancedQA",
+        "Engineer2",
+        "CodeReview",
+    ]
+    # SWE Agent parameter
+    run_eval: bool = False
+    output_diff: str = ""
+    max_react_loop: int = 40
+
+    async def _think(self) -> bool:
+        await self._format_instruction()
+        res = await super()._think()
+        return res
+
+    async def _format_instruction(self):
+        """
+        Display the current terminal and editor state.
+        This information will be dynamically added to the command prompt.
+        """
+        state = {
+            "editor_open_file": self.editor.current_file,
+            "editor_current_directory": self.editor.working_dir,
+            "terminal_current_directory": await self.terminal.run_command("pwd"),
+        }
+        self.cmd_prompt_current_state = CURRENT_STATE.format(**state).strip()
 
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
         cr = CodeReview()
-        self.tool_execution_map.update(
-            {
-                "Terminal.run_command": self.terminal.run_command,
-                "Engineer2.write_new_code": self.write_new_code,
-                "CodeReview.review": cr.review,
-                "CodeReview.fix": cr.fix,
-                # "ValidateAndRewriteCode.run": validate.run,
-                # "ValidateAndRewriteCode": validate.run,
-            }
-        )
+        self.exclusive_tool_commands.append("Engineer2.write_new_code")
+        if self.run_eval is True:
+            # Evalute tool map
+            self.tool_execution_map.update(
+                {
+                    "git_create_pull": git_create_pull,
+                    "Engineer2.write_new_code": self.write_new_code,
+                    "CodeReview.review": cr.review,
+                    "CodeReview.fix": cr.fix,
+                    "Terminal.run_command": self._eval_terminal_run,
+                    "RoleZero.ask_human": self._end,
+                    "RoleZero.reply_to_human": self._end,
+                }
+            )
+        else:
+            # Default tool map
+            self.tool_execution_map.update(
+                {
+                    "git_create_pull": git_create_pull,
+                    "Engineer2.write_new_code": self.write_new_code,
+                    "CodeReview.review": cr.review,
+                    "CodeReview.fix": cr.fix,
+                    "Terminal.run_command": self.terminal.run_command,
+                }
+            )
 
     def _retrieve_experience(self) -> str:
         return ENGINEER_EXAMPLE
@@ -82,3 +131,14 @@ class Engineer2(RoleZero):
 
         # TODO: Consider adding line no to be ready for editing.
         return f"The file {path} has been successfully created, with content:\n{code}"
+
+    async def _eval_terminal_run(self, cmd):
+        """change command pull/push/commit to end."""
+        if any([cmd_key_word in cmd for cmd_key_word in ["pull", "push", "commit"]]):
+            # The Engineer2 attempts to submit the repository after fixing the bug, thereby reaching the end of the fixing process.
+            logger.info("Engineer2 use cmd:{cmd}\nCurrent test case is finished.")
+            # Set self.rc.todo to None to stop the engineer.
+            self._set_state(-1)
+        else:
+            command_output = await self.terminal.run_command(cmd)
+        return command_output
