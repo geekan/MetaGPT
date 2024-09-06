@@ -58,7 +58,7 @@ Your changes have NOT been applied. Please fix your edit command and try again
 
 """
 
-SUCCESS_EDITE_INFO = """
+SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
 [File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
@@ -746,7 +746,7 @@ class Editor(BaseModel):
                 self.current_line = max(1, len(lines))  # end of original file
             else:
                 self.current_line = start or n_total_lines or 1
-        success_edit_info = SUCCESS_EDITE_INFO.format(
+        success_edit_info = SUCCESS_EDIT_INFO.format(
             file_name=file_name.resolve(),
             n_total_lines=n_total_lines,
             window_after_applied=self._print_window(file_name, self.current_line, self.window),

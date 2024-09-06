@@ -73,7 +73,8 @@ class RoleZero(Role):
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
-    # List of exclusive tool commands
+    # List of exclusive tool commands.
+    # If multiple instances of these commands appear, only the first occurrence will be retained.
     exclusive_tool_commands: list[str] = [
         "Editor.edit_file_by_replace",
         "Editor.insert_content_at_line",
