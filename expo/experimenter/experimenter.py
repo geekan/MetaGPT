@@ -16,7 +16,8 @@ class Experimenter:
 
     def __init__(self, args, **kwargs):
         self.args = args
-        self.start_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        self.start_time_raw = datetime.datetime.now()
+        self.start_time = self.start_time_raw.strftime("%Y%m%d%H%M")
         self.state = create_initial_state(
             self.args.task,
             start_task_id=1,
@@ -99,11 +100,12 @@ class Experimenter:
         return score_dict
 
     def save_result(self, result):
-        end_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        end_time_raw = datetime.datetime.now()
+        end_time = end_time_raw.strftime("%Y%m%d%H%M")
         time_info = {
             "start_time": self.start_time,
             "end_time": end_time,
-            "duration (minutes)": float(end_time) - float(self.start_time),
+            "duration (seconds)": (end_time_raw - self.start_time_raw).seconds,
         }
         result = result.copy()
         result.insert(0, time_info)
