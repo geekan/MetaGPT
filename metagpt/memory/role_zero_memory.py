@@ -24,6 +24,11 @@ class RoleZeroLongTermMemory(BaseModel):
         return self._rag_engine
 
     def _resolve_rag_engine(self) -> "SimpleEngine":
+        """Lazy loading of the RAG engine components, ensuring they are only loaded when needed.
+
+        It uses `Chroma` for retrieval and `LLMRanker` for ranking.
+        """
+
         try:
             from metagpt.rag.engines import SimpleEngine
             from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
@@ -40,6 +45,15 @@ class RoleZeroLongTermMemory(BaseModel):
         return rag_engine
 
     def fetch(self, query: str) -> list[Message]:
+        """Fetches long-term memories based on a query.
+
+        Args:
+            query (str): The query string to search for relevant memories.
+
+        Returns:
+            list[Message]: A list of user and AI messages related to the query.
+        """
+
         if not query:
             return []
 
@@ -54,6 +68,12 @@ class RoleZeroLongTermMemory(BaseModel):
         return memories
 
     def add(self, item: LongTermMemoryItem):
+        """Adds a long-term memory item to the RAG engine.
+
+        Args:
+            item (LongTermMemoryItem): The memory item containing user and AI messages.
+        """
+
         if not item:
             return
 
