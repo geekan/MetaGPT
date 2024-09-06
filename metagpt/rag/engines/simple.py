@@ -2,7 +2,8 @@
 
 import json
 import os
-from typing import Any, Optional, Union
+from pathlib import Path
+from typing import Any, List, Optional, Set, Union
 
 import fsspec
 from llama_index.core import SimpleDirectoryReader
@@ -78,6 +79,7 @@ class SimpleEngine(RetrieverQueryEngine):
             callback_manager=callback_manager,
         )
         self._transformations = transformations or self._default_transformations()
+        self._filenames = set()
 
     @classmethod
     def from_docs(
@@ -192,11 +194,11 @@ class SimpleEngine(RetrieverQueryEngine):
         self._try_reconstruct_obj(nodes)
         return nodes
 
-    def add_docs(self, input_files: list[str]):
+    def add_docs(self, input_files: List[Union[str, Path]]):
         """Add docs to retriever. retriever must has add_nodes func."""
         self._ensure_retriever_modifiable()
 
-        documents = SimpleDirectoryReader(input_files=input_files).load_data()
+        documents = SimpleDirectoryReader(input_files=[str(i) for i in input_files]).load_data()
         self._fix_document_metadata(documents)
 
         nodes = run_transformations(documents, transformations=self._transformations)
@@ -226,6 +228,24 @@ class SimpleEngine(RetrieverQueryEngine):
         self._ensure_retriever_deletable()
 
         return self.retriever.clear(**kwargs)
+
+    def delete_docs(self, input_files: List[Union[str, Path]]):
+        """Delete documents from the index and document store.
+
+        Args:
+            input_files (List[Union[str, Path]]): A list of file paths or file names to be deleted.
+
+        Raises:
+            NotImplementedError: If the method is not implemented.
+        """
+        exists_filenames = set()
+        filenames = {str(i) for i in input_files}
+        for doc_id, info in self.retriever._index.ref_doc_info.items():
+            if info.metadata.get("file_path") in filenames:
+                exists_filenames.add(doc_id)
+
+        for doc_id in exists_filenames:
+            self.retriever._index.delete_ref_doc(doc_id, delete_from_docstore=True)
 
     @staticmethod
     def get_obj_nodes(objs: Optional[list[RAGObject]] = None) -> list[ObjectNode]:
@@ -333,3 +353,7 @@ class SimpleEngine(RetrieverQueryEngine):
     @staticmethod
     def _default_transformations():
         return [SentenceSplitter()]
+
+    @property
+    def filenames(self) -> Set[str]:
+        return self._filenames

@@ -48,7 +48,7 @@ INSTRUCTIONS = """
 You must output in the same language as the Requirements.
 First, This language should be consistent with the language used in the requirement description. determine the natural language you must respond in. If the requirements specify a special language, follow those instructions. The default language for responses is English.
 Second, extract the restrictions in the requirements, specifically the steps. Do not include detailed demand descriptions; focus only on the restrictions.
-Third, if the requirements is a software development, extract the program language. If If no specific programming language is required, Use HTML (*.html), CSS (*.css), and JavaScript (*.js)
+Third, if the requirements is a software development, extract the program language. If no specific programming language is required, Use HTML (*.html), CSS (*.css), and JavaScript (*.js)
 
 Note:
 1. if there is not restrictions, requirements_restrictions must be ""
