@@ -3,7 +3,6 @@ This file is borrowed from OpenDevin
 You can find the original repository here:
 https://github.com/All-Hands-AI/OpenHands/blob/main/openhands/runtime/plugins/agent_skills/file_ops/file_ops.py
 """
-import asyncio
 import os
 import re
 import shutil
@@ -15,10 +14,9 @@ from pydantic import BaseModel, ConfigDict
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.tools.libs.index_repo import OTHER_TYPE, IndexRepo
+from metagpt.tools.libs.index_repo import IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import list_files
 from metagpt.utils.file import File
 from metagpt.utils.report import EditorReporter
 
@@ -882,35 +880,4 @@ class Editor(BaseModel):
             List[str]: A list of search results as strings, containing the text from the merged results
                         and any direct results from other files.
         """
-        if not file_or_path or not Path(file_or_path).exists():
-            raise ValueError(f'"{str(file_or_path)}" not exists')
-        files = [file_or_path] if not Path(file_or_path).is_dir() else list_files(file_or_path)
-        clusters, roots = IndexRepo.classify_path(files)
-        futures = []
-        others = set()
-        for persist_path, filenames in clusters.items():
-            if persist_path == OTHER_TYPE:
-                others.update(filenames)
-                continue
-            root = roots[persist_path]
-            repo = IndexRepo(persist_path=persist_path, root_path=root)
-            futures.append(repo.search(query=query, filenames=list(filenames)))
-
-        for i in others:
-            futures.append(File.read_text_file(i))
-
-        futures_results = []
-        if futures:
-            futures_results = await asyncio.gather(*futures)
-
-        result = []
-        v_result = []
-        for i in futures_results:
-            if isinstance(i, str):
-                result.append(i)
-            else:
-                v_result.append(i)
-
-        repo = IndexRepo()
-        merged = await repo.merge(query=query, indices_list=v_result)
-        return [i.text for i in merged] + result
+        return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)
