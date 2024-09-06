@@ -537,15 +537,14 @@ class Editor(BaseModel):
         content = "".join(new_lines)
         return content, n_added_lines
 
-    def _get_indentation_info(self, content, first_error_line):
+    def _get_indentation_info(self, content, first_line):
         """
-        Information about the current edit's indentation.
-        Includes guidance on how to fix it.
+        The indentation of the first insert line and the previous line, along with guidance for the next attempt.
         """
         content_lines = content.split("\n")
-        pre_line = content_lines[first_error_line - 2] if first_error_line - 2 >= 0 else ""
+        pre_line = content_lines[first_line - 2] if first_line - 2 >= 0 else ""
         pre_line_indent = len(pre_line) - len(pre_line.lstrip())
-        insert_line = content_lines[first_error_line - 1]
+        insert_line = content_lines[first_line - 1]
         insert_line_indent = len(insert_line) - len(insert_line.lstrip())
         ret_str = INDENTATION_INFO.format(
             pre_line=pre_line,
@@ -802,8 +801,8 @@ class Editor(BaseModel):
             new_content: str: The new content to replace the old content with.
 
         NOTE:
-        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
-        If you need to use it multiple times, wait for the next turn.
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         # FIXME: support replacing *all* occurrences
         if to_replace.strip() == "":
@@ -881,8 +880,8 @@ class Editor(BaseModel):
             line_number: int: The line number (starting from 1) to insert the content after.
             content: str: The content to insert.
         NOTE:
-        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
-        If you need to use it multiple times, wait for the next turn.
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 
@@ -904,8 +903,8 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             content: str: The content to insert.
         NOTE:
-        This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
-        If you need to use it multiple times, wait for the next turn.
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 

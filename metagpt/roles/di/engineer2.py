@@ -68,24 +68,29 @@ class Engineer2(RoleZero):
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
         cr = CodeReview()
-        self.tool_execution_map.update(
-            {
-                "Terminal.run_command": self.terminal.run_command,
-                "git_create_pull": git_create_pull,
-                "Engineer2.write_new_code": self.write_new_code,
-                "CodeReview.review": cr.review,
-                "CodeReview.fix": cr.fix,
-                # "ValidateAndRewriteCode.run": validate.run,
-                # "ValidateAndRewriteCode": validate.run,
-            }
-        )
         self.exclusive_tool_commands.append("Engineer2.write_new_code")
-        if self.run_eval:
+        if self.run_eval is True:
+            # Evalute tool map
             self.tool_execution_map.update(
                 {
+                    "git_create_pull": git_create_pull,
+                    "Engineer2.write_new_code": self.write_new_code,
+                    "CodeReview.review": cr.review,
+                    "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self._eval_terminal_run,
                     "RoleZero.ask_human": self._end,
                     "RoleZero.reply_to_human": self._end,
+                }
+            )
+        else:
+            # Default tool map
+            self.tool_execution_map.update(
+                {
+                    "git_create_pull": git_create_pull,
+                    "Engineer2.write_new_code": self.write_new_code,
+                    "CodeReview.review": cr.review,
+                    "CodeReview.fix": cr.fix,
+                    "Terminal.run_command": self.terminal.run_command,
                 }
             )
 
@@ -108,6 +113,7 @@ class Engineer2(RoleZero):
 
     async def write_new_code(self, path: str, instruction: str = "") -> str:
         """Write a new code file.
+
         Args:
             path (str): The absolute path of the file to be created.
             instruction (optional, str): Further hints or notice other than the current task instruction, must be very concise and can be empty. Defaults to "".
