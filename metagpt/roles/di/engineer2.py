@@ -14,7 +14,7 @@ from metagpt.prompts.di.engineer2 import (
     WRITE_CODE_SYSTEM_PROMPT,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import Message, UserMessage
+from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.git import git_create_pull
@@ -93,10 +93,6 @@ class Engineer2(RoleZero):
                     "Terminal.run_command": self.terminal.run_command,
                 }
             )
-
-    async def _act(self) -> Message:
-        message = await super()._act()
-        return message
 
     def _retrieve_experience(self) -> str:
         return ENGINEER_EXAMPLE
