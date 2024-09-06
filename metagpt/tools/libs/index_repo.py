@@ -85,7 +85,9 @@ class IndexRepo(BaseModel):
         """
         encoding = tiktoken.get_encoding("cl100k_base")
         result: List[Union[NodeWithScore, TextScore]] = []
-        filenames, _ = await self._filter(filenames)
+        filenames, excludes = await self._filter(filenames)
+        if not filenames:
+            raise ValueError(f"Unsupported file types: {[str(i) for i in excludes]}")
         filter_filenames = set()
         meta = await self._read_meta()
         for i in filenames:
@@ -269,7 +271,7 @@ class IndexRepo(BaseModel):
             List[NodeWithScore]: A list of nodes with scores matching the query.
         """
         if not Path(self.persist_path).exists():
-            return []
+            raise ValueError(f"IndexRepo {Path(self.persist_path).name} not exists.")
         engine = SimpleEngine.from_index(
             index_config=FAISSIndexConfig(persist_path=self.persist_path), retriever_configs=[FAISSRetrieverConfig()]
         )
@@ -293,11 +295,11 @@ class IndexRepo(BaseModel):
         return old_fp != fp
 
     @staticmethod
-    def classify_path(files_or_paths: List[Union[str, Path]]) -> Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+    def classify_path(files: List[Union[str, Path]]) -> Tuple[Dict[str, Set[Path]], Dict[str, str]]:
         """Classify a list of file paths or Path objects into different categories.
 
         Args:
-            files_or_paths (List[Union[str, Path]]): A list of file paths or Path objects to be classified.
+            files (List[Union[str, Path]]): A list of file paths or Path objects to be classified.
 
         Returns:
             Tuple[Dict[str, Set[Path]], Dict[str, str]]:
@@ -311,7 +313,7 @@ class IndexRepo(BaseModel):
 
         clusters = {}
         roots = {}
-        for i in files_or_paths:
+        for i in files:
             path = Path(i).absolute()
             path_type = OTHER_TYPE
             for type_, pattern in mappings.items():

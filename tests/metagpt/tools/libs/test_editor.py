@@ -670,6 +670,7 @@ async def mock_index_repo():
         persist_path=str(Path(CHATS_INDEX_ROOT) / chat_id), root_path=str(chat_path), min_token_count=0
     )
     await chat_repo.add(chat_files)
+    assert chat_files
 
     Path(UPLOAD_ROOT).mkdir(parents=True, exist_ok=True)
     command = f"cp -rf {str(src_path)} {str(UPLOAD_ROOT)}"
@@ -678,21 +679,27 @@ async def mock_index_repo():
     uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
     uploads_repo = IndexRepo(persist_path=UPLOADS_INDEX_ROOT, root_path=UPLOAD_ROOT, min_token_count=0)
     await uploads_repo.add(uploads_files)
+    assert uploads_files
 
     filenames = list_files(src_path)
     other_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
+    assert other_files
 
-    return chat_files, uploads_files, other_files
+    return chat_path, UPLOAD_ROOT, src_path
 
 
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_index_repo():
     # mock data
-    chat_files, uploads_files, other_files = await mock_index_repo()
+    chat_path, UPLOAD_ROOT, src_path = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.search_index_repo(query="业务线", files_or_paths=chat_files + uploads_files + other_files)
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=chat_path)
+    assert rsp
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=UPLOAD_ROOT)
+    assert rsp
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=src_path)
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)

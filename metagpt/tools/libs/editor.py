@@ -18,6 +18,7 @@ from metagpt.logs import logger
 from metagpt.tools.libs.index_repo import OTHER_TYPE, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import list_files
 from metagpt.utils.file import File
 from metagpt.utils.report import EditorReporter
 
@@ -866,7 +867,7 @@ class Editor(BaseModel):
         return path
 
     @staticmethod
-    async def search_index_repo(query: str, files_or_paths: List[Union[str, Path]]) -> List[str]:
+    async def search_index_repo(query: str, file_or_path: Union[str, Path]) -> List[str]:
         """Searches the index repository for a given query across specified files or paths.
 
         This method classifies the provided files or paths, performing a search on each cluster
@@ -875,13 +876,16 @@ class Editor(BaseModel):
 
         Args:
             query (str): The search query string to look for in the indexed files.
-            files_or_paths (List[Union[str, Path]]): A list of file paths or names to search within.
+            file_or_path (Union[str, Path]): A path or a filename to search within.
 
         Returns:
             List[str]: A list of search results as strings, containing the text from the merged results
                         and any direct results from other files.
         """
-        clusters, roots = IndexRepo.classify_path(files_or_paths)
+        if not file_or_path or not Path(file_or_path).exists():
+            raise ValueError(f'"{str(file_or_path)}" not exists')
+        files = [file_or_path] if not Path(file_or_path).is_dir() else list_files(file_or_path)
+        clusters, roots = IndexRepo.classify_path(files)
         futures = []
         others = set()
         for persist_path, filenames in clusters.items():
