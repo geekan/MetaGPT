@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.tools.libs.index_repo import DEFAULT_MIN_TOKEN_COUNT, OTHER_TYPE, IndexRepo
+from metagpt.tools.libs.index_repo import OTHER_TYPE, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.file import File
@@ -866,9 +866,7 @@ class Editor(BaseModel):
         return path
 
     @staticmethod
-    async def search_index_repo(
-        query: str, files_or_paths: List[Union[str, Path]], min_token_count: int = DEFAULT_MIN_TOKEN_COUNT
-    ) -> List[str]:
+    async def search_index_repo(query: str, files_or_paths: List[Union[str, Path]]) -> List[str]:
         """Searches the index repository for a given query across specified files or paths.
 
         This method classifies the provided files or paths, performing a search on each cluster
@@ -878,7 +876,6 @@ class Editor(BaseModel):
         Args:
             query (str): The search query string to look for in the indexed files.
             files_or_paths (List[Union[str, Path]]): A list of file paths or names to search within.
-            min_token_count (int, optional): The minimum token count to consider for indexing. Defaults to 0.
 
         Returns:
             List[str]: A list of search results as strings, containing the text from the merged results
@@ -892,7 +889,7 @@ class Editor(BaseModel):
                 others.update(filenames)
                 continue
             root = roots[persist_path]
-            repo = IndexRepo(persist_path=persist_path, root_path=root, min_token_count=min_token_count)
+            repo = IndexRepo(persist_path=persist_path, root_path=root)
             futures.append(repo.search(query=query, filenames=list(filenames)))
 
         for i in others:
@@ -910,6 +907,6 @@ class Editor(BaseModel):
             else:
                 v_result.append(i)
 
-        repo = IndexRepo(min_token_count=min_token_count)
+        repo = IndexRepo()
         merged = await repo.merge(query=query, indices_list=v_result)
         return [i.text for i in merged] + result

@@ -692,9 +692,7 @@ async def test_index_repo():
     chat_files, uploads_files, other_files = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.search_index_repo(
-        query="业务线", files_or_paths=chat_files + uploads_files + other_files, min_token_count=0
-    )
+    rsp = await editor.search_index_repo(query="业务线", files_or_paths=chat_files + uploads_files + other_files)
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)
