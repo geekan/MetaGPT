@@ -1,12 +1,7 @@
-from __future__ import annotations
-
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 
 from metagpt.base.base_serialization import BaseSerialization
-
-if TYPE_CHECKING:
-    from metagpt.schema import Message
 
 
 class BaseRole(BaseSerialization):
