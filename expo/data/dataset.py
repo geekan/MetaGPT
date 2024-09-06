@@ -291,6 +291,7 @@ class ExpDataset:
             train, test = train_test_split(df, test_size=1 - TRAIN_TEST_SPLIT, random_state=SEED)
         else:
             train = df
+            test = test_df
         train, dev = train_test_split(train, test_size=1 - TRAIN_DEV_SPLIT, random_state=SEED)
         self.save_split_datasets(train, "train")
         self.save_split_datasets(dev, "dev", target_col)
