@@ -408,6 +408,12 @@ class Message(BaseModel):
         dynamic_class = create_model(class_name, **{key: (value.__class__, ...) for key, value in kvs.items()})
         return dynamic_class.model_validate(kvs)
 
+    def is_user_message(self):
+        return self.role == "user"
+
+    def is_ai_message(self):
+        return self.role == "assistant"
+
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
@@ -955,3 +961,11 @@ class BaseEnum(Enum):
         obj._value_ = value
         obj.desc = desc
         return obj
+
+
+class LongTermMemoryItem(BaseModel):
+    user_message: Message
+    ai_message: Message
+
+    def rag_key(self) -> str:
+        return self.user_message.content

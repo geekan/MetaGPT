@@ -104,3 +104,7 @@ class Memory(BaseModel):
                 continue
             rsp += self.index[action]
         return rsp
+
+    def get_by_position(self, position: int) -> Message:
+        """Return the message by its position"""
+        return self.storage[position]
