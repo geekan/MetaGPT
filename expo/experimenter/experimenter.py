@@ -71,10 +71,10 @@ class Experimenter:
             0,
             {
                 "best_dev_score": best_dev_score,
-                "best_score_idx": best_score_idx,
-                "best_test_score": test_scores[best_score_idx],
+                "best_dev_score_idx": best_score_idx,
+                "best_dev_test_score": test_scores[best_score_idx],
                 "avg_test_score": avg_score,
-                "best_score": global_best_score,
+                "global_best_test_score": global_best_score,
             },
         )
         self.save_result(results)
