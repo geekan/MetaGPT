@@ -60,8 +60,8 @@ class Engineer2(RoleZero):
         """
         state = {
             "editor_open_file": self.editor.current_file,
-            "editor_current_directory": self.editor.working_dir,
-            "terminal_current_directory": await self.terminal.run_command("pwd"),
+            "editor_current_directory": self.editor.working_dir.absolute(),
+            "terminal_current_directory": (await self.terminal.run_command("pwd")).strip(),
         }
         self.cmd_prompt_current_state = CURRENT_STATE.format(**state).strip()
 

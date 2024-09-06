@@ -71,25 +71,25 @@ async def refresh_repo(instance, test_repo_dir, reclone_existing_repo=False):
     repo_identifier = instance["repo"]
     base_commit = instance["base_commit"]
     if os.path.exists(repo_path) and reclone_existing_repo is True:
-        logger.info(f"remove exist repo path:{repo_path}")
+        logger.info(f"remove exist repo path:{repo_path.absolute()}")
         shutil.rmtree(repo_path)
 
     if os.path.exists(repo_path):
-        logger.info(f"reset exist repo path:{repo_path}")
-        await terminal_run_command(f"cd {repo_path} && git reset --hard && git clean -n -d && git clean -f -d")
+        logger.info(f"reset exist repo path:{repo_path.absolute()}")
+        await terminal_run_command(
+            f"cd {repo_path.absolute()} && git reset --hard && git clean -n -d && git clean -f -d"
+        )
         await terminal_run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')")
         await terminal_run_command("echo $BRANCH")
         await terminal_run_command('git checkout "$BRANCH"')
     else:
         logger.info(f"clone repo to path:{repo_path}")
-        clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path}"
-        checkout_command = f"cd {repo_path} " + "&& git checkout -f {base_commit}" if base_commit else ""
+        clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path.absolute()}"
+        checkout_command = f"cd {repo_path.absolute()} " + f"&& git checkout -f {base_commit}" if base_commit else ""
         await terminal_run_command(clone_command)
         await terminal_run_command(checkout_command)
 
     await terminal_run_command("git branch")
-    # ignore backup file
-    await terminal_run_command("echo '.backup.*' >> .gitignore")
 
     return repo_path
 
@@ -97,6 +97,8 @@ async def refresh_repo(instance, test_repo_dir, reclone_existing_repo=False):
 async def get_git_diff():
     git_diff = ""
     try:
+        # ignore backup file
+        await terminal_run_command("echo '.backup.*' >> .gitignore")
         await terminal_run_command("git add -A")
         git_diff = await terminal_run_command("git diff --cached")
     except Exception as e:
@@ -117,15 +119,16 @@ async def run(instance, swe_result_dir, args):
     user_requirement_and_issue = INSTANCE_TEMPLATE.format(
         issue=instance["problem_statement"],
         hints_text=instance["hints_text"],
-        repo_path=repo_path,
+        repo_path=repo_path.absolute(),
         version=instance["version"],
         base_commit=instance["base_commit"],
     )
 
     logger.info(f"**** Starting to run {instance['instance_id']}****")
-    logger.info("User Requirement", user_requirement_and_issue)
+    logger.info("User Requirement:\n" + user_requirement_and_issue)
     try:
-        engineer = Engineer2(run_eval=True, editor=Editor(enable_auto_lint=True))
+        editor = Editor(enable_auto_lint=True, working_dir=Path(repo_path))
+        engineer = Engineer2(run_eval=True, editor=editor)
         await asyncio.wait_for(engineer.run(user_requirement_and_issue), timeout=args.max_wait_time_per_case * 60)
     except Exception as e:
         logger.warning(f"**** exception lead to end: {instance['instance_id']}****\n\nerror:{e}")
