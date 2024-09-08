@@ -7,9 +7,9 @@ from typing import Literal, Optional
 
 import aiofiles
 
-from examples.ags.w_action_node.graph import HotpotQAGraph
-from examples.ags.w_action_node.operator import Format, GenerateOnContext
-from examples.ags.w_action_node.utils import get_hotpotqa
+from examples.ags.scripts.graph import HotpotQAGraph
+from examples.ags.scripts.operator import Format, GenerateOnContext
+from examples.ags.scripts.utils import get_hotpotqa
 from metagpt.llm import LLM
 from metagpt.logs import logger
 

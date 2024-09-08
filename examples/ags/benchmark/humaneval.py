@@ -13,9 +13,9 @@ from typing import Literal, Optional
 import aiofiles
 from evalplus.data import get_human_eval_plus
 
-from examples.ags.w_action_node.graph import HumanEvalGraph
-from examples.ags.w_action_node.operator import GenerateCodeBlock
-from examples.ags.w_action_node.utils import sort_json_by_key
+from examples.ags.scripts.graph import HumanEvalGraph
+from examples.ags.scripts.operator import GenerateCodeBlock
+from examples.ags.scripts.utils import sort_json_by_key
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import add_jsonl_file, read_json_file

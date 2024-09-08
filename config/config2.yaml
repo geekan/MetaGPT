@@ -1,8 +1,39 @@
 # Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
 # Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
+
+# DeepSeeker
 llm:
-  api_type: "openai"  # or azure / ollama / groq etc.
-  model: "gpt-4-turbo"  # or gpt-3.5-turbo
-  base_url: "https://api.openai.com/v1"  # or forward url / other llm url
-  api_key: "YOUR_API_KEY"
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "deepseek-coder"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.deepseek.com/v1"  # or forward url / other llm url
+  api_key: "sk-6e1b0fcbbfe94035a502801a080eeb6c"
+  temperature: 1
+
+# OpenRouter
+# llm:
+#   api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+#   model: "gpt-3.5-turbo-16k"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+#   base_url: "https://oneapi.deepwisdom.ai/v1"  # or forward url / other llm url
+#   api_key: "sk-5TrFZV9UFVMaDJFm039f7128A50247068e9803166f0eEbF8"
+#   temperature: 0
+
+
+# llm:
+#   api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+#   model: "anthropic/claude-3.5-sonnet"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+#   base_url: "https://openrouter.ai/api/v1"  # or forward url / other llm url
+#   api_key: "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"
+#   temperature: 0
+
+models:
+ "claude-3-5-sonnet-20240620": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
+   api_type: "openai"  # or azure / ollama / groq etc.
+   base_url: "https://oneapi.deepwisdom.ai/v1"
+   api_key: "sk-uI0WfR446hllU5BO446836325dF7440d8970EaC18f4830C1"
+   temperature: 0
+ "deepseek-coder": # api_type: "openai"  # or azure / ollama / groq etc.
+   api_type: "openai"  # or azure / ollama / groq etc.
+   base_url: "https://oneapi.deepwisdom.ai/v1"
+   api_key: "sk-uI0WfR446hllU5BO446836325dF7440d8970EaC18f4830C1"
+   temperature: 0
