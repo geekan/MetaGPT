@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Create a product requirement document (PRD) outlining the features, user interface. Using ... as the programming language.",
+            "instruction": "Using HTML, CSS, JavaScrip as the programming language. And create a product requirement document (PRD) outlining the features, user interface. ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Design the software architecture for the CLI snake game, including the choice of programming language, libraries, and data flow. Using ... as the programming language.",
+            "instruction": "Using HTML, CSS, JavaScrip as the programming language. Design the software architecture for the CLI snake game, including the data flow.",
             "assignee": "Bob"
         }
     },
@@ -513,7 +513,7 @@ Explanation: The requirement is about software development. Assign each tasks to
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Create a cli snake game. Using ... as the programming language.",
+            "content": "Using HTML, CSS, JavaScrip as the programming language. Create a cli snake game.",
             "send_to": "Alice"
         }
     },
