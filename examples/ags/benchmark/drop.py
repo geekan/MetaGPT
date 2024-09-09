@@ -1,13 +1,10 @@
 import json
 import asyncio
-import aiofiles
 import pandas as pd
+from typing import List, Tuple, Callable, Dict, Any, Set
 import numpy as np
-from typing import List, Tuple, Callable, Set
-from tqdm.asyncio import tqdm_asyncio
 from scipy.optimize import linear_sum_assignment
-
-from examples.ags.benchmark.utils import generate_random_indices
+from tqdm.asyncio import tqdm_asyncio
 
 def is_number(text: str) -> bool:
     try:
@@ -104,61 +101,75 @@ def f1_score(predicted_bag: Set[str], gold_bag: Set[str]) -> float:
     f1 = (2 * precision * recall) / (precision + recall) if not (precision == 0.0 and recall == 0.0) else 0.0
     return f1
 
-async def load_data(file_path: str, samples=20) -> List[dict]:
-    data = []
-    async with aiofiles.open(file_path, mode="r") as file:
-        async for line in file:
-            data.append(json.loads(line))
-    random_indices = generate_random_indices(len(data), samples)
-    data = [data[i] for i in random_indices]
-    return data
+def load_data(file_path: str) -> List[Tuple[str, Dict[str, Any]]]:
+    with open(file_path, mode="r") as file:
+        data = json.load(file)
+        return list(data.items())
 
-async def evaluate_problem(input: str, context_str: str, graph: Callable, expected_output: str):
-    max_retries = 5
-    retries = 0
+async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, Any]], graph: Callable) -> Tuple[str, str, float]:
+    def answer_json_to_strings(answer: Dict[str, Any]) -> Tuple[Tuple[str, ...], str]:
+        if "number" in answer and answer["number"]:
+            return tuple([str(answer["number"])]), "number"
+        elif "spans" in answer and answer["spans"]:
+            return tuple(answer["spans"]), "span" if len(answer["spans"]) == 1 else "spans"
+        elif "date" in answer:
+            return (
+                tuple(
+                    [
+                        "{0} {1} {2}".format(
+                            answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]
+                        )
+                    ]
+                ),
+                "date",
+            )
+        else:
+            raise ValueError(f"Answer type not found, should be one of number, spans or date at: {json.dumps(answer)}")
 
-    while retries < max_retries:
-        try:
-            prediction, supporting_sentences = await graph(input, context_str) if graph else "None"
-            predicted_bags = answer_to_bags(prediction)
-            gold_bags = answer_to_bags(expected_output)
+    prediction = await graph(question, passage)
 
-            f1_per_bag = _align_bags(predicted_bags[1], gold_bags[1])
-            score = np.mean(f1_per_bag)
+    def get_f1_score(prediction: str, golden_answer: str) -> float:
+        predicted_bags = answer_to_bags(prediction)
+        gold_bags = answer_to_bags(golden_answer)
 
-            break
-        except Exception as e:
-            retries += 1
-            print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+        f1_per_bag = _align_bags(predicted_bags[1], gold_bags[1])
+        score = np.mean(f1_per_bag)
+        return score
 
-            if retries == max_retries:
-                print("Maximum retries reached. Skipping this sample.")
-                prediction = None
-                supporting_sentences = None
-                score = 0
-                break
+    max_score = 0.0
+    best_answer = None
+    for answer in answers:
+        golden_answer, _ = answer_json_to_strings(answer)
+        golden_answer = golden_answer[0]
+        score = get_f1_score(prediction, golden_answer)
+        if score > max_score:
+            max_score = score
+            best_answer = golden_answer
 
-    return input, prediction, expected_output, supporting_sentences, score
+    return best_answer, prediction, max_score
 
-async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50):
+async def evaluate_all_passages(annotations: List[Tuple[str, Dict[str, Any]]], graph: Callable, max_concurrent_tasks: int = 50) -> List[List[Any]]:
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
+    results = []
 
-    async def sem_evaluate(problem):
+    async def sem_evaluate(id: str, annotation: Dict[str, Any]):
         async with semaphore:
-            input_text = problem["question"]
-            expected_output = problem["answer"]
-            paragraphs = [item[1] for item in problem["context"] if isinstance(item[1], list)]
-            context_str = "\n".join(" ".join(paragraph) for paragraph in paragraphs)
-            return await evaluate_problem(input_text, context_str, graph, expected_output)
+            passage = annotation["passage"]
+            for qa_pair in annotation["qa_pairs"]:
+                question = qa_pair["question"]
+                answers = [qa_pair["answer"]]
+                if "validated_answers" in qa_pair and qa_pair["validated_answers"]:
+                    answers.extend(qa_pair["validated_answers"])
+                best_answer, prediction, score = await evaluate_problem(question, passage, answers, graph)
+                results.append([id, question, prediction, best_answer, score])
 
-    tasks = [sem_evaluate(problem) for problem in data]
+    tasks = [sem_evaluate(id, annotation) for id, annotation in annotations]
+    await tqdm_asyncio.gather(*tasks, desc="Evaluating DROP passages", total=len(annotations))
 
-    return await tqdm_asyncio.gather(*tasks, desc="Evaluating HotpotQA problems", total=len(data))
+    return results
 
-def save_results_to_csv(results: List[Tuple[str, str, str, str, float]], path: str) -> float:
-    df = pd.DataFrame(
-        results, columns=["question", "prediction", "expected_output", "supporting_sentences", "score"]
-    )
+def save_results_to_csv(results: List[List[Any]], path: str) -> float:
+    df = pd.DataFrame(results, columns=["id", "question", "prediction", "best_answer", "score"])
     average_score = df["score"].mean()
 
     output_file = f"{path}/{average_score:.5f}.csv"
@@ -167,9 +178,9 @@ def save_results_to_csv(results: List[Tuple[str, str, str, str, float]], path: s
 
     return average_score
 
-async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
-    data = await load_data(file_path, samples)
-    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
+async def drop_evaluation(graph: Callable, file_path: str, path: str) -> float:
+    data = load_data(file_path)
+    results = await evaluate_all_passages(data, graph, max_concurrent_tasks=20)
     average_score = save_results_to_csv(results, path=path)
-    print(f"Average score on HotpotQA dataset: {average_score:.5f}")
+    print(f"Average score on DROP dataset: {average_score:.5f}")
     return average_score
