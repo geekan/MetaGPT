@@ -3,29 +3,63 @@ This file is borrowed from OpenDevin
 You can find the original repository here:
 https://github.com/All-Hands-AI/OpenHands/blob/main/openhands/runtime/plugins/agent_skills/file_ops/file_ops.py
 """
-import base64
 import os
 import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
-from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
+from metagpt.tools.libs.index_repo import IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils import read_docx
-from metagpt.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
-from metagpt.utils.repo_to_markdown import is_text_file
+from metagpt.utils.file import File
 from metagpt.utils.report import EditorReporter
 
 # This is also used in unit tests!
-MSG_FILE_UPDATED = "[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]"
 LINTER_ERROR_MSG = "[Your proposed edit has introduced new syntax error(s). Please understand the errors and retry your edit command.]\n"
+
+
+INDENTATION_INFO = """
+The previous line is:
+"{pre_line}"
+The indentation has {pre_line_indent} spaces.
+
+The error line is:
+"{insert_line}"
+The indentation has {insert_line_indent} spaces.
+
+Please check the indentation of the code to ensure that it is not causing any errors.
+Try using indentation with either {sub_4_space} or {add_4_space} spaces.
+"""
+
+ERROR_GUIDANCE = """
+{linter_error_msg}
+
+[This is how your edit would have looked if applied]
+-------------------------------------------------
+{window_after_applied}
+-------------------------------------------------
+
+[This is the original code before your edit]
+-------------------------------------------------
+{window_before_applied}
+-------------------------------------------------
+
+Your changes have NOT been applied. Please fix your edit command and try again
+{guidance_message}
+
+"""
+
+SUCCESS_EDIT_INFO = """
+[File: {file_name} ({n_total_lines} lines total after edit)]
+{window_after_applied}
+[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
+"""
 
 
 class FileBlock(BaseModel):
@@ -70,103 +104,18 @@ class Editor(BaseModel):
 
     async def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
-        is_text, mime_type = await is_text_file(path)
-        if is_text:
-            lines = await self._read_text(path)
-        elif mime_type == "application/pdf":
-            lines = await self._read_pdf(path)
-        elif mime_type in {
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-word.document.macroEnabled.12",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
-            "application/vnd.ms-word.template.macroEnabled.12",
-        }:
-            lines = await self._read_docx(path)
-        else:
+        content = await File.read_text_file(path)
+        if not content:
             return FileBlock(file_path=str(path), block_content="")
         self.resource.report(str(path), "path")
 
+        lines = content.splitlines(keepends=True)
         lines_with_num = [f"{i + 1:03}|{line}" for i, line in enumerate(lines)]
         result = FileBlock(
             file_path=str(path),
             block_content="".join(lines_with_num),
         )
         return result
-
-    @staticmethod
-    async def _read_text(path: Union[str, Path]) -> List[str]:
-        content = await aread(path)
-        lines = content.split("\n")
-        return lines
-
-    @staticmethod
-    async def _read_pdf(path: Union[str, Path]) -> List[str]:
-        result = await Editor._omniparse_read_file(path)
-        if result:
-            return result
-
-        from llama_index.readers.file import PDFReader
-
-        reader = PDFReader()
-        lines = reader.load_data(file=Path(path))
-        return [i.text for i in lines]
-
-    @staticmethod
-    async def _read_docx(path: Union[str, Path]) -> List[str]:
-        result = await Editor._omniparse_read_file(path)
-        if result:
-            return result
-        return read_docx(str(path))
-
-    @staticmethod
-    async def _omniparse_read_file(path: Union[str, Path]) -> Optional[List[str]]:
-        from metagpt.tools.libs import get_env_default
-        from metagpt.utils.omniparse_client import OmniParseClient
-
-        env_base_url = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
-        env_timeout = await get_env_default(key="timeout", app_name="OmniParse", default_value="")
-        conf_base_url, conf_timeout = await Editor._read_omniparse_config()
-
-        base_url = env_base_url or conf_base_url
-        if not base_url:
-            return None
-        api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")
-        timeout = env_timeout or conf_timeout or 600
-        try:
-            timeout = int(timeout)
-        except ValueError:
-            timeout = 600
-
-        try:
-            if not await check_http_endpoint(url=base_url):
-                logger.warning(f"{base_url}: NOT AVAILABLE")
-                return None
-            client = OmniParseClient(api_key=api_key, base_url=base_url, max_timeout=timeout)
-            file_data = await aread_bin(filename=path)
-            ret = await client.parse_document(file_input=file_data, bytes_filename=str(path))
-        except (ValueError, Exception) as e:
-            logger.exception(f"{path}: {e}")
-            return None
-        if not ret.images:
-            return [ret.text] if ret.text else None
-
-        result = [ret.text]
-        img_dir = Path(path).parent / (Path(path).name.replace(".", "_") + "_images")
-        img_dir.mkdir(parents=True, exist_ok=True)
-        for i in ret.images:
-            byte_data = base64.b64decode(i.image)
-            filename = img_dir / i.image_name
-            await awrite_bin(filename=filename, data=byte_data)
-            result.append(f"![{i.image_name}]({str(filename)})")
-        return result
-
-    @staticmethod
-    async def _read_omniparse_config() -> Tuple[str, int]:
-        config = Config.default()
-        if config.omniparse and config.omniparse.url:
-            return config.omniparse.url, config.omniparse.timeout
-        return "", 0
 
     @staticmethod
     def _is_valid_filename(file_name: str) -> bool:
@@ -277,7 +226,7 @@ class Editor(BaseModel):
             return ""
         return f"[File: {current_file.resolve()} ({total_lines} lines total)]\n"
 
-    def set_workdir(self, path: str) -> None:
+    def _set_workdir(self, path: str) -> None:
         """
         Sets the working directory to the given path. eg: repo directory.
         You MUST to set it up before open the file.
@@ -321,6 +270,7 @@ class Editor(BaseModel):
 
         output = self._cur_file_header(path, total_lines)
         output += self._print_window(path, self.current_line, self._clamp(context_lines, 1, 2000))
+        self.resource.report(path, "path")
         return output
 
     def goto_line(self, line_number: int) -> str:
@@ -499,6 +449,25 @@ class Editor(BaseModel):
         content = "".join(new_lines)
         return content, n_added_lines
 
+    def _get_indentation_info(self, content, first_line):
+        """
+        The indentation of the first insert line and the previous line, along with guidance for the next attempt.
+        """
+        content_lines = content.split("\n")
+        pre_line = content_lines[first_line - 2] if first_line - 2 >= 0 else ""
+        pre_line_indent = len(pre_line) - len(pre_line.lstrip())
+        insert_line = content_lines[first_line - 1]
+        insert_line_indent = len(insert_line) - len(insert_line.lstrip())
+        ret_str = INDENTATION_INFO.format(
+            pre_line=pre_line,
+            pre_line_indent=pre_line_indent,
+            insert_line=insert_line,
+            insert_line_indent=insert_line_indent,
+            sub_4_space=max(insert_line_indent - 4, 0),
+            add_4_space=insert_line_indent + 4,
+        )
+        return ret_str
+
     def _edit_file_impl(
         self,
         file_name: Path,
@@ -518,7 +487,6 @@ class Editor(BaseModel):
             is_insert: bool = False: Whether to insert content at the given line number instead of editing.
             is_append: bool = False: Whether to append content to the file instead of editing.
         """
-        ret_str = ""
 
         ERROR_MSG = f"[Error editing file {file_name}. Please confirm the file is correct.]"
         ERROR_MSG_SUFFIX = (
@@ -568,14 +536,12 @@ class Editor(BaseModel):
                     try:
                         content, n_added_lines = self._insert_impl(lines, start, content)
                     except LineNumberError as e:
-                        ret_str += (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
-                        return ret_str
+                        return (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
                 else:
                     try:
                         content, n_added_lines = self._edit_impl(lines, start, end, content)
                     except LineNumberError as e:
-                        ret_str += (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
-                        return ret_str
+                        return (f"{ERROR_MSG}\n" f"{e}\n" f"{ERROR_MSG_SUFFIX}") + "\n"
 
                 if not content.endswith("\n"):
                     content += "\n"
@@ -622,9 +588,11 @@ class Editor(BaseModel):
                         first_error_line = None
 
                 if lint_error is not None:
-                    if first_error_line is not None:
-                        show_line = int(first_error_line)
-                    elif is_append:
+                    # if first_error_line is not None:
+                    #     show_line = int(first_error_line)
+
+                    # show the first insert line.
+                    if is_append:
                         # original end-of-file
                         show_line = len(lines)
                     # insert OR edit WILL provide meaningful line numbers
@@ -633,52 +601,52 @@ class Editor(BaseModel):
                     else:
                         raise ValueError("Invalid state. This should never happen.")
 
-                    ret_str += LINTER_ERROR_MSG
-                    ret_str += lint_error + "\n"
-
-                    editor_lines = n_added_lines + 20
-
-                    ret_str += "[This is how your edit would have looked if applied]\n"
-                    ret_str += "-------------------------------------------------\n"
-                    ret_str += self._print_window(file_name, show_line, editor_lines, return_str=True) + "\n"
-                    ret_str += "-------------------------------------------------\n\n"
-
-                    ret_str += "[This is the original code before your edit]\n"
-                    ret_str += "-------------------------------------------------\n"
-                    ret_str += (
-                        self._print_window(
-                            original_file_backup_path,
-                            show_line,
-                            editor_lines,
-                        )
-                        + "\n"
-                    )
-                    ret_str += "-------------------------------------------------\n"
-
-                    ret_str += (
-                        "Your changes have NOT been applied. Please fix your edit command and try again.\n"
+                    guidance_message = self._get_indentation_info(content, start or len(lines))
+                    guidance_message += (
                         "You either need to 1) Specify the correct start/end line arguments or 2) Correct your edit code.\n"
                         "DO NOT re-run the same failed edit command. Running it again will lead to the same error."
                     )
+                    lint_error_info = ERROR_GUIDANCE.format(
+                        linter_error_msg=LINTER_ERROR_MSG + lint_error,
+                        window_after_applied=self._print_window(file_name, show_line, n_added_lines + 20),
+                        window_before_applied=self._print_window(
+                            original_file_backup_path, show_line, n_added_lines + 20
+                        ),
+                        guidance_message=guidance_message,
+                    ).strip()
 
                     # recover the original file
                     with original_file_backup_path.open() as fin, file_name.open("w") as fout:
                         fout.write(fin.read())
                     original_file_backup_path.unlink()
-                    return ret_str
+                    return lint_error_info
 
         except FileNotFoundError as e:
-            ret_str += f"File not found: {e}\n"
+            return f"File not found: {e}\n"
         except IOError as e:
-            ret_str += f"An error occurred while handling the file: {e}\n"
+            return f"An error occurred while handling the file: {e}\n"
         except ValueError as e:
-            ret_str += f"Invalid input: {e}\n"
+            return f"Invalid input: {e}\n"
         except Exception as e:
+            guidance_message = self._get_indentation_info(content, start or len(lines))
+            guidance_message += (
+                "You either need to 1) Specify the correct start/end line arguments or 2) Enlarge the range of original code.\n"
+                "DO NOT re-run the same failed edit command. Running it again will lead to the same error."
+            )
+            error_info = ERROR_GUIDANCE.format(
+                linter_error_msg=LINTER_ERROR_MSG + str(e),
+                window_after_applied=self._print_window(file_name, start or len(lines), 40),
+                window_before_applied=self._print_window(original_file_backup_path, start or len(lines), 40),
+                guidance_message=guidance_message,
+            ).strip()
             # Clean up the temporary file if an error occurs
+            with original_file_backup_path.open() as fin, file_name.open("w") as fout:
+                fout.write(fin.read())
             if temp_file_path and Path(temp_file_path).exists():
                 Path(temp_file_path).unlink()
-            logger.warning(f"An unexpected error occurred: {e}")
-            raise e
+
+            # logger.warning(f"An unexpected error occurred: {e}")
+            raise Exception(f"{error_info}") from e
 
         # Update the file information and print the updated content
         with file_name.open("r", encoding="utf-8") as file:
@@ -690,11 +658,13 @@ class Editor(BaseModel):
                 self.current_line = max(1, len(lines))  # end of original file
             else:
                 self.current_line = start or n_total_lines or 1
-        ret_str += f"[File: {file_name.resolve()} ({n_total_lines} lines total after edit)]\n"
-        CURRENT_FILE = file_name
-        ret_str += self._print_window(CURRENT_FILE, self.current_line, self.window) + "\n"
-        ret_str += MSG_FILE_UPDATED.format(line_number=self.current_line)
-        return ret_str
+        success_edit_info = SUCCESS_EDIT_INFO.format(
+            file_name=file_name.resolve(),
+            n_total_lines=n_total_lines,
+            window_after_applied=self._print_window(file_name, self.current_line, self.window),
+            line_number=self.current_line,
+        ).strip()
+        return success_edit_info
 
     def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
         """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
@@ -741,6 +711,10 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             to_replace: str: The content to search for and replace.
             new_content: str: The new content to replace the old content with.
+
+        NOTE:
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         # FIXME: support replacing *all* occurrences
         if to_replace.strip() == "":
@@ -792,6 +766,7 @@ class Editor(BaseModel):
         )
         # lint_error = bool(LINTER_ERROR_MSG in ret_str)
         # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
+        self.resource.report(file_name, "path")
         return ret_str
 
     def insert_content_at_line(self, file_name: str, line_number: int, content: str) -> str:
@@ -816,6 +791,9 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             line_number: int: The line number (starting from 1) to insert the content after.
             content: str: The content to insert.
+        NOTE:
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 
@@ -836,6 +814,9 @@ class Editor(BaseModel):
         Args:
             file_name: str: The name of the file to edit.
             content: str: The content to insert.
+        NOTE:
+            This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
+            If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
 
@@ -914,6 +895,9 @@ class Editor(BaseModel):
             res_list.append(f'[End of matches for "{search_term}" in {file_path}]')
         else:
             res_list.append(f'[No matches found for "{search_term}" in {file_path}]')
+
+        extra = {"type": "search", "symbol": search_term, "lines": [i[0] - 1 for i in matches]} if matches else None
+        self.resource.report(file_path, "path", extra=extra)
         return "\n".join(res_list)
 
     def find_file(self, file_name: str, dir_path: str = "./") -> str:
@@ -951,3 +935,21 @@ class Editor(BaseModel):
         if not path.is_absolute():
             path = self.working_dir / path
         return path
+
+    @staticmethod
+    async def search_index_repo(query: str, file_or_path: Union[str, Path]) -> List[str]:
+        """Searches the index repository for a given query across specified files or paths.
+
+        This method classifies the provided files or paths, performing a search on each cluster
+        of files while handling other types of files separately. It merges results from structured
+        indices with any results from non-indexed files.
+
+        Args:
+            query (str): The search query string to look for in the indexed files.
+            file_or_path (Union[str, Path]): A path or a filename to search within.
+
+        Returns:
+            List[str]: A list of search results as strings, containing the text from the merged results
+                        and any direct results from other files.
+        """
+        return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)

@@ -24,7 +24,6 @@ Note:
  - XL: Social media platform, e-commerce app, real-time multiplayer game
  - For XS and S requirements, you don't need the standard software development process, you may directly ask Engineer to write the code. Otherwise, estimate if any part of the standard software development process may contribute to a better final code. If so, assign team members accordingly.
 3.1 If the task involves code review (CR) or code checking, you should assign it to Engineer.
-3.2. If the requirement is to fix a bug or issue, you should assign it to Issue Solver. However, if the code is written by Engineer, Engineer must maintain the code.
 4. If the requirement is a common-sense, logical, or math problem, you should respond directly without assigning any task to team members.
 5. If you think the requirement is not clear or ambiguous, you should ask the user for clarification immediately. Assign tasks only after all info is clear.
 6. It is helpful for Engineer to have both the system design and the project schedule for writing the code, so include paths of both files (if available) and remind Engineer to definitely read them when publishing message to Engineer.
@@ -43,7 +42,6 @@ Sixth, describe the requirements as they pertain to software development, data a
 Seventh, describe the technologies you must use.  
 """
 )
-
 TL_INFO = """
 {role_info}
 Your team member:

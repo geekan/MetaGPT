@@ -1,7 +1,19 @@
+import os
+import shutil
+from pathlib import Path
+
 import pytest
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.tools.libs.editor import Editor
+from metagpt.tools.libs.index_repo import (
+    CHATS_INDEX_ROOT,
+    CHATS_ROOT,
+    UPLOAD_ROOT,
+    UPLOADS_INDEX_ROOT,
+    IndexRepo,
+)
+from metagpt.utils.common import list_files
 
 TEST_FILE_CONTENT = """
 # this is line one
@@ -643,6 +655,55 @@ def test_append_to_single_empty_line_file():
 
     assert content.splitlines(keepends=True) == EXPECTED_APPEND_EMPTY_FILE
     assert n_added_lines == 1
+
+
+async def mock_index_repo():
+    chat_id = "1"
+    chat_path = Path(CHATS_ROOT) / chat_id
+    chat_path.mkdir(parents=True, exist_ok=True)
+    src_path = TEST_DATA_PATH / "requirements"
+    command = f"cp -rf {str(src_path)} {str(chat_path)}"
+    os.system(command)
+    filenames = list_files(chat_path)
+    chat_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
+    chat_repo = IndexRepo(
+        persist_path=str(Path(CHATS_INDEX_ROOT) / chat_id), root_path=str(chat_path), min_token_count=0
+    )
+    await chat_repo.add(chat_files)
+    assert chat_files
+
+    Path(UPLOAD_ROOT).mkdir(parents=True, exist_ok=True)
+    command = f"cp -rf {str(src_path)} {str(UPLOAD_ROOT)}"
+    os.system(command)
+    filenames = list_files(UPLOAD_ROOT)
+    uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
+    uploads_repo = IndexRepo(persist_path=UPLOADS_INDEX_ROOT, root_path=UPLOAD_ROOT, min_token_count=0)
+    await uploads_repo.add(uploads_files)
+    assert uploads_files
+
+    filenames = list_files(src_path)
+    other_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
+    assert other_files
+
+    return chat_path, UPLOAD_ROOT, src_path
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_index_repo():
+    # mock data
+    chat_path, UPLOAD_ROOT, src_path = await mock_index_repo()
+
+    editor = Editor()
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=chat_path)
+    assert rsp
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=UPLOAD_ROOT)
+    assert rsp
+    rsp = await editor.search_index_repo(query="业务线", file_or_path=src_path)
+    assert rsp
+
+    shutil.rmtree(CHATS_ROOT)
+    shutil.rmtree(UPLOAD_ROOT)
 
 
 if __name__ == "__main__":

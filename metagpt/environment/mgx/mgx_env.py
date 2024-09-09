@@ -96,7 +96,7 @@ class MGXEnv(Environment, SerializationMixin):
 
     async def reply_to_human(self, content: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
-        return "SUCCESS, human has received your reply. Refrain from resending duplicate messages."
+        return "SUCCESS, human has received your reply. Refrain from resending duplicate messages.  If you no longer need to take action, use the command ‘end’ to stop."
 
     def message_within_software_sop(self, message: Message) -> bool:
         # Engineer, QaEngineer can be end of the SOP. Their msg requires routing outside.

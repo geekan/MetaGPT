@@ -75,8 +75,15 @@ class RoleZero(Role):
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
     special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    # List of exclusive tool commands.
+    # If multiple instances of these commands appear, only the first occurrence will be retained.
+    exclusive_tool_commands: list[str] = [
+        "Editor.edit_file_by_replace",
+        "Editor.insert_content_at_line",
+        "Editor.append_file",
+    ]
     # Equipped with three basic tools by default for optional use
-    editor: Editor = Editor()
+    editor: Editor = Editor(enable_auto_lint=True)
     browser: Browser = Browser()
 
     # Experience
@@ -152,7 +159,7 @@ class RoleZero(Role):
                     "scroll_up",
                     "search_dir",
                     "search_file",
-                    "set_workdir",
+                    # "set_workdir",
                     "write",
                 ]
             }
@@ -233,10 +240,8 @@ class RoleZero(Role):
         async with ThoughtReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
-
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
 
-        self._add_memory(AIMessage(content=self.command_rsp))
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -276,7 +281,8 @@ class RoleZero(Role):
         if self.use_fixed_sop:
             return await super()._act()
 
-        commands, ok = await self._parse_commands(self.command_rsp)
+        commands, ok, self.command_rsp = await self._parse_commands(self.command_rsp)
+        self._add_memory(AIMessage(content=self.command_rsp))
         if not ok:
             error_msg = commands
             self._add_memory(UserMessage(content=error_msg))
@@ -424,12 +430,27 @@ class RoleZero(Role):
             tb = traceback.format_exc()
             print(tb)
             error_msg = str(e)
-            return error_msg, False
+            return error_msg, False, command_rsp
 
         # 为了对LLM不按格式生成进行容错
         if isinstance(commands, dict):
             commands = commands["commands"] if "commands" in commands else [commands]
-        return commands, True
+
+        # Set the exclusive command flag to False.
+        command_flag = [command["command_name"] not in self.exclusive_tool_commands for command in commands]
+        if command_flag.count(False) > 1:
+            # Keep only the first exclusive command
+            index_of_first_exclusive = command_flag.index(False)
+            commands = [
+                cmd
+                for index, cmd in enumerate(commands)
+                if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
+            ]
+            command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```json"
+            logger.info(
+                "exclusive command more than one in current command list. change the command list.\n" + command_rsp
+            )
+        return commands, True, command_rsp
 
     async def _run_commands(self, commands) -> str:
         outputs = []
@@ -473,7 +494,9 @@ class RoleZero(Role):
         if cmd["command_name"] == "Plan.finish_current_task":
             if not self.planner.plan.is_plan_finished():
                 self.planner.plan.finish_current_task()
-            command_output = "Current task is finished. If all tasks are finished, use 'end' to stop."
+            command_output = (
+                "Current task is finished. If you no longer need to take action, use the command ‘end’ to stop."
+            )
 
         elif cmd["command_name"] == "end":
             command_output = await self._end()
@@ -488,6 +511,7 @@ class RoleZero(Role):
                 )
             else:
                 command_output += f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output}"
+
         return command_output
 
     def _get_plan_status(self) -> Tuple[str, str]:
@@ -536,7 +560,7 @@ class RoleZero(Role):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
 
-    async def _end(self):
+    async def _end(self, **kwarg):
         self._set_state(-1)
         memory = self._fetch_memories()
         # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.

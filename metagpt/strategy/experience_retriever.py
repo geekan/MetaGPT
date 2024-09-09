@@ -842,7 +842,7 @@ Explanation: I will first need to read the system design document and the projec
 
 ## example 2
 Consider this example only after you have obtained the content of system design and project schedule documents.
-Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. Following the completion of these tasks, I will add a code review task for each file to ensure the implementation aligns with the provided system design and project schedule documents.
+Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. 
 
 Here's the plan:
 
@@ -901,8 +901,132 @@ Explanation: Take on one task, such as writing a file. Upon completion, finish c
     }
 ]
 ```
-"""
 
+## example 4
+I have received a GitHub issue URL.
+I will use browser to review the detailed information of this issue in order to understand the problem.
+```json
+[
+    {
+        "command_name": "Browser.goto",
+        "args": {
+            "url": "https://github.com/geekan/MetaGPT/issues/1275"
+        }
+    }
+]
+```
+
+## example 6
+I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
+```json
+[
+    {
+        "command_name": "Editor.find_file",
+        "args": {
+            "file_name": "openai_api.py"   
+        }
+    }
+]
+```
+
+
+
+## example 7
+I have located the openai_api.py file. I want to edit this file, so I will open it first.
+```json
+[
+    {
+        "command_name": "Editor.open_file",
+        "args": {
+            "path": "/workspace/MetaGPT/provider/openai_api.py"   
+        }
+    }
+]
+```
+
+## example 8
+I have opened the openai_api.py file. However, the range of lines shown is from 001 to 100, and I want to see more. Therefore, I want to use the scroll_down command to view additional lines.
+```json
+[
+    {
+        "command_name": "Editor.scroll_down",
+        "args": {{}}
+    }
+]
+```
+
+## example 9
+I've found the bug and will start fixing it. I'll pay close attention to the indentation.
+Since I only need to modify a few lines in this file, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
+Editor tool is exclusive. If I use this tool, I cannot use any other commands in the current response.
+```json
+[
+    {
+        "command_name": "Editor.edit_file_by_replace",
+        "args": {
+            "file_name":"/workspace/MetaGPT/provider/openai_api.py",
+            "to_replace": "            inv_trig_table = ["asin", "acos", "atan", "acot"]"
+            "new_content": "            inv_trig_table = ["asin", "acos", "atan", "acsc", "asec", "acot"]"
+        }
+    }
+]
+```
+
+## example 10
+I only need to add a few lines to the file, so I will use Editor.insert_content_at_line. The new code will not cover the original code.
+Note that the Editor command must be executed in a single response, so this step will only involve using the Editor command.
+```json
+[
+    {
+        "command_name": "Editor.insert_content_at_line",
+        "args": {
+            "file_name":"/workspace/MetaGPT/provider/openai_api.py"
+            "line_number":727,
+            "content": "if hasattr(self, '_print_' + func) and not isinstance(expr.func, UndefinedFunction):\\n            return getattr(self, '_print_' + func)(expr, exp)"
+        }
+    }
+]
+```
+
+## example 10.1
+To enhance the functionality of the 2048 game, including game end detection and score tracking, we need to add these features to the existing game_2048.py file. First, we will add a score tracking feature, and then we will insert game end detection logic into the game loop.
+We will use the Editor.insert_content_at_line command to insert new code into the file for adding score tracking and game end detection.
+Since Editor.insert_content_at_line can only be used once per response, this time I will use it to create the variable self.score
+```json
+[
+    {
+        "command_name": "Editor.insert_content_at_line",
+        "args": {
+            "file_name": "/home/mgx/mgx/MetaGPT/workspace/2048_game_py/game_2048.py",
+            "line_number": 4,
+            "content": "        self.score = 0\n"
+        }
+    }
+]
+```
+In the next turn, I will try to add another code snippet
+
+## example 11
+
+Create a pull request (Optional): Merge the changes from the new branch into the master branch.
+Thought: Now that the changes have been pushed to the remote repository, due to the user's requirement, let's create a pull request to merge the changes into the master branch.
+```json
+[
+    {
+        "command_name": "git_create_pull",
+        "args": {
+            "base": "master",
+            "head": "test-fix",
+            "base_repo_name": "garylin2099/MetaGPT",
+            "head_repo_name": "seeker-jie/MetaGPT",
+            "app_name": "github",
+            "title": "Fix Issue #1275: produced TypeError: openai.types.completion_usage.CompletionUsage() argument after ** must be a mapping, not NoneType"",
+            "body": "This pull request addresses issue #1275 by ensuring that chunk.usage is not None before passing it to CompletionUsage."
+            }
+        }
+]
+```
+"""
 
 WEB_SCRAPING_EXAMPLE = """
 ## action 1
