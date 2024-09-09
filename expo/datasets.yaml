@@ -151,7 +151,7 @@ datasets:
       \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
       \ eval data. Do not plot or make any visualizations.\n"
-    concrete-strength:
+  concrete-strength:
     dataset: concrete-strength
     metric: rmse
     target_col: Strength

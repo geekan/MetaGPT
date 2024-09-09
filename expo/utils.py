@@ -19,7 +19,9 @@ def load_data_config(file_path="data.yaml"):
     return data_config
 
 
+DATASET_CONFIG = load_data_config("datasets.yaml")
 DATA_CONFIG = load_data_config()
+DATA_CONFIG["datasets"].update(DATASET_CONFIG["datasets"])
 
 
 def get_mcts_logger():
