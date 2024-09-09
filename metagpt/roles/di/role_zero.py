@@ -608,8 +608,9 @@ class RoleZero(Role):
         related_memories = self.longterm_memory.fetch(memories[-1].content)
         logger.info(f"Fetched {len(related_memories)} long-term memories.")
 
-        if related_memories and self._is_first_message_from_ai(memories):
-            memories = memories[1:]
+        # Keep user and AI messages are paired.
+        if self._is_first_message_from_ai(memories):
+            memories.append(self.rc.memory.get_by_position(-(k + 1)))
 
         final_memories = related_memories + memories
 
