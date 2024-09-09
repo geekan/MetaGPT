@@ -610,7 +610,7 @@ class RoleZero(Role):
 
         # Keep user and AI messages are paired.
         if self._is_first_message_from_ai(memories):
-            memories.append(self.rc.memory.get_by_position(-(k + 1)))
+            memories.insert(0, self.rc.memory.get_by_position(-(k + 1)))
 
         final_memories = related_memories + memories
 
