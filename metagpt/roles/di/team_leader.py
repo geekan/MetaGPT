@@ -84,4 +84,4 @@ class TeamLeader(RoleZero):
 
     def finish_current_task(self):
         self.planner.plan.finish_current_task()
-        self.rc.memory.add(AIMessage(content=FINISH_CURRENT_TASK_CMD))
+        self._add_memory(AIMessage(content=FINISH_CURRENT_TASK_CMD))
