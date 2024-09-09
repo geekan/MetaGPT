@@ -110,7 +110,7 @@ async def load_execute_notebook(role):
     codes = [task.code for task in tasks if task.code]
     executor = role.execute_code
     executor.nb = nbformat.v4.new_notebook()
-    executor.nb.client = NotebookClient(executor.nb)
+    executor.nb_client = NotebookClient(executor.nb)
     # await executor.build()
     for code in codes:
         outputs, success = await executor.run(code)
