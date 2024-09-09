@@ -32,7 +32,7 @@ Note:
 9. Do not use the 'end' command when the current task remains unfinished; instead, use the 'finish_current_task' command to indicate completion before switching to the next task.
 10. Do not use escape characters in json data, particularly within file paths.
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
-12. If the requirement doesn't specify, use HTML (.html), CSS (.css), and JavaScript (.js) as the default languages. Report this to your team member.
+12.Default technology stack is HTML (.html), CSS (.css), and JavaScript (.js). When developing software, include this stack and add any specific programming languages to the instructions.
 13. If the the user message is a question. use 'reply to human' to respond to the question, and then end.
 14. Instructions and reply must be in the same language.
 """
