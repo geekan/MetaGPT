@@ -20,6 +20,9 @@ from sympy.parsing.latex import parse_latex
 from sympy.parsing.sympy_parser import parse_expr
 from tqdm.asyncio import tqdm_asyncio
 
+from examples.ags.benchmark.gsm8k import gsm8k_evaluation
+from examples.ags.benchmark.utils import generate_random_indices
+
 DatasetType = Literal["HumanEval", "MBPP", "Gsm8K", "MATH", "HotpotQA", "DROP"]
 
 
@@ -30,22 +33,6 @@ class Evaluator:
 
     def __init__(self, eval_path: str):
         self.eval_path = eval_path
-
-    def _generate_random_indices(self, n, n_samples, test=False):
-        """
-        生成随机索引
-        """
-
-        def _set_seed(seed=42):
-            np.random.seed(seed)
-
-        _set_seed()
-        indices = np.arange(n)
-        np.random.shuffle(indices)
-        if test:
-            return indices[n_samples:]
-        else:
-            return indices[:n_samples]
 
     def validation_evaluate(self, dataset: DatasetType, graph, params: dict, path):
         """
@@ -74,131 +61,16 @@ class Evaluator:
         """
         Evaluate on GSM8K dataset.
         """
-
-        # 模拟加载模型的函数
         async def load_graph():
             dataset = params["dataset"]
             llm_config = params["llm_config"]
+            return graph_class(name="Gsm8K", llm_config=llm_config, dataset=dataset)
 
-            graph = graph_class(name="Gsm8K", llm_config=llm_config, dataset=dataset)
-            return graph
-
-        # 清理文本并提取单个数字
-        def extract_number(text: str) -> Optional[float]:
-            # 使用正则表达式提取数字，包括整数和浮点数
-            matches = re.findall(r"[-+]?\d+(?:,\d{3})*(?:\.\d+)?|\d+\.\d+", text)
-            print(matches)
-            if matches:
-                # 获取最后一个匹配的数字
-                last_number = matches[-1]
-
-                # 移除逗号以统一格式
-                last_number = last_number.replace(",", "")
-
-                try:
-                    return float(last_number)
-                except ValueError:
-                    return None
-            else:
-                return None
-
-        # 宽松匹配分数计算函数
-        def loose_match_score(expected_output: str, prediction: str, tolerance: float = 1e-6) -> int:
-            expected_number = extract_number(expected_output)
-            predicted_number = extract_number(prediction)
-
-            print(predicted_number)
-
-            # 如果预期输出或预测输出为空，返回不匹配
-            if expected_number is None or predicted_number is None:
-                return 0
-
-            # 比较两个提取出的数字，允许一定的容差
-            if abs(expected_number - predicted_number) <= tolerance:
-                return 1  # 数字相近，认为匹配成功
-            else:
-                return 0  # 数字不匹配
-
-        # 异步评估单个问题
-        async def _evaluate_problem(input: str, graph, expected_output: str) -> Tuple[str, str, str, int, str]:
-            prompt = input
-            max_retries = 5
-            retries = 0
-
-            while retries < max_retries:
-                try:
-                    # 假设模型有一个异步生成函数
-                    prediction = await graph(prompt) if graph else "None"  # 这是一个占位符，替换成实际的模型生成逻辑
-                    cost = prediction[1]
-                    output = prediction[0]["solution"]
-
-                    score = loose_match_score(expected_output, prediction[0]["solution"])
-                    break
-
-                except Exception as e:
-                    retries += 1
-                    print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
-
-                    if retries == max_retries:
-                        print("Maximum retries reached. Skipping this sample.")
-                        output = None
-                        cost = None
-                        score = 0
-                        break
-
-            return input, output, expected_output, score, cost
-
-        # 异步读取JSONL文件
-        async def load_data(file_path: str) -> List[dict]:
-            data = []
-            async with aiofiles.open(file_path, mode="r") as file:
-                async for line in file:
-                    data.append(json.loads(line))
-            return data[:samples]
-
-        # 并行评估所有问题
-        async def evaluate_all_problems(data: List[dict], graph, max_concurrent_tasks: int = 300):
-            semaphore = asyncio.Semaphore(max_concurrent_tasks)
-
-            async def sem_evaluate(problem):
-                async with semaphore:
-                    input_text = problem["question"]
-                    expected_output = problem["answer"]
-                    return await _evaluate_problem(input_text, graph, expected_output)
-
-            tasks = [sem_evaluate(problem) for problem in data]
-
-            # 使用tqdm.gather来显示进度条
-            return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
-
-        # 保存结果到CSV文件
-        def save_results_to_csv(results: List[Tuple[str, str, str, int]], path):
-            df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
-            average_score = df["score"].mean()
-
-            # 生成文件名，保留五位小数
-            output_file = f"{path}/{average_score:.5f}.csv"
-            df.to_csv(output_file, index=False)
-            print(f"Results saved to {output_file}")
-
-            return average_score
-
-        async def gsm8k():
-            file_path = "examples/ags/w_action_node/data/gsm8k.jsonl"  # 替换为您的JSONL文件路径
-            data = await load_data(file_path)
-
-            graph = await load_graph()
-
-            results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-
-            # 保存结果到CSV文件并获取平均分
-            average_score = save_results_to_csv(results, path=path)
-
-            print(f"Average score: {average_score:.5f}")
-            return average_score
-
-        score = await gsm8k()
-
+        graph = await load_graph()
+        file_path = "examples/ags/data/gsm8k.jsonl"
+        
+        score = await gsm8k_evaluation(graph, file_path, samples, path)
+        
         return score
 
     async def _math_eval(self, graph_class, params, path, samples: int = 200):
@@ -457,7 +329,7 @@ class Evaluator:
 
             return await tqdm_asyncio.gather(*tasks, desc="Evaluating MATH problems", total=len(data))
 
-        def save_results_to_csv(results: List[Tuple[str, str, str, int]], path):
+        def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path):
             df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
             average_score = df["score"].mean()
 
@@ -503,7 +375,7 @@ class Evaluator:
             async with aiofiles.open(file_path, mode="r") as file:
                 async for line in file:
                     data.append(json.loads(line))
-            random_indices = self._generate_random_indices(len(data), samples)
+            random_indices = generate_random_indices(len(data), samples)
             data = [data[i] for i in random_indices]
             return data
 
@@ -656,9 +528,6 @@ class Evaluator:
             normalized = " ".join(parts).strip()
             return normalized
 
-        # def exact_match_score(prediction, ground_truth):
-        #     return int(normalize_answer(prediction) == normalize_answer(ground_truth))
-
         def answer_to_bags(answer: str) -> Set[str]:
             raw_spans = [answer]
 
@@ -725,7 +594,7 @@ class Evaluator:
             async with aiofiles.open(file_path, mode="r") as file:
                 async for line in file:
                     data.append(json.loads(line))
-            random_indices = self._generate_random_indices(len(data), samples)
+            random_indices = generate_random_indices(len(data), samples)
             data = [data[i] for i in random_indices]
             return data
 
@@ -778,18 +647,6 @@ class Evaluator:
 
             return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
 
-        # def save_results_to_jsonl(results: List[Tuple[str, str, str, str, int]], path):
-        #     avg_score = 0
-
-        #     with open(path, "w") as f:
-        #         for result in results:
-        #             f.write(json.dumps({"question": result[0], "prediction": result[1], "expected_output": result[2], "supporting_sentences": result[3], "score": result[4]}) + "\n")
-        #             avg_score += result[4]
-        #     print(f"Results saved to {path}")
-        #     avg_score /= len(results)
-
-        #     return avg_score
-
         def save_results_to_csv(results: List[Tuple[str, str, str, str, int]], path):
             df = pd.DataFrame(
                 results, columns=["question", "prediction", "expected_output", "supporting_sentences", "score"]
@@ -834,7 +691,7 @@ class Evaluator:
             async with aiofiles.open(file_path, mode="r") as file:
                 async for line in file:
                     data.append(json.loads(line))
-            random_indices = self._generate_random_indices(len(data), samples)
+            random_indices = generate_random_indices(len(data), samples)
             data = [data[i] for i in random_indices]
             return data
 
@@ -1056,7 +913,7 @@ class Evaluator:
             with open(file_path, mode="r") as file:
                 data = json.load(file)
                 data = list(data.items())
-            random_indices = self._generate_random_indices(len(data), samples)
+            random_indices = generate_random_indices(len(data), samples)
             data = [data[i] for i in random_indices]
             return data
 

@@ -322,3 +322,15 @@ MATH_ANSWER_FORMAT_PROMPT = """
 ### Instructions
 Provide the answer as a numerical value only, without units or any additional text.
 """
+
+PYTHON_CODE_SOLVER_PROMPT = """You are a professional Python programmer. Your task is to write Python code based on the user's request. Make sure to add appropriate explanations and your personal thought process to your code. Additionally, all code should be encapsulated in Python code blocks.
+
+The packages you can use include: numpy, scipy, pandas, sympy, statsmodels, scikit-learn. If you attempt to import another external package and encounter an error, do not say it cannot be imported. Instead, try to write new code that avoids this issue.
+
+Always output complete code rather than just giving suggestions or partial modifications, as your code will be executed directly. If immediate execution is required to check for possible errors, include test cases in the code.
+
+In your response, only the code that needs to be run should be wrapped in multi-line code blocks. No other multi-line code blocks should appear. Your code needs to print the output after execution. Your code should not print error messages.
+
+Problem description: {problem}
+Please write Python code to solve this problem.
+"""

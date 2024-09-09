@@ -1,29 +1,110 @@
 # -*- coding: utf-8 -*-
 # @Date    :
-# @Author  : issac
+# @Author  : all
 # @Desc    : test on gsm8k
+
+import re
+import json
 import asyncio
+import aiofiles
+import pandas as pd
+from typing import Optional, List, Tuple, Callable
+from tqdm.asyncio import tqdm_asyncio
 
-from deepeval.models.base_model import DeepEvalBaseLLM
+from examples.ags.benchmark.utils import generate_random_indices
+
+def extract_number(text: str) -> Optional[float]:
+    """清理文本并提取单个数字"""
+    matches = re.findall(r"[-+]?\d+(?:,\d{3})*(?:\.\d+)?|\d+\.\d+", text)
+    if matches:
+        last_number = matches[-1].replace(",", "")
+        try:
+            return float(last_number)
+        except ValueError:
+            return None
+    else:
+        return None
+
+def loose_match_score(expected_output: str, prediction: str, tolerance: float = 1e-6) -> int:
+    """宽松匹配分数计算函数"""
+    expected_number = extract_number(expected_output)
+    predicted_number = extract_number(prediction)
+
+    if expected_number is None or predicted_number is None:
+        return 0
+
+    if abs(expected_number - predicted_number) <= tolerance:
+        return 1
+    else:
+        return 0
 
 
-# 这里是DeepEval强制定义的模型基础格式，这里不需要进行改动，只需要调用即可
-class GraphModel(DeepEvalBaseLLM):
-    def __init__(self, graph):
-        self.solver = graph
+async def load_data(file_path: str, samples=1) -> List[dict]:
+    data = []
+    async with aiofiles.open(file_path, mode="r") as file:
+        async for line in file:
+            data.append(json.loads(line))
+    random_indices = generate_random_indices(len(data), samples)
+    data = [data[i] for i in random_indices]
+    return data
+        
+def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> float:
+    """保存结果到CSV文件"""
+    df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
+    average_score = df["score"].mean()
 
-    def load_model(self):
-        pass
+    output_file = f"{path}/{average_score:.5f}.csv"
+    df.to_csv(output_file, index=False)
+    print(f"Results saved to {output_file}")
+    return average_score
 
-    async def a_generate(self, prompt: str) -> str:
-        # TODO 还需要在这里继续整合Cost
-        solution_result, total_cost = await self.solver(prompt)
-        return solution_result
+async def evaluate_problem(input: str, graph: Callable, expected_output: str) -> Tuple[str, str, str, int, str]:
+    """评估单个问题"""
+    prompt = input
+    max_retries = 5
+    retries = 0
 
-    def generate(self, prompt: str) -> str:
-        loop = asyncio.get_event_loop()
-        solution_result = loop.run_until_complete(self.a_generate(prompt))  # 等待 a_generate 方法完成
-        return solution_result
+    while retries < max_retries:
+        try:
+            prediction = await graph(prompt)
+            cost = prediction[1]
+            output = prediction[0]["solution"]
 
-    def get_model_name(self):
-        return "Custom Azure OpenAI Model"
+            score = loose_match_score(expected_output, output)
+            break
+
+        except Exception as e:
+            retries += 1
+            print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+
+            if retries == max_retries:
+                print("Maximum retries reached. Skipping this sample.")
+                output = None
+                cost = None
+                score = 0
+                break
+
+    return input, output, expected_output, score, cost
+
+async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 20) -> List[Tuple[str, str, str, int, str]]:
+    """评估所有问题"""
+    semaphore = asyncio.Semaphore(max_concurrent_tasks)
+
+    async def sem_evaluate(problem):
+        async with semaphore:
+            input_text = problem["question"]
+            expected_output = problem["answer"]
+            return await evaluate_problem(input_text, graph, expected_output)
+
+    tasks = [sem_evaluate(problem) for problem in data]
+
+    return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
+
+async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+    """GSM8K评估主函数"""
+    data = await load_data(file_path, samples)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=5)
+    print(results)
+    average_score = save_results_to_csv(results, path=path)
+    print(f"Average score: {average_score:.5f}")
+    return average_score

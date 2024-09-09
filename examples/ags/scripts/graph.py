@@ -14,6 +14,7 @@ DatasetType = Literal["HumanEval", "MBPP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
 cost_manager = CostManager()
 
 
+# TODO 这个类应该作为一个基类，不能够这样使用
 class SolveGraph:
     def __init__(
         self,
@@ -25,7 +26,7 @@ class SolveGraph:
         self.dataset = dataset
         self.llm = create_llm_instance(llm_config)
         self.llm.cost_manager = CostManager()
-        self.generate = Generate()
+        self.generate = Generate(self.llm)
 
     async def __call__(self, problem: str):
         """
