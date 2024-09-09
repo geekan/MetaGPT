@@ -111,12 +111,12 @@ def get_split_dataset_path(dataset_name, config):
 
 
 def get_user_requirement(task_name, config):
-    datasets_dir = config["datasets_dir"]
+    # datasets_dir = config["datasets_dir"]
     if task_name in config["datasets"]:
         dataset = config["datasets"][task_name]
-        data_path = os.path.join(datasets_dir, dataset["dataset"])
+        # data_path = os.path.join(datasets_dir, dataset["dataset"])
         user_requirement = dataset["user_requirement"]
-        return data_path, user_requirement
+        return user_requirement
     else:
         raise ValueError(
             f"Dataset {task_name} not found in config file. Available datasets: {config['datasets'].keys()}"

@@ -7,7 +7,7 @@ import pandas as pd
 from expo.evaluation.evaluation import evaluate_score
 from expo.MCTS import create_initial_state
 from expo.research_assistant import ResearchAssistant
-from expo.utils import DATA_CONFIG
+from expo.utils import DATA_CONFIG, save_notebook
 
 
 class Experimenter:
@@ -26,7 +26,7 @@ class Experimenter:
             name="",
         )
 
-    async def run_di(self, di, user_requirement):
+    async def run_di(self, di, user_requirement, run_idx):
         max_retries = 3
         num_runs = 1
         run_finished = False
@@ -39,6 +39,7 @@ class Experimenter:
             except Exception as e:
                 print(f"Error: {e}")
                 num_runs += 1
+        save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
         if not run_finished:
             score_dict = {"train_score": -1, "dev_score": -1, "test_score": -1, "score": -1}
         return score_dict
@@ -50,7 +51,7 @@ class Experimenter:
 
         for i in range(self.args.num_experiments):
             di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
-            score_dict = await self.run_di(di, user_requirement)
+            score_dict = await self.run_di(di, user_requirement, run_idx=i)
             results.append(
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
             )
