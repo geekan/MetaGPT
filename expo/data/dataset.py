@@ -338,13 +338,13 @@ if __name__ == "__main__":
     save_analysis_pool = True
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
-    # for dataset_id in OPENML_DATASET_IDS:
-    #     openml_dataset = OpenMLExpDataset("", datasets_dir, dataset_id, force_update=force_update)
-    #     asyncio.run(process_dataset(openml_dataset, solution_designer, save_analysis_pool, datasets_dict))
+    for dataset_id in OPENML_DATASET_IDS:
+        openml_dataset = OpenMLExpDataset("", datasets_dir, dataset_id, force_update=force_update)
+        asyncio.run(process_dataset(openml_dataset, solution_designer, save_analysis_pool, datasets_dict))
 
-    # for dataset_name, target_col in CUSTOM_DATASETS:
-    #     custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
-    #     asyncio.run(process_dataset(custom_dataset, solution_designer, save_analysis_pool, datasets_dict))
+    for dataset_name, target_col in CUSTOM_DATASETS:
+        custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
+        asyncio.run(process_dataset(custom_dataset, solution_designer, save_analysis_pool, datasets_dict))
 
     for dataset_name, target_col in DSAGENT_DATASETS:
         custom_dataset = ExpDataset(dataset_name, datasets_dir, target_col=target_col, force_update=force_update)
