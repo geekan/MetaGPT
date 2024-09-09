@@ -3,24 +3,21 @@ This file is borrowed from OpenDevin
 You can find the original repository here:
 https://github.com/All-Hands-AI/OpenHands/blob/main/openhands/runtime/plugins/agent_skills/file_ops/file_ops.py
 """
-import base64
 import os
 import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
-from metagpt.config2 import Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
+from metagpt.tools.libs.index_repo import IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
-from metagpt.utils import read_docx
-from metagpt.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
-from metagpt.utils.repo_to_markdown import is_text_file
+from metagpt.utils.file import File
 from metagpt.utils.report import EditorReporter
 
 # This is also used in unit tests!
@@ -107,103 +104,18 @@ class Editor(BaseModel):
 
     async def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
-        is_text, mime_type = await is_text_file(path)
-        if is_text:
-            lines = await self._read_text(path)
-        elif mime_type == "application/pdf":
-            lines = await self._read_pdf(path)
-        elif mime_type in {
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-word.document.macroEnabled.12",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
-            "application/vnd.ms-word.template.macroEnabled.12",
-        }:
-            lines = await self._read_docx(path)
-        else:
+        content = await File.read_text_file(path)
+        if not content:
             return FileBlock(file_path=str(path), block_content="")
         self.resource.report(str(path), "path")
 
+        lines = content.splitlines(keepends=True)
         lines_with_num = [f"{i + 1:03}|{line}" for i, line in enumerate(lines)]
         result = FileBlock(
             file_path=str(path),
             block_content="".join(lines_with_num),
         )
         return result
-
-    @staticmethod
-    async def _read_text(path: Union[str, Path]) -> List[str]:
-        content = await aread(path)
-        lines = content.split("\n")
-        return lines
-
-    @staticmethod
-    async def _read_pdf(path: Union[str, Path]) -> List[str]:
-        result = await Editor._omniparse_read_file(path)
-        if result:
-            return result
-
-        from llama_index.readers.file import PDFReader
-
-        reader = PDFReader()
-        lines = reader.load_data(file=Path(path))
-        return [i.text for i in lines]
-
-    @staticmethod
-    async def _read_docx(path: Union[str, Path]) -> List[str]:
-        result = await Editor._omniparse_read_file(path)
-        if result:
-            return result
-        return read_docx(str(path))
-
-    @staticmethod
-    async def _omniparse_read_file(path: Union[str, Path]) -> Optional[List[str]]:
-        from metagpt.tools.libs import get_env_default
-        from metagpt.utils.omniparse_client import OmniParseClient
-
-        env_base_url = await get_env_default(key="base_url", app_name="OmniParse", default_value="")
-        env_timeout = await get_env_default(key="timeout", app_name="OmniParse", default_value="")
-        conf_base_url, conf_timeout = await Editor._read_omniparse_config()
-
-        base_url = env_base_url or conf_base_url
-        if not base_url:
-            return None
-        api_key = await get_env_default(key="api_key", app_name="OmniParse", default_value="")
-        timeout = env_timeout or conf_timeout or 600
-        try:
-            timeout = int(timeout)
-        except ValueError:
-            timeout = 600
-
-        try:
-            if not await check_http_endpoint(url=base_url):
-                logger.warning(f"{base_url}: NOT AVAILABLE")
-                return None
-            client = OmniParseClient(api_key=api_key, base_url=base_url, max_timeout=timeout)
-            file_data = await aread_bin(filename=path)
-            ret = await client.parse_document(file_input=file_data, bytes_filename=str(path))
-        except (ValueError, Exception) as e:
-            logger.exception(f"{path}: {e}")
-            return None
-        if not ret.images:
-            return [ret.text] if ret.text else None
-
-        result = [ret.text]
-        img_dir = Path(path).parent / (Path(path).name.replace(".", "_") + "_images")
-        img_dir.mkdir(parents=True, exist_ok=True)
-        for i in ret.images:
-            byte_data = base64.b64decode(i.image)
-            filename = img_dir / i.image_name
-            await awrite_bin(filename=filename, data=byte_data)
-            result.append(f"![{i.image_name}]({str(filename)})")
-        return result
-
-    @staticmethod
-    async def _read_omniparse_config() -> Tuple[str, int]:
-        config = Config.default()
-        if config.omniparse and config.omniparse.url:
-            return config.omniparse.url, config.omniparse.timeout
-        return "", 0
 
     @staticmethod
     def _is_valid_filename(file_name: str) -> bool:
@@ -1023,3 +935,21 @@ class Editor(BaseModel):
         if not path.is_absolute():
             path = self.working_dir / path
         return path
+
+    @staticmethod
+    async def search_index_repo(query: str, file_or_path: Union[str, Path]) -> List[str]:
+        """Searches the index repository for a given query across specified files or paths.
+
+        This method classifies the provided files or paths, performing a search on each cluster
+        of files while handling other types of files separately. It merges results from structured
+        indices with any results from non-indexed files.
+
+        Args:
+            query (str): The search query string to look for in the indexed files.
+            file_or_path (Union[str, Path]): A path or a filename to search within.
+
+        Returns:
+            List[str]: A list of search results as strings, containing the text from the merged results
+                        and any direct results from other files.
+        """
+        return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)

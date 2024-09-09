@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import asyncio
 import json
+import re
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import tiktoken
 from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -16,7 +17,23 @@ from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRankerConfig
 from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
-from metagpt.utils.repo_to_markdown import is_text_file
+from metagpt.utils.file import File
+
+UPLOADS_INDEX_ROOT = "/data/.index/uploads"
+DEFAULT_INDEX_ROOT = UPLOADS_INDEX_ROOT
+UPLOAD_ROOT = "/data/uploads"
+DEFAULT_ROOT = UPLOAD_ROOT
+CHATS_INDEX_ROOT = "/data/.index/chats"
+CHATS_ROOT = "/data/chats/"
+OTHER_TYPE = "other"
+
+DEFAULT_MIN_TOKEN_COUNT = 10000
+DEFAULT_MAX_TOKEN_COUNT = 100000000
+
+
+class IndexRepoMeta(BaseModel):
+    min_token_count: int
+    max_token_count: int
 
 
 class TextScore(BaseModel):
@@ -26,12 +43,15 @@ class TextScore(BaseModel):
 
 
 class IndexRepo(BaseModel):
-    persist_path: str  # The persist path of the index repo, {DEFAULT_WORKSPACE_ROOT}/.index/{chat_id or 'uploads'}/
-    root_path: str  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
+    persist_path: str = DEFAULT_INDEX_ROOT  # The persist path of the index repo, `/data/.index/uploads/` or `/data/.index/chats/{chat_id}/`
+    root_path: str = (
+        DEFAULT_ROOT  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
+    )
     fingerprint_filename: str = "fingerprint.json"
+    meta_filename: str = "meta.json"
     model: Optional[str] = None
-    min_token_count: int = 10000
-    max_token_count: int = 100000000
+    min_token_count: int = DEFAULT_MIN_TOKEN_COUNT
+    max_token_count: int = DEFAULT_MAX_TOKEN_COUNT
     recall_count: int = 5
     embedding: Optional[BaseEmbedding] = Field(default=None, exclude=True)
     fingerprints: Dict[str, str] = Field(default_factory=dict)
@@ -65,16 +85,21 @@ class IndexRepo(BaseModel):
         """
         encoding = tiktoken.get_encoding("cl100k_base")
         result: List[Union[NodeWithScore, TextScore]] = []
-        filenames, _ = await self._filter(filenames)
+        filenames, excludes = await self._filter(filenames)
+        if not filenames:
+            raise ValueError(f"Unsupported file types: {[str(i) for i in excludes]}")
         filter_filenames = set()
+        meta = await self._read_meta()
         for i in filenames:
-            content = await aread(filename=i)
+            content = await File.read_text_file(i)
             token_count = len(encoding.encode(content))
-            if not self._is_buildable(token_count):
+            if not self._is_buildable(
+                token_count, min_token_count=meta.min_token_count, max_token_count=meta.max_token_count
+            ):
                 result.append(TextScore(filename=str(i), text=content))
                 continue
             file_fingerprint = generate_fingerprint(content)
-            if self.fingerprints.get(str(i)) != file_fingerprint:
+            if self.fingerprints.get(str(i)) != file_fingerprint and Path(i).suffix.lower() not in {".pdf"}:
                 logger.error(f'file: "{i}" changed but not indexed')
                 continue
             filter_filenames.add(str(i))
@@ -93,6 +118,10 @@ class IndexRepo(BaseModel):
         Returns:
             List[Union[NodeWithScore, TextScore]]: A list of merged results sorted by similarity.
         """
+        flat_nodes = [node for indices in indices_list if indices for node in indices if node]
+        if len(flat_nodes) <= self.recall_count:
+            return flat_nodes
+
         if not self.embedding:
             config = Config.default()
             if self.model:
@@ -102,7 +131,6 @@ class IndexRepo(BaseModel):
 
         scores = []
         query_embedding = await self.embedding.aget_text_embedding(query)
-        flat_nodes = [node for indices in indices_list for node in indices]
         for i in flat_nodes:
             text_embedding = await self.embedding.aget_text_embedding(i.text)
             similarity = self.embedding.similarity(query_embedding, text_embedding)
@@ -121,7 +149,7 @@ class IndexRepo(BaseModel):
         filter_filenames = []
         delete_filenames = []
         for i in filenames:
-            content = await aread(filename=i)
+            content = await File.read_text_file(i)
             if not self._is_fingerprint_changed(filename=i, content=content):
                 continue
             token_count = len(encoding.encode(content))
@@ -169,10 +197,11 @@ class IndexRepo(BaseModel):
             logger.debug(f"add docs {filenames}")
         engine.persist(persist_dir=self.persist_path)
         for i in filenames:
-            content = await aread(i)
+            content = await File.read_text_file(i)
             fp = generate_fingerprint(content)
             self.fingerprints[str(i)] = fp
         await awrite(filename=Path(self.persist_path) / self.fingerprint_filename, data=json.dumps(self.fingerprints))
+        await self._save_meta()
 
     def __str__(self):
         """Return a string representation of the IndexRepo.
@@ -182,7 +211,7 @@ class IndexRepo(BaseModel):
         """
         return f"{self.persist_path}"
 
-    def _is_buildable(self, token_count: int) -> bool:
+    def _is_buildable(self, token_count: int, min_token_count: int = -1, max_token_count=-1) -> bool:
         """Check if the token count is within the buildable range.
 
         Args:
@@ -191,7 +220,9 @@ class IndexRepo(BaseModel):
         Returns:
             bool: True if buildable, False otherwise.
         """
-        if token_count < self.min_token_count or token_count > self.max_token_count:
+        min_token_count = min_token_count if min_token_count >= 0 else self.min_token_count
+        max_token_count = max_token_count if max_token_count >= 0 else self.max_token_count
+        if token_count < min_token_count or token_count > max_token_count:
             return False
         return True
 
@@ -216,13 +247,13 @@ class IndexRepo(BaseModel):
                 logger.debug(f"{path} not is_relative_to {root_path})")
                 continue
             if not path.is_dir():
-                is_text, _ = await is_text_file(path)
+                is_text = await File.is_textual_file(path)
                 if is_text:
                     pathnames.append(path)
                 continue
             subfiles = list_files(path)
             for j in subfiles:
-                is_text, _ = await is_text_file(j)
+                is_text = await File.is_textual_file(j)
                 if is_text:
                     pathnames.append(j)
 
@@ -240,7 +271,7 @@ class IndexRepo(BaseModel):
             List[NodeWithScore]: A list of nodes with scores matching the query.
         """
         if not Path(self.persist_path).exists():
-            return []
+            raise ValueError(f"IndexRepo {Path(self.persist_path).name} not exists.")
         engine = SimpleEngine.from_index(
             index_config=FAISSIndexConfig(persist_path=self.persist_path), retriever_configs=[FAISSRetrieverConfig()]
         )
@@ -262,3 +293,114 @@ class IndexRepo(BaseModel):
             return True
         fp = generate_fingerprint(content)
         return old_fp != fp
+
+    @staticmethod
+    def find_index_repo_path(files: List[Union[str, Path]]) -> Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+        """Map the file path to the corresponding index repo.
+
+        Args:
+            files (List[Union[str, Path]]): A list of file paths or Path objects to be classified.
+
+        Returns:
+            Tuple[Dict[str, Set[Path]], Dict[str, str]]:
+                - A dictionary mapping the index repo path to the files.
+                - A dictionary mapping the index repo path to their corresponding root directories.
+        """
+        mappings = {
+            UPLOADS_INDEX_ROOT: re.compile(r"^/data/uploads($|/.*)"),
+            CHATS_INDEX_ROOT: re.compile(r"^/data/chats/\d+($|/.*)"),
+        }
+
+        clusters = {}
+        roots = {}
+        for i in files:
+            path = Path(i).absolute()
+            path_type = OTHER_TYPE
+            for type_, pattern in mappings.items():
+                if re.match(pattern, str(i)):
+                    path_type = type_
+                    break
+            if path_type == CHATS_INDEX_ROOT:
+                chat_id = path.parts[3]
+                path_type = str(Path(path_type) / chat_id)
+                roots[path_type] = str(Path(CHATS_ROOT) / chat_id)
+            elif path_type == UPLOADS_INDEX_ROOT:
+                roots[path_type] = UPLOAD_ROOT
+
+            if path_type in clusters:
+                clusters[path_type].add(path)
+            else:
+                clusters[path_type] = {path}
+
+        return clusters, roots
+
+    async def _save_meta(self):
+        meta = IndexRepoMeta(min_token_count=self.min_token_count, max_token_count=self.max_token_count)
+        await awrite(filename=Path(self.persist_path) / self.meta_filename, data=meta.model_dump_json())
+
+    async def _read_meta(self) -> IndexRepoMeta:
+        default_meta = IndexRepoMeta(min_token_count=self.min_token_count, max_token_count=self.max_token_count)
+
+        filename = Path(self.persist_path) / self.meta_filename
+        if not filename.exists():
+            return default_meta
+        meta_data = await aread(filename=filename)
+        try:
+            meta = IndexRepoMeta.model_validate_json(meta_data)
+            return meta
+        except Exception as e:
+            logger.warning(f"Load meta error: {e}")
+        return default_meta
+
+    @staticmethod
+    async def cross_repo_search(query: str, file_or_path: Union[str, Path]) -> List[str]:
+        """Search for a query across multiple repositories.
+
+        This asynchronous function searches for the specified query in files
+        located at the given path or file.
+
+        Args:
+            query (str): The search term to look for in the files.
+            file_or_path (Union[str, Path]): The path to the file or directory
+                where the search should be conducted. This can be a string path
+                or a Path object.
+
+        Returns:
+            List[str]: A list of strings containing the paths of files that
+            contain the query results.
+
+        Raises:
+            ValueError: If the query string is empty.
+        """
+        if not file_or_path or not Path(file_or_path).exists():
+            raise ValueError(f'"{str(file_or_path)}" not exists')
+        files = [file_or_path] if not Path(file_or_path).is_dir() else list_files(file_or_path)
+        clusters, roots = IndexRepo.find_index_repo_path(files)
+        futures = []
+        others = set()
+        for persist_path, filenames in clusters.items():
+            if persist_path == OTHER_TYPE:
+                others.update(filenames)
+                continue
+            root = roots[persist_path]
+            repo = IndexRepo(persist_path=persist_path, root_path=root)
+            futures.append(repo.search(query=query, filenames=list(filenames)))
+
+        for i in others:
+            futures.append(File.read_text_file(i))
+
+        futures_results = []
+        if futures:
+            futures_results = await asyncio.gather(*futures)
+
+        result = []
+        v_result = []
+        for i in futures_results:
+            if isinstance(i, str):
+                result.append(i)
+            else:
+                v_result.append(i)
+
+        repo = IndexRepo()
+        merged = await repo.merge(query=query, indices_list=v_result)
+        return [i.text for i in merged] + result
