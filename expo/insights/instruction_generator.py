@@ -84,9 +84,13 @@ class InstructionGenerator:
         new_instructions = []
         if len(data) == 0:
             mcts_logger.log("MCTS", f"No insights available for task {task_id}")
-            return [original_instruction]  # Return the original instruction if no insights are available
-        for item in data[:max_num]:
-            insights = item["Analysis"]
+            # return [original_instruction]  # Return the original instruction if no insights are available
+        for i in range(max_num):
+            if len(data) == 0:
+                insights = "No insights available"
+            else:
+                item = data[i]
+                insights = item["Analysis"]
             new_instruction = await InstructionGenerator.generate_new_instruction(original_instruction, insights)
             new_instructions.append(new_instruction)
         return new_instructions

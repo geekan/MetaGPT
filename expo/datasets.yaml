@@ -151,3 +151,28 @@ datasets:
       \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
       \ eval data. Do not plot or make any visualizations.\n"
+  concrete-strength:
+    dataset: concrete-strength
+    metric: rmse
+    target_col: Strength
+    user_requirement: "This is a concrete-strength dataset. Your goal is to predict\
+      \ the target column `Strength`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport rmse on\
+      \ the eval data. Do not plot or make any visualizations.\n"
+  smoker-status:
+    dataset: smoker-status
+    metric: f1
+    target_col: smoking
+    user_requirement: "This is a smoker-status dataset. Your goal is to predict the\
+      \ target column `smoking`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  software-defects:
+    dataset: software-defects
+    metric: f1
+    target_col: defects
+    user_requirement: "This is a software-defects dataset. Your goal is to predict\
+      \ the target column `defects`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+

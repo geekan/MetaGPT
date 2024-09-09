@@ -7,8 +7,7 @@ from pathlib import Path
 import nbformat
 import yaml
 from loguru import logger as _logger
-
-# from nbclient import NotebookClient
+from nbclient import NotebookClient
 from nbformat.notebooknode import NotebookNode
 
 from metagpt.roles.role import Role
@@ -20,7 +19,9 @@ def load_data_config(file_path="data.yaml"):
     return data_config
 
 
+DATASET_CONFIG = load_data_config("datasets.yaml")
 DATA_CONFIG = load_data_config()
+DATA_CONFIG["datasets"].update(DATASET_CONFIG["datasets"])
 
 
 def get_mcts_logger():
@@ -92,15 +93,24 @@ def process_cells(nb: NotebookNode) -> NotebookNode:
 
 def save_notebook(role: Role, save_dir: str = "", name: str = ""):
     save_dir = Path(save_dir)
+    tasks = role.planner.plan.tasks
+    codes = [task.code for task in tasks if task.code]
+    clean_nb = nbformat.v4.new_notebook()
+    for code in codes:
+        clean_nb.cells.append(nbformat.v4.new_code_cell(code))
     nb = process_cells(role.execute_code.nb)
     file_path = save_dir / f"{name}.ipynb"
+    clean_file_path = save_dir / f"{name}_clean.ipynb"
     nbformat.write(nb, file_path)
+    nbformat.write(clean_nb, clean_file_path)
 
 
 async def load_execute_notebook(role):
     tasks = role.planner.plan.tasks
     codes = [task.code for task in tasks if task.code]
     executor = role.execute_code
+    executor.nb = nbformat.v4.new_notebook()
+    executor.nb.client = NotebookClient(executor.nb)
     # await executor.build()
     for code in codes:
         outputs, success = await executor.run(code)

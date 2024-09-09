@@ -34,7 +34,7 @@ class AugExperimenter(Experimenter):
             di.role_dir = f"{di.role_dir}_{self.args.task}"
             requirement = user_requirement + EXPS_PROMPT.format(experience=exps[i])
             print(requirement)
-            score_dict = await self.run_di(di, requirement)
+            score_dict = await self.run_di(di, requirement, run_idx=i)
             results.append(
                 {
                     "idx": i,

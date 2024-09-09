@@ -7,7 +7,7 @@ import pandas as pd
 from expo.evaluation.evaluation import evaluate_score
 from expo.MCTS import create_initial_state
 from expo.research_assistant import ResearchAssistant
-from expo.utils import DATA_CONFIG
+from expo.utils import DATA_CONFIG, save_notebook
 
 
 class Experimenter:
@@ -16,7 +16,8 @@ class Experimenter:
 
     def __init__(self, args, **kwargs):
         self.args = args
-        self.start_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        self.start_time_raw = datetime.datetime.now()
+        self.start_time = self.start_time_raw.strftime("%Y%m%d%H%M")
         self.state = create_initial_state(
             self.args.task,
             start_task_id=1,
@@ -25,7 +26,7 @@ class Experimenter:
             name="",
         )
 
-    async def run_di(self, di, user_requirement):
+    async def run_di(self, di, user_requirement, run_idx):
         max_retries = 3
         num_runs = 1
         run_finished = False
@@ -38,6 +39,7 @@ class Experimenter:
             except Exception as e:
                 print(f"Error: {e}")
                 num_runs += 1
+        save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
         if not run_finished:
             score_dict = {"train_score": -1, "dev_score": -1, "test_score": -1, "score": -1}
         return score_dict
@@ -49,7 +51,7 @@ class Experimenter:
 
         for i in range(self.args.num_experiments):
             di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
-            score_dict = await self.run_di(di, user_requirement)
+            score_dict = await self.run_di(di, user_requirement, run_idx=i)
             results.append(
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
             )
@@ -70,10 +72,10 @@ class Experimenter:
             0,
             {
                 "best_dev_score": best_dev_score,
-                "best_score_idx": best_score_idx,
-                "best_test_score": test_scores[best_score_idx],
+                "best_dev_score_idx": best_score_idx,
+                "best_dev_test_score": test_scores[best_score_idx],
                 "avg_test_score": avg_score,
-                "best_score": global_best_score,
+                "global_best_test_score": global_best_score,
             },
         )
         self.save_result(results)
@@ -99,11 +101,12 @@ class Experimenter:
         return score_dict
 
     def save_result(self, result):
-        end_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        end_time_raw = datetime.datetime.now()
+        end_time = end_time_raw.strftime("%Y%m%d%H%M")
         time_info = {
             "start_time": self.start_time,
             "end_time": end_time,
-            "duration (minutes)": float(end_time) - float(self.start_time),
+            "duration (seconds)": (end_time_raw - self.start_time_raw).seconds,
         }
         result = result.copy()
         result.insert(0, time_info)
