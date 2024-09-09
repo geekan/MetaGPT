@@ -76,27 +76,28 @@ async def refresh_repo(instance, test_repo_dir, reclone_existing_repo=False):
             shutil.rmtree(repo_path)
         if os.path.exists(repo_path):
             logger.info(f"reset exist repo path:{repo_path.absolute()}")
-            await terminal_run_command(
-                f"cd {repo_path.absolute()} && git reset --hard && git clean -n -d && git clean -f -d", terminal
-            )
-            await terminal_run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')", terminal)
-            await terminal_run_command("echo $BRANCH", terminal)
-            await terminal_run_command('git checkout "$BRANCH"', terminal)
+            for cmd in [
+                f"cd {repo_path.absolute()}",
+                "git reset --hard && git clean -n -d && git clean -f -d",
+                "BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')",
+                'git checkout "$BRANCH"',
+                "git branch",
+                "pwd",
+            ]:
+                await terminal_run_command(cmd, terminal)
         else:
             logger.info(f"clone repo to path:{repo_path}")
-            clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path.absolute()}"
-            checkout_command = (
-                f"cd {repo_path.absolute()} " + f"&& git checkout -f {base_commit}" if base_commit else ""
-            )
-            await terminal_run_command(clone_command, terminal)
-            await terminal_run_command(checkout_command, terminal)
-
-        await terminal_run_command("git branch", terminal)
-        await terminal_run_command("pwd", terminal)
+            for cmd in [
+                f"git clone 'https://github.com/{repo_identifier}.git' {repo_path.absolute()}",
+                f"cd {repo_path.absolute()}" + f" && git checkout -f {base_commit}" if base_commit else "",
+                "git branch",
+                "pwd",
+            ]:
+                await terminal_run_command(cmd, terminal)
     except Exception as e:
         logger.warning(e)
     finally:
-        terminal.close()
+        await terminal.close()
     return repo_path
 
 
@@ -107,15 +108,14 @@ async def get_git_diff(instance, test_repo_dir):
         repo_path = Path(test_repo_dir) / (
             instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
         )
-        # ignore backup file
-        await terminal_run_command(f"cd {repo_path.absolute()} ", terminal)
-        await terminal_run_command("echo '.backup.*' >> .gitignore", terminal)
-        await terminal_run_command("git add -A", terminal)
+        # ignore backup file and submit stage
+        for cmd in [f"cd {repo_path.absolute()} ", "echo '.backup.*' >> .gitignore", "git add -A"]:
+            await terminal_run_command(cmd, terminal)
         git_diff = await terminal_run_command("git diff --cached", terminal)
     except Exception as e:
         logger.error(f"Error during submission: {e}")
     finally:
-        terminal.close()
+        await terminal.close()
     return git_diff
 
 
@@ -193,7 +193,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", "--save_folder", default=swe_result_dir, help="Folder to save results and logs", type=str)
     parser.add_argument(
-        "-mwtc", "--max_wait_time_per_case", help="Maximum wait time allowed per test case (in minutes)", type=int
+        "-mwtc",
+        "--max_wait_time_per_case",
+        default=10,
+        help="Maximum wait time allowed per test case (in minutes)",
+        type=int,
     )
     parser.add_argument(
         "-o",
@@ -220,4 +224,5 @@ python tests/metagpt/roles/di/run_swe_agent_for_benchmark.py \
 --test_repo_dir "./data/test_repo" \
 --save_folder "./workspace/deepseek_coder_0907" \
 --max_wait_time_per_case 10 \
+--reclone_existing_repo
 """
