@@ -10,7 +10,6 @@ from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 from pydantic import Field, model_validator
 
 from metagpt.actions import Action, UserRequirement
-from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
 from metagpt.const import IMAGES
@@ -179,7 +178,6 @@ class RoleZero(Role):
 
         if not self.planner.plan.goal:
             self.planner.plan.goal = self.get_memories()[-1].content
-            self.requirements_constraints = await AnalyzeRequirementsRestrictions().run(self.planner.plan.goal)
 
         ### 1. Experience ###
         example = self._retrieve_experience()

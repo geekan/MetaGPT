@@ -44,8 +44,11 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 # Example
 {example}
 
-# Instruction
+# Role Instruction
 {instruction}
+
+# Common Instruction
+1. Choose a language the user can understand for responding. Usually, use the same as the user's message.
 """
 
 CMD_EXPERIENCE_MASK = f"""
@@ -87,9 +90,9 @@ Output should adhere to the following format.
 ]
 ```
 Notice: your output JSON data section must start with **```json [**
+Firstly, the language of the response is...
 """
 )
-
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
 Second, describe the messages you have received recently, with a particular emphasis on messages from users. If necessary, develop a plan to address the new user requirements.
