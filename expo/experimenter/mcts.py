@@ -1,19 +1,21 @@
 from expo.evaluation.visualize_mcts import get_tree_text
 from expo.experimenter.experimenter import Experimenter
-from expo.Greedy import Greedy
+from expo.Greedy import Greedy, Random
 from expo.MCTS import MCTS
 
 
 class MCTSExperimenter(Experimenter):
     result_path: str = "results/mcts"
 
-    def __init__(self, args, greedy=False, **kwargs):
+    def __init__(self, args, tree_mode=None, **kwargs):
         super().__init__(args, **kwargs)
-        self.greedy = greedy
+        self.tree_mode = tree_mode
 
     async def run_experiment(self):
-        if self.greedy:
+        if self.tree_mode == "greedy":
             mcts = Greedy(root_node=None, max_depth=5)
+        elif self.tree_mode == "random":
+            mcts = Random(root_node=None, max_depth=5)
         else:
             mcts = MCTS(root_node=None, max_depth=5)
         best_nodes = await mcts.search(

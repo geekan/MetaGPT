@@ -10,7 +10,9 @@ from expo.experimenter.mcts import MCTSExperimenter
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
-    parser.add_argument("--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base", "custom", "greedy"])
+    parser.add_argument(
+        "--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base", "custom", "greedy", "random"]
+    )
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
@@ -42,7 +44,9 @@ async def main(args):
     if args.exp_mode == "mcts":
         experimenter = MCTSExperimenter(args)
     elif args.exp_mode == "greedy":
-        experimenter = MCTSExperimenter(args, greedy=True)
+        experimenter = MCTSExperimenter(args, tree_mode="greedy")
+    elif args.exp_mode == "random":
+        experimenter = MCTSExperimenter(args, tree_mode="random")
     elif args.exp_mode == "aug":
         experimenter = AugExperimenter(args)
     elif args.exp_mode == "base":
