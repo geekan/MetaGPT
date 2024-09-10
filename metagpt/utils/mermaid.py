@@ -7,6 +7,7 @@
 """
 import asyncio
 import os
+import re
 from pathlib import Path
 from typing import List, Optional
 
@@ -38,6 +39,9 @@ async def mermaid_to_file(
     Returns:
         int: 0 if the conversion is successful, -1 if the conversion fails.
     """
+    file_head = "%%{init: {'theme': 'default', 'themeVariables': { 'fontFamily': 'Inter' }}}%%\n"
+    if not re.match(r"^%%\{.+", mermaid_code):
+        mermaid_code = file_head + mermaid_code
     suffixes = suffixes or ["svg"]
     # Write the Mermaid code to a temporary file
     config = config if config else Config.default()
