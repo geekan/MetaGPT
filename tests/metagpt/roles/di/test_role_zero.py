@@ -101,7 +101,7 @@ class TestRoleZero:
         mock_role_zero.rc.memory.get.assert_called_once_with(really_k)
 
         if k != 0:
-            mock_role_zero._should_use_longterm_memory.assert_called_once_with(k=really_k, k_memories=memories)
+            mock_role_zero._should_use_longterm_memory.assert_called_once_with(k=really_k)
 
             if should_use_ltm:
                 mock_role_zero.longterm_memory.fetch.assert_called_once_with("user")
@@ -173,18 +173,6 @@ class TestRoleZero:
 
         mock_role_zero.rc.memory.get_by_position.assert_any_call(-(mock_role_zero.memory_k + 1))
         mock_role_zero.rc.memory.get_by_position.assert_any_call(-(mock_role_zero.memory_k + 2))
-
-    @pytest.mark.parametrize(
-        "memories,expected",
-        [
-            ([UserMessage(content="user")], True),
-            ([AIMessage(content="ai")], False),
-            ([], False),
-        ],
-    )
-    def test_is_last_message_from_user(self, mock_role_zero: RoleZero, memories, expected):
-        result = mock_role_zero._is_last_message_from_user(memories)
-        assert result == expected
 
     @pytest.mark.parametrize(
         "memories,expected",

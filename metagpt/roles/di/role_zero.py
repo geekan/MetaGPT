@@ -13,7 +13,7 @@ from metagpt.actions import Action, UserRequirement
 from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
-from metagpt.const import IMAGES
+from metagpt.const import IMAGES, USER_REQUIREMENT
 from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
@@ -602,10 +602,10 @@ class RoleZero(Role):
 
         memories = self.rc.memory.get(k)
 
-        if not self._should_use_longterm_memory(k=k, k_memories=memories):
+        if not self._should_use_longterm_memory(k=k):
             return memories
 
-        query = self._build_longterm_memory_query(memories)
+        query = self._build_longterm_memory_query()
         related_memories = self.longterm_memory.fetch(query)
         logger.info(f"Fetched {len(related_memories)} long-term memories.")
 
@@ -625,19 +625,17 @@ class RoleZero(Role):
 
         self._transfer_to_longterm_memory()
 
-    def _should_use_longterm_memory(self, k: int = None, k_memories: list[Message] = None) -> bool:
+    def _should_use_longterm_memory(self, k: int = None) -> bool:
         """Determines if long-term memory should be used.
 
         Long-term memory is used if:
         - k is not 0.
-        - k_memories is None or k_memories is not empty, and the last message is a user message.
         - Long-term memory usage is enabled.
         - The count of recent memories is greater than self.memory_k.
         """
 
         conds = [
             k != 0,
-            k_memories is None or self._is_last_message_from_user(k_memories),
             self.enable_longterm_memory,
             self.rc.memory.count() > self.memory_k,
         ]
@@ -662,16 +660,19 @@ class RoleZero(Role):
 
         return LongTermMemoryItem(user_message=user_message, ai_message=message)
 
-    def _is_last_message_from_user(self, memories: list[Message]) -> bool:
-        return bool(memories and memories[-1].is_user_message())
-
     def _is_first_message_from_ai(self, memories: list[Message]) -> bool:
         return bool(memories and memories[0].is_ai_message())
 
-    def _build_longterm_memory_query(self, memories: list[Message]) -> str:
+    def _build_longterm_memory_query(self) -> str:
         """Build the content used to query related long-term memory.
 
         Default is to get the most recent user message, or an empty string if none is found.
         """
+        message = self._get_the_last_user_message()
 
-        return next((m.content for m in reversed(memories) if m.is_real_user_message()), "")
+        return message.content if message else ""
+
+    def _get_the_last_user_message(self) -> Message:
+        values = self.rc.memory.index.get(USER_REQUIREMENT, [])
+
+        return values[-1] if values else None

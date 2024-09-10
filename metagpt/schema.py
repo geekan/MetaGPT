@@ -415,9 +415,6 @@ class Message(BaseModel):
     def is_ai_message(self) -> bool:
         return self.role == "assistant"
 
-    def is_real_user_message(self) -> bool:
-        return self.is_user_message() and "UserRequirement" in self.cause_by
-
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
