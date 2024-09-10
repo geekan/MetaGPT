@@ -6,6 +6,8 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from tqdm.asyncio import tqdm_asyncio
 
+from examples.ags.benchmark.utils import generate_random_indices
+
 def is_number(text: str) -> bool:
     try:
         float(text)
@@ -101,10 +103,14 @@ def f1_score(predicted_bag: Set[str], gold_bag: Set[str]) -> float:
     f1 = (2 * precision * recall) / (precision + recall) if not (precision == 0.0 and recall == 0.0) else 0.0
     return f1
 
-def load_data(file_path: str) -> List[Tuple[str, Dict[str, Any]]]:
+def load_data(file_path: str, samples: int) -> List[Tuple[str, Dict[str, Any]]]:
     with open(file_path, mode="r") as file:
         data = json.load(file)
-        return list(data.items())
+        data = list(data.items())
+
+    random_indices = generate_random_indices(len(data), samples)
+    data = [data[i] for i in random_indices]
+    return data
 
 async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, Any]], graph: Callable) -> Tuple[str, str, float]:
     def answer_json_to_strings(answer: Dict[str, Any]) -> Tuple[Tuple[str, ...], str]:
@@ -178,8 +184,8 @@ def save_results_to_csv(results: List[List[Any]], path: str) -> float:
 
     return average_score
 
-async def drop_evaluation(graph: Callable, file_path: str, path: str) -> float:
-    data = load_data(file_path)
+async def drop_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+    data = load_data(file_path, samples)
     results = await evaluate_all_passages(data, graph, max_concurrent_tasks=20)
     average_score = save_results_to_csv(results, path=path)
     print(f"Average score on DROP dataset: {average_score:.5f}")
