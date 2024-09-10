@@ -57,11 +57,11 @@ class RoleZeroLongTermMemory(BaseModel):
         if not query:
             return []
 
-        nodes: list[NodeWithScore] = self.rag_engine.retrieve(query)
+        nodes = self.rag_engine.retrieve(query)
+        items = self._get_items_from_nodes(nodes)
 
         memories = []
-        for node in nodes:
-            item: LongTermMemoryItem = node.metadata["obj"]
+        for item in items:
             memories.append(item.user_message)
             memories.append(item.ai_message)
 
@@ -78,3 +78,11 @@ class RoleZeroLongTermMemory(BaseModel):
             return
 
         self.rag_engine.add_objs([item])
+
+    def _get_items_from_nodes(self, nodes: list["NodeWithScore"]) -> list[LongTermMemoryItem]:
+        """Get items from nodes and arrange them in order of their `created_at`."""
+
+        items: list[LongTermMemoryItem] = [node.metadata["obj"] for node in nodes]
+        items.sort(key=lambda item: item.created_at)
+
+        return items

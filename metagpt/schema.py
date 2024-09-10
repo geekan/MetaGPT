@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
+import time
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
@@ -408,11 +409,14 @@ class Message(BaseModel):
         dynamic_class = create_model(class_name, **{key: (value.__class__, ...) for key, value in kvs.items()})
         return dynamic_class.model_validate(kvs)
 
-    def is_user_message(self):
+    def is_user_message(self) -> bool:
         return self.role == "user"
 
-    def is_ai_message(self):
+    def is_ai_message(self) -> bool:
         return self.role == "assistant"
+
+    def is_real_user_message(self) -> bool:
+        return self.is_user_message() and "UserRequirement" in self.cause_by
 
 
 class UserMessage(Message):
@@ -966,6 +970,7 @@ class BaseEnum(Enum):
 class LongTermMemoryItem(BaseModel):
     user_message: Message
     ai_message: Message
+    created_at: Optional[float] = Field(default_factory=time.time)
 
     def rag_key(self) -> str:
         return self.user_message.content

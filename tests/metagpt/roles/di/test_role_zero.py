@@ -46,7 +46,13 @@ class TestRoleZero:
                 [AIMessage(content="ai1"), UserMessage(content="user"), AIMessage(content="ai2")],
                 [Message(content="related")],
                 True,
-                [Message(content="related"), UserMessage(content="user"), AIMessage(content="ai2")],
+                [
+                    Message(content="related"),
+                    UserMessage(content="user"),
+                    AIMessage(content="ai1"),
+                    UserMessage(content="user"),
+                    AIMessage(content="ai2"),
+                ],
             ),
             (
                 None,
@@ -79,6 +85,7 @@ class TestRoleZero:
     ):
         mock_role_zero.memory_k = 2
         mock_role_zero.rc.memory.get = mocker.Mock(return_value=memories)
+        mock_role_zero.rc.memory.get_by_position = mocker.Mock(return_value=UserMessage(content="user"))
         mock_role_zero._should_use_longterm_memory = mocker.Mock(return_value=should_use_ltm)
         mock_role_zero.longterm_memory.fetch = mocker.Mock(return_value=related_memories)
         mock_role_zero._is_first_message_from_ai = mocker.Mock(return_value=is_first_from_ai)
@@ -97,7 +104,7 @@ class TestRoleZero:
             mock_role_zero._should_use_longterm_memory.assert_called_once_with(k=really_k, k_memories=memories)
 
             if should_use_ltm:
-                mock_role_zero.longterm_memory.fetch.assert_called_once_with(memories[-1].content)
+                mock_role_zero.longterm_memory.fetch.assert_called_once_with("user")
                 mock_role_zero._is_first_message_from_ai.assert_called_once_with(memories)
 
     def test_add_memory(self, mocker, mock_role_zero: RoleZero):
@@ -189,4 +196,25 @@ class TestRoleZero:
     )
     def test_is_first_message_from_ai(self, mock_role_zero: RoleZero, memories, expected):
         result = mock_role_zero._is_first_message_from_ai(memories)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "memories,expected",
+        [
+            ([UserMessage(content="user1"), AIMessage(content="ai"), UserMessage(content="user2")], "user2"),
+            (
+                [
+                    UserMessage(content="user1", cause_by="test"),
+                    AIMessage(content="ai"),
+                    UserMessage(content="user2", cause_by="test"),
+                ],
+                "",
+            ),
+            ([AIMessage(content="ai1"), AIMessage(content="ai2")], ""),
+            ([UserMessage(content="user")], "user"),
+            ([], ""),
+        ],
+    )
+    def test_build_longterm_memory_query(self, mock_role_zero: RoleZero, memories, expected):
+        result = mock_role_zero._build_longterm_memory_query(memories)
         assert result == expected

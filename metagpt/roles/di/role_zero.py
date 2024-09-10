@@ -285,12 +285,12 @@ class RoleZero(Role):
         self._add_memory(AIMessage(content=self.command_rsp))
         if not ok:
             error_msg = commands
-            self._add_memory(UserMessage(content=error_msg))
+            self._add_memory(UserMessage(content=error_msg, cause_by=RunCommand))
             return error_msg
         logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
         logger.info(f"Commands outputs: \n{outputs}")
-        self._add_memory(UserMessage(content=outputs))
+        self._add_memory(UserMessage(content=outputs, cause_by=RunCommand))
 
         return AIMessage(
             content=f"I have finished the task, please mark my task as finished. Outputs: {outputs}",
@@ -605,7 +605,8 @@ class RoleZero(Role):
         if not self._should_use_longterm_memory(k=k, k_memories=memories):
             return memories
 
-        related_memories = self.longterm_memory.fetch(memories[-1].content)
+        query = self._build_longterm_memory_query(memories)
+        related_memories = self.longterm_memory.fetch(query)
         logger.info(f"Fetched {len(related_memories)} long-term memories.")
 
         # Keep user and AI messages are paired.
@@ -666,3 +667,11 @@ class RoleZero(Role):
 
     def _is_first_message_from_ai(self, memories: list[Message]) -> bool:
         return bool(memories and memories[0].is_ai_message())
+
+    def _build_longterm_memory_query(self, memories: list[Message]) -> str:
+        """Build the content used to query related long-term memory.
+
+        Default is to get the most recent user message, or an empty string if none is found.
+        """
+
+        return next((m.content for m in reversed(memories) if m.is_real_user_message()), "")

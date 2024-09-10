@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 
 from metagpt.memory.role_zero_memory import RoleZeroLongTermMemory
@@ -46,3 +48,36 @@ class TestRoleZeroLongTermMemory:
         item = LongTermMemoryItem(user_message=UserMessage(content="user"), ai_message=AIMessage(content="ai"))
         mock_memory.add(item)
         mock_memory.rag_engine.add_objs.assert_called_once_with([item])
+
+    def test_get_items_from_nodes(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_node1 = mocker.Mock()
+        mock_node2 = mocker.Mock()
+        mock_node3 = mocker.Mock()
+
+        now = datetime.now()
+        item1 = LongTermMemoryItem(
+            user_message=UserMessage(content="user1"), ai_message=AIMessage(content="ai1"), created_at=now.timestamp()
+        )
+        item2 = LongTermMemoryItem(
+            user_message=UserMessage(content="user2"),
+            ai_message=AIMessage(content="ai2"),
+            created_at=(now - timedelta(minutes=5)).timestamp(),
+        )
+        item3 = LongTermMemoryItem(
+            user_message=UserMessage(content="user3"),
+            ai_message=AIMessage(content="ai3"),
+            created_at=(now + timedelta(minutes=5)).timestamp(),
+        )
+
+        mock_node1.metadata = {"obj": item1}
+        mock_node2.metadata = {"obj": item2}
+        mock_node3.metadata = {"obj": item3}
+
+        result = mock_memory._get_items_from_nodes([mock_node1, mock_node2, mock_node3])
+
+        assert len(result) == 3
+        assert result[0] == item2
+        assert result[1] == item1
+        assert result[2] == item3
+        assert [item.user_message.content for item in result] == ["user2", "user1", "user3"]
+        assert [item.ai_message.content for item in result] == ["ai2", "ai1", "ai3"]
