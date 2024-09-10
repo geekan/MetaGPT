@@ -40,7 +40,7 @@ class CoTSolveGraph(SolveGraph):
 
     async def __call__(self, question: str, context: str) -> Tuple[str, str]:
         answer = await self.cot_generate(question, context, mode="context_fill")
-        return answer
+        return answer, self.llm.cost_manager.total_cost
 
 if __name__ == "__main__":
     async def main():

@@ -13,6 +13,9 @@ import re
 
 from examples.ags.benchmark.utils import generate_random_indices
 
+global cost
+cost = 0
+
 def is_number(text: str) -> bool:
     try:
         float(text)
@@ -72,7 +75,8 @@ async def evaluate_problem(input: str, context_str: str, graph: Callable, expect
 
     while retries < max_retries:
         try:
-            prediction = await graph(input, context_str) if graph else "None"
+            global cost
+            prediction, cost = await graph(input, context_str) if graph else "None"
             score = f1_score(prediction, expected_output)
 
             break
@@ -120,4 +124,6 @@ async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, pat
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
     average_score = save_results_to_csv(results, path=path)
     print(f"Average score on HotpotQA dataset: {average_score:.5f}")
+    global cost
+    print(f"Total cost: {cost}")
     return average_score
