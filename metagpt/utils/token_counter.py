@@ -40,6 +40,7 @@ TOKEN_COSTS = {
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
     "gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
@@ -57,7 +58,9 @@ TOKEN_COSTS = {
     "claude-2.0": {"prompt": 0.008, "completion": 0.024},
     "claude-2.1": {"prompt": 0.008, "completion": 0.024},
     "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
+    "claude-3-5-sonnet-20240620": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
+    "claude-3-haiku-20240307": {"prompt": 0.00025, "completion": 0.00125},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
     "yi-large": {"prompt": 0.0028, "completion": 0.0028},
@@ -185,6 +188,14 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
+# https://console.volcengine.com/ark/region:ark+cn-beijing/model
+DOUBAO_TOKEN_COSTS = {
+    "doubao-lite": {"prompt": 0.0003, "completion": 0.0006},
+    "doubao-lite-128k": {"prompt": 0.0008, "completion": 0.0010},
+    "doubao-pro": {"prompt": 0.0008, "completion": 0.0020},
+    "doubao-pro-128k": {"prompt": 0.0050, "completion": 0.0090},
+}
+
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
     "gpt-4o-2024-05-13": 128000,
@@ -200,6 +211,7 @@ TOKEN_MAX = {
     "gpt-4-0613": 8192,
     "gpt-4-32k": 32768,
     "gpt-4-32k-0613": 32768,
+    "gpt-4o-mini": 128000,
     "gpt-3.5-turbo-0125": 16385,
     "gpt-3.5-turbo": 16385,
     "gpt-3.5-turbo-1106": 16385,
@@ -224,6 +236,8 @@ TOKEN_MAX = {
     "claude-2.1": 200000,
     "claude-3-sonnet-20240229": 200000,
     "claude-3-opus-20240229": 200000,
+    "claude-3-5-sonnet-20240620": 200000,
+    "claude-3-haiku-20240307": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
     "yi-large": 16385,
@@ -259,7 +273,6 @@ TOKEN_MAX = {
     "qwen-7b-chat": 32000,
     "qwen-1.8b-longcontext-chat": 32000,
     "qwen-1.8b-chat": 8000,
-    
 }
 
 # For Amazon Bedrock US region
@@ -281,6 +294,7 @@ BEDROCK_TOKEN_COSTS = {
     "anthropic.claude-3-sonnet-20240229-v1:0": {"prompt": 0.003, "completion": 0.015},
     "anthropic.claude-3-sonnet-20240229-v1:0:28k": {"prompt": 0.003, "completion": 0.015},
     "anthropic.claude-3-sonnet-20240229-v1:0:200k": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-5-sonnet-20240620-v1:0": {"prompt": 0.003, "completion": 0.015},
     "anthropic.claude-3-haiku-20240307-v1:0": {"prompt": 0.00025, "completion": 0.00125},
     "anthropic.claude-3-haiku-20240307-v1:0:48k": {"prompt": 0.00025, "completion": 0.00125},
     "anthropic.claude-3-haiku-20240307-v1:0:200k": {"prompt": 0.00025, "completion": 0.00125},
@@ -343,8 +357,9 @@ def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-turbo",
         "gpt-4-vision-preview",
         "gpt-4-1106-vision-preview",
-        "gpt-4o-2024-05-13",
         "gpt-4o",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-mini",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
