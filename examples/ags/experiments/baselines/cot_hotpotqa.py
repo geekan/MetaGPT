@@ -19,7 +19,6 @@ HOTPOTQA_PROMPT = """
 
 class GenerateOp(BaseModel):
     answer: str = Field(default="", description="问题的答案")
-    supporting_sentences: str = Field(default="", description="支持性句子")
 
 class CoTGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "Generate"):
@@ -32,7 +31,7 @@ class CoTGenerate(Operator):
             fill_kwargs["mode"] = mode
         node = await ActionNode.from_pydantic(GenerateOp).fill(**fill_kwargs)
         response = node.instruct_content.model_dump()
-        return response["answer"], response["supporting_sentences"]
+        return response["answer"]
 
 class CoTSolveGraph(SolveGraph):
     def __init__(self, name: str, llm_config, dataset: str):
@@ -40,8 +39,8 @@ class CoTSolveGraph(SolveGraph):
         self.cot_generate = CoTGenerate(self.llm)
 
     async def __call__(self, question: str, context: str) -> Tuple[str, str]:
-        answer, supporting_sentences = await self.cot_generate(question, context, mode="context_fill")
-        return answer, supporting_sentences
+        answer = await self.cot_generate(question, context, mode="context_fill")
+        return answer
 
 if __name__ == "__main__":
     async def main():
