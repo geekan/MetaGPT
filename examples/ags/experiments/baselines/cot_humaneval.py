@@ -38,11 +38,12 @@ class CoTSolveGraph(SolveGraph):
 
 if __name__ == "__main__":
     async def main():
+        # llm_config = ModelsConfig.default().get("gpt-4o-mini")
         llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="HumanEval")
         file_path = "examples/ags/data/human-eval-new.jsonl"
-        samples = 1 # 33/131  
-        path = "examples/ags/data/baselines/general"
+        samples = 131 # 33/131  
+        path = "examples/ags/data/baselines/general/humaneval"
         score = await humaneval_evaluation(graph, file_path, samples, path)
         return score
 

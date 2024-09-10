@@ -82,10 +82,17 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating HumanEval problems", total=len(data))
 
+import os
+import time
+import json
+
 def save_results_to_jsonl(results: List[Tuple[str, str, str, int]], path: str) -> float:
     avg_score = 0
+    timestamp = int(time.time())
+    filename = f"humaneval_results_{timestamp}.jsonl"
+    full_path = os.path.join(path, filename)
 
-    with open(path, "w") as f:
+    with open(full_path, "w") as f:
         for result in results:
             f.write(
                 json.dumps(
@@ -99,10 +106,10 @@ def save_results_to_jsonl(results: List[Tuple[str, str, str, int]], path: str) -
                 + "\n"
             )
             avg_score += result[3]
-    print(f"Results saved to {path}")
+    print(f"save to {full_path}")
     avg_score /= len(results)
 
-    return avg_score
+    return round(avg_score, 5)
 
 async def humaneval_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
     data = await load_data(file_path, samples)
