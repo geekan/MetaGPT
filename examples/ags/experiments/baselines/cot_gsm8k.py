@@ -49,25 +49,18 @@ if __name__ == "__main__":
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="Gsm8K")
         file_path = "examples/ags/data/gsm8k.jsonl"
         samples = 1055
-        # samples = 100
         path = "examples/ags/data/baselines/general"
-        score = await gsm8k_evaluation(graph, file_path, samples, path)
-        return score
+        score, cost = await gsm8k_evaluation(graph, file_path, samples, path)
+        return score, cost
 
     import asyncio
     asyncio.run(main())
 
 
-# self consistency operator; universal self consistency; 
+# medprompt operator; universal self consistency; 
 
 # IO指的没有任何Trick，看LLM自身的一个效果。使用 model 发布者在对应的 dataset 使用的 prompt。
 
 # deepseek-chat; gpt-4o-mini; gpt-35-turbo-1106
-
-
-
-GENERATE_PROMPT = """
-Generate Solution for the following problem: {problem_description}
-"""
 
 # med ensemble 

@@ -221,14 +221,15 @@ async def load_data(file_path: str, samples: int = 200) -> List[dict]:
     data = [data[i] for i in random_indices]
     return data
 
-def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> float:
+def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
     df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
     average_score = df["score"].mean()
+    total_cost = df["cost"].iloc[-1]
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
-    return average_score
+    return average_score, total_cost
 
 async def evaluate_problem(problem: dict, graph: Callable) -> Tuple[str, str, str, int, str]:
     input_text = problem["problem"]
@@ -269,9 +270,10 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating MATH problems", total=len(data))
 
-async def math_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+async def math_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on MATH dataset: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost

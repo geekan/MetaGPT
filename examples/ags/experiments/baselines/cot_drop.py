@@ -40,7 +40,7 @@ class CoTSolveGraph(SolveGraph):
 
     async def __call__(self, question: str, context: str) -> Tuple[str, str]:
         answer = await self.cot_generate(question, context, mode="context_fill")
-        return answer
+        return answer, self.llm.cost_manager.total_cost
 
 if __name__ == "__main__":
     async def main():
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="DROP")
         file_path = "examples/ags/data/drop_dataset_dev.json"
-        samples = 3
+        samples = 1
         path = "examples/ags/data/baselines/general/drop"
         score = await drop_evaluation(graph, file_path, samples, path)
         return score

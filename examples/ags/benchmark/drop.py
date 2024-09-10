@@ -112,7 +112,7 @@ def load_data(file_path: str, samples: int) -> List[Tuple[str, Dict[str, Any]]]:
     data = [data[i] for i in random_indices]
     return data
 
-async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, Any]], graph: Callable) -> Tuple[str, str, float]:
+async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, Any]], graph: Callable) -> Tuple[str, str, float, str]:
     def answer_json_to_strings(answer: Dict[str, Any]) -> Tuple[Tuple[str, ...], str]:
         if "number" in answer and answer["number"]:
             return tuple([str(answer["number"])]), "number"
@@ -133,6 +133,8 @@ async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, 
             raise ValueError(f"Answer type not found, should be one of number, spans or date at: {json.dumps(answer)}")
 
     prediction = await graph(question, passage)
+    cost = prediction[1]  # 添加这行来获取cost
+    prediction = prediction[0]  # 修改这行以获取实际的预测结果
 
     def get_f1_score(prediction: str, golden_answer: str) -> float:
         predicted_bags = answer_to_bags(prediction)
@@ -152,7 +154,7 @@ async def evaluate_problem(question: str, passage: str, answers: List[Dict[str, 
             max_score = score
             best_answer = golden_answer
 
-    return best_answer, prediction, max_score
+    return best_answer, prediction, max_score, cost  # 修改返回值以包含cost
 
 async def evaluate_all_passages(annotations: List[Tuple[str, Dict[str, Any]]], graph: Callable, max_concurrent_tasks: int = 50) -> List[List[Any]]:
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
@@ -166,27 +168,29 @@ async def evaluate_all_passages(annotations: List[Tuple[str, Dict[str, Any]]], g
                 answers = [qa_pair["answer"]]
                 if "validated_answers" in qa_pair and qa_pair["validated_answers"]:
                     answers.extend(qa_pair["validated_answers"])
-                best_answer, prediction, score = await evaluate_problem(question, passage, answers, graph)
-                results.append([id, question, prediction, best_answer, score])
+                best_answer, prediction, score, cost = await evaluate_problem(question, passage, answers, graph)
+                results.append([id, question, prediction, best_answer, score, cost])  # 修改这行以包含cost
 
     tasks = [sem_evaluate(id, annotation) for id, annotation in annotations]
     await tqdm_asyncio.gather(*tasks, desc="Evaluating DROP passages", total=len(annotations))
 
     return results
 
-def save_results_to_csv(results: List[List[Any]], path: str) -> float:
-    df = pd.DataFrame(results, columns=["id", "question", "prediction", "best_answer", "score"])
+def save_results_to_csv(results: List[List[Any]], path: str) -> Tuple[float, float]:
+    df = pd.DataFrame(results, columns=["id", "question", "prediction", "best_answer", "score", "cost"])
     average_score = df["score"].mean()
+    total_cost = df["cost"].iloc[-1] # 添加这行来计算总cost
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
 
-    return average_score
+    return average_score, total_cost  # 修改返回值以包含total_cost
 
-async def drop_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+async def drop_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
     data = load_data(file_path, samples)
     results = await evaluate_all_passages(data, graph, max_concurrent_tasks=20)
-    average_score = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on DROP dataset: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost  # 修改返回值以包含total_cost

@@ -46,13 +46,15 @@ async def check_solution(solution, test_cases, entry_point):
 
     return FAIL, details
 
-async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, int]:
+async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, int, str]:
     max_retries = 5
     retries = 0
 
     while retries < max_retries:
         try:
-            solution = await graph(data["prompt"]) if graph else "None"
+            prediction = await graph(data["prompt"]) if graph else "None"
+            cost = prediction[1]  # 添加这行来获取cost
+            solution = prediction[0]  # 修改这行以获取实际的预测结果
             ret = await check_solution(solution, data["test_cases"], data["entry_point"])
 
             score = 1 if ret[0] == PASS else 0
@@ -67,11 +69,12 @@ async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, 
                 solution = None
                 ret = (FAIL, [])
                 score = 0
+                cost = 0  # 添加这行来处理错误情况下的cost
                 break
 
-    return data["prompt"], solution, ret[1], score
+    return data["prompt"], solution, ret[1], score, cost  # 修改返回值以包含cost
 
-async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50) -> List[Tuple[str, str, str, int]]:
+async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50) -> List[Tuple[str, str, str, int, str]]:
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
 
     async def sem_evaluate(problem):
@@ -86,8 +89,9 @@ import os
 import time
 import json
 
-def save_results_to_jsonl(results: List[Tuple[str, str, str, int]], path: str) -> float:
+def save_results_to_jsonl(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
     avg_score = 0
+    total_cost = 0  # 添加这行来计算总cost
     timestamp = int(time.time())
     filename = f"humaneval_results_{timestamp}.jsonl"
     full_path = os.path.join(path, filename)
@@ -101,19 +105,23 @@ def save_results_to_jsonl(results: List[Tuple[str, str, str, int]], path: str) -
                         "prediction": result[1],
                         "test_case_details": result[2],
                         "score": result[3],
+                        "cost": result[4],  # 添加这行来包含cost
                     }
                 )
                 + "\n"
             )
             avg_score += result[3]
+            total_cost += float(result[4])  # 添加这行来累加cost
     print(f"save to {full_path}")
     avg_score /= len(results)
+    total_cost = results[-1][4]  # 使用最后一个结果的cost作为总cost
 
-    return round(avg_score, 5)
+    return round(avg_score, 5), round(total_cost, 5)  # 修改返回值以包含total_cost
 
-async def humaneval_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+async def humaneval_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score = save_results_to_jsonl(results, path=path)
+    average_score, total_cost = save_results_to_jsonl(results, path=path)
     print(f"Average score on HumanEval dataset: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost  # 修改返回值以包含total_cost

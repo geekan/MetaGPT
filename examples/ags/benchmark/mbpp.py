@@ -51,13 +51,15 @@ async def check_solution(solution, test_cases, timeout=1):
 
     return FAIL, details
 
-async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, int]:
+async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, int, str]:
     max_retries = 5
     retries = 0
 
     while retries < max_retries:
         try:
-            solution = await graph(data["prompt"]) if graph else "None"
+            prediction = await graph(data["prompt"]) if graph else "None"
+            cost = prediction[1]
+            solution = prediction[0]
             ret = await check_solution(solution, data["test_list"])
 
             score = 1 if ret[0] == PASS else 0
@@ -74,9 +76,9 @@ async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, 
                 score = 0
                 break
 
-    return data["prompt"], solution, ret[1], score
+    return data["prompt"], solution, ret[1], score, cost
 
-async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50) -> List[Tuple[str, str, str, int]]:
+async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50) -> List[Tuple[str, str, str, int, str]]:
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
 
     async def sem_evaluate(problem):
@@ -87,19 +89,20 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating MBPP problems", total=len(data))
 
-def save_results_to_csv(results: List[Tuple[str, str, str, int]], path: str) -> float:
-    df = pd.DataFrame(results, columns=["question", "prediction", "test_case_details", "score"])
+def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
+    df = pd.DataFrame(results, columns=["question", "prediction", "test_case_details", "score", "cost"])
     average_score = df["score"].mean()
+    total_cost = df["cost"].iloc[-1]
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
+    return average_score, total_cost
 
-    return average_score
-
-async def mbpp_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+async def mbpp_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on MBPP dataset: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost

@@ -120,7 +120,7 @@ async def evaluate_problem(input: str, context_str: str, graph: Callable, expect
 
     while retries < max_retries:
         try:
-            prediction, supporting_sentences = await graph(input, context_str) if graph else "None"
+            prediction, supporting_sentences, cost = await graph(input, context_str) if graph else ("None", None, 0)
             predicted_bags = answer_to_bags(prediction)
             gold_bags = answer_to_bags(expected_output)
 
@@ -137,9 +137,10 @@ async def evaluate_problem(input: str, context_str: str, graph: Callable, expect
                 prediction = None
                 supporting_sentences = None
                 score = 0
+                cost = 0
                 break
 
-    return input, prediction, expected_output, supporting_sentences, score
+    return input, prediction, expected_output, supporting_sentences, score, cost
 
 async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 50):
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
@@ -156,21 +157,23 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating HotpotQA problems", total=len(data))
 
-def save_results_to_csv(results: List[Tuple[str, str, str, str, float]], path: str) -> float:
+def save_results_to_csv(results: List[Tuple[str, str, str, str, float, str]], path: str) -> Tuple[float, float]:
     df = pd.DataFrame(
-        results, columns=["question", "prediction", "expected_output", "supporting_sentences", "score"]
+        results, columns=["question", "prediction", "expected_output", "supporting_sentences", "score", "cost"]
     )
     average_score = df["score"].mean()
+    total_cost = df["cost"].iloc[-1]
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
 
-    return average_score
+    return average_score, total_cost
 
-async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
+async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on HotpotQA dataset: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost

@@ -14,7 +14,7 @@ from tqdm.asyncio import tqdm_asyncio
 from examples.ags.benchmark.utils import generate_random_indices
 
 def extract_number(text: str) -> Optional[float]:
-    """清理文本并提取单个数字"""
+    """Clean text and extract a single number"""
     matches = re.findall(r"[-+]?\d+(?:,\d{3})*(?:\.\d+)?|\d+\.\d+", text)
     if matches:
         last_number = matches[-1].replace(",", "")
@@ -26,7 +26,7 @@ def extract_number(text: str) -> Optional[float]:
         return None
 
 def loose_match_score(expected_output: str, prediction: str, tolerance: float = 1e-6) -> int:
-    """宽松匹配分数计算函数"""
+    """Loose match score calculation function"""
     expected_number = extract_number(expected_output)
     predicted_number = extract_number(prediction)
 
@@ -48,18 +48,19 @@ async def load_data(file_path: str, samples=1) -> List[dict]:
     data = [data[i] for i in random_indices]
     return data
         
-def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> float:
-    """保存结果到CSV文件"""
+def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
+    """Save results to CSV file"""
     df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
     average_score = df["score"].mean()
+    total_cost = df["cost"].iloc[-1]
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")
-    return average_score
+    return average_score, total_cost
 
 async def evaluate_problem(input: str, graph: Callable, expected_output: str) -> Tuple[str, str, str, int, str]:
-    """评估单个问题"""
+    """Evaluate a single problem"""
     prompt = input
     max_retries = 5
     retries = 0
@@ -87,7 +88,7 @@ async def evaluate_problem(input: str, graph: Callable, expected_output: str) ->
     return input, output, expected_output, score, cost
 
 async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurrent_tasks: int = 20) -> List[Tuple[str, str, str, int, str]]:
-    """评估所有问题"""
+    """Evaluate all problems"""
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
 
     async def sem_evaluate(problem):
@@ -100,11 +101,11 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
 
-async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
-    """GSM8K评估主函数"""
+async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
+    """GSM8K evaluation main function"""
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=5)
-    print(results)
-    average_score = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score: {average_score:.5f}")
-    return average_score
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost
