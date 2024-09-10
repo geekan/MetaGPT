@@ -20,23 +20,19 @@ Report {metric} on the eval data. Do not plot or make any visualizations.
 DI_INSTRUCTION = """\
 **Attention** 
 1. Please do not leak the target label in any form during training.
-2. Dev and Test sets do not have the target column.
+2. Test set does not have the target column.
 3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
 4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
+5. You could split the training set further to make cross-validation and hyperparameter tuning.
 
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
 2. Make sure the prediction results are in the same format as the target column in the training set. 
-- The labels should be transformed back to the original format if any transformation was applied during training.
 
-## Output Training Set Performance
+## Output Performance
 Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.
-Print the training set performance in the last step. Write in this format:
-```python
-...
-print("Train score:", train_score)
-```
+Print the training set performance in the last step.
 
 # Output dir
 {output_dir}
@@ -48,7 +44,7 @@ TASK_PROMPT = """\
 {additional_instruction}
 # Data dir
 training (with labels): {train_path}
-dev (without labels): {dev_path}
+dev (with labels): {dev_path}
 testing (without labels): {test_path}
 dataset description: {data_info_path} (You can use this file to get additional information about the dataset)
 """
@@ -147,7 +143,7 @@ def generate_task_requirement(task_name, data_config, is_di=True):
     user_requirement = get_user_requirement(task_name, data_config)
     split_dataset_path = get_split_dataset_path(task_name, data_config)
     train_path = split_dataset_path["train"]
-    dev_path = split_dataset_path["dev_wo_target"]
+    dev_path = split_dataset_path["dev"]
     test_path = split_dataset_path["test_wo_target"]
     work_dir = data_config["work_dir"]
     output_dir = f"{work_dir}/{task_name}"
@@ -225,7 +221,7 @@ class ExpDataset:
             "NumberOfSymbolicFeatures": raw_df.select_dtypes(include=["object"]).shape[1],
         }
 
-        df_head_text = raw_df.head().to_string(index=False)
+        df_head_text = self.get_df_head(raw_df)
 
         dataset_info = {
             "name": self.name,
@@ -235,6 +231,9 @@ class ExpDataset:
             "df_head": df_head_text,
         }
         return dataset_info
+
+    def get_df_head(self, raw_df):
+        return raw_df.head().to_string(index=False)
 
     def get_metric(self):
         dataset_info = self.get_dataset_info()
