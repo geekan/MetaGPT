@@ -104,11 +104,12 @@ def f1_score(predicted_bag: Set[str], gold_bag: Set[str]) -> float:
     f1 = (2 * precision * recall) / (precision + recall) if not (precision == 0.0 and recall == 0.0) else 0.0
     return f1
 
-async def load_data(file_path: str, samples=20) -> List[dict]:
+async def load_data(file_path: str, samples=20, total_length=1000) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
+    data = data[:total_length] 
     random_indices = generate_random_indices(len(data), samples)
     data = [data[i] for i in random_indices]
     return data
