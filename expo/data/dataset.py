@@ -23,7 +23,7 @@ DI_INSTRUCTION = """\
 2. Test set does not have the target column.
 3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
 4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
-5. You could utilize dev set to improve the model.
+5. You could utilize dev set to improve model training.
 
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
@@ -46,7 +46,7 @@ TASK_PROMPT = """\
 training (with labels): {train_path}
 dev (with labels): {dev_path}
 testing (without labels): {test_path}
-dataset description: {data_info_path} (You can use this file to get additional information about the dataset)
+dataset description: {data_info_path} (During EDA, you can use this file to get additional information about the dataset)
 """
 
 
