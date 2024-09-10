@@ -17,7 +17,6 @@ from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
 config = Config.default()
 # Specify by yourself
-GLOBAL_TERMINAL = Terminal()
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"
 
@@ -58,49 +57,65 @@ def check_instance_status(instance, swe_result_dir):
     return True
 
 
-async def terminal_run_command(cmd):
-    cmd_output = await GLOBAL_TERMINAL.run_command(cmd)
+async def terminal_run_command(cmd, terminal):
+    cmd_output = await terminal.run_command(cmd)
     logger.info(f"command:{cmd} output:\n {cmd_output}")
     return cmd_output
 
 
 async def refresh_repo(instance, test_repo_dir, reclone_existing_repo=False):
-    repo_path = Path(test_repo_dir) / (
-        instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
-    )
-    repo_identifier = instance["repo"]
-    base_commit = instance["base_commit"]
-    if os.path.exists(repo_path) and reclone_existing_repo is True:
-        logger.info(f"remove exist repo path:{repo_path}")
-        shutil.rmtree(repo_path)
-
-    if os.path.exists(repo_path):
-        logger.info(f"reset exist repo path:{repo_path}")
-        await terminal_run_command(f"cd {repo_path} && git reset --hard && git clean -n -d && git clean -f -d")
-        await terminal_run_command("BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')")
-        await terminal_run_command("echo $BRANCH")
-        await terminal_run_command('git checkout "$BRANCH"')
-    else:
-        logger.info(f"clone repo to path:{repo_path}")
-        clone_command = f"git clone 'https://github.com/{repo_identifier}.git' {repo_path}"
-        checkout_command = f"cd {repo_path} " + "&& git checkout -f {base_commit}" if base_commit else ""
-        await terminal_run_command(clone_command)
-        await terminal_run_command(checkout_command)
-
-    await terminal_run_command("git branch")
-    # ignore backup file
-    await terminal_run_command("echo '.backup.*' >> .gitignore")
-
+    terminal = Terminal()
+    try:
+        repo_path = Path(test_repo_dir) / (
+            instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
+        )
+        repo_identifier = instance["repo"]
+        base_commit = instance["base_commit"]
+        if os.path.exists(repo_path) and reclone_existing_repo is True:
+            logger.info(f"remove exist repo path:{repo_path.absolute()}")
+            shutil.rmtree(repo_path)
+        if os.path.exists(repo_path):
+            logger.info(f"reset exist repo path:{repo_path.absolute()}")
+            for cmd in [
+                f"cd {repo_path.absolute()}",
+                "git reset --hard && git clean -n -d && git clean -f -d",
+                "BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')",
+                'git checkout "$BRANCH"',
+                "git branch",
+                "pwd",
+            ]:
+                await terminal_run_command(cmd, terminal)
+        else:
+            logger.info(f"clone repo to path:{repo_path}")
+            for cmd in [
+                f"git clone 'https://github.com/{repo_identifier}.git' {repo_path.absolute()}",
+                f"cd {repo_path.absolute()}" + f" && git checkout -f {base_commit}" if base_commit else "",
+                "git branch",
+                "pwd",
+            ]:
+                await terminal_run_command(cmd, terminal)
+    except Exception as e:
+        logger.warning(e)
+    finally:
+        await terminal.close()
     return repo_path
 
 
-async def get_git_diff():
+async def get_git_diff(instance, test_repo_dir):
     git_diff = ""
+    terminal = Terminal()
     try:
-        await terminal_run_command("git add -A")
-        git_diff = await terminal_run_command("git diff --cached")
+        repo_path = Path(test_repo_dir) / (
+            instance["repo"].replace("-", "_").replace("/", "__") + "_" + instance["version"]
+        )
+        # ignore backup file and submit stage
+        for cmd in [f"cd {repo_path.absolute()} ", "echo '.backup.*' >> .gitignore", "git add -A"]:
+            await terminal_run_command(cmd, terminal)
+        git_diff = await terminal_run_command("git diff --cached", terminal)
     except Exception as e:
         logger.error(f"Error during submission: {e}")
+    finally:
+        await terminal.close()
     return git_diff
 
 
@@ -117,27 +132,28 @@ async def run(instance, swe_result_dir, args):
     user_requirement_and_issue = INSTANCE_TEMPLATE.format(
         issue=instance["problem_statement"],
         hints_text=instance["hints_text"],
-        repo_path=repo_path,
+        repo_path=repo_path.absolute(),
         version=instance["version"],
         base_commit=instance["base_commit"],
     )
 
     logger.info(f"**** Starting to run {instance['instance_id']}****")
-    logger.info("User Requirement", user_requirement_and_issue)
+    logger.info("User Requirement:\n" + user_requirement_and_issue)
     try:
-        engineer = Engineer2(run_eval=True, editor=Editor(enable_auto_lint=True))
+        editor = Editor(enable_auto_lint=True, working_dir=Path(repo_path))
+        engineer = Engineer2(run_eval=True, editor=editor)
         await asyncio.wait_for(engineer.run(user_requirement_and_issue), timeout=args.max_wait_time_per_case * 60)
     except Exception as e:
         logger.warning(f"**** exception lead to end: {instance['instance_id']}****\n\nerror:{e}")
     # save the difference of repo
-    await save_predictions(engineer, instance, swe_result_dir)
+    await save_predictions(engineer, instance, test_repo_dir, swe_result_dir)
     logger.info(f"**** Finished running {instance['instance_id']}****")
 
 
-async def save_predictions(engineer, instance, swe_result_dir):
+async def save_predictions(engineer, instance, test_repo_dir, swe_result_dir):
     output_file = swe_result_dir / "all_preds.jsonl"
     instance["model_name_or_path"] = engineer.config.llm.model
-    instance["model_patch"] = await get_git_diff()
+    instance["model_patch"] = await get_git_diff(instance, test_repo_dir)
     logger.info(f"'model_patch':\n{instance['model_patch']}")
     logger.info(f"Preparing to save predictions to {output_file}")
 
@@ -177,7 +193,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", "--save_folder", default=swe_result_dir, help="Folder to save results and logs", type=str)
     parser.add_argument(
-        "-mwtc", "--max_wait_time_per_case", help="Maximum wait time allowed per test case (in minutes)", type=int
+        "-mwtc",
+        "--max_wait_time_per_case",
+        default=10,
+        help="Maximum wait time allowed per test case (in minutes)",
+        type=int,
     )
     parser.add_argument(
         "-o",
