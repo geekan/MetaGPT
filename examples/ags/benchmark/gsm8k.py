@@ -64,7 +64,7 @@ async def evaluate_problem(input: str, graph: Callable, expected_output: str) ->
     prompt = input
     max_retries = 5
     retries = 0
-
+    
     while retries < max_retries:
         try:
             prediction = await graph(prompt)
