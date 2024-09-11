@@ -18,6 +18,7 @@ from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.git import git_create_pull
+from metagpt.tools.libs.image_getter import ImageGetter
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
@@ -42,6 +43,7 @@ class Engineer2(RoleZero):
         "SearchEnhancedQA",
         "Engineer2",
         "CodeReview",
+        "ImageGetter",
     ]
     # SWE Agent parameter
     run_eval: bool = False
@@ -84,10 +86,12 @@ class Engineer2(RoleZero):
             )
         else:
             # Default tool map
+            image_getter = ImageGetter()
             self.tool_execution_map.update(
                 {
                     "git_create_pull": git_create_pull,
                     "Engineer2.write_new_code": self.write_new_code,
+                    "ImageGetter.get_image": image_getter.get_image,
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self.terminal.run_command,

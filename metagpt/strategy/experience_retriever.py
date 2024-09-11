@@ -1026,6 +1026,21 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
         }
 ]
 ```
+
+## example 11
+The requirements is a product website contain some goods including cap, dress and tshit. 
+I think the website should conatin the picture of the goods,but user did not provide, so i will get the image first.
+```json
+[
+    {
+        "command_name": "ImageGetter.get_image",
+        "args": {
+            "search_term": "cap",
+            "save_file_path": "/tmp/workspace/images/cap.png",
+        }
+    }
+]
+```
 """
 
 WEB_SCRAPING_EXAMPLE = """
