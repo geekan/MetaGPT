@@ -23,7 +23,7 @@ DI_INSTRUCTION = """\
 2. Test set does not have the target column.
 3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
 4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
-5. You could utilize dev set to improve model training.
+5. You could utilize dev set to validate and improve model training.
 6. Use techniques to avoid overfitting.
 
 ## Saving Dev and Test Predictions
@@ -32,8 +32,7 @@ DI_INSTRUCTION = """\
 2. Make sure the prediction results are in the same format as the target column in the training set. 
 
 ## Output Performance
-Make sure the performance of the model is printed in python in the last step even if it has been printed in the previous steps. The value should be a float number.
-Print the training set performance in the last step.
+Print the train and dev set performance in the last step.
 
 # Output dir
 {output_dir}
@@ -44,9 +43,9 @@ TASK_PROMPT = """\
 {user_requirement}
 {additional_instruction}
 # Data dir
-training (with labels): {train_path}
-dev (with labels): {dev_path}
-testing (without labels): {test_path}
+train set (with labels): {train_path}
+dev set (with labels): {dev_path}
+test set (without labels): {test_path}
 dataset description: {data_info_path} (During EDA, you can use this file to get additional information about the dataset)
 """
 
