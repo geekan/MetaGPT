@@ -1,8 +1,14 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from metagpt.actions import UserRequirement
+from metagpt.const import TEAMLEADER_NAME
+from metagpt.logs import logger
+from metagpt.memory import Memory
 from metagpt.schema import LongTermMemoryItem, Message
+from metagpt.utils.common import any_to_str
+from metagpt.utils.exceptions import handle_exception
 
 if TYPE_CHECKING:
     from llama_index.core.schema import NodeWithScore
@@ -10,9 +16,10 @@ if TYPE_CHECKING:
     from metagpt.rag.engines import SimpleEngine
 
 
-class RoleZeroLongTermMemory(BaseModel):
+class RoleZeroLongTermMemory(Memory):
     persist_path: str = Field(default=".role_memory_data", description="The directory to save data.")
     collection_name: str = Field(default="role_zero", description="The name of the collection, such as the role name.")
+    memory_k: int = Field(default=200, description="The capacity of short-term memory.")
 
     _rag_engine: Any = None
 
@@ -44,7 +51,104 @@ class RoleZeroLongTermMemory(BaseModel):
 
         return rag_engine
 
-    def fetch(self, query: str) -> list[Message]:
+    def add(self, message: Message):
+        """Add a new message and potentially transfer it to long-term memory."""
+
+        super().add(message)
+
+        if not self._should_use_longterm_memory_for_add():
+            return
+
+        self._transfer_to_longterm_memory()
+
+    def get(self, k=0) -> list[Message]:
+        """Return recent memories and optionally combines them with related long-term memories."""
+
+        memories = super().get(k)
+
+        if not self._should_use_longterm_memory_for_get(k=k):
+            return memories
+
+        query = self._build_longterm_memory_query()
+        related_memories = self._fetch_longterm_memories(query)
+        logger.info(f"Fetched {len(related_memories)} long-term memories.")
+
+        final_memories = related_memories + memories
+
+        return final_memories
+
+    def _should_use_longterm_memory_for_add(self) -> bool:
+        """Determines if long-term memory should be used for add."""
+
+        return self.count() > self.memory_k
+
+    def _should_use_longterm_memory_for_get(self, k: int) -> bool:
+        """Determines if long-term memory should be used for get.
+
+        Long-term memory is used if:
+        - k is not 0.
+        - The last message is from user requirement.
+        - The count of recent memories is greater than self.memory_k.
+        """
+
+        conds = [
+            k != 0,
+            self._is_last_message_from_user_requirement(),
+            self.count() > self.memory_k,
+        ]
+
+        return all(conds)
+
+    def _transfer_to_longterm_memory(self):
+        item = self._get_longterm_memory_item()
+        self._add_to_longterm_memory(item)
+
+    @handle_exception
+    def _get_longterm_memory_item(self) -> Optional[LongTermMemoryItem]:
+        """Retrieves the most recent message before the last k messages."""
+
+        index = -(self.memory_k + 1)
+        message = self.get_by_position(index)
+
+        return LongTermMemoryItem(message=message)
+
+    def _add_to_longterm_memory(self, item: LongTermMemoryItem):
+        """Adds a long-term memory item to the RAG engine."""
+
+        if not item:
+            return
+
+        self.rag_engine.add_objs([item])
+
+    def _build_longterm_memory_query(self) -> str:
+        """Build the content used to query related long-term memory.
+
+        Default is to get the most recent user message, or an empty string if none is found.
+        """
+
+        message = self._get_the_last_message()
+
+        return message.content if message else ""
+
+    def _get_the_last_message(self) -> Optional[Message]:
+        if not self.count():
+            return None
+
+        return self.get_by_position(-1)
+
+    def _is_last_message_from_user_requirement(self) -> bool:
+        message = self._get_the_last_message()
+
+        if not message:
+            return False
+
+        is_user_message = message.is_user_message()
+        cause_by_user_requirement = message.cause_by == any_to_str(UserRequirement)
+        sent_from_team_leader = message.sent_from == TEAMLEADER_NAME
+
+        return is_user_message and (cause_by_user_requirement or sent_from_team_leader)
+
+    def _fetch_longterm_memories(self, query: str) -> list[Message]:
         """Fetches long-term memories based on a query.
 
         Args:
@@ -59,25 +163,9 @@ class RoleZeroLongTermMemory(BaseModel):
 
         nodes = self.rag_engine.retrieve(query)
         items = self._get_items_from_nodes(nodes)
-
-        memories = []
-        for item in items:
-            memories.append(item.user_message)
-            memories.append(item.ai_message)
+        memories = [item.message for item in items]
 
         return memories
-
-    def add(self, item: LongTermMemoryItem):
-        """Adds a long-term memory item to the RAG engine.
-
-        Args:
-            item (LongTermMemoryItem): The memory item containing user and AI messages.
-        """
-
-        if not item:
-            return
-
-        self.rag_engine.add_objs([item])
 
     def _get_items_from_nodes(self, nodes: list["NodeWithScore"]) -> list[LongTermMemoryItem]:
         """Get items from nodes and arrange them in order of their `created_at`."""

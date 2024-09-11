@@ -965,9 +965,8 @@ class BaseEnum(Enum):
 
 
 class LongTermMemoryItem(BaseModel):
-    user_message: Message
-    ai_message: Message
+    message: Message
     created_at: Optional[float] = Field(default_factory=time.time)
 
     def rag_key(self) -> str:
-        return self.user_message.content
+        return self.message.content

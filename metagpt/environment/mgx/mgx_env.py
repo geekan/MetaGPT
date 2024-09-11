@@ -8,7 +8,7 @@ from metagpt.actions import (
     WriteTest,
 )
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import AGENT, IMAGES
+from metagpt.const import AGENT, IMAGES, TEAMLEADER_NAME
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
 from metagpt.roles import Architect, ProductManager, ProjectManager, Role
@@ -31,7 +31,7 @@ class MGXEnv(Environment, SerializationMixin):
         """let the team leader take over message publishing"""
         message = self.attach_images(message)  # for multi-modal message
 
-        tl = self.get_role("Mike")  # TeamLeader's name is Mike
+        tl = self.get_role(TEAMLEADER_NAME)  # TeamLeader's name is Mike
 
         if user_defined_recipient:
             # human user's direct chat message to a certain role

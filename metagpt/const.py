@@ -158,5 +158,5 @@ SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/
 # experience pool
 EXPERIENCE_MASK = "<experience>"
 
-# Used to identify user requirements in the memory index.
-USER_REQUIREMENT = "metagpt.actions.add_requirement.UserRequirement"
+# TeamLeader's name
+TEAMLEADER_NAME = "Mike"

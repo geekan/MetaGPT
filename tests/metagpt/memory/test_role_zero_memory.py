@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from metagpt.actions import UserRequirement
+from metagpt.const import TEAMLEADER_NAME
 from metagpt.memory.role_zero_memory import RoleZeroLongTermMemory
-from metagpt.schema import AIMessage, LongTermMemoryItem, UserMessage
+from metagpt.schema import AIMessage, LongTermMemoryItem, Message, UserMessage
 
 
 class TestRoleZeroLongTermMemory:
@@ -13,71 +15,150 @@ class TestRoleZeroLongTermMemory:
         memory._resolve_rag_engine = mocker.Mock()
         return memory
 
-    def test_fetch_empty_query(self, mock_memory: RoleZeroLongTermMemory):
-        assert mock_memory.fetch("") == []
+    def test_add(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_memory._should_use_longterm_memory_for_add = mocker.Mock(return_value=True)
+        mock_memory._transfer_to_longterm_memory = mocker.Mock()
 
-    def test_fetch(self, mocker, mock_memory: RoleZeroLongTermMemory):
-        mock_node1 = mocker.Mock()
-        mock_node2 = mocker.Mock()
-        mock_node1.metadata = {
-            "obj": LongTermMemoryItem(user_message=UserMessage(content="user1"), ai_message=AIMessage(content="ai1"))
-        }
-        mock_node2.metadata = {
-            "obj": LongTermMemoryItem(user_message=UserMessage(content="user2"), ai_message=AIMessage(content="ai2"))
-        }
+        message = UserMessage(content="test")
+        mock_memory.add(message)
 
-        mock_memory.rag_engine.retrieve.return_value = [mock_node1, mock_node2]
+        assert mock_memory.storage[-1] == message
+        mock_memory._transfer_to_longterm_memory.assert_called_once()
 
-        result = mock_memory.fetch("test query")
+    def test_get(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_memory._should_use_longterm_memory_for_get = mocker.Mock(return_value=True)
+        mock_memory._build_longterm_memory_query = mocker.Mock(return_value="query")
+        mock_memory._fetch_longterm_memories = mocker.Mock(return_value=[Message(content="long-term")])
 
-        assert len(result) == 4
-        assert isinstance(result[0], UserMessage)
-        assert isinstance(result[1], AIMessage)
-        assert result[0].content == "user1"
-        assert result[1].content == "ai1"
-        assert result[2].content == "user2"
-        assert result[3].content == "ai2"
+        mock_memory.storage = [Message(content="short-term")]
 
-        mock_memory.rag_engine.retrieve.assert_called_once_with("test query")
+        result = mock_memory.get()
 
-    def test_add_empty_item(self, mock_memory: RoleZeroLongTermMemory):
-        mock_memory.add(None)
-        mock_memory.rag_engine.add_objs.assert_not_called()
+        assert len(result) == 2
+        assert result[0].content == "long-term"
+        assert result[1].content == "short-term"
 
-    def test_add_item(self, mock_memory: RoleZeroLongTermMemory):
-        item = LongTermMemoryItem(user_message=UserMessage(content="user"), ai_message=AIMessage(content="ai"))
-        mock_memory.add(item)
+    def test_should_use_longterm_memory_for_add(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mocker.patch.object(mock_memory, "storage", [None] * 201)
+
+        mock_memory.memory_k = 200
+
+        assert mock_memory._should_use_longterm_memory_for_add() == True
+
+        mocker.patch.object(mock_memory, "storage", [None] * 199)
+        assert mock_memory._should_use_longterm_memory_for_add() == False
+
+    @pytest.mark.parametrize(
+        "k,is_last_from_user,count,expected",
+        [
+            (0, True, 201, False),
+            (1, False, 201, False),
+            (1, True, 199, False),
+            (1, True, 201, True),
+        ],
+    )
+    def test_should_use_longterm_memory_for_get(
+        self, mocker, mock_memory: RoleZeroLongTermMemory, k, is_last_from_user, count, expected
+    ):
+        mock_memory._is_last_message_from_user_requirement = mocker.Mock(return_value=is_last_from_user)
+        mocker.patch.object(mock_memory, "storage", [None] * count)
+        mock_memory.memory_k = 200
+
+        assert mock_memory._should_use_longterm_memory_for_get(k) == expected
+
+    def test_transfer_to_longterm_memory(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_item = mocker.Mock()
+        mock_memory._get_longterm_memory_item = mocker.Mock(return_value=mock_item)
+        mock_memory._add_to_longterm_memory = mocker.Mock()
+
+        mock_memory._transfer_to_longterm_memory()
+
+        mock_memory._add_to_longterm_memory.assert_called_once_with(mock_item)
+
+    def test_get_longterm_memory_item(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_message = Message(content="test")
+        mock_memory.storage = [mock_message, mock_message]
+        mock_memory.memory_k = 1
+
+        result = mock_memory._get_longterm_memory_item()
+
+        assert isinstance(result, LongTermMemoryItem)
+        assert result.message == mock_message
+
+    def test_add_to_longterm_memory(self, mock_memory: RoleZeroLongTermMemory):
+        item = LongTermMemoryItem(message=Message(content="test"))
+        mock_memory._add_to_longterm_memory(item)
+
         mock_memory.rag_engine.add_objs.assert_called_once_with([item])
 
+    def test_build_longterm_memory_query(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_message = Message(content="query")
+        mock_memory._get_the_last_message = mocker.Mock(return_value=mock_message)
+
+        result = mock_memory._build_longterm_memory_query()
+
+        assert result == "query"
+
+    def test_get_the_last_message(self, mock_memory: RoleZeroLongTermMemory):
+        mock_memory.storage = [Message(content="1"), Message(content="2")]
+
+        result = mock_memory._get_the_last_message()
+
+        assert result.content == "2"
+
+    @pytest.mark.parametrize(
+        "message,expected",
+        [
+            (UserMessage(content="test", cause_by=UserRequirement), True),
+            (UserMessage(content="test", sent_from=TEAMLEADER_NAME), True),
+            (UserMessage(content="test"), True),
+            (AIMessage(content="test"), False),
+            (None, False),
+        ],
+    )
+    def test_is_last_message_from_user_requirement(
+        self, mocker, mock_memory: RoleZeroLongTermMemory, message, expected
+    ):
+        mock_memory._get_the_last_message = mocker.Mock(return_value=message)
+
+        assert mock_memory._is_last_message_from_user_requirement() == expected
+
+    def test_fetch_longterm_memories(self, mocker, mock_memory: RoleZeroLongTermMemory):
+        mock_nodes = [mocker.Mock(), mocker.Mock()]
+        mock_memory.rag_engine.retrieve = mocker.Mock(return_value=mock_nodes)
+        mock_items = [
+            LongTermMemoryItem(message=UserMessage(content="user1")),
+            LongTermMemoryItem(message=AIMessage(content="ai1")),
+        ]
+        mock_memory._get_items_from_nodes = mocker.Mock(return_value=mock_items)
+
+        result = mock_memory._fetch_longterm_memories("query")
+
+        assert len(result) == 2
+        assert result[0].content == "user1"
+        assert result[1].content == "ai1"
+
     def test_get_items_from_nodes(self, mocker, mock_memory: RoleZeroLongTermMemory):
-        mock_node1 = mocker.Mock()
-        mock_node2 = mocker.Mock()
-        mock_node3 = mocker.Mock()
-
         now = datetime.now()
-        item1 = LongTermMemoryItem(
-            user_message=UserMessage(content="user1"), ai_message=AIMessage(content="ai1"), created_at=now.timestamp()
-        )
-        item2 = LongTermMemoryItem(
-            user_message=UserMessage(content="user2"),
-            ai_message=AIMessage(content="ai2"),
-            created_at=(now - timedelta(minutes=5)).timestamp(),
-        )
-        item3 = LongTermMemoryItem(
-            user_message=UserMessage(content="user3"),
-            ai_message=AIMessage(content="ai3"),
-            created_at=(now + timedelta(minutes=5)).timestamp(),
-        )
+        mock_nodes = [
+            mocker.Mock(
+                metadata={
+                    "obj": LongTermMemoryItem(
+                        message=Message(content="2"), created_at=(now - timedelta(minutes=1)).timestamp()
+                    )
+                }
+            ),
+            mocker.Mock(
+                metadata={
+                    "obj": LongTermMemoryItem(
+                        message=Message(content="1"), created_at=(now - timedelta(minutes=2)).timestamp()
+                    )
+                }
+            ),
+            mocker.Mock(metadata={"obj": LongTermMemoryItem(message=Message(content="3"), created_at=now.timestamp())}),
+        ]
 
-        mock_node1.metadata = {"obj": item1}
-        mock_node2.metadata = {"obj": item2}
-        mock_node3.metadata = {"obj": item3}
-
-        result = mock_memory._get_items_from_nodes([mock_node1, mock_node2, mock_node3])
+        result = mock_memory._get_items_from_nodes(mock_nodes)
 
         assert len(result) == 3
-        assert result[0] == item2
-        assert result[1] == item1
-        assert result[2] == item3
-        assert [item.user_message.content for item in result] == ["user2", "user1", "user3"]
-        assert [item.ai_message.content for item in result] == ["ai2", "ai1", "ai3"]
+        assert [item.message.content for item in result] == ["1", "2", "3"]

@@ -5,6 +5,7 @@ from typing import Annotated
 from pydantic import Field
 
 from metagpt.actions.di.run_command import RunCommand
+from metagpt.const import TEAMLEADER_NAME
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     TL_INFO,
@@ -19,7 +20,7 @@ from metagpt.tools.tool_registry import register_tool
 
 @register_tool(include_functions=["publish_team_message"])
 class TeamLeader(RoleZero):
-    name: str = "Mike"
+    name: str = TEAMLEADER_NAME
     profile: str = "Team Leader"
     goal: str = "Manage a team to assist users"
     thought_guidance: str = TL_THOUGHT_GUIDANCE
@@ -84,4 +85,4 @@ class TeamLeader(RoleZero):
 
     def finish_current_task(self):
         self.planner.plan.finish_current_task()
-        self._add_memory(AIMessage(content=FINISH_CURRENT_TASK_CMD))
+        self.rc.memory.add(AIMessage(content=FINISH_CURRENT_TASK_CMD))
