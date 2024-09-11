@@ -12,6 +12,7 @@ from llama_index.core.schema import NodeWithScore
 from pydantic import BaseModel, Field, model_validator
 
 from metagpt.config2 import Config
+from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
@@ -150,6 +151,7 @@ class IndexRepo(BaseModel):
 
         Args:
             paths (List[Path]): A list of paths to the documents to be added.
+            file_datas (Dict[Union[str, Path], str]): A list of file content.
         """
         encoding = tiktoken.get_encoding("cl100k_base")
         filenames, _ = await self._filter(paths)
@@ -185,6 +187,7 @@ class IndexRepo(BaseModel):
             return
         logger.info(f"update index repo, add {filenames}, remove {delete_filenames}")
         engine = None
+        Context()
         if Path(self.persist_path).exists():
             logger.debug(f"load index from {self.persist_path}")
             engine = SimpleEngine.from_index(
@@ -283,10 +286,14 @@ class IndexRepo(BaseModel):
         Returns:
             List[NodeWithScore]: A list of nodes with scores matching the query.
         """
+        if not filters:
+            return []
         if not Path(self.persist_path).exists():
             raise ValueError(f"IndexRepo {Path(self.persist_path).name} not exists.")
+        Context()
         engine = SimpleEngine.from_index(
-            index_config=FAISSIndexConfig(persist_path=self.persist_path), retriever_configs=[FAISSRetrieverConfig()]
+            index_config=FAISSIndexConfig(persist_path=self.persist_path),
+            retriever_configs=[FAISSRetrieverConfig()],
         )
         rsp = await engine.aretrieve(query)
         return [i for i in rsp if i.metadata.get("file_path") in filters]
@@ -409,6 +416,8 @@ class IndexRepo(BaseModel):
         result = []
         v_result = []
         for i in futures_results:
+            if not i:
+                continue
             if isinstance(i, str):
                 result.append(i)
             else:

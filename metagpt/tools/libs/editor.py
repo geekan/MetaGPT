@@ -13,7 +13,6 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.logs import logger
 from metagpt.tools.libs.index_repo import IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
@@ -951,5 +950,11 @@ class Editor(BaseModel):
         Returns:
             List[str]: A list of search results as strings, containing the text from the merged results
                         and any direct results from other files.
+
+        Example:
+            >>> query = "The problem to be analyzed from the document"
+            >>> file_or_path = "The document or folder you want to query"
+            >>> texts: List[str] = await Editor.search_index_repo(query=query, file_or_path=file_or_path)
+            >>> print(texts)
         """
         return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)
