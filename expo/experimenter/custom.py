@@ -12,7 +12,7 @@ class CustomExperimenter(Experimenter):
 
     def __init__(self, args, **kwargs):
         super().__init__(args, **kwargs)
-        self.framework = kwargs["framework"]  # todo
+        self.framework = kwargs.get("framework", None)  # todo
         self.task = kwargs.get("task", self.args.task)
         self.low_is_better = kwargs.get("low_is_better", self.args.low_is_better)
         self.name = kwargs.get("name", "")
