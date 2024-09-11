@@ -39,12 +39,12 @@ def loose_match_score(expected_output: str, prediction: str, tolerance: float = 
         return 0
 
 
-async def load_data(file_path: str, samples=1) -> List[dict]:
+async def load_data(file_path: str, samples=1, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test=test)
     data = [data[i] for i in random_indices]
     return data
         
@@ -64,26 +64,33 @@ async def evaluate_problem(input: str, graph: Callable, expected_output: str) ->
     prompt = input
     max_retries = 5
     retries = 0
-    
-    while retries < max_retries:
-        try:
-            prediction = await graph(prompt)
-            cost = prediction[1]
-            output = prediction[0]["solution"]
+    prediction = await graph(prompt)
+    cost = prediction[1]
+    output = prediction[0]["solution"]
 
-            score = loose_match_score(expected_output, output)
-            break
+    print(output)
 
-        except Exception as e:
-            retries += 1
-            print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+    score = loose_match_score(expected_output, output)
+    # break
+    # while retries < max_retries:
+    #     try:
+    #         prediction = await graph(prompt)
+    #         cost = prediction[1]
+    #         output = prediction[0]["solution"]
 
-            if retries == max_retries:
-                print("Maximum retries reached. Skipping this sample.")
-                output = None
-                cost = None
-                score = 0
-                break
+    #         score = loose_match_score(expected_output, output)
+    #         break
+
+    #     except Exception as e:
+    #         retries += 1
+    #         print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+
+    #         if retries == max_retries:
+    #             print("Maximum retries reached. Skipping this sample.")
+    #             output = None
+    #             cost = None
+    #             score = 0
+    #             break
 
     return input, output, expected_output, score, cost
 
@@ -101,9 +108,9 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating problems", total=len(data))
 
-async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
+async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
     """GSM8K evaluation main function"""
-    data = await load_data(file_path, samples)
+    data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=5)
     average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score: {average_score:.5f}")

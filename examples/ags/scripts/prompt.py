@@ -127,17 +127,17 @@ Based on the given problem and solution candidates:
 """
 
 MD_ENSEMBLE_PROMPT = """
-You are given a coding problem:
+You are given a problem:
 {problem_description}
 
 Here is a list of possible solutions to the problem:
 {solutions}
 
-Using the inputs above, your goal is to choose the best solution to the code contest problem.
-Don't just pick the most efficient solution. The main consideration is that the solution can fully solve the problem in a correct and robust manner.
+Using the inputs above, your goal is to choose the best solution to the problem.
+The main consideration is that the solution can fully solve the problem in a correct and robust manner.
 Provide your final decision by writing the chosen solution letter.
 
-Please maintain the JSON format in your response.
+Please follow the required format in your response.
 """
 
 SC_ENSEMBLE_PROMPT = """
