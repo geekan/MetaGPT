@@ -210,12 +210,12 @@ def answer_json_to_strings(answer: Dict[str, Any]) -> Tuple[Tuple[str, ...], str
             f"Answer type not found, should be one of number, spans or date at: {json.dumps(answer)}"
         )
 
-def load_data(file_path: str, samples: int) -> List[Tuple[str, Dict[str, Any]]]:
+def load_data(file_path: str, samples: int, test=False) -> List[Tuple[str, Dict[str, Any]]]:
     with open(file_path, mode="r") as file:
         data = json.load(file)
         data = list(data.items())
 
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test)
     data = [data[i] for i in random_indices]
     return data
 
@@ -287,8 +287,8 @@ def save_results_to_csv(results: List[List[Any]], path: str) -> float:
 
     return average_score
 
-async def drop_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
-    data = load_data(file_path, samples)
+async def drop_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> float:
+    data = load_data(file_path, samples, test=test)
     results = await evaluate_all_passages(data, graph, max_concurrent_tasks=20)
     average_score = save_results_to_csv(results, path=path)
     print(f"Average score on DROP dataset: {average_score:.5f}")

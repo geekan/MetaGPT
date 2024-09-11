@@ -10,12 +10,12 @@ from examples.ags.benchmark.utils import generate_random_indices
 PASS = "pass"
 FAIL = "fail"
 
-async def load_data(file_path: str, samples=1) -> List[dict]:
+async def load_data(file_path: str, samples=1, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test)
     data = [data[i] for i in random_indices]
     return data
 
@@ -99,10 +99,10 @@ def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str
     print(f"Results saved to {output_file}")
     return average_score, total_cost
 
-async def mbpp_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
+async def mbpp_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
     data = await load_data(file_path, samples)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score, total_cost = save_results_to_csv(results, path=path)
+    average_score, total_cost = save_results_to_csv(results, path=path, test=test)
     print(f"Average score on MBPP dataset: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")
     return average_score, total_cost

@@ -59,13 +59,13 @@ def f1_score(prediction, ground_truth):
     return f1
 
 
-async def load_data(file_path: str, samples=20, total_length=1000) -> List[dict]:
+async def load_data(file_path: str, samples=20, total_length=1000, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
     data = data[:total_length] 
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test)
     data = [data[i] for i in random_indices]
     return data
 
@@ -119,8 +119,8 @@ def save_results_to_csv(results: List[Tuple[str, str, str, float]], path: str) -
 
     return average_score
 
-async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> float:
-    data = await load_data(file_path, samples)
+async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> float:
+    data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
     average_score = save_results_to_csv(results, path=path)
     print(f"Average score on HotpotQA dataset: {average_score:.5f}")

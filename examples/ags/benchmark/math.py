@@ -212,12 +212,12 @@ def calculate_score(expected_output: str, prediction: str) -> int:
 
     return 1 if math_equal(predicted_answer, expected_answer) else 0
 
-async def load_data(file_path: str, samples: int = 200) -> List[dict]:
+async def load_data(file_path: str, samples: int = 200, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test)
     data = [data[i] for i in random_indices]
     return data
 
@@ -270,8 +270,8 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 
     return await tqdm_asyncio.gather(*tasks, desc="Evaluating MATH problems", total=len(data))
 
-async def math_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
-    data = await load_data(file_path, samples)
+async def math_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
+    data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
     average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on MATH dataset: {average_score:.5f}")

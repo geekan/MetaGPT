@@ -10,12 +10,12 @@ from examples.ags.benchmark.utils import generate_random_indices
 PASS = "pass"
 FAIL = "fail"
 
-async def load_data(file_path: str, samples=1) -> List[dict]:
+async def load_data(file_path: str, samples=1, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
-    random_indices = generate_random_indices(len(data), samples)
+    random_indices = generate_random_indices(len(data), samples, test)
     data = [data[i] for i in random_indices]
     return data
 
@@ -118,8 +118,8 @@ def save_results_to_jsonl(results: List[Tuple[str, str, str, int, str]], path: s
 
     return round(avg_score, 5), round(total_cost, 5)  # 修改返回值以包含total_cost
 
-async def humaneval_evaluation(graph: Callable, file_path: str, samples: int, path: str) -> Tuple[float, float]:
-    data = await load_data(file_path, samples)
+async def humaneval_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
+    data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
     average_score, total_cost = save_results_to_jsonl(results, path=path)
     print(f"Average score on HumanEval dataset: {average_score:.5f}")

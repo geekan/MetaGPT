@@ -64,33 +64,25 @@ async def evaluate_problem(input: str, graph: Callable, expected_output: str) ->
     prompt = input
     max_retries = 5
     retries = 0
-    prediction = await graph(prompt)
-    cost = prediction[1]
-    output = prediction[0]["solution"]
+    while retries < max_retries:
+        try:
+            prediction = await graph(prompt)
+            cost = prediction[1]
+            output = prediction[0]["solution"]
 
-    print(output)
+            score = loose_match_score(expected_output, output)
+            break
 
-    score = loose_match_score(expected_output, output)
-    # break
-    # while retries < max_retries:
-    #     try:
-    #         prediction = await graph(prompt)
-    #         cost = prediction[1]
-    #         output = prediction[0]["solution"]
+        except Exception as e:
+            retries += 1
+            print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
 
-    #         score = loose_match_score(expected_output, output)
-    #         break
-
-    #     except Exception as e:
-    #         retries += 1
-    #         print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
-
-    #         if retries == max_retries:
-    #             print("Maximum retries reached. Skipping this sample.")
-    #             output = None
-    #             cost = None
-    #             score = 0
-    #             break
+            if retries == max_retries:
+                print("Maximum retries reached. Skipping this sample.")
+                output = None
+                cost = None
+                score = 0
+                break
 
     return input, output, expected_output, score, cost
 
