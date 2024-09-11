@@ -20,6 +20,7 @@ from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
+    DETECT_LANGUAGE_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
     QUICK_THINK_EXAMPLES,
@@ -27,7 +28,6 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_SYSTEM_PROMPT,
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
-    RESPOND_LANGUAGE_DETECT,
     ROLE_INSTRUCTION,
     SUMMARY_PROMPT,
     SYSTEM_PROMPT,
@@ -92,7 +92,7 @@ class RoleZero(Role):
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 200  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
-    respond_language: str = ""  # the constraints of respond language
+    respond_language: str = ""  # Language for responding humans and publishing messages.
     use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
@@ -179,8 +179,8 @@ class RoleZero(Role):
 
         if not self.planner.plan.goal:
             self.planner.plan.goal = self.get_memories()[-1].content
-            repond_language_detect = RESPOND_LANGUAGE_DETECT.format(requirement=self.planner.plan.goal)
-            self.respond_language = await self.llm.aask(repond_language_detect)
+            detect_language_prompt = DETECT_LANGUAGE_PROMPT.format(requirement=self.planner.plan.goal)
+            self.respond_language = await self.llm.aask(detect_language_prompt)
         ### 1. Experience ###
         example = self._retrieve_experience()
 

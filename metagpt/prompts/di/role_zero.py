@@ -65,7 +65,7 @@ CMD_PROMPT = (
 # Current Task
 {current_task}
 
-# Respond Language
+# Response Language
 you must respond in {respond_language}.
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
@@ -245,7 +245,7 @@ If you produce any deliverables, include their short descriptions and file paths
 If the deliverable is code, only output the file path.
 """
 
-RESPOND_LANGUAGE_DETECT = """
+DETECT_LANGUAGE_PROMPT = """
 The requirement is:
 {requirement}
 
