@@ -34,7 +34,7 @@ class GluonExperimenter(CustomExperimenter):
         super().__init__(args, **kwargs)
         self.framework = AGRunner(self.state)
 
-    def run_experiment(self):
+    async def run_experiment(self):
         result = self.framework.run()
         user_requirement = self.state["requirement"]
         dev_preds = result["dev_preds"]
@@ -45,4 +45,3 @@ class GluonExperimenter(CustomExperimenter):
         }
         results = [0, {"score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}]
         self.save_result(results)
-        return results
