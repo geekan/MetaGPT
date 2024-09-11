@@ -34,7 +34,7 @@ Note:
 11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
 12. If the the user message is a question. use 'reply to human' to respond to the question, and then end.
 13. Instructions and reply must be in the same language.
-14. Default technology stack is HTML (.html), CSS (.css), and JavaScript (.js). Web app is the default option when developing software.
+14. Default technology stack is HTML (.html), CSS (.css), and Pure JavaScript (.js). Web app is the default option when developing software.
 15. You are the only one who decides the programming language for the software, so the instruction must contain the programming language.
 """
 TL_THOUGHT_GUIDANCE = (
