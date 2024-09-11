@@ -1027,9 +1027,9 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
 ]
 ```
 
-## example 11
-The requirements is a product website contain some goods including cap, dress and tshit. 
-I think the website should conatin the picture of the goods,but user did not provide, so i will get the image first.
+## example 12
+The requirement is to create a product website featuring goods such as caps, dresses, and T-shirts. 
+I believe pictures would improve the site, so I will get the images first.
 ```json
 [
     {

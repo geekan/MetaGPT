@@ -39,25 +39,25 @@ class ImageGetter(BaseModel):
             browser_ctx = self.browser_ctx = await browser.new_context()
             self.page = await browser_ctx.new_page()
 
-    async def get_image(self, search_term, save_file_path):
+    async def get_image(self, search_term, image_save_path):
         """
         Get an image related to the search term.
 
         Args:
             search_term (str): The term to search for the image.
-            save_file_path (str): The file path where the image will
+            image_save_path (str): The file path where the image will be saved.
         """
-        # Seach image
+        # Search for images from https://unsplash.com/s/photos/
         url = f"https://unsplash.com/s/photos/{search_term}/"
         if self.page is None:
             await self.start()
         await self.page.goto(url, wait_until="domcontentloaded")
-        # Wait for the element
+        # Wait until the image element is loaded
         try:
             await self.page.wait_for_selector(".zNNw1 > div > img:nth-of-type(2)")
         except TimeoutError:
             return f"{search_term} not found. Please broaden the search term."
-
+        # Get the base64 code of the first  retrieved image
         image_base64 = await self.page.evaluate(
             """async () => {
             var img = document.querySelector('.zNNw1 > div > img:nth-of-type(2)');
@@ -76,12 +76,13 @@ class ImageGetter(BaseModel):
         }"""
         )
         if image_base64:
-            file_path = Path(save_file_path)
+            # Save image
+            file_path = Path(image_save_path)
             os.makedirs(file_path.parent, exist_ok=True)
-            with open(save_file_path, "wb") as f:
+            with open(image_save_path, "wb") as f:
                 imgstr = re.sub("data:image/.*?;base64,", "", image_base64)
                 image_data = base64.b64decode(imgstr)
                 f.write(image_data)
-            return f"{search_term} found. The image is saved in {save_file_path}."
+            return f"{search_term} found. The image is saved in {image_save_path}."
         else:
             return f"{search_term} not found. Please broaden the search term."
