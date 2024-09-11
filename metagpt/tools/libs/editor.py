@@ -13,7 +13,6 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.logs import logger
 from metagpt.tools.libs.index_repo import IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
@@ -717,8 +716,6 @@ class Editor(BaseModel):
             If you need to use it multiple times, wait for the next turn.
         """
         # FIXME: support replacing *all* occurrences
-        if to_replace.strip() == "":
-            raise ValueError("`to_replace` must not be empty.")
 
         if to_replace == new_content:
             raise ValueError("`to_replace` and `new_content` must be different.")
@@ -729,6 +726,12 @@ class Editor(BaseModel):
         file_name = self._try_fix_path(file_name)
         with file_name.open("r") as file:
             file_content = file.read()
+
+        if to_replace.strip() == "":
+            if file_content.strip() == "":
+                raise ValueError(f"The file '{file_name}' is empty. Please use the append method to add content.")
+            else:
+                raise ValueError("`to_replace` must not be empty.")
 
         if file_content.count(to_replace) > 1:
             raise ValueError(
