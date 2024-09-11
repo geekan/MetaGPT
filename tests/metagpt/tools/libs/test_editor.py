@@ -10,7 +10,6 @@ from metagpt.tools.libs.index_repo import (
     CHATS_INDEX_ROOT,
     CHATS_ROOT,
     UPLOAD_ROOT,
-    UPLOADS_INDEX_ROOT,
     IndexRepo,
 )
 from metagpt.utils.common import list_files
@@ -677,8 +676,6 @@ async def mock_index_repo():
     os.system(command)
     filenames = list_files(UPLOAD_ROOT)
     uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
-    uploads_repo = IndexRepo(persist_path=UPLOADS_INDEX_ROOT, root_path=UPLOAD_ROOT, min_token_count=0)
-    await uploads_repo.add(uploads_files)
     assert uploads_files
 
     filenames = list_files(src_path)

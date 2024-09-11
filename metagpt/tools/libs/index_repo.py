@@ -90,6 +90,7 @@ class IndexRepo(BaseModel):
             raise ValueError(f"Unsupported file types: {[str(i) for i in excludes]}")
         filter_filenames = set()
         meta = await self._read_meta()
+        new_files = {}
         for i in filenames:
             content = await File.read_text_file(i)
             token_count = len(encoding.encode(content))
@@ -99,10 +100,16 @@ class IndexRepo(BaseModel):
                 result.append(TextScore(filename=str(i), text=content))
                 continue
             file_fingerprint = generate_fingerprint(content)
-            if self.fingerprints.get(str(i)) != file_fingerprint and Path(i).suffix.lower() not in {".pdf"}:
-                logger.error(f'file: "{i}" changed but not indexed')
+            if str(i) not in self.fingerprints or (
+                self.fingerprints.get(str(i)) != file_fingerprint and Path(i).suffix.lower() not in {".pdf"}
+            ):
+                new_files[i] = content
+                logger.warning(f'file: "{i}" changed but not indexed')
                 continue
             filter_filenames.add(str(i))
+        if new_files:
+            await self.add(paths=list(new_files.keys()), file_datas=new_files)
+            filter_filenames.update([str(i) for i in new_files.keys()])
         nodes = await self._search(query=query, filters=filter_filenames)
         return result + nodes
 
@@ -138,7 +145,7 @@ class IndexRepo(BaseModel):
         scores.sort(key=lambda x: x[0], reverse=True)
         return [i[1] for i in scores][: self.recall_count]
 
-    async def add(self, paths: List[Path]):
+    async def add(self, paths: List[Path], file_datas: Dict[Union[str, Path], str] = None):
         """Add new documents to the index.
 
         Args:
@@ -148,8 +155,9 @@ class IndexRepo(BaseModel):
         filenames, _ = await self._filter(paths)
         filter_filenames = []
         delete_filenames = []
+        file_datas = file_datas or {}
         for i in filenames:
-            content = await File.read_text_file(i)
+            content = file_datas.get(i) or await File.read_text_file(i)
             if not self._is_fingerprint_changed(filename=i, content=content):
                 continue
             token_count = len(encoding.encode(content))
@@ -159,9 +167,14 @@ class IndexRepo(BaseModel):
             else:
                 delete_filenames.append(i)
                 logger.debug(f"{i} not is_buildable: {token_count}, {self.min_token_count}~{self.max_token_count}")
-        await self._add_batch(filenames=filter_filenames, delete_filenames=delete_filenames)
+        await self._add_batch(filenames=filter_filenames, delete_filenames=delete_filenames, file_datas=file_datas)
 
-    async def _add_batch(self, filenames: List[Union[str, Path]], delete_filenames: List[Union[str, Path]]):
+    async def _add_batch(
+        self,
+        filenames: List[Union[str, Path]],
+        delete_filenames: List[Union[str, Path]],
+        file_datas: Dict[Union[str, Path], str],
+    ):
         """Add and remove documents in a batch operation.
 
         Args:
@@ -180,9 +193,9 @@ class IndexRepo(BaseModel):
             )
             try:
                 engine.delete_docs(filenames + delete_filenames)
-                logger.debug(f"delete docs {filenames + delete_filenames}")
+                logger.info(f"delete docs {filenames + delete_filenames}")
                 engine.add_docs(input_files=filenames)
-                logger.debug(f"add docs {filenames}")
+                logger.info(f"add docs {filenames}")
             except NotImplementedError as e:
                 logger.debug(f"{e}")
                 filenames = list(set([str(i) for i in filenames] + list(self.fingerprints.keys())))
@@ -194,10 +207,10 @@ class IndexRepo(BaseModel):
                 retriever_configs=[FAISSRetrieverConfig()],
                 ranker_configs=[LLMRankerConfig()],
             )
-            logger.debug(f"add docs {filenames}")
+            logger.info(f"add docs {filenames}")
         engine.persist(persist_dir=self.persist_path)
         for i in filenames:
-            content = await File.read_text_file(i)
+            content = file_datas.get(i) or await File.read_text_file(i)
             fp = generate_fingerprint(content)
             self.fingerprints[str(i)] = fp
         await awrite(filename=Path(self.persist_path) / self.fingerprint_filename, data=json.dumps(self.fingerprints))
