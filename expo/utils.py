@@ -99,6 +99,7 @@ def save_notebook(role: Role, save_dir: str = "", name: str = ""):
     for code in codes:
         clean_nb.cells.append(nbformat.v4.new_code_cell(code))
     nb = process_cells(role.execute_code.nb)
+    os.makedirs(save_dir, exist_ok=True)
     file_path = save_dir / f"{name}.ipynb"
     clean_file_path = save_dir / f"{name}_clean.ipynb"
     nbformat.write(nb, file_path)
@@ -110,7 +111,7 @@ async def load_execute_notebook(role):
     codes = [task.code for task in tasks if task.code]
     executor = role.execute_code
     executor.nb = nbformat.v4.new_notebook()
-    executor.nb.client = NotebookClient(executor.nb)
+    executor.nb_client = NotebookClient(executor.nb, timeout=executor.timeout)
     # await executor.build()
     for code in codes:
         outputs, success = await executor.run(code)

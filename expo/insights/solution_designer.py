@@ -19,7 +19,8 @@ DATASET_INSIGHT_PROMPT = """
 Propose insights to help improve the performance of the model on this dataset.
 The insights should be proposed based on the dataset description with different task types.
 Each task type should have at least 5 insights.
-Make sure each method is independent and can be implemented separately.
+Make sure each method is diverse enough and can be implemented separately.
+Be specific about models' choices, ensemble and tuning techniques, and preprocessing & feature engineering techniques.
 
 # Format
 ```json

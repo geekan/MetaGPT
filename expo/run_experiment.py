@@ -2,16 +2,21 @@ import argparse
 import asyncio
 
 from expo.experimenter.aug import AugExperimenter
+from expo.experimenter.autogluon import GluonExperimenter
 from expo.experimenter.custom import CustomExperimenter
 from expo.experimenter.experimenter import Experimenter
 from expo.experimenter.mcts import MCTSExperimenter
-from expo.experimenter.autogluon import GluonExperimenter
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
-    parser.add_argument("--exp_mode", type=str, default="mcts", choices=["mcts", "aug", "base", "custom", "greedy", "autogluon"])
+    parser.add_argument(
+        "--exp_mode",
+        type=str,
+        default="mcts",
+        choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random"],
+    )
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
@@ -43,7 +48,9 @@ async def main(args):
     if args.exp_mode == "mcts":
         experimenter = MCTSExperimenter(args)
     elif args.exp_mode == "greedy":
-        experimenter = MCTSExperimenter(args, greedy=True)
+        experimenter = MCTSExperimenter(args, tree_mode="greedy")
+    elif args.exp_mode == "random":
+        experimenter = MCTSExperimenter(args, tree_mode="random")
     elif args.exp_mode == "aug":
         experimenter = AugExperimenter(args)
     elif args.exp_mode == "base":

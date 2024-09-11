@@ -38,17 +38,20 @@ class HFExpDataset(ExpDataset):
             df = pd.read_csv(Path(raw_dir, "train.csv"))
         else:
             df = self.dataset["train"].to_pandas()
-            df.to_csv(Path(raw_dir, "train.csv"))
+            df.to_csv(Path(raw_dir, "train.csv"), index=False)
 
         if os.path.exists(Path(raw_dir, "test.csv")):
-            test_df = pd.read_csv(Path(raw_dir, "test.csv"))
+            test_df = pd.read_csv(Path(raw_dir, "test.csv"), index=False)
         else:
             if "test" in self.dataset:
                 test_df = self.dataset["test"].to_pandas()
-                test_df.to_csv(Path(raw_dir, "test.csv"))
+                test_df.to_csv(Path(raw_dir, "test.csv"), index=False)
             else:
                 test_df = None
         return df, test_df
+
+    # def get_df_head(self, raw_df):
+    #     return raw_df.head()
 
 
 if __name__ == "__main__":
