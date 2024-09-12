@@ -45,6 +45,15 @@ def temp_py_file(tmp_path):
     temp_file_path.unlink()
 
 
+@pytest.fixture
+def empty_file(tmp_path):
+    assert tmp_path is not None
+    temp_file_path = tmp_path / "test_script_empty_file_for_editor.py"
+    temp_file_path.write_text("")
+    yield temp_file_path
+    temp_file_path.unlink()
+
+
 EXPECTED_CONTENT_AFTER_REPLACE = """
 # this is line one
 def test_function_for_fm():
@@ -528,6 +537,15 @@ def test_edit_file_by_replace(temp_py_file):
     with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
+
+
+def test_edit_file_by_replace_to_palce_empty(empty_file):
+    editor = Editor()
+    with pytest.raises(ValueError) as exc_info:
+        editor.edit_file_by_replace(
+            file_name=str(empty_file), to_replace="", new_content=EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
+        )
+    assert "is empty. Use the append method to add content." in str(exc_info.value)
 
 
 def test_append_file(temp_file_path):

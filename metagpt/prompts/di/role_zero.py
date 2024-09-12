@@ -46,6 +46,7 @@ Special Command: Use {{"command_name": "end"}} to do nothing or indicate complet
 
 # Instruction
 {instruction}
+
 """
 
 CMD_EXPERIENCE_MASK = f"""
@@ -64,8 +65,8 @@ CMD_PROMPT = (
 # Current Task
 {current_task}
 
-# Restrictions
-{requirements_constraints}
+# Response Language
+you must respond in {respond_language}.
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
@@ -89,7 +90,6 @@ Output should adhere to the following format.
 Notice: your output JSON data section must start with **```json [**
 """
 )
-
 THOUGHT_GUIDANCE = """
 First, describe the actions you have taken recently.
 Second, describe the messages you have received recently, with a particular emphasis on messages from users. If necessary, develop a plan to address the new user requirements.
@@ -236,11 +236,19 @@ reply : The herb names have been successfully extracted. A total of 8 herb names
 Carefully review the history and respond to the user in the expected language to meet their requirements.
 If you have any deliverables that are helpful in explaining the results (such as files, metrics, quantitative results, etc.), provide brief descriptions of them.
 Your reply must be concise.
-{lanaguge_restruction}
+You must respond in {respond_language}
 Directly output your reply content. Do not add any output format.
 """
 SUMMARY_PROMPT = """
 Summarize what you have accomplished lately. Be concise.
 If you produce any deliverables, include their short descriptions and file paths. If there are any metrics or quantitative results, include them, too.
 If the deliverable is code, only output the file path.
+"""
+
+DETECT_LANGUAGE_PROMPT = """
+The requirement is:
+{requirement}
+
+Which Natural Language must you respond in?
+Output only the language type.
 """

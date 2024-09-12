@@ -10,7 +10,6 @@ from typing import Annotated, Callable, Dict, List, Literal, Optional, Tuple
 from pydantic import Field, model_validator
 
 from metagpt.actions import Action, UserRequirement
-from metagpt.actions.analyze_requirements import AnalyzeRequirementsRestrictions
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
 from metagpt.const import IMAGES
@@ -21,6 +20,7 @@ from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
+    DETECT_LANGUAGE_PROMPT,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
     QUICK_THINK_EXAMPLES,
@@ -79,6 +79,7 @@ class RoleZero(Role):
         "Editor.edit_file_by_replace",
         "Editor.insert_content_at_line",
         "Editor.append_file",
+        "Editor.open_file",
     ]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor(enable_auto_lint=True)
@@ -92,7 +93,7 @@ class RoleZero(Role):
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 200  # number of memories (messages) to use as historical context
     use_fixed_sop: bool = False
-    requirements_constraints: str = ""  # the constraints in user requirements
+    respond_language: str = ""  # Language for responding humans and publishing messages.
     use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
@@ -179,8 +180,8 @@ class RoleZero(Role):
 
         if not self.planner.plan.goal:
             self.planner.plan.goal = self.get_memories()[-1].content
-            self.requirements_constraints = await AnalyzeRequirementsRestrictions().run(self.planner.plan.goal)
-
+            detect_language_prompt = DETECT_LANGUAGE_PROMPT.format(requirement=self.planner.plan.goal)
+            self.respond_language = await self.llm.aask(detect_language_prompt)
         ### 1. Experience ###
         example = self._retrieve_experience()
 
@@ -206,7 +207,7 @@ class RoleZero(Role):
             current_state=self.cmd_prompt_current_state,
             plan_status=plan_status,
             current_task=current_task,
-            requirements_constraints=self.requirements_constraints,
+            respond_language=self.respond_language,
         )
 
         ### Recent Observation ###
@@ -549,9 +550,7 @@ class RoleZero(Role):
         # Ensure reply to the human before the "end" command is executed. Hard code k=5 for checking.
         if not any(["reply_to_human" in memory.content for memory in self.get_memories(k=5)]):
             logger.info("manually reply to human")
-            pattern = r"\[Language Restrictions\](.*?)\n"
-            match = re.search(pattern, self.requirements_constraints, re.DOTALL)
-            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(lanaguge_restruction=match.group(0) if match else "")
+            reply_to_human_prompt = REPORT_TO_HUMAN_PROMPT.format(respond_language=self.respond_language)
             async with ThoughtReporter(enable_llm_stream=True) as reporter:
                 await reporter.async_report({"type": "quick"})
                 reply_content = await self.llm.aask(self.llm.format_msg(memory + [UserMessage(reply_to_human_prompt)]))
