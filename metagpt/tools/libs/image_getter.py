@@ -61,7 +61,7 @@ class ImageGetter(BaseModel):
         Get an image related to the search term.
 
         Args:
-            search_term (str): The term to search for the image. The search term must be in English; using any other language may lead to a mismatch.
+            search_term (str): The term to search for the image. The search term must be in English. Using any other language may lead to a mismatch.
             image_save_path (str): The file path where the image will be saved.
         """
         # Search for images from https://unsplash.com/s/photos/
