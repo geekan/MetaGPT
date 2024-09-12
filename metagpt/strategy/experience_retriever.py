@@ -470,7 +470,7 @@ class TRDExpRetriever(ExpRetriever):
 
 TL_EXAMPLE = """
 ## example 1
-User Requirement: Create a cli snake game using Python.
+User Requirement: Create a cli snake game.
 Explanation: The requirement is about software development. Assign each tasks to a different team member based on their expertise. When publishing message to Product Manager, we copy original user requirement directly to ensure no information loss.
 ```json
 [
@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Create a product requirement document (PRD) outlining the features, user interface, and user experience of the CLI python snake game. Using Python as the programming language.",
+            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. And create a product requirement document (PRD) outlining the features, user interface. ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Design the software architecture for the CLI snake game, including the choice of programming language, libraries, and data flow. Using Python as the programming language.",
+            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Design the software architecture for the CLI snake game, including the data flow.",
             "assignee": "Bob"
         }
     },
@@ -506,14 +506,14 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
-            "instruction": "Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking. Using Python as the programming language.",
+            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
             "assignee": "Alex"
         }
     },
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Create a cli snake game. Using Python as the programming language.",
+            "content": "Use HTML, CSS, Pure JavaScrip as the programming language. Create a cli snake game.",
             "send_to": "Alice"
         }
     },
@@ -848,7 +848,7 @@ Here's the plan:
 
 1. **Task 1**: Create `index.html` - This file will contain the HTML structure necessary for the game's UI.
 2. **Task 2**: Create `style.css` - This file will define the CSS styles to make the game visually appealing and responsive.
-3. **Task 3**: Create `script.js` - This file will contain the JavaScript code for the game logic and UI interactions.
+3. **Task 3**: Create `script.js` - This file will contain the Pure JavaScript code for the game logic and UI interactions.
 
 Let's start by appending the first task to the plan.
 
@@ -877,7 +877,7 @@ Let's start by appending the first task to the plan.
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["1", "2"],
-            "instruction": "Create the script.js file containing the JavaScript logic for the 2048 game.",
+            "instruction": "Create the script.js file containing the Pure JavaScript logic for the 2048 game.",
             "assignee": "Alex"
         }
     }

@@ -76,6 +76,7 @@ Note:
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
 21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
+22. The default programming languages are HTML (.html), CSS (.css), and Pure JavaScript (.js).
 """
 CURRENT_STATE = """
 The current editor state is:
