@@ -703,5 +703,28 @@ async def test_index_repo():
     shutil.rmtree(UPLOAD_ROOT)
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("query", "filename"),
+    [
+        (
+            "In this document, who are the legal representatives of both parties?",
+            TEST_DATA_PATH / "pdf/20210709逗你学云豆付费课程协议.pdf",
+        )
+    ],
+)
+async def test_similarity_search(query, filename):
+    filename = Path(filename)
+    save_to = Path(UPLOAD_ROOT) / filename.name
+    save_to.parent.mkdir(parents=True, exist_ok=True)
+    os.system(f"cp {str(filename)} {str(save_to)}")
+
+    editor = Editor()
+    rsp = await editor.similarity_search(query=query, file_or_path=save_to)
+    assert rsp
+
+    save_to.unlink(missing_ok=True)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
