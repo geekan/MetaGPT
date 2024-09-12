@@ -77,6 +77,7 @@ Note:
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
 21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
 22. The default programming languages are HTML (.html), CSS (.css), and Pure JavaScript (.js).
+23. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
 """
 CURRENT_STATE = """
 The current editor state is:
