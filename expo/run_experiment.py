@@ -6,6 +6,7 @@ from expo.experimenter.autogluon import GluonExperimenter
 from expo.experimenter.custom import CustomExperimenter
 from expo.experimenter.experimenter import Experimenter
 from expo.experimenter.mcts import MCTSExperimenter
+from expo.experimenter.autosklearn import AutoSklearnExperimenter
 
 
 def get_args():
@@ -15,7 +16,7 @@ def get_args():
         "--exp_mode",
         type=str,
         default="mcts",
-        choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random"],
+        choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random", "autosklearn"],
     )
     get_di_args(parser)
     get_mcts_args(parser)
@@ -59,6 +60,8 @@ async def main(args):
         experimenter = GluonExperimenter(args)
     elif args.exp_mode == "custom":
         experimenter = CustomExperimenter(args)
+    elif args.exp_mode == "autosklearn":
+        experimenter = AutoSklearnExperimenter(args)
     else:
         raise ValueError(f"Invalid exp_mode: {args.exp_mode}")
     await experimenter.run_experiment()

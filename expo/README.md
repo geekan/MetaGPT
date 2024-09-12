@@ -182,6 +182,15 @@ pip install autogluon
 ```
 
 提供github链接，并说明使用的命令以及参数设置
+### AutoSklearn
+#### Setup
+```
+pip install autosklearn
+```
+#### Run
+```
+python run_experiment.py --exp_mode autosklearn --task titanic
+```
 
 ### Base DI 
 For setup, check 5.
