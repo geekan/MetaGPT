@@ -84,7 +84,7 @@ exp_pool:
   collection_name: experience_pool  # When `retrieval_type` is `chroma`, `collection_name` is the collection name in chromadb.
 
 role_zero:
-  enable_longterm_memory: false # Whether to use long-term memory.
+  enable_longterm_memory: false # Whether to use long-term memory. Default is `false`.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

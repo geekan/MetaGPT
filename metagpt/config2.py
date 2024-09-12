@@ -91,7 +91,7 @@ class Config(CLIParams, YamlModel):
     roles: Optional[List[RoleCustomConfig]] = None
 
     # RoleZero's configuration
-    role_zero: Optional[RoleZeroConfig] = None
+    role_zero: RoleZeroConfig = Field(default_factory=RoleZeroConfig)
 
     omniparse: Optional[OmniParseConfig] = None
 

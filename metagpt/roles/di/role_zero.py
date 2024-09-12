@@ -173,7 +173,7 @@ class RoleZero(Role):
         The role name will be used as the collection name.
         """
 
-        if self.config.role_zero and self.config.role_zero.enable_longterm_memory:
+        if self.config.role_zero.enable_longterm_memory:
             self.rc.memory = RoleZeroLongTermMemory(collection_name=self.name.replace(" ", ""), memory_k=self.memory_k)
             logger.info(f"Long-term memory set for role '{self.name}'")
 
