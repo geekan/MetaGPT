@@ -83,6 +83,8 @@ exp_pool:
   use_llm_ranker: true # Default is `true`, it will use LLM Reranker to get better result.
   collection_name: experience_pool  # When `retrieval_type` is `chroma`, `collection_name` is the collection name in chromadb.
 
+role_zero:
+  enable_longterm_memory: false # Whether to use long-term memory.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

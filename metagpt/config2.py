@@ -19,6 +19,7 @@ from metagpt.configs.mermaid_config import MermaidConfig
 from metagpt.configs.omniparse_config import OmniParseConfig
 from metagpt.configs.redis_config import RedisConfig
 from metagpt.configs.role_custom_config import RoleCustomConfig
+from metagpt.configs.role_zero_config import RoleZeroConfig
 from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
@@ -88,6 +89,9 @@ class Config(CLIParams, YamlModel):
 
     # Role's custom configuration
     roles: Optional[List[RoleCustomConfig]] = None
+
+    # RoleZero's configuration
+    role_zero: Optional[RoleZeroConfig] = None
 
     omniparse: Optional[OmniParseConfig] = None
 

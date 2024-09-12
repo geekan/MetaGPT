@@ -92,7 +92,6 @@ class RoleZero(Role):
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 200  # number of memories (messages) to use as historical context
-    enable_longterm_memory: bool = True  # whether to use longterm memory
     use_fixed_sop: bool = False
     requirements_constraints: str = ""  # the constraints in user requirements
     use_summary: bool = True  # whether to summarize at the end
@@ -168,14 +167,16 @@ class RoleZero(Role):
 
     @model_validator(mode="after")
     def set_longterm_memory(self) -> "RoleZero":
-        """Set longterm memory.
+        """Set up long-term memory for the role if enabled in the configuration.
 
-        If enable_longterm_memory is True and longterm_memory is not set, set it.
+        If `enable_longterm_memory` is True, set up long-term memory.
         The role name will be used as the collection name.
         """
 
-        if self.enable_longterm_memory:
+        enable_longterm_memory = bool(self.config.role_zero and self.config.role_zero.enable_longterm_memory)
+        if enable_longterm_memory:
             self.rc.memory = RoleZeroLongTermMemory(collection_name=self.name.replace(" ", ""), memory_k=self.memory_k)
+            logger.info(f"Long-term memory set for role '{self.name}'")
 
         return self
 
