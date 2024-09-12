@@ -721,6 +721,7 @@ async def test_index_repo():
             "What principle is introduced by the author to explain the conditions necessary for the emergence of complexity?",
             TEST_DATA_PATH / "pdf/9781444323498.ch2_1.pdf",
         ),
+        ("行高的继承性的代码示例是？", TEST_DATA_PATH / "pdf/02-CSS.pdf"),
     ],
 )
 async def test_similarity_search(query, filename):
