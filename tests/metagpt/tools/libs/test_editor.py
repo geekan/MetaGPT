@@ -689,12 +689,12 @@ async def mock_index_repo():
 @pytest.mark.asyncio
 async def test_index_repo():
     # mock data
-    chat_path, UPLOAD_ROOT, src_path = await mock_index_repo()
+    chat_path, upload_path, src_path = await mock_index_repo()
 
     editor = Editor()
     rsp = await editor.similarity_search(query="业务线", file_or_path=chat_path)
     assert rsp
-    rsp = await editor.similarity_search(query="业务线", file_or_path=UPLOAD_ROOT)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=upload_path)
     assert rsp
     rsp = await editor.similarity_search(query="业务线", file_or_path=src_path)
     assert rsp
