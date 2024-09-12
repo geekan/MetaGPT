@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from pydantic import Field
@@ -15,7 +14,7 @@ from metagpt.prompts.di.engineer2 import (
     WRITE_CODE_SYSTEM_PROMPT,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import AIMessage, UserMessage
+from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.git import git_create_pull
@@ -122,11 +121,9 @@ class Engineer2(RoleZero):
             plan_status=plan_status,
             instruction=instruction,
         )
-        # Remove the json command in last message.
-        memory = self.rc.memory.get(self.memory_k)
-        pattern = r"```json.*?\s+(.*)\n```"
-        last_memory_content = re.sub(pattern, "", memory[-1].content, flags=re.DOTALL)
-        memory = memory[:-1] + [AIMessage(content=last_memory_content)]
+        # Sometimes the Engineer repeats the last command to respond.
+        # Replace the last command with a manual prompt to guide the Engineer to write new code.
+        memory = self.rc.memory.get(self.memory_k)[:-1]
         context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
 
         async with EditorReporter(enable_llm_stream=True) as reporter:
