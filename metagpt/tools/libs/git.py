@@ -79,6 +79,7 @@ async def git_create_pull(
             colon_index = parsed_url.netloc.find(":")
             at_index = parsed_url.netloc.find("@")
             access_token = parsed_url.netloc[colon_index + 1 : at_index]
+            break
     return await GitRepository.create_pull(
         base=base,
         head=head,
