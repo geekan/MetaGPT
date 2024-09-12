@@ -692,11 +692,11 @@ async def test_index_repo():
     chat_path, UPLOAD_ROOT, src_path = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=chat_path)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=chat_path)
     assert rsp
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=UPLOAD_ROOT)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=UPLOAD_ROOT)
     assert rsp
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=src_path)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=src_path)
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)

@@ -936,25 +936,25 @@ class Editor(BaseModel):
         return path
 
     @staticmethod
-    async def search_index_repo(query: str, file_or_path: Union[str, Path]) -> List[str]:
-        """Searches the index repository for a given query across specified files or paths.
+    async def similarity_search(query: str, file_or_path: Union[str, Path]) -> List[str]:
+        """Performs a similarity search for a given query across specified files or paths.
 
-        This method classifies the provided files or paths, performing a search on each cluster
-        of files while handling other types of files separately. It merges results from structured
-        indices with any results from non-indexed files.
+        This method searches the index repository for the provided query, classifying the specified
+        files or paths. It performs a search on each cluster of files and handles non-indexed files
+        separately, merging results from structured indices with any direct results from non-indexed files.
 
         Args:
             query (str): The search query string to look for in the indexed files.
-            file_or_path (Union[str, Path]): A path or a filename to search within.
+            file_or_path (Union[str, Path]): A path or filename to search within.
 
         Returns:
-            List[str]: A list of search results as strings, containing the text from the merged results
-                        and any direct results from other files.
+            List[str]: A list of results as strings, containing the text from the merged results
+                        and any direct results from non-indexed files.
 
         Example:
             >>> query = "The problem to be analyzed from the document"
             >>> file_or_path = "The document or folder you want to query"
-            >>> texts: List[str] = await Editor.search_index_repo(query=query, file_or_path=file_or_path)
+            >>> texts: List[str] = await Editor.similarity_search(query=query, file_or_path=file_or_path)
             >>> print(texts)
         """
         return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)

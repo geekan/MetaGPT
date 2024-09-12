@@ -35,7 +35,7 @@ class DataAnalyst(RoleZero):
         "DataAnalyst",
         "RoleZero",
         "Browser",
-        "Editor:write,read,search_index_repo",
+        "Editor:write,read,similarity_search",
         "SearchEnhancedQA",
     ]
     custom_tools: list[str] = ["web scraping", "Terminal", "Editor:write,read,search_index_repo"]
