@@ -81,10 +81,8 @@ Note:
 """
 CURRENT_STATE = """
 The current editor state is:
-(Editor current directory: {editor_current_directory})
-(Editor open file: {editor_open_file})
-The current terminal state is:
-(Terminal current directory: {terminal_current_directory})
+(Current directory: {current_directory})
+(Open file: {editor_open_file})
 """
 ENGINEER2_INSTRUCTION = ROLE_INSTRUCTION + EXTRA_INSTRUCTION.strip()
 
@@ -103,6 +101,9 @@ WRITE_CODE_PROMPT = """
 
 # Plan Status
 {plan_status}
+
+# Current Coding File
+{file_path}
 
 # Further Instruction
 {instruction}
