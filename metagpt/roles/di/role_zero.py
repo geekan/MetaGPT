@@ -79,6 +79,7 @@ class RoleZero(Role):
         "Editor.edit_file_by_replace",
         "Editor.insert_content_at_line",
         "Editor.append_file",
+        "Editor.open_file",
     ]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor(enable_auto_lint=True)
