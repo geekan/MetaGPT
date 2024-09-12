@@ -137,6 +137,8 @@ class RoleZeroLongTermMemory(Memory):
         return self.get_by_position(-1)
 
     def _is_last_message_from_user_requirement(self) -> bool:
+        """Checks if the last message is from a user requirement or sent by the team leader."""
+
         message = self._get_the_last_message()
 
         if not message:
