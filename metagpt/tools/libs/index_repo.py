@@ -46,7 +46,7 @@ class TextScore(BaseModel):
 class IndexRepo(BaseModel):
     persist_path: str = DEFAULT_INDEX_ROOT  # The persist path of the index repo, `/data/.index/uploads/` or `/data/.index/chats/{chat_id}/`
     root_path: str = (
-        DEFAULT_ROOT  # `/data/uploads` or r`/data/chats/\d+`, the root path of files indexed by the index repo.
+        DEFAULT_ROOT  # `/data/uploads` or r`/data/chats/[a-z0-9]+`, the root path of files indexed by the index repo.
     )
     fingerprint_filename: str = "fingerprint.json"
     meta_filename: str = "meta.json"
@@ -328,7 +328,7 @@ class IndexRepo(BaseModel):
         """
         mappings = {
             UPLOADS_INDEX_ROOT: re.compile(r"^/data/uploads($|/.*)"),
-            CHATS_INDEX_ROOT: re.compile(r"^/data/chats/\d+($|/.*)"),
+            CHATS_INDEX_ROOT: re.compile(r"^/data/chats/[a-z0-9]+($|/.*)"),
         }
 
         clusters = {}
