@@ -845,7 +845,7 @@ Consider this example only after you have obtained the content of system design 
 Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. 
 
 Here's the plan:
-
+[Optional] 0. **Task 0**: Obtain images before coding.
 1. **Task 1**: Create `index.html` - This file will contain the HTML structure necessary for the game's UI.
 2. **Task 2**: Create `style.css` - This file will define the CSS styles to make the game visually appealing and responsive.
 3. **Task 3**: Create `script.js` - This file will contain the JavaScript code for the game logic and UI interactions.
