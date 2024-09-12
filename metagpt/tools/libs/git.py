@@ -64,11 +64,8 @@ async def git_create_pull(
     Returns:
         PullRequest: The created pull request.
     """
-
-    from metagpt.tools.libs import get_env
     from metagpt.utils.git_repository import GitRepository
 
-    access_token = await get_env(key="access_token", app_name=app_name)
     git_credentials_path = Path.home() / ".git-credentials"
     with open(git_credentials_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -78,7 +75,7 @@ async def git_create_pull(
         if not line:
             continue
         parsed_url = urllib.parse.urlparse(line)
-        if parsed_url.hostname == app_name:
+        if app_name in parsed_url.hostname:
             colon_index = parsed_url.netloc.find(":")
             at_index = parsed_url.netloc.find("@")
             access_token = parsed_url.netloc[colon_index + 1 : at_index]
