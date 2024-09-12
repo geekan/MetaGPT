@@ -38,7 +38,7 @@ class DataAnalyst(RoleZero):
         "Editor:write,read,similarity_search",
         "SearchEnhancedQA",
     ]
-    custom_tools: list[str] = ["web scraping", "Terminal", "Editor:write,read,search_index_repo"]
+    custom_tools: list[str] = ["web scraping", "Terminal", "Editor:write,read,similarity_search"]
     custom_tool_recommender: ToolRecommender = None
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = KeywordExpRetriever()
 
