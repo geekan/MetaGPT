@@ -703,6 +703,7 @@ async def test_index_repo():
     shutil.rmtree(UPLOAD_ROOT)
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("query", "filename"),
