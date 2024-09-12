@@ -103,6 +103,9 @@ WRITE_CODE_PROMPT = """
 # Plan Status
 {plan_status}
 
+# Current Coding File
+{file_path}
+
 # Further Instruction
 {instruction}
 
