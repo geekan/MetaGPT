@@ -155,6 +155,7 @@ class RoleZero(Role):
                     "scroll_up",
                     "search_dir",
                     "search_file",
+                    "search_index_repo",
                     # "set_workdir",
                     "write",
                 ]
