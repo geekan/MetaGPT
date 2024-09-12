@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import urllib
+from pathlib import Path
 from typing import Optional
 
 from github.Issue import Issue
@@ -67,6 +69,19 @@ async def git_create_pull(
     from metagpt.utils.git_repository import GitRepository
 
     access_token = await get_env(key="access_token", app_name=app_name)
+    git_credentials_path = Path.home() / ".git-credentials"
+    with open(git_credentials_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        parsed_url = urllib.parse.urlparse(line)
+        if parsed_url.hostname == app_name:
+            colon_index = parsed_url.netloc.find(":")
+            at_index = parsed_url.netloc.find("@")
+            access_token = parsed_url.netloc[colon_index + 1 : at_index]
     return await GitRepository.create_pull(
         base=base,
         head=head,
