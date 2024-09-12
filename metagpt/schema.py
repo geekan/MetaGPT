@@ -238,7 +238,7 @@ class Message(BaseModel):
     cause_by: str = Field(default="", validate_default=True)
     sent_from: str = Field(default="", validate_default=True)
     send_to: set[str] = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
-    metadata: Dict[str, str] = Field(default_factory=dict)  # metadata for `content` and `instruct_content`
+    metadata: Dict[str, Any] = Field(default_factory=dict)  # metadata for `content` and `instruct_content`
 
     @field_validator("id", mode="before")
     @classmethod
