@@ -711,7 +711,16 @@ async def test_index_repo():
         (
             "In this document, who are the legal representatives of both parties?",
             TEST_DATA_PATH / "pdf/20210709逗你学云豆付费课程协议.pdf",
-        )
+        ),
+        (
+            "What is the short name of the company in this document?",
+            TEST_DATA_PATH / "pdf/company_stock_code.pdf",
+        ),
+        ("平安创新推出中国版的什么模式，将差异化的医疗健康服务与作为支付方的金融业务无缝结合", TEST_DATA_PATH / "pdf/9112674.pdf"),
+        (
+            "What principle is introduced by the author to explain the conditions necessary for the emergence of complexity?",
+            TEST_DATA_PATH / "pdf/9781444323498.ch2_1.pdf",
+        ),
     ],
 )
 async def test_similarity_search(query, filename):
