@@ -41,7 +41,7 @@ class Architect(RoleZero):
     instruction: str = ARCHITECT_INSTRUCTION
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = [
-        "Editor:write,read,write_content",
+        "Editor:write,read,write_content,similarity_search",
         "RoleZero",
         "WriteDesign",
     ]

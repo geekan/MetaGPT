@@ -31,7 +31,7 @@ class ProjectManager(RoleZero):
 
     instruction: str = """Use WriteTasks tool to write a project task list"""
     max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    tools: list[str] = ["Editor:write,read,write_content", "RoleZero", "WriteTasks"]
+    tools: list[str] = ["Editor:write,read,write_content,similarity_search", "RoleZero", "WriteTasks"]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
