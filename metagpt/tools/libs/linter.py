@@ -32,7 +32,7 @@ class Linter:
 
         self.languages = dict(
             python=self.py_lint,
-            sql=self.fake_lint,  # Base_lint lacks support for full SQL syntax. Use fake_lint to bypass the validation.
+            sql=self.fake_lint,  # base_lint lacks support for full SQL syntax. Use fake_lint to bypass the validation.
         )
         self.all_lint_cmd = None
 

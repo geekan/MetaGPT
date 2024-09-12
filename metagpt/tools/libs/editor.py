@@ -730,8 +730,7 @@ class Editor(BaseModel):
         if to_replace.strip() == "":
             if file_content.strip() == "":
                 raise ValueError(f"The file '{file_name}' is empty. Please use the append method to add content.")
-            else:
-                raise ValueError("`to_replace` must not be empty.")
+            raise ValueError("`to_replace` must not be empty.")
 
         if file_content.count(to_replace) > 1:
             raise ValueError(
