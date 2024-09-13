@@ -84,7 +84,7 @@ class Editor(BaseModel):
     resource: EditorReporter = EditorReporter()
     current_file: Optional[Path] = None
     current_line: int = 1
-    window: int = 100
+    window: int = 200
     enable_auto_lint: bool = False
     working_dir: Path = DEFAULT_WORKSPACE_ROOT
 
@@ -633,8 +633,8 @@ class Editor(BaseModel):
             )
             error_info = ERROR_GUIDANCE.format(
                 linter_error_msg=LINTER_ERROR_MSG + str(e),
-                window_after_applied=self._print_window(file_name, start or len(lines), 40),
-                window_before_applied=self._print_window(Path(temp_backup_file.name), start or len(lines), 40),
+                window_after_applied=self._print_window(file_name, start or len(lines), 100),
+                window_before_applied=self._print_window(Path(temp_backup_file.name), start or len(lines), 100),
                 guidance_message=guidance_message,
             ).strip()
             # Clean up the temporary file if an error occurs
@@ -662,9 +662,7 @@ class Editor(BaseModel):
         ).strip()
         return success_edit_info
 
-    def edit_file_by_replace(
-        self, file_name: str, start_line: Optional[int], end_line: Optional[int], new_content: str
-    ) -> str:
+    def edit_file_by_replace(self, file_name: str, start_line: int, end_line: int, new_content: str) -> str:
         """
         Line numbers start from 1. Replaces lines start_line through end_line (inclusive) with the given text in the open file.
         All of the new_content will be entered, so makesure your indentation is formatted properly.
