@@ -9,22 +9,25 @@ from expo.data.dataset import ExpDataset, process_dataset, save_datasets_dict_to
 from expo.insights.solution_designer import SolutionDesigner
 
 HFDATSETS = [
-    # {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},
-    # {"name": "banking77", "dataset_name": "PolyAI/banking77", "target_col": "label", "modality": "text"},
-    # {"name": "gnad10", "dataset_name": "community-datasets/gnad10", "target_col": "label", "modality": "text"},
-    {
-        "name": "oxford-iiit-pet",
-        "dataset_name": "timm/oxford-iiit-pet",
-        "target_col": "label_cat_dog",
-        "modality": "image",
-    },
-    {"name": "stanford_cars", "dataset_name": "tanganke/stanford_cars", "target_col": "label", "modality": "image"},
-    {
-        "name": "fashion_mnist",
-        "dataset_name": "zalando-datasets/fashion_mnist",
-        "target_col": "label",
-        "modality": "image",
-    },
+    {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},
+    {"name": "banking77", "dataset_name": "PolyAI/banking77", "target_col": "label", "modality": "text"},
+    {"name": "gnad10", "dataset_name": "community-datasets/gnad10", "target_col": "label", "modality": "text"},
+    # {
+    #     "name": "oxford-iiit-pet",
+    #     "dataset_name": "timm/oxford-iiit-pet",
+    #     "target_col": "label_cat_dog",
+    #     "modality": "image",
+    # },
+    # {   "name": "stanford_cars",
+    #     "dataset_name": "tanganke/stanford_cars",
+    #     "target_col": "label",
+    #     "modality": "image"},
+    # {
+    #     "name": "fashion_mnist",
+    #     "dataset_name": "zalando-datasets/fashion_mnist",
+    #     "target_col": "label",
+    #     "modality": "image",
+    # },
 ]
 
 
