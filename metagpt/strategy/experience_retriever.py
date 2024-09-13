@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. And create a product requirement document (PRD) outlining the features, user interface. ",
+            "instruction": "Use native web technologies for the program. And create a product requirement document (PRD) outlining the features, user interface. ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Design the software architecture for the CLI snake game, including the data flow.",
+            "instruction": "Use native web technologies for the program. Design the software architecture for the CLI snake game, including the data flow.",
             "assignee": "Bob"
         }
     },
@@ -506,14 +506,14 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
+            "instruction": "Use native web technologies for the program. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
             "assignee": "Alex"
         }
     },
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Use HTML, CSS, Pure JavaScrip as the programming language. Create a cli snake game.",
+            "content": "Use native web technologies for the program. Create a cli snake game.",
             "send_to": "Alice"
         }
     },
