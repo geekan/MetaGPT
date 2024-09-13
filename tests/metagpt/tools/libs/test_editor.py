@@ -737,5 +737,13 @@ async def test_similarity_search(query, filename):
     save_to.unlink(missing_ok=True)
 
 
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_read():
+    editor = Editor()
+    content = await editor.read(str(TEST_DATA_PATH / "pdf/9112674.pdf"))
+    assert "similarity_search" in content.block_content
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

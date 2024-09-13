@@ -10,10 +10,11 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
+import tiktoken
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.tools.libs.index_repo import IndexRepo
+from metagpt.tools.libs.index_repo import DEFAULT_MIN_TOKEN_COUNT, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.file import File
@@ -106,6 +107,11 @@ class Editor(BaseModel):
         content = await File.read_text_file(path)
         if not content:
             return FileBlock(file_path=str(path), block_content="")
+        if self.is_large_file(content=content):
+            return FileBlock(
+                file_path=str(path),
+                block_content="The file is too large to read. Use `Editor.similarity_search` to read the file instead.",
+            )
         self.resource.report(str(path), "path")
 
         lines = content.splitlines(keepends=True)
@@ -959,3 +965,10 @@ class Editor(BaseModel):
             >>> print(texts)
         """
         return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)
+
+    @staticmethod
+    def is_large_file(content: str, mix_token_count: int = 0) -> bool:
+        encoding = tiktoken.get_encoding("cl100k_base")
+        token_count = len(encoding.encode(content))
+        mix_token_count = mix_token_count or DEFAULT_MIN_TOKEN_COUNT
+        return token_count >= mix_token_count
