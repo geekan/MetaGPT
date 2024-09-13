@@ -545,7 +545,7 @@ def test_edit_file_by_replace_to_palce_empty(empty_file):
         editor.edit_file_by_replace(
             file_name=str(empty_file), to_replace="", new_content=EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
         )
-    assert "is empty. Use the append method to add content." in str(exc_info.value)
+        assert "is empty. Use the append method to add content." in str(exc_info.value)
 
 
 def test_append_file(temp_file_path):
@@ -598,6 +598,27 @@ def test_search_dir(tmp_path):
     search_term = "some content"
 
     result = editor.search_dir(search_term, str(dir_path))
+
+    assert "file1.txt" in result
+    assert "file3.txt" in result
+    assert "Another file with different content." not in result
+
+
+def test_search_dir_in_default_dir(tmp_path):
+    editor = Editor()
+    dir_path = editor.working_dir / "test_dir"
+    dir_path.mkdir(exist_ok=True)
+
+    # Create some files with specific content
+    (dir_path / "file1.txt").write_text("This is a test file with some content.")
+    (dir_path / "file2.txt").write_text("Another file with different content.")
+    sub_dir = dir_path / "sub_dir"
+    sub_dir.mkdir(exist_ok=True)
+    (sub_dir / "file3.txt").write_text("This file is inside a sub directory with some content.")
+
+    search_term = "some content"
+
+    result = editor.search_dir(search_term)
 
     assert "file1.txt" in result
     assert "file3.txt" in result

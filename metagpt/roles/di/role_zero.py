@@ -432,7 +432,7 @@ class RoleZero(Role):
                 for index, cmd in enumerate(commands)
                 if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
             ]
-            command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```json"
+            command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```"
             logger.info(
                 "exclusive command more than one in current command list. change the command list.\n" + command_rsp
             )
