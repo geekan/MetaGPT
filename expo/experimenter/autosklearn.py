@@ -1,10 +1,7 @@
 from datetime import datetime
-import autosklearn.classification
-import autosklearn.regression
 import pandas as pd
 from expo.experimenter.custom import CustomExperimenter
 from expo.evaluation.evaluation import evaluate_score
-from autosklearn.metrics import make_scorer
 from functools import partial
 
 
@@ -24,6 +21,14 @@ class ASRunner:
     def __init__(self, state=None):
         self.state = state
         self.datasets = self.state["datasets_dir"]
+        try:
+            import autosklearn.classification
+            import autosklearn.regression
+            from autosklearn.metrics import make_scorer
+        except ImportError:
+            raise ImportError(
+                "autosklearn not found or system not supported, please check it first"
+            )
 
     def run(self):
         train_path = self.datasets["train"]
@@ -34,7 +39,7 @@ class ASRunner:
         train_data = pd.read_csv(train_path)
         dev_data = pd.read_csv(dev_wo_target_path)
         test_data = pd.read_csv(test_wo_target_path)
-        eval_metric = self.state["dataset_config"]["metric"].replace(" ", "_")
+        eval_metric = self.state["dataset_config"]["metric"]
         X_train = train_data.drop(columns=[target_col])
         y_train = train_data[target_col]
 
@@ -42,31 +47,18 @@ class ASRunner:
             automl = autosklearn.regression.AutoSklearnRegressor(
                 time_left_for_this_task=self.time_limit,
                 per_run_time_limit=60,
-                metric=create_autosklearn_scorer("rmse"),  # 使用新的函数创建评分器
+                metric=create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
                     self.state["task"], datetime.now().strftime("%y%m%d_%H%M")
                 ),
                 n_jobs=-1,
             )
-        elif eval_metric == "f1":
+        elif eval_metric in ["f1", "f1 weighted"]:
             automl = autosklearn.classification.AutoSklearnClassifier(
                 time_left_for_this_task=self.time_limit,
                 per_run_time_limit=60,
-                metric=create_autosklearn_scorer("f1"),  # 使用新的函数创建评分器
-                memory_limit=8192,
-                tmp_folder="AutosklearnModels/as-{}-{}".format(
-                    self.state["task"], datetime.now().strftime("%y%m%d_%H%M")
-                ),
-                n_jobs=-1,
-            )
-        elif eval_metric == "f1_weighted":
-            automl = autosklearn.classification.AutoSklearnClassifier(
-                time_left_for_this_task=self.time_limit,
-                per_run_time_limit=60,
-                metric=create_autosklearn_scorer(
-                    "f1 weighted"
-                ),  # 使用新的函数创建评分器
+                metric=create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
                     self.state["task"], datetime.now().strftime("%y%m%d_%H%M")

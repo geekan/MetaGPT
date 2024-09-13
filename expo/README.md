@@ -183,10 +183,26 @@ pip install autogluon
 
 提供github链接，并说明使用的命令以及参数设置
 ### AutoSklearn
+#### System requirements
+auto-sklearn has the following system requirements:
+
+- Linux operating system (for example Ubuntu)
+
+- Python (>=3.7)
+
+- C++ compiler (with C++11 supports)
+
+In case you try to install Auto-sklearn on a system where no wheel files for the pyrfr package are provided (see here for available wheels) you also need:
+
+- SWIG [(get SWIG here).](https://www.swig.org/survey.html)
+
+For an explanation of missing Microsoft Windows and macOS support please check the Section [Windows/macOS compatibility](https://automl.github.io/auto-sklearn/master/installation.html#windows-macos-compatibility).
+
 #### Setup
 ```
-pip install autosklearn
+pip install auto-sklearn
 ```
+
 #### Run
 ```
 python run_experiment.py --exp_mode autosklearn --task titanic
