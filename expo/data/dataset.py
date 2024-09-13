@@ -16,15 +16,22 @@ Perform data analysis, data preprocessing, feature engineering, and modeling to 
 Report {metric} on the eval data. Do not plot or make any visualizations.
 """
 
+RECOMMENDATION = """\
+## Base Models and Ensemble
+You can consider using the following base models:
+’GBM’ (LightGBM) ‘CAT’ (CatBoost) ‘XGB’ (XGBoost) ‘RF’ (random forest) ‘XT’ (extremely randomized trees) ‘KNN’ (k-nearest neighbors) ‘LR’ (linear regression)
+"""
 
-DI_INSTRUCTION = """\
-**Attention** 
+DI_INSTRUCTION = (
+    RECOMMENDATION
+    + """**Attention** 
 1. Please do not leak the target label in any form during training.
 2. Test set does not have the target column.
 3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
-4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
+4. When scaling or transforming features, make sure the target column is not included.
 5. You could utilize dev set to validate and improve model training.
-6. Use techniques to avoid overfitting.
+6. To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor using **dev set** after base models being trained
+7. Make sure the model prototyping is fast. 
 
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
@@ -37,6 +44,7 @@ Print the train and dev set performance in the last step.
 # Output dir
 {output_dir}
 """
+)
 
 TASK_PROMPT = """\
 # User requirement

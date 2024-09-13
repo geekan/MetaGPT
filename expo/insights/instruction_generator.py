@@ -79,7 +79,7 @@ class InstructionGenerator:
         return data
 
     @staticmethod
-    async def generate_new_instructions(task_id, original_instruction, max_num, file_path):
+    async def generate_new_instructions(task_id, original_instruction, max_num, file_path, ext_info=None):
         data = InstructionGenerator.load_analysis_pool(file_path, task_id)
         new_instructions = []
         if len(data) == 0:
@@ -91,12 +91,14 @@ class InstructionGenerator:
             else:
                 item = data[i]
                 insights = item["Analysis"]
-            new_instruction = await InstructionGenerator.generate_new_instruction(original_instruction, insights)
+            new_instruction = await InstructionGenerator.generate_new_instruction(
+                original_instruction, insights, ext_info
+            )
             new_instructions.append(new_instruction)
         return new_instructions
 
     @staticmethod
-    async def generate_new_instruction(original_instruction, insights):
+    async def generate_new_instruction(original_instruction, insights, ext_info):
         prompt = CHANGE_INSTRUCTION.format(instruction=original_instruction, insights=insights)
         llm = LLM()
         context = llm.format_msg([Message(content=prompt, role="user")])
