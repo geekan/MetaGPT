@@ -57,9 +57,9 @@ Your changes have NOT been applied. Please fix your edit command and try again
 SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
-[File updated (edited at line {line_number}).
+[File updated (edited at line {line_number})].
 """
-# Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
+# Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.
 
 
 class FileBlock(BaseModel):
@@ -727,11 +727,7 @@ class Editor(BaseModel):
             new_content str: The text to replace the current selection with, must conform to PEP8 standards.
 
         """
-        # FIXME: support replacing *all* occurrences
 
-        # search for `to_replace` in the file
-        # if found, replace it with `new_content`
-        # if not found, perform a fuzzy search to find the closest match and replace it with `new_content`
         file_name = self._try_fix_path(file_name)
 
         ret_str = self._edit_file_impl(
@@ -740,7 +736,6 @@ class Editor(BaseModel):
             end=end_line,
             content=new_content,
         )
-        # lint_error = bool(LINTER_ERROR_MSG in ret_str)
         # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
         self.resource.report(file_name, "path")
         return ret_str

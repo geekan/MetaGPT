@@ -543,7 +543,7 @@ class RoleZero(Role):
         from metagpt.environment.mgx.mgx_env import MGXEnv  # avoid circular import
 
         if not isinstance(self.rc.env, MGXEnv):
-            return "Not in MGXEnv, command will not be executed. If you no longer need to take action, use the command ‘end’ to stop."
+            return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.reply_to_human(content, sent_from=self)
 
     async def _end(self, **kwarg):
