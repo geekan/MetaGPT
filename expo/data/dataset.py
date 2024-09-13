@@ -268,8 +268,9 @@ class ExpDataset:
             print(f"Dataset info for {self.name} already exists")
 
     def save_datasetinfo(self, dataset_info):
-        with open(Path(self.dataset_dir, self.name, "dataset_info.json"), "w") as file:
-            json.dump(dataset_info, file, indent=4)
+        with open(Path(self.dataset_dir, self.name, "dataset_info.json"), "w", encoding="utf-8") as file:
+            # utf-8 encoding is required
+            json.dump(dataset_info, file, indent=4, ensure_ascii=False)
 
     def save_split_datasets(self, df, split, target_col=None):
         path = Path(self.dataset_dir, self.name)
