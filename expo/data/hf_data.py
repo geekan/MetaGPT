@@ -1,19 +1,19 @@
 import asyncio
+import io
 import os
 from pathlib import Path
-import numpy as np
-from PIL import Image
-import io
+
 import pandas as pd
 from datasets import load_dataset
+from PIL import Image
 
 from expo.data.dataset import ExpDataset, process_dataset, save_datasets_dict_to_yaml
 from expo.insights.solution_designer import SolutionDesigner
 
 HFDATSETS = [
-    # {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},
-    # {"name": "banking77", "dataset_name": "PolyAI/banking77", "target_col": "label", "modality": "text"},
-    # {"name": "gnad10", "dataset_name": "community-datasets/gnad10", "target_col": "label", "modality": "text"},
+    {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},
+    {"name": "banking77", "dataset_name": "PolyAI/banking77", "target_col": "label", "modality": "text"},
+    {"name": "gnad10", "dataset_name": "community-datasets/gnad10", "target_col": "label", "modality": "text"},
     {
         "name": "oxford-iiit-pet",
         "dataset_name": "timm/oxford-iiit-pet",
@@ -21,18 +21,20 @@ HFDATSETS = [
         "target_col": "label_cat_dog",
         "modality": "image",
     },
-    # {   "name": "stanford_cars",
-    #     "dataset_name": "tanganke/stanford_cars",
-    #     "image_col": "image",
-    #     "target_col": "label",
-    #     "modality": "image"},
-    # {
-    #     "name": "fashion_mnist",
-    #     "dataset_name": "zalando-datasets/fashion_mnist",
-    #     "image_col": "image",
-    #     "target_col": "label",
-    #     "modality": "image",
-    # },
+    {
+        "name": "stanford_cars",
+        "dataset_name": "tanganke/stanford_cars",
+        "image_col": "image",
+        "target_col": "label",
+        "modality": "image",
+    },
+    {
+        "name": "fashion_mnist",
+        "dataset_name": "zalando-datasets/fashion_mnist",
+        "image_col": "image",
+        "target_col": "label",
+        "modality": "image",
+    },
 ]
 
 
@@ -81,17 +83,19 @@ class HFExpDataset(ExpDataset):
         return df, test_df
 
     def save_images_and_update_df(self, df, raw_dir, split):
-        image_dir = Path(raw_dir, f"{split}_images")
-        image_dir.mkdir(parents=True, exist_ok=True)
+        abs_image_dir = Path(raw_dir, f"{split}_images")
+        rel_image_dir = f"raw/{split}_images"
+        abs_image_dir.mkdir(parents=True, exist_ok=True)
 
         def process_image(idx, row):
             image_bytes = row[self.image_col]["bytes"]
             image = Image.open(io.BytesIO(image_bytes))
             if image.mode == "RGBA":
                 image = image.convert("RGB")
-            img_path = Path(image_dir, f"{idx}.jpg")
+            img_path = Path(abs_image_dir, f"{idx}.jpg")
+            rel_img_path = f"{rel_image_dir}/{idx}.jpg"
             image.save(img_path)
-            return str(img_path)
+            return rel_img_path
 
         df["image"] = df.apply(lambda row: process_image(row.name, row), axis=1)
         return df
@@ -112,7 +116,7 @@ class HFExpDataset(ExpDataset):
 if __name__ == "__main__":
     dataset_dir = "D:/work/automl/datasets"
     save_analysis_pool = True
-    force_update = False
+    force_update = True
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
     for dataset_meta in HFDATSETS:
@@ -125,9 +129,5 @@ if __name__ == "__main__":
             force_update=force_update,
             modality=dataset_meta["modality"],
         )
-        asyncio.run(
-            process_dataset(
-                hf_dataset, solution_designer, save_analysis_pool, datasets_dict
-            )
-        )
+        asyncio.run(process_dataset(hf_dataset, solution_designer, save_analysis_pool, datasets_dict))
     save_datasets_dict_to_yaml(datasets_dict, "hf_datasets.yaml")
