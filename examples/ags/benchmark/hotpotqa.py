@@ -72,12 +72,12 @@ async def load_data(file_path: str, samples=20, total_length=1000, test=False) -
 async def evaluate_problem(input: str, context_str: str, graph: Callable, expected_output: str):
     max_retries = 5
     retries = 0
-
+    
     while retries < max_retries:
         try:
             global cost
             prediction, cost = await graph(input, context_str) if graph else "None"
-            score = f1_score(prediction, expected_output)
+            score = f1_score(prediction["solution"], expected_output)
 
             break
         except Exception as e:
