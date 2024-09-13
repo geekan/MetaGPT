@@ -79,6 +79,14 @@ datasets:
       \ column `percent_pell_grant`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport rmse on the eval\
       \ data. Do not plot or make any visualizations.\n"
+  concrete-strength:
+    dataset: concrete-strength
+    metric: rmse
+    target_col: Strength
+    user_requirement: "This is a concrete-strength dataset. Your goal is to predict\
+      \ the target column `Strength`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport rmse on\
+      \ the eval data. Do not plot or make any visualizations.\n"
   credit-g:
     dataset: credit-g
     metric: f1
@@ -135,30 +143,6 @@ datasets:
       \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
       \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
       \ Do not plot or make any visualizations.\n"
-  steel-plates-fault:
-    dataset: steel-plates-fault
-    metric: f1 weighted
-    target_col: target
-    user_requirement: "This is a steel-plates-fault dataset. Your goal is to predict\
-      \ the target column `target`.\nPerform data analysis, data preprocessing, feature\
-      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
-      \ eval data. Do not plot or make any visualizations.\n"
-  wine-quality-white:
-    dataset: wine-quality-white
-    metric: f1 weighted
-    target_col: Class
-    user_requirement: "This is a wine-quality-white dataset. Your goal is to predict\
-      \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
-      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
-      \ eval data. Do not plot or make any visualizations.\n"
-  concrete-strength:
-    dataset: concrete-strength
-    metric: rmse
-    target_col: Strength
-    user_requirement: "This is a concrete-strength dataset. Your goal is to predict\
-      \ the target column `Strength`.\nPerform data analysis, data preprocessing,\
-      \ feature engineering, and modeling to predict the target. \nReport rmse on\
-      \ the eval data. Do not plot or make any visualizations.\n"
   smoker-status:
     dataset: smoker-status
     metric: f1
@@ -175,4 +159,43 @@ datasets:
       \ the target column `defects`.\nPerform data analysis, data preprocessing, feature\
       \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
       \ Do not plot or make any visualizations.\n"
-
+  steel-plates-fault:
+    dataset: steel-plates-fault
+    metric: f1 weighted
+    target_col: target
+    user_requirement: "This is a steel-plates-fault dataset. Your goal is to predict\
+      \ the target column `target`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  wine-quality-white:
+    dataset: wine-quality-white
+    metric: f1 weighted
+    target_col: Class
+    user_requirement: "This is a wine-quality-white dataset. Your goal is to predict\
+      \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  banking77:
+    dataset: banking77
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a banking77 dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  gnad10:
+    dataset: gnad10
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a gnad10 dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  sms_spam:
+    dataset: sms_spam
+    metric: f1
+    target_col: label
+    user_requirement: "This is a sms_spam dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
