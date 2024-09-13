@@ -61,9 +61,7 @@ class Engineer2(RoleZero):
         This information will be dynamically added to the command prompt.
         """
         current_directory = (await self.terminal.run_command("pwd")).strip()
-        # Synchronize Terminal and Editor Working Directories
-        if str(self.editor.working_dir.absolute()).strip() != current_directory:
-            self.editor._set_workdir(current_directory)
+        self.editor._set_workdir(current_directory)
         state = {
             "editor_open_file": self.editor.current_file,
             "current_directory": current_directory,
