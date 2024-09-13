@@ -115,8 +115,8 @@ class HFExpDataset(ExpDataset):
 
 if __name__ == "__main__":
     dataset_dir = "D:/work/automl/datasets"
-    save_analysis_pool = True
-    force_update = True
+    save_analysis_pool = False
+    force_update = False
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
     for dataset_meta in HFDATSETS:
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             dataset_dir,
             dataset_meta["dataset_name"],
             target_col=dataset_meta["target_col"],
-            image_col=dataset_meta["image_col"],
+            image_col=dataset_meta.get("image_col", ""),
             force_update=force_update,
             modality=dataset_meta["modality"],
         )
