@@ -957,6 +957,13 @@ I have opened the openai_api.py file. However, the range of lines shown is from 
 
 ## example 9
 I've found the bug and will start fixing it. I'll pay close attention to the indentation.
+the previous file look like:
+
+739|            can_fold_brackets = self._settings['fold_func_brackets'] and \
+740|                len(args) == 1 and \
+741|                not self._needs_function_brackets(expr.args[0])
+743|            inv_trig_table = ["asin", "acos", "atan", "acsc", "asec", "acot"]
+745|            # If the function is an inverse trig function, handle the style
 Since I only need to modify a few lines in this file, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
 Editor tool is exclusive. If I use this tool, I cannot use any other commands in the current response.
 ```json
@@ -965,7 +972,8 @@ Editor tool is exclusive. If I use this tool, I cannot use any other commands in
         "command_name": "Editor.edit_file_by_replace",
         "args": {
             "file_name":"/workspace/MetaGPT/provider/openai_api.py",
-            "to_replace": "            inv_trig_table = ["asin", "acos", "atan", "acot"]"
+            "start_line": 741,
+            "end_line": 741,
             "new_content": "            inv_trig_table = ["asin", "acos", "atan", "acsc", "asec", "acot"]"
         }
     }

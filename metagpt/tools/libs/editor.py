@@ -57,8 +57,9 @@ Your changes have NOT been applied. Please fix your edit command and try again
 SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
-[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
+[File updated (edited at line {line_number}).
 """
+# Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
 
 
 class FileBlock(BaseModel):
@@ -207,7 +208,7 @@ class Editor(BaseModel):
             else:
                 output += "(this is the beginning of the file)\n"
             for i in range(start, end + 1):
-                _new_line = f"{i}|{lines[i - 1]}"
+                _new_line = f"{i:03d}|{lines[i - 1]}"
                 if not _new_line.endswith("\n"):
                     _new_line += "\n"
                 output += _new_line
@@ -665,7 +666,86 @@ class Editor(BaseModel):
         ).strip()
         return success_edit_info
 
-    def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
+    def edit_file_by_replace(
+        self, file_name: str, start_line: Optional[int], end_line: Optional[int], new_content: str
+    ) -> str:
+        """
+        Line numbers start from 1. Replaces lines start_line through end_line (inclusive) with the given text in the open file.
+        All of the new_content will be entered, so makesure your indentation is formatted properly.
+
+        Example 1:
+        Given a file "/workspace/example.txt" with the following content:
+        ```
+        001|line 1
+        002|line 2
+        003|line 3
+        004|line 4
+        ```
+
+        EDITING: If you want to replace line 2 and line 3
+
+        edit_file_by_replace(
+            '/workspace/example.txt',
+            start_line=2,
+            end_line=3,
+            new_content='new line',
+        )
+        This will replace only the second line 2 and line 3 with "new line".
+
+        The resulting file will be:
+        ```
+        001|line 1
+        002|new line
+        003|line 4
+        ```
+        Example 2:
+        Given a file "/workspace/example.txt" with the following content:
+        ```
+        001|line 1
+        002|line 2
+        003|line 3
+        004|line 4
+        ```
+        EDITING: If you want to remove the line 2 and line 3
+        edit_file_by_replace(
+            '/workspace/example.txt',
+            start_line=2,
+            end_line=3,
+            new_content='new line',
+        )
+        This will remove line 2 and line 3
+        The resulting file will be:
+        ```
+        001|line 1
+        002|
+        003|line 4
+        ```
+        Args:
+            file_name str:The name of the file to edit.
+            start_line int: The line number to start the edit at, starting from 1.
+            end_line int: The line number to end the edit at (inclusive), starting from 1.
+            new_content str: The text to replace the current selection with, must conform to PEP8 standards.
+
+        """
+        # FIXME: support replacing *all* occurrences
+
+        # search for `to_replace` in the file
+        # if found, replace it with `new_content`
+        # if not found, perform a fuzzy search to find the closest match and replace it with `new_content`
+        file_name = self._try_fix_path(file_name)
+
+        ret_str = self._edit_file_impl(
+            file_name,
+            start=start_line,
+            end=end_line,
+            content=new_content,
+        )
+        # lint_error = bool(LINTER_ERROR_MSG in ret_str)
+        # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
+        self.resource.report(file_name, "path")
+        return ret_str
+
+    def _edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
         """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
 
         Every *to_replace* must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
@@ -710,7 +790,6 @@ class Editor(BaseModel):
             file_name: str: The name of the file to edit.
             to_replace: str: The content to search for and replace.
             new_content: str: The new content to replace the old content with.
-
         NOTE:
             This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
             If you need to use it multiple times, wait for the next turn.
@@ -736,7 +815,6 @@ class Editor(BaseModel):
             raise ValueError(
                 "`to_replace` appears more than once, please include enough lines to make code in `to_replace` unique."
             )
-
         start = file_content.find(to_replace)
         if start != -1:
             # Convert start from index to line number
@@ -772,21 +850,23 @@ class Editor(BaseModel):
         return ret_str
 
     def insert_content_at_line(self, file_name: str, line_number: int, content: str) -> str:
-        """Insert content at the given line number in a file.
+        """Insert content at the given line number in a file. That is, the new content will start at line_number after the insertion.
         This will NOT modify the content of the lines before OR after the given line number.
 
         For example, if the file has the following content:
         ```
-        line 1
-        line 2
-        line 3
+        001|line 1
+        002|line 2
+        003|line 3
+        004|line 4
         ```
         and you call `insert_content_at_line('file.txt', 2, 'new line')`, the file will be updated to:
         ```
-        line 1
-        new line
-        line 2
-        line 3
+        001|line 1
+        002|new line
+        003|line 2
+        004|line 3
+        005|line 4
         ```
 
         Args:

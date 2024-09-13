@@ -310,8 +310,10 @@ class RoleZero(Role):
             if self.rc.max_react_loop >= 10 and actions_taken >= self.rc.max_react_loop:
                 # If max_react_loop is a small value (e.g. < 10), it is intended to be reached and make the agent stop
                 logger.warning(f"reached max_react_loop: {actions_taken}")
-                rsp = await self.ask_human("I have reached my max action rounds, do you want me to continue? Yes or no")
-                if "yes" in rsp.lower():
+                human_rsp = await self.ask_human(
+                    "I have reached my max action rounds, do you want me to continue? Yes or no"
+                )
+                if "yes" in human_rsp.lower():
                     actions_taken = 0
         return rsp  # return output from the last action
 
@@ -541,7 +543,7 @@ class RoleZero(Role):
         from metagpt.environment.mgx.mgx_env import MGXEnv  # avoid circular import
 
         if not isinstance(self.rc.env, MGXEnv):
-            return "Not in MGXEnv, command will not be executed."
+            return "Not in MGXEnv, command will not be executed. If you no longer need to take action, use the command ‘end’ to stop."
         return await self.rc.env.reply_to_human(content, sent_from=self)
 
     async def _end(self, **kwarg):
