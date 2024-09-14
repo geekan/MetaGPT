@@ -53,8 +53,44 @@ score_dict = experimenter.evaluate_pred_files(dev_pred_path, test_pred_path)
 
 ## 4. Baselines
 ### DS Agent
-提供github链接，并说明使用的命令以及参数设置
+```
+git clone https://github.com/guosyjlu/DS-Agent.git
+```
 
+将其deployment/generate.py line46-48行部分修改如下（目的是用deepseek而非GPT的API）：
+```python
+messages = [{"role": "user", "content": prompt}]
+
+if 'gpt' in llm:
+    response = openai.ChatCompletion.create(**{"messages": messages,**raw_request})
+    raw_completion = response["choices"][0]["message"]["content"]
+    
+elif llm == 'deepseek-coder':
+    from openai import OpenAI
+    client = OpenAI(
+        api_key="yours", 
+        base_url="https://oneapi.deepwisdom.ai/v1"
+    )
+    response = client.chat.completions.create(
+        model="deepseek-coder",
+        messages=[
+            # {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=temperature,
+        stream=False
+    )
+    raw_completion = response.choices[0].message.content
+
+completion = raw_completion.split("```python")[1].split("```")[0]
+```
+
+修改完后在新建一个`deployment/test.sh` 分别运行下列两行，`$TASK` 是你要测试的task name
+```
+python -u generate.py --llm deepseek-coder --task $TASK --shot 1 --retrieval > "$TASK".txt 2>&1 
+
+python -u evaluation.py --path "deepseek-coder_True_1" --task $TASK --device 0  > "$TASK"_eval.txt 2>&1 
+```
 
 ### AIDE
 
