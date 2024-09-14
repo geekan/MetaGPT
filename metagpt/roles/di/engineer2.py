@@ -71,6 +71,7 @@ class Engineer2(RoleZero):
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
         cr = CodeReview()
+        image_getter = ImageGetter()
         self.exclusive_tool_commands.append("Engineer2.write_new_code")
         if self.run_eval is True:
             # Evalute tool map
@@ -78,6 +79,7 @@ class Engineer2(RoleZero):
                 {
                     "git_create_pull": git_create_pull,
                     "Engineer2.write_new_code": self.write_new_code,
+                    "ImageGetter.get_image": image_getter.get_image,
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self._eval_terminal_run,
@@ -87,7 +89,6 @@ class Engineer2(RoleZero):
             )
         else:
             # Default tool map
-            image_getter = ImageGetter()
             self.tool_execution_map.update(
                 {
                     "git_create_pull": git_create_pull,
