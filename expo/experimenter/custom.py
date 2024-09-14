@@ -18,7 +18,12 @@ class CustomExperimenter(Experimenter):
         self.name = kwargs.get("name", "")
         self.result_path = f"results/custom_{self.name}"
         self.state = create_initial_state(
-            self.task, start_task_id=1, data_config=self.data_config, low_is_better=self.low_is_better, name=self.name
+            self.task,
+            start_task_id=1,
+            data_config=self.data_config,
+            low_is_better=self.low_is_better,
+            name=self.name,
+            special_instruction=self.args.special_instruction,
         )
 
     def run_experiment(self):

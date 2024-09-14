@@ -187,16 +187,10 @@ pip install autogluon
 For setup, check 5.
 
 - `python run_experiment.py --exp_mode base --task titanic --num_experiments 10`
+- Ask DI to use AutoGluon: `--special_instruction ag`
+- Ask DI to use the stacking ensemble method: `--special_instruction stacking`
 
 
-### DI RandomSearch
-For setup, check 5.
-
-- Single insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode single`
-
-- Set insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode set`
 
 
 ## 5. DI MCTS
@@ -223,6 +217,20 @@ If the dataset has reg metric, remember to use `--low_is_better`:
 - `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 10 --low_is_better`
 
 
+In addition to the generated insights, include the fixed insights saved in `insights/fixed_insights.json`
+- `--use_fixed_insights`
+  
+
+
+#### Ablation Study
+
+**DI RandomSearch**
+
+- Single insight
+`python run_experiment.py --exp_mode aug --task titanic --aug_mode single`
+
+- Set insight
+`python run_experiment.py --exp_mode aug --task titanic --aug_mode set`
 
 
 

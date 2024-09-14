@@ -17,7 +17,9 @@ class AugExperimenter(Experimenter):
         # state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
         user_requirement = self.state["requirement"]
         exp_pool_path = get_exp_pool_path(self.args.task, self.data_config, pool_name="ds_analysis_pool")
-        exp_pool = InstructionGenerator.load_analysis_pool(exp_pool_path)
+        exp_pool = InstructionGenerator.load_analysis_pool(
+            exp_pool_path, use_fixed_insights=self.args.use_fixed_insights
+        )
         if self.args.aug_mode == "single":
             exps = InstructionGenerator._random_sample(exp_pool, self.args.num_experiments)
             exps = [exp["Analysis"] for exp in exps]

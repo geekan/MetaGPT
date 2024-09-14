@@ -1,4 +1,5 @@
 import json
+import os
 import random
 
 from expo.utils import clean_json_from_rsp, load_data_config, mcts_logger
@@ -68,8 +69,12 @@ class InstructionGenerator:
         return new_data
 
     @staticmethod
-    def load_analysis_pool(file_path, task_id=None):
+    def load_analysis_pool(file_path, use_fixed_insights, task_id=None):
         data = InstructionGenerator.load_json_data(file_path)
+        if use_fixed_insights:
+            current_directory = os.path.dirname(__file__)
+            fixed_insights = InstructionGenerator.load_json_data(f"{current_directory}/fixed_insights.json")
+            data.extend(fixed_insights)
         for item in data:
             if "task_id" not in item:
                 raise ValueError("task_id is not found in the analysis pool")
@@ -79,8 +84,12 @@ class InstructionGenerator:
         return data
 
     @staticmethod
-    async def generate_new_instructions(task_id, original_instruction, max_num, file_path, ext_info=None):
-        data = InstructionGenerator.load_analysis_pool(file_path, task_id)
+    async def generate_new_instructions(
+        task_id, original_instruction, max_num, file_path, ext_info=None, use_fixed_insights=False
+    ):
+        data = InstructionGenerator.load_analysis_pool(
+            file_path, task_id=task_id, use_fixed_insights=use_fixed_insights
+        )
         new_instructions = []
         if len(data) == 0:
             mcts_logger.log("MCTS", f"No insights available for task {task_id}")

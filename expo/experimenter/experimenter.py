@@ -23,7 +23,8 @@ class Experimenter:
             start_task_id=1,
             data_config=self.data_config,
             low_is_better=self.args.low_is_better,
-            name="",
+            name=self.args.name,
+            special_instruction=self.args.special_instruction,
         )
 
     async def run_di(self, di, user_requirement, run_idx):

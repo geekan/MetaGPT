@@ -13,19 +13,15 @@ class MCTSExperimenter(Experimenter):
 
     async def run_experiment(self):
         if self.tree_mode == "greedy":
-            mcts = Greedy(root_node=None, max_depth=5)
+            mcts = Greedy(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
         elif self.tree_mode == "random":
-            mcts = Random(root_node=None, max_depth=5)
+            mcts = Random(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
         else:
-            mcts = MCTS(root_node=None, max_depth=5)
+            mcts = MCTS(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
         best_nodes = await mcts.search(
-            self.args.task,
-            self.data_config,
-            low_is_better=self.args.low_is_better,
-            load_tree=self.args.load_tree,
+            state=self.state,
             reflection=self.args.reflection,
             rollouts=self.args.rollouts,
-            name=self.args.name,
         )
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
