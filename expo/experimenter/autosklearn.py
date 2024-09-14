@@ -15,19 +15,11 @@ class ASRunner:
     def __init__(self, state=None):
         self.state = state
         self.datasets = self.state["datasets_dir"]
-        try:
-            import autosklearn.classification
-            import autosklearn.regression
-            import autosklearn.metrics
-
-            self.autosklearn = autosklearn
-        except ImportError:
-            raise ImportError(
-                "autosklearn not found or system not supported, please check it first"
-            )
 
     def create_autosklearn_scorer(self, metric_name):
-        return self.autosklearn.metrics.make_scorer(
+        from autosklearn.metrics import make_scorer
+
+        return make_scorer(
             name=metric_name, score_func=partial(custom_scorer, metric_name=metric_name)
         )
 
@@ -45,7 +37,9 @@ class ASRunner:
         y_train = train_data[target_col]
 
         if eval_metric == "rmse":
-            automl = self.autosklearn.regression.AutoSklearnRegressor(
+            from autosklearn.regression import AutoSklearnRegressor
+
+            automl = AutoSklearnRegressor(
                 time_left_for_this_task=self.time_limit,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
@@ -55,7 +49,9 @@ class ASRunner:
                 n_jobs=-1,
             )
         elif eval_metric in ["f1", "f1 weighted"]:
-            automl = self.autosklearn.classification.AutoSklearnClassifier(
+            from autosklearn.classification import AutoSklearnClassifier
+
+            automl = AutoSklearnClassifier(
                 time_left_for_this_task=self.time_limit,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
