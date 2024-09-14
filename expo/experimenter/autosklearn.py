@@ -24,6 +24,8 @@ class ASRunner:
         )
 
     def run(self):
+        import autosklearn
+
         train_path = self.datasets["train"]
         dev_wo_target_path = self.datasets["dev_wo_target"]
         test_wo_target_path = self.datasets["test_wo_target"]
@@ -37,9 +39,7 @@ class ASRunner:
         y_train = train_data[target_col]
 
         if eval_metric == "rmse":
-            from autosklearn.regression import AutoSklearnRegressor
-
-            automl = AutoSklearnRegressor(
+            automl = autosklearn.regression.AutoSklearnRegressor(
                 time_left_for_this_task=self.time_limit,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
@@ -49,9 +49,7 @@ class ASRunner:
                 n_jobs=-1,
             )
         elif eval_metric in ["f1", "f1 weighted"]:
-            from autosklearn.classification import AutoSklearnClassifier
-
-            automl = AutoSklearnClassifier(
+            automl = autosklearn.classification.AutoSklearnClassifier(
                 time_left_for_this_task=self.time_limit,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
