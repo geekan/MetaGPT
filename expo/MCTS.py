@@ -208,9 +208,6 @@ class Node:
                 run_finished = True
             except Exception as e:
                 print(f"Error: {e}")
-                import pdb
-
-                pdb.set_trace()
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
         if not run_finished:
