@@ -108,6 +108,8 @@ class Terminal:
         return "\n".join(output_lines)
 
     async def _read_and_process_output(self, cmd, daemon=False) -> str:
+        if "pwd" in cmd:
+            return
         async with self.observer as observer:
             cmd_output = []
             await observer.async_report(cmd + self.command_terminator, "cmd")
