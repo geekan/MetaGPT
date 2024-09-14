@@ -35,6 +35,7 @@ class Linter:
             sql=self.fake_lint,  # base_lint lacks support for full SQL syntax. Use fake_lint to bypass the validation.
             css=self.fake_lint,  # base_lint lacks support for css syntax. Use fake_lint to bypass the validation.
             js=self.fake_lint,  # base_lint lacks support for javascipt syntax. Use fake_lint to bypass the validation.
+            javascript=self.fake_lint,
         )
         self.all_lint_cmd = None
 

@@ -73,7 +73,24 @@ class LineNumberError(Exception):
     pass
 
 
-@register_tool()
+@register_tool(
+    include_functions=[
+        "write",
+        "read",
+        "open_file",
+        "goto_line",
+        "scroll_down",
+        "scroll_up",
+        "create_file",
+        "edit_file_by_replace",
+        "insert_content_at_line",
+        "append_file",
+        "search_dir",
+        "search_file",
+        "find_file",
+        "search_index_repo",
+    ]
+)
 class Editor(BaseModel):
     """
     A tool for reading, understanding, writing, and editing files.
