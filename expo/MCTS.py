@@ -16,12 +16,11 @@ from metagpt.utils.common import read_json_file
 
 
 def initialize_di_root_node(state, reflection: bool = True):
-    start_task_id = 2
     # state = create_initial_state(
     #     task, start_task_id=start_task_id, data_config=data_config, low_is_better=low_is_better, name=name
     # )
     role = ResearchAssistant(
-        node_id="0", start_task_id=start_task_id, use_reflection=reflection, role_dir=state["node_dir"]
+        node_id="0", start_task_id=state["start_task_id"], use_reflection=reflection, role_dir=state["node_dir"]
     )
     return role, Node(parent=None, state=state, action=None, value=0)
 
@@ -208,6 +207,10 @@ class Node:
                 self.raw_reward = score_dict
                 run_finished = True
             except Exception as e:
+                print(f"Error: {e}")
+                import pdb
+
+                pdb.set_trace()
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
         if not run_finished:

@@ -13,6 +13,7 @@ from expo.utils import DATA_CONFIG, save_notebook
 class Experimenter:
     result_path: str = "results/base"
     data_config = DATA_CONFIG
+    start_task_id = 1
 
     def __init__(self, args, **kwargs):
         self.args = args
@@ -20,7 +21,7 @@ class Experimenter:
         self.start_time = self.start_time_raw.strftime("%Y%m%d%H%M")
         self.state = create_initial_state(
             self.args.task,
-            start_task_id=1,
+            start_task_id=self.start_task_id,
             data_config=self.data_config,
             low_is_better=self.args.low_is_better,
             name=self.args.name,

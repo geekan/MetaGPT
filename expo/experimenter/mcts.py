@@ -6,6 +6,7 @@ from expo.MCTS import MCTS
 
 class MCTSExperimenter(Experimenter):
     result_path: str = "results/mcts"
+    start_task_id = 2
 
     def __init__(self, args, tree_mode=None, **kwargs):
         super().__init__(args, **kwargs)
