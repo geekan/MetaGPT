@@ -10,7 +10,7 @@ def custom_scorer(y_true, y_pred, metric_name):
 
 
 class ASRunner:
-    time_limit = 300
+    time_limit = 600
 
     def __init__(self, state=None):
         self.state = state
@@ -47,7 +47,6 @@ class ASRunner:
         if eval_metric == "rmse":
             automl = self.autosklearn.regression.AutoSklearnRegressor(
                 time_left_for_this_task=self.time_limit,
-                per_run_time_limit=60,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
@@ -58,7 +57,6 @@ class ASRunner:
         elif eval_metric in ["f1", "f1 weighted"]:
             automl = self.autosklearn.classification.AutoSklearnClassifier(
                 time_left_for_this_task=self.time_limit,
-                per_run_time_limit=60,
                 metric=self.create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
