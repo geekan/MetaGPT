@@ -28,14 +28,29 @@ STACKING = """
 SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING}
 
 RECOMMENDATION = """
-## Base Models and Ensemble
-You can consider using the following base models:
-`GBM` (LightGBM) `CAT` (CatBoost) `XGB` (XGBoost) `RF` (random forest) `XT` (extremely randomized trees) `KNN` (k-nearest neighbors) ‘LR’ (linear regression)
+## Base Models
+You have access to the following base models:
+Tabular:
+LightGBM, CatBoost, XGBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression
+
+Image:
+ResNet, DenseNet, VGG, Inception, MobileNet, EfficientNet
+
+Text:
+BERT, RoBERTa, DistilBERT, GPT-2
+"""
+
+# The RECOMMENDATION above is not tested but might be needed for multi-modal datasets
+
+RECOMMENDATION = """
+## Base Models
+You have access to the following base models:
+LightGBM, CatBoost, XGBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression
 """
 
 DI_INSTRUCTION = (
     RECOMMENDATION
-    + """**Attention** 
+    + """## Attention
 1. Please do not leak the target label in any form during training.
 2. Test set does not have the target column.
 3. When conducting data exploration or analysis, print out the results of your findings.
