@@ -87,7 +87,7 @@ class Experimenter:
         pred_node_path = os.path.join(state["node_dir"], f"{self.start_time}-{split}_predictions.csv")
         gt_path = os.path.join(state["datasets_dir"][f"{split}_target"])
         preds = pd.read_csv(pred_path)
-        preds = preds[preds.columns.tolist()[0]]
+        preds = preds[preds.columns.tolist()[-1]]
         preds.to_csv(pred_node_path, index=False)
         gt = pd.read_csv(gt_path)["target"]
         metric = state["dataset_config"]["metric"]
