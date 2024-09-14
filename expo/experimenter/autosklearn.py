@@ -17,6 +17,7 @@ def create_autosklearn_scorer(metric_name):
 
 class ASRunner:
     time_limit = 300
+    seed = 42
 
     def __init__(self, state=None):
         self.state = state
@@ -49,6 +50,7 @@ class ASRunner:
                 per_run_time_limit=60,
                 metric=create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
+                seed=self.seed,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
                     self.state["task"], datetime.now().strftime("%y%m%d_%H%M")
                 ),
@@ -60,6 +62,7 @@ class ASRunner:
                 per_run_time_limit=60,
                 metric=create_autosklearn_scorer(eval_metric),
                 memory_limit=8192,
+                seed=self.seed,
                 tmp_folder="AutosklearnModels/as-{}-{}".format(
                     self.state["task"], datetime.now().strftime("%y%m%d_%H%M")
                 ),
