@@ -679,63 +679,78 @@ class Editor(BaseModel):
         ).strip()
         return success_edit_info
 
-    def edit_file_by_replace(self, file_name: str, start_line: int, end_line: int, new_content: str) -> str:
+    def edit_file_by_replace(
+        self,
+        file_name: str,
+        start_line_number: int,
+        start_line_content: str,
+        end_line_number: int,
+        end_line_content: str,
+        new_content: str,
+    ) -> str:
         """
         Line numbers start from 1. Replaces lines start_line through end_line (inclusive) with the given text in the open file.
         All of the new_content will be entered, so makesure your indentation is formatted properly.
+        The new_content must be a complete block of code .
 
         Example 1:
         Given a file "/workspace/example.txt" with the following content:
         ```
-        001|line 1
-        002|line 2
-        003|line 3
-        004|line 4
+        001|contain f
+        002|contain g
+        003|contain h
+        004|contain i
         ```
 
         EDITING: If you want to replace line 2 and line 3
 
         edit_file_by_replace(
             '/workspace/example.txt',
-            start_line=2,
-            end_line=3,
-            new_content='new line',
+            start_line_number=2,
+            start_line_content="contain g",
+            end_line_number=3,
+            end_line_content="contain h",
+            new_content='new content',
         )
-        This will replace only the second line 2 and line 3 with "new line".
+        This will replace only the second line 2 and line 3 with "new content".
 
         The resulting file will be:
         ```
-        001|line 1
-        002|new line
-        003|line 4
+        001|contain f
+        002|new content
+        003|contain i
         ```
         Example 2:
         Given a file "/workspace/example.txt" with the following content:
         ```
-        001|line 1
-        002|line 2
-        003|line 3
-        004|line 4
+        001|contain f
+        002|contain g
+        003|contain h
+        004|contain i
         ```
         EDITING: If you want to remove the line 2 and line 3
         edit_file_by_replace(
             '/workspace/example.txt',
-            start_line=2,
-            end_line=3,
+            start_line_number=2,
+            start_line_content="contain g",
+            end_line_number=3,
+            end_line_content="contain h",
             new_content='new line',
         )
         This will remove line 2 and line 3
         The resulting file will be:
         ```
-        001|line 1
+        001|contain f
         002|
-        003|line 4
+        003|contain i
         ```
         Args:
             file_name str:The name of the file to edit.
-            start_line int: The line number to start the edit at, starting from 1.
-            end_line int: The line number to end the edit at (inclusive), starting from 1.
-            new_content str: The text to replace the current selection with, must conform to PEP8 standards.
+            start_line_number int:The line number to start the edit at, starting from 1.
+            start_line_content str:The content of the start replace line, according to the start_line_number.
+            end_line_number int:The line number to end the edit at (inclusive), starting from 1.
+            end_line_content str:The content of the end replace line, according to the end_line_number.
+            new_content str: The text to replace the current selection with, must conform to PEP8 standards.The content in the start line and end line will also be replaced.
 
         """
 
@@ -743,8 +758,8 @@ class Editor(BaseModel):
 
         ret_str = self._edit_file_impl(
             file_name,
-            start=start_line,
-            end=end_line,
+            start=start_line_number,
+            end=end_line_number,
             content=new_content,
         )
         # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
@@ -855,30 +870,36 @@ class Editor(BaseModel):
         self.resource.report(file_name, "path")
         return ret_str
 
-    def insert_content_at_line(self, file_name: str, line_number: int, content: str) -> str:
-        """Insert content at the given line number in a file. That is, the new content will start at line_number after the insertion.
-        This will NOT modify the content of the lines before OR after the given line number.
-
+    def insert_content_at_line(self, file_name: str, line_number: int, insert_content: str) -> str:
+        """Insert a complete block of code before the given line number in a file That is, the new content will start at the beginning of the specified line, and the existing content of that line will be moved down.
+        This operation will NOT modify the content of the lines before or after the given line number.
+        This function can not insert content the end of the file. Please use append_file instead,
         For example, if the file has the following content:
         ```
-        001|line 1
-        002|line 2
-        003|line 3
-        004|line 4
+        001|contain g
+        002|contain h
+        003|contain i
+        004|contain j
         ```
-        and you call `insert_content_at_line('file.txt', 2, 'new line')`, the file will be updated to:
+        and you call
+        insert_content_at_line(
+            file_name='file.txt',
+            line_number=2,
+            insert_content='new line')`
+        the file will be updated to:
         ```
-        001|line 1
+        001|contain g
         002|new line
-        003|line 2
-        004|line 3
-        005|line 4
+        003|contain h
+        004|contain i
+        005|contain j
         ```
 
         Args:
             file_name: str: The name of the file to edit.
-            line_number: int: The line number (starting from 1) to insert the content after.
-            content: str: The content to insert.
+            line_number int: The line number (starting from 1) to insert the content after.the insert content will be add between the line of line_number-1 and line_number
+            insert_content (str): The content to insert betweed the previous_line_content and current_line_content.The insert_content must be  a complete block of code at.
+
         NOTE:
             This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
             If you need to use it multiple times, wait for the next turn.
@@ -888,7 +909,7 @@ class Editor(BaseModel):
             file_name,
             start=line_number,
             end=line_number,
-            content=content,
+            content=insert_content,
             is_insert=True,
             is_append=False,
         )

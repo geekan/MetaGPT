@@ -120,7 +120,7 @@ def test_insert_content(temp_py_file):
     editor.insert_content_at_line(
         file_name=temp_py_file,
         line_number=3,
-        content="    # This is the new line to be inserted, at line 3",
+        insert_content="    # This is the new line to be inserted, at line 3",
     )
     with open(temp_py_file, "r") as f:
         new_content = f.read()
@@ -536,7 +536,14 @@ def test_function_for_fm():
 
 def test_edit_file_by_replace(temp_py_file):
     editor = Editor()
-    editor.edit_file_by_replace(file_name=str(temp_py_file), start_line=5, end_line=5, new_content="    b = 9")
+    editor.edit_file_by_replace(
+        file_name=str(temp_py_file),
+        start_line_number=5,
+        start_line_content="",
+        new_content="    b = 9",
+        end_line_number=5,
+        end_line_content="",
+    )
     with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
