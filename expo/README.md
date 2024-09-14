@@ -217,7 +217,7 @@ If the dataset has reg metric, remember to use `--low_is_better`:
 - `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 10 --low_is_better`
 
 
-In addition to the generated insights, include the fixed insights saved in `insights/fixed_insights.json`
+In addition to the generated insights, include the fixed insights saved in `expo/insights/fixed_insights.json`
 - `--use_fixed_insights`
   
 
