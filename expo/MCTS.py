@@ -15,18 +15,17 @@ from metagpt.tools.tool_recommend import ToolRecommender
 from metagpt.utils.common import read_json_file
 
 
-def initialize_di_root_node(task, data_config, low_is_better=False, reflection=True, name=""):
-    start_task_id = 2
-    state = create_initial_state(
-        task, start_task_id=start_task_id, data_config=data_config, low_is_better=low_is_better, name=name
-    )
+def initialize_di_root_node(state, reflection: bool = True):
+    # state = create_initial_state(
+    #     task, start_task_id=start_task_id, data_config=data_config, low_is_better=low_is_better, name=name
+    # )
     role = ResearchAssistant(
-        node_id="0", start_task_id=start_task_id, use_reflection=reflection, role_dir=state["node_dir"]
+        node_id="0", start_task_id=state["start_task_id"], use_reflection=reflection, role_dir=state["node_dir"]
     )
     return role, Node(parent=None, state=state, action=None, value=0)
 
 
-def create_initial_state(task, start_task_id, data_config, low_is_better, name):
+def create_initial_state(task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str):
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
@@ -34,11 +33,14 @@ def create_initial_state(task, start_task_id, data_config, low_is_better, name):
         "dataset_config": data_config["datasets"][task],
         "datasets_dir": get_split_dataset_path(task, data_config),
         "exp_pool_path": get_exp_pool_path(task, data_config, pool_name="ds_analysis_pool"),
-        "requirement": generate_task_requirement(task, data_config),
+        "requirement": generate_task_requirement(
+            task, data_config, is_di=True, special_instruction=special_instruction
+        ),
         "has_run": False,
         "start_task_id": start_task_id,
         "low_is_better": low_is_better,
     }
+    os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state
 
 
@@ -146,7 +148,7 @@ class Node:
         role = role.model_copy()
         role.save_state(static_save=True)
 
-    async def expand(self, max_children):
+    async def expand(self, max_children, use_fixed_insights):
         if self.is_fully_expanded():
             return
         insight_geneartor = InstructionGenerator()
@@ -157,6 +159,7 @@ class Node:
             original_instruction=original_instruction,
             max_num=max_children,
             file_path=self.state["exp_pool_path"],
+            use_fixed_insights=use_fixed_insights,
         )
         new_state = self.state.copy()
         new_state["start_task_id"] += 1
@@ -205,6 +208,7 @@ class Node:
                 self.raw_reward = score_dict
                 run_finished = True
             except Exception as e:
+                print(f"Error: {e}")
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
         if not run_finished:
@@ -234,9 +238,10 @@ class MCTS:
     c_explore: float = 1.4
     c_unvisited: float = 0.8
 
-    def __init__(self, root_node, max_depth):
+    def __init__(self, root_node, max_depth, use_fixed_insights):
         self.root_node = root_node
         self.max_depth = max_depth
+        self.use_fixed_insights = use_fixed_insights
 
     def select(self, node: Node):
         node = self.best_child()
@@ -255,7 +260,7 @@ class MCTS:
         return max(all_children, key=uct)
 
     async def expand(self, node: Node, max_children=5):
-        await node.expand(max_children)
+        await node.expand(max_children, self.use_fixed_insights)
         if node not in self.children or not self.children[node]:
             self.children[node] = node.children
         return node.children
@@ -303,10 +308,8 @@ class MCTS:
     def get_num_simulations(self):
         return self.root_node.visited
 
-    async def search(self, task, data_config, name, rollouts, load_tree=False, low_is_better=False, reflection=False):
-        role, root = initialize_di_root_node(
-            task, data_config, low_is_better=low_is_better, reflection=reflection, name=name
-        )
+    async def search(self, state, rollouts, load_tree=False, reflection=False):
+        role, root = initialize_di_root_node(state, reflection=reflection)
         self.root_node = root
         tree_loaded = False
         if load_tree:

@@ -11,7 +11,7 @@ The current task is about data preprocessing, please note the following:
 - Monitor data types per column, applying appropriate methods.
 - Ensure operations are on existing dataset columns.
 - Avoid writing processed data to files.
-- Avoid any change to label column, such as standardization, etc.
+- **ATTENTION** Do NOT make any changes to the label column, such as standardization, etc.
 - Prefer alternatives to one-hot encoding for categorical data.
 - Only encode or scale necessary columns to allow for potential feature-specific engineering tasks (like time_extract, binning, extraction, etc.) later.
 - Each step do data preprocessing to train, must do same for test separately at the same time.
@@ -26,7 +26,7 @@ The current task is about feature engineering. when performing it, please adhere
 - Avoid creating redundant or excessively numerous features in one step.
 - Exclude ID columns from feature generation and remove them.
 - Each feature engineering operation performed on the train set must also applies to the dev/test separately at the same time.
-- Avoid using the label column to create features, except for cat encoding.
+- **ATTENTION** Do NOT use the label column to create features, except for cat encoding.
 - Use the data from previous task result if exist, do not mock or reload data yourself.
 - Always copy the DataFrame before processing it and use the copy to process.
 """
@@ -34,6 +34,9 @@ The current task is about feature engineering. when performing it, please adhere
 # Prompt for taking on "model_train" tasks
 MODEL_TRAIN_PROMPT = """
 The current task is about training a model, please ensure high performance:
+- For tabular datasets - you have access to LightGBM, CatBoost, XGBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression, etc.
+- For image datasets - you have access to ResNet, VGG, Inception, MobileNet, DenseNet, EfficientNet, etc.
+- For text datasets - you have access to BERT, GPT-2, RoBERTa, DistilBERT, T5, etc.
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as XGBoost, CatBoost, etc.
 - If non-numeric columns exist, perform label encode together with all steps.
 - Use the data from previous task result directly, do not mock or reload data yourself.

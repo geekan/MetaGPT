@@ -28,11 +28,11 @@ def get_mcts_args(parser):
     parser.add_argument("--no_load_tree", dest="load_tree", action="store_false")
     parser.set_defaults(load_tree=False)
     parser.add_argument("--rollouts", type=int, default=5)
+    parser.add_argument("--use_fixed_insights", dest="use_fixed_insights", action="store_true")
 
 
 def get_aug_exp_args(parser):
     parser.add_argument("--aug_mode", type=str, default="single", choices=["single", "set"])
-    parser.add_argument("--num_experiments", type=int, default=1)
 
 
 def get_di_args(parser):
@@ -41,6 +41,8 @@ def get_di_args(parser):
     parser.set_defaults(low_is_better=False)
     parser.add_argument("--reflection", dest="reflection", action="store_true")
     parser.add_argument("--no_reflection", dest="reflection", action="store_false")
+    parser.add_argument("--num_experiments", type=int, default=1)
+    parser.add_argument("--special_instruction", type=str, default=None, choices=["ag", "stacking"])
     parser.set_defaults(reflection=True)
 
 

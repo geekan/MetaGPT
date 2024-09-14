@@ -13,6 +13,7 @@ from expo.utils import DATA_CONFIG, save_notebook
 class Experimenter:
     result_path: str = "results/base"
     data_config = DATA_CONFIG
+    start_task_id = 1
 
     def __init__(self, args, **kwargs):
         self.args = args
@@ -20,10 +21,11 @@ class Experimenter:
         self.start_time = self.start_time_raw.strftime("%Y%m%d%H%M")
         self.state = create_initial_state(
             self.args.task,
-            start_task_id=1,
+            start_task_id=self.start_task_id,
             data_config=self.data_config,
             low_is_better=self.args.low_is_better,
-            name="",
+            name=self.args.name,
+            special_instruction=self.args.special_instruction,
         )
 
     async def run_di(self, di, user_requirement, run_idx):
@@ -86,7 +88,7 @@ class Experimenter:
         pred_node_path = os.path.join(state["node_dir"], f"{self.start_time}-{split}_predictions.csv")
         gt_path = os.path.join(state["datasets_dir"][f"{split}_target"])
         preds = pd.read_csv(pred_path)
-        preds = preds[preds.columns.tolist()[0]]
+        preds = preds[preds.columns.tolist()[-1]]
         preds.to_csv(pred_node_path, index=False)
         gt = pd.read_csv(gt_path)["target"]
         metric = state["dataset_config"]["metric"]

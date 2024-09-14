@@ -10,26 +10,37 @@ from sklearn.model_selection import train_test_split
 
 from expo.insights.solution_designer import SolutionDesigner
 
-BASE_USER_REQUIREMENT = """\
+BASE_USER_REQUIREMENT = """
 This is a {datasetname} dataset. Your goal is to predict the target column `{target_col}`.
 Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. 
 Report {metric} on the eval data. Do not plot or make any visualizations.
 """
 
+USE_AG = """
+7. Please use autogluon for model training with presets='medium_quality', time_limit=None, give dev dataset to tuning_data, and use right eval_metric.
+"""
 
-DI_INSTRUCTION = """\
-**Attention** 
+STACKING = """
+7. To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor.
+8. You could do some quick model prototyping to see which models work best and then use them in the ensemble. 
+"""
+
+SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING}
+
+DI_INSTRUCTION = """
+## Attention
 1. Please do not leak the target label in any form during training.
 2. Test set does not have the target column.
-3. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
-4. If labels are transformed during training, they should be transformed back to the original format before saving the predictions.
-5. You could utilize dev set to validate and improve model training.
-6. Use techniques to avoid overfitting.
+3. When conducting data exploration or analysis, print out the results of your findings.
+4. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
+5. When scaling or transforming features, make sure the target column is not included.
+6. You could utilize dev set to validate and improve model training. {special_instruction}
 
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
 2. Make sure the prediction results are in the same format as the target column in the training set. 
+- For instance, if the target column is categorical, the prediction results should be categorical as well.
 
 ## Output Performance
 Print the train and dev set performance in the last step.
@@ -38,7 +49,7 @@ Print the train and dev set performance in the last step.
 {output_dir}
 """
 
-TASK_PROMPT = """\
+TASK_PROMPT = """
 # User requirement
 {user_requirement}
 {additional_instruction}
@@ -134,12 +145,18 @@ def create_dataset_dict(dataset):
     return dataset_dict
 
 
-def generate_di_instruction(output_dir):
-    additional_instruction = DI_INSTRUCTION.format(output_dir=output_dir)
+def generate_di_instruction(output_dir, special_instruction):
+    if special_instruction:
+        special_instruction_prompt = SPECIAL_INSTRUCTIONS[special_instruction]
+    else:
+        special_instruction_prompt = ""
+    additional_instruction = DI_INSTRUCTION.format(
+        output_dir=output_dir, special_instruction=special_instruction_prompt
+    )
     return additional_instruction
 
 
-def generate_task_requirement(task_name, data_config, is_di=True):
+def generate_task_requirement(task_name, data_config, is_di=True, special_instruction=None):
     user_requirement = get_user_requirement(task_name, data_config)
     split_dataset_path = get_split_dataset_path(task_name, data_config)
     train_path = split_dataset_path["train"]
@@ -150,7 +167,7 @@ def generate_task_requirement(task_name, data_config, is_di=True):
     datasets_dir = data_config["datasets_dir"]
     data_info_path = f"{datasets_dir}/{task_name}/dataset_info.json"
     if is_di:
-        additional_instruction = generate_di_instruction(output_dir)
+        additional_instruction = generate_di_instruction(output_dir, special_instruction)
     else:
         additional_instruction = ""
     user_requirement = TASK_PROMPT.format(
