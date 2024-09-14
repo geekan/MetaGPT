@@ -958,7 +958,6 @@ I have opened the openai_api.py file. However, the range of lines shown is from 
 ## example 9
 I've found the bug and will start fixing it. I'll pay close attention to the indentation.
 the previous file look like:
-
 739|            can_fold_brackets = self._settings['fold_func_brackets'] and \
 740|                len(args) == 1 and \
 741|                not self._needs_function_brackets(expr.args[0])
