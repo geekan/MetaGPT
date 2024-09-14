@@ -108,11 +108,10 @@ class Terminal:
         return "\n".join(output_lines)
 
     async def _read_and_process_output(self, cmd, daemon=False) -> str:
-        if "pwd" in cmd:
-            return
         async with self.observer as observer:
             cmd_output = []
-            await observer.async_report(cmd + self.command_terminator, "cmd")
+            if cmd != "pwd":
+                await observer.async_report(cmd + self.command_terminator, "cmd")
             # report the command
             # Read the output until the unique marker is found.
             # We read bytes directly from stdout instead of text because when reading text,
@@ -129,12 +128,14 @@ class Terminal:
                     if ix >= 0:
                         line = line[0:ix]
                         if line:
-                            await observer.async_report(line, "output")
+                            if cmd != "pwd":
+                                await observer.async_report(line, "output")
                             # report stdout in real-time
                             cmd_output.append(line)
                         return "".join(cmd_output)
                     # log stdout in real-time
-                    await observer.async_report(line, "output")
+                    if cmd != "pwd":
+                        await observer.async_report(line, "output")
                     cmd_output.append(line)
                     if daemon:
                         await self.stdout_queue.put(line)
