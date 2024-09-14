@@ -40,6 +40,7 @@ def create_initial_state(task, start_task_id, data_config, low_is_better: bool, 
         "start_task_id": start_task_id,
         "low_is_better": low_is_better,
     }
+    os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state
 
 
