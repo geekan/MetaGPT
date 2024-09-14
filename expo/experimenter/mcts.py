@@ -22,6 +22,7 @@ class MCTSExperimenter(Experimenter):
             state=self.state,
             reflection=self.args.reflection,
             rollouts=self.args.rollouts,
+            load_tree=self.args.load_tree,
         )
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
