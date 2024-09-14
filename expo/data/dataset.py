@@ -40,6 +40,7 @@ DI_INSTRUCTION = """
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
 2. Make sure the prediction results are in the same format as the target column in the training set. 
+- For instance, if the target column is categorical, the prediction results should be categorical as well.
 
 ## Output Performance
 Print the train and dev set performance in the last step.
