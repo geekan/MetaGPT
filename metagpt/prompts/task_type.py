@@ -34,7 +34,7 @@ The current task is about feature engineering. when performing it, please adhere
 # Prompt for taking on "model_train" tasks
 MODEL_TRAIN_PROMPT = """
 The current task is about training a model, please ensure high performance:
-- For tabular datasets - you have access to LightGBM, CatBoost, XGBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression, etc.
+- For tabular datasets - you have access to XGBoost, CatBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression, etc.
 - For image datasets - you have access to ResNet, VGG, Inception, MobileNet, DenseNet, EfficientNet, etc.
 - For text datasets - you have access to BERT, GPT-2, RoBERTa, DistilBERT, T5, etc.
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as XGBoost, CatBoost, etc.
