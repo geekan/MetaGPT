@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any
 
 GSM8K_PROMPT_GPT = """
-{question}\nPlease reason step by step, and put your final answer in the end. Wrap content using xml tags.
+{question}\nPlease reason step by step. At the end, provide the final answer in the format "Answer is <number>", where <number> is a single number, without any additional information or explanation.
 """
 
 GSM8K_PROMPT_DS = """
@@ -39,28 +39,24 @@ class CoTSolveGraph(SolveGraph):
 
     async def __call__(self, problem):
         solution = await self.cot_generate(problem, mode="context_fill")
-        return solution, self.llm.cost_manager.total_cost
+        return solution, self.llm.cost_manager.total_cost # {"solution": solution}
 
 if __name__ == "__main__":
     async def main():
-        # llm_config = ModelsConfig.default().get("deepseek-coder")
+        llm_config = ModelsConfig.default().get("deepseek-coder")
         # llm_config = ModelsConfig.default().get("gpt-4o-mini")
-        llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
+        # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
+        # llm_config = ModelsConfig.default().get("gpt-4o")
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="Gsm8K")
         file_path = "examples/ags/data/gsm8k.jsonl"
-        samples = 1055
-        path = "examples/ags/data/baselines/general"
-        score, cost = await gsm8k_evaluation(graph, file_path, samples, path)
-        return score, cost
+        samples = 264 #264 # 1055 #314  
+        # samples = 100
+        path = "examples/ags/data/baselines/general/gsm8k/"
+        score, cost = await gsm8k_evaluation(graph, file_path, samples, path, test=False)
+        return score, cost 
 
     import asyncio
     asyncio.run(main())
+    
 
-
-# medprompt operator; universal self consistency; 
-
-# IO指的没有任何Trick，看LLM自身的一个效果。使用 model 发布者在对应的 dataset 使用的 prompt。
-
-# deepseek-chat; gpt-4o-mini; gpt-35-turbo-1106
-
-# med ensemble 
+# self consistency; medprompt 已有的Operator来实现这两个方法
