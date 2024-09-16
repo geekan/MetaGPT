@@ -24,7 +24,8 @@ class ASRunner:
         )
 
     def run(self):
-        import autosklearn
+        import autosklearn.classification
+        import autosklearn.regression
 
         train_path = self.datasets["train"]
         dev_wo_target_path = self.datasets["dev_wo_target"]
