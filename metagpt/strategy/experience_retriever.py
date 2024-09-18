@@ -972,11 +972,11 @@ Editor tool is exclusive. If I use this tool, I cannot use any other commands in
         "command_name": "Editor.edit_file_by_replace",
         "args": {
             "file_name":"/workspace/MetaGPT/provider/openai_api.py",
-            "start_line_number": 143,
-            "start_line_content":"        if event.key == pygame.K_w:",
+            "first_replaced_line_number": 143,
+            "first_replaced_line_content":"        if event.key == pygame.K_w:",
             "new_content": "        if event.key == pygame.K_UP:\\n             self.move_up()\\n         elif event.key == pygame.K_DOWN:\\n             self.move_down()\\n         elif event.key == pygame.K_SPACE:\\n             self.stop()"
-            "end_line_number": 146,
-            "end_line_content": "            self.move_down()",
+            "last_replaced_line_number": 146,
+            "last_replaced_line_content": "            self.move_down()",
             }
     }
 ]

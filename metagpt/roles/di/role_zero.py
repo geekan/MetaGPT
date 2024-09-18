@@ -213,6 +213,7 @@ class RoleZero(Role):
         ### Recent Observation ###
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+        memory = await self.parse_editor_result(memory)
         memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
@@ -244,6 +245,24 @@ class RoleZero(Role):
                 if pattern.search(msg.content):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
+        return memory
+
+    async def parse_editor_result(self, memory: list[Message]) -> list[Message]:
+        """Retain the latest result for each editor command and remove outdated editor results."""
+        # Set to keep track of unique editor commands
+        record = set()
+        pattern = re.compile(r"Command Editor\.(\w+) executed")
+        # Iterate over the memory in reverse order
+        for msg in reversed(memory):
+            matches = pattern.findall(msg.content)
+            if not matches:
+                continue
+            # If all matches are already in the record, remove the editor content
+            if all(match in record for match in matches):
+                msg.content = msg.content[: msg.content.find("Command Editor")]
+            else:
+                # Add new matches to the record
+                record.update(matches)
         return memory
 
     def parse_images(self, memory: list[Message]) -> list[Message]:

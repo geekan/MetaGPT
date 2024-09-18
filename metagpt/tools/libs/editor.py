@@ -54,13 +54,13 @@ Your changes have NOT been applied. Please fix your edit command and try again
 
 """
 
-LINE_NUMBER_AND_CONTENT_MISMATCH = """
-Error: The `{position}_line_number` does not match the `{position}_line_content`. Please correct the parameters.
-The `{position}_line_number` is {line_number} and the corresponding content is "{true_content}".
-But the `{position}_line_content` is "{fake_content}".
+LINE_NUMBER_AND_CONTENT_MISMATCH = """Error: The `{position}_replaced_line_number` does not match the `{position}_replaced_line_content`. Please correct the parameters.
+The `{position}_replaced_line_number` is {line_number} and the corresponding content is "{true_content}".
+But the `{position}_replaced_line_content ` is "{fake_content}".
 The content around the specified line is:
 {context}
-""".strip()
+Pay attention to the new content. Ensure that it aligns with the new parameters.
+"""
 SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
@@ -689,10 +689,10 @@ class Editor(BaseModel):
     def edit_file_by_replace(
         self,
         file_name: str,
-        start_line_number: int,
-        start_line_content: str,
-        end_line_number: int,
-        end_line_content: str,
+        first_replaced_line_number: int,
+        first_replaced_line_content: str,
+        last_replaced_line_number: int,
+        last_replaced_line_content: str,
         new_content: str,
     ) -> str:
         """
@@ -713,10 +713,10 @@ class Editor(BaseModel):
 
         edit_file_by_replace(
             '/workspace/example.txt',
-            start_line_number=2,
-            start_line_content="contain g",
-            end_line_number=3,
-            end_line_content="contain h",
+            first_replaced_line_number =2,
+            first_replaced_line_content="contain g",
+            last_replaced_line_number =3,
+            last_replaced_line_content="contain h",
             new_content='new content',
         )
         This will replace only the second line 2 and line 3 with "new content".
@@ -738,10 +738,10 @@ class Editor(BaseModel):
         EDITING: If you want to remove the line 2 and line 3
         edit_file_by_replace(
             '/workspace/example.txt',
-            start_line_number=2,
-            start_line_content="contain g",
-            end_line_number=3,
-            end_line_content="contain h",
+            first_replaced_line_number =2,
+            first_replaced_line_content="contain g",
+            last_replaced_line_number =3,
+            last_replaced_line_content="contain h",
             new_content='new line',
         )
         This will remove line 2 and line 3
@@ -753,17 +753,17 @@ class Editor(BaseModel):
         ```
         Args:
             file_name str:The name of the file to edit.
-            start_line_number int:The line number to start the edit at, starting from 1.
-            start_line_content str:The content of the start replace line, according to the start_line_number.
-            end_line_number int:The line number to end the edit at (inclusive), starting from 1.
-            end_line_content str:The content of the end replace line, according to the end_line_number.
+            first_replaced_line_number  int:The line number to start the edit at, starting from 1.
+            first_replaced_line_content str:The content of the start replace line, according to the first_replaced_line_number .
+            last_replaced_line_number  int:The line number to end the edit at (inclusive), starting from 1.
+            last_replaced_line_content str:The content of the end replace line, according to the last_replaced_line_number .
             new_content str: The text to replace the current selection with, must conform to PEP8 standards.The content in the start line and end line will also be replaced.
 
         """
 
         file_name = self._try_fix_path(file_name)
 
-        # Check if the start_line_number and end_line_number correspond to the appropriate content.
+        # Check if the first_replaced_line_number  and last_replaced_line_number  correspond to the appropriate content.
         mismatch_error = ""
         with file_name.open() as file:
             content = file.read()
@@ -772,7 +772,10 @@ class Editor(BaseModel):
                 content += "\n"
             lines = content.splitlines(True)
             total_lines = len(lines)
-            check_list = [("start", start_line_number, start_line_content), ("end", end_line_number, end_line_content)]
+            check_list = [
+                ("first_replaced", first_replaced_line_number, first_replaced_line_content),
+                ("last_replaced", last_replaced_line_number, last_replaced_line_content),
+            ]
             for position, line_number, line_content in check_list:
                 if lines[line_number - 1].rstrip() != line_content:
                     start = max(1, line_number - 3)
@@ -785,14 +788,14 @@ class Editor(BaseModel):
                         line_number=line_number,
                         true_content=lines[line_number - 1].rstrip(),
                         fake_content=line_content,
-                        context=context,
+                        context=context.strip(),
                     )
         if mismatch_error:
             return mismatch_error
         ret_str = self._edit_file_impl(
             file_name,
-            start=start_line_number,
-            end=end_line_number,
+            start=first_replaced_line_number,
+            end=last_replaced_line_number,
             content=new_content,
         )
         # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
