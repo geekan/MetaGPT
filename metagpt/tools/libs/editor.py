@@ -520,6 +520,8 @@ class Editor(BaseModel):
         temp_file_path = ""
         src_abs_path = file_name.resolve()
         first_error_line = None
+        # The file to store previous content and will be removed automatically.
+        temp_backup_file = tempfile.NamedTemporaryFile("w", delete=True)
 
         try:
             # lint the original file
@@ -562,10 +564,8 @@ class Editor(BaseModel):
             # because the env var will be set AFTER the agentskills is imported
             if self.enable_auto_lint:
                 # BACKUP the original file
-                original_file_backup_path = file_name.parent / f".backup.{file_name.name}"
-                with original_file_backup_path.open("w") as f:
-                    f.writelines(lines)
-
+                temp_backup_file.writelines(lines)
+                temp_backup_file.flush()
                 lint_error, first_error_line = self._lint_file(file_name)
 
                 # Select the errors caused by the modification
@@ -615,15 +615,13 @@ class Editor(BaseModel):
                         linter_error_msg=LINTER_ERROR_MSG + lint_error,
                         window_after_applied=self._print_window(file_name, show_line, n_added_lines + 20),
                         window_before_applied=self._print_window(
-                            original_file_backup_path, show_line, n_added_lines + 20
+                            Path(temp_backup_file.name), show_line, n_added_lines + 20
                         ),
                         guidance_message=guidance_message,
                     ).strip()
 
                     # recover the original file
-                    with original_file_backup_path.open() as fin, file_name.open("w") as fout:
-                        fout.write(fin.read())
-                    original_file_backup_path.unlink()
+                    shutil.move(temp_backup_file.name, src_abs_path)
                     return lint_error_info
 
         except FileNotFoundError as e:
@@ -641,18 +639,16 @@ class Editor(BaseModel):
             error_info = ERROR_GUIDANCE.format(
                 linter_error_msg=LINTER_ERROR_MSG + str(e),
                 window_after_applied=self._print_window(file_name, start or len(lines), 40),
-                window_before_applied=self._print_window(original_file_backup_path, start or len(lines), 40),
+                window_before_applied=self._print_window(Path(temp_backup_file.name), start or len(lines), 40),
                 guidance_message=guidance_message,
             ).strip()
             # Clean up the temporary file if an error occurs
-            with original_file_backup_path.open() as fin, file_name.open("w") as fout:
-                fout.write(fin.read())
+            shutil.move(temp_backup_file.name, src_abs_path)
             if temp_file_path and Path(temp_file_path).exists():
                 Path(temp_file_path).unlink()
 
             # logger.warning(f"An unexpected error occurred: {e}")
             raise Exception(f"{error_info}") from e
-
         # Update the file information and print the updated content
         with file_name.open("r", encoding="utf-8") as file:
             n_total_lines = max(1, len(file.readlines()))
@@ -722,8 +718,6 @@ class Editor(BaseModel):
             If you need to use it multiple times, wait for the next turn.
         """
         # FIXME: support replacing *all* occurrences
-        if to_replace.strip() == "":
-            raise ValueError("`to_replace` must not be empty.")
 
         if to_replace == new_content:
             raise ValueError("`to_replace` and `new_content` must be different.")
@@ -734,6 +728,11 @@ class Editor(BaseModel):
         file_name = self._try_fix_path(file_name)
         with file_name.open("r") as file:
             file_content = file.read()
+
+        if to_replace.strip() == "":
+            if file_content.strip() == "":
+                raise ValueError(f"The file '{file_name}' is empty. Please use the append method to add content.")
+            raise ValueError("`to_replace` must not be empty.")
 
         if file_content.count(to_replace) > 1:
             raise ValueError(
@@ -801,7 +800,6 @@ class Editor(BaseModel):
             If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
-
         ret_str = self._edit_file_impl(
             file_name,
             start=line_number,
@@ -810,6 +808,7 @@ class Editor(BaseModel):
             is_insert=True,
             is_append=False,
         )
+        self.resource.report(file_name, "path")
         return ret_str
 
     def append_file(self, file_name: str, content: str) -> str:
@@ -824,7 +823,6 @@ class Editor(BaseModel):
             If you need to use it multiple times, wait for the next turn.
         """
         file_name = self._try_fix_path(file_name)
-
         ret_str = self._edit_file_impl(
             file_name,
             start=None,
@@ -833,6 +831,7 @@ class Editor(BaseModel):
             is_insert=False,
             is_append=True,
         )
+        self.resource.report(file_name, "path")
         return ret_str
 
     def search_dir(self, search_term: str, dir_path: str = "./") -> str:

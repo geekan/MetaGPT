@@ -79,6 +79,7 @@ class RoleZero(Role):
         "Editor.edit_file_by_replace",
         "Editor.insert_content_at_line",
         "Editor.append_file",
+        "Editor.open_file",
     ]
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor(enable_auto_lint=True)
@@ -430,7 +431,7 @@ class RoleZero(Role):
                 for index, cmd in enumerate(commands)
                 if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
             ]
-            command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```json"
+            command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```"
             logger.info(
                 "exclusive command more than one in current command list. change the command list.\n" + command_rsp
             )

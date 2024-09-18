@@ -18,6 +18,7 @@ from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.git import git_create_pull
+from metagpt.tools.libs.image_getter import ImageGetter
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
@@ -42,6 +43,7 @@ class Engineer2(RoleZero):
         "SearchEnhancedQA",
         "Engineer2",
         "CodeReview",
+        "ImageGetter",
     ]
     # SWE Agent parameter
     run_eval: bool = False
@@ -58,10 +60,13 @@ class Engineer2(RoleZero):
         Display the current terminal and editor state.
         This information will be dynamically added to the command prompt.
         """
+        current_directory = (await self.terminal.run_command("pwd")).strip()
+        # Synchronize Terminal and Editor Working Directories
+        if str(self.editor.working_dir.absolute()).strip() != current_directory:
+            self.editor._set_workdir(current_directory)
         state = {
             "editor_open_file": self.editor.current_file,
-            "editor_current_directory": self.editor.working_dir.absolute(),
-            "terminal_current_directory": (await self.terminal.run_command("pwd")).strip(),
+            "current_directory": current_directory,
         }
         self.cmd_prompt_current_state = CURRENT_STATE.format(**state).strip()
 
@@ -84,10 +89,12 @@ class Engineer2(RoleZero):
             )
         else:
             # Default tool map
+            image_getter = ImageGetter()
             self.tool_execution_map.update(
                 {
                     "git_create_pull": git_create_pull,
                     "Engineer2.write_new_code": self.write_new_code,
+                    "ImageGetter.get_image": image_getter.get_image,
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self.terminal.run_command,
@@ -117,10 +124,14 @@ class Engineer2(RoleZero):
         plan_status, _ = self._get_plan_status()
         prompt = WRITE_CODE_PROMPT.format(
             user_requirement=self.planner.plan.goal,
+            file_path=path,
             plan_status=plan_status,
             instruction=instruction,
         )
-        context = self.llm.format_msg(self.rc.memory.get(self.memory_k) + [UserMessage(content=prompt)])
+        # Sometimes the Engineer repeats the last command to respond.
+        # Replace the last command with a manual prompt to guide the Engineer to write new code.
+        memory = self.rc.memory.get(self.memory_k)[:-1]
+        context = self.llm.format_msg(memory + [UserMessage(content=prompt)])
 
         async with EditorReporter(enable_llm_stream=True) as reporter:
             await reporter.async_report({"type": "code", "filename": Path(path).name, "src_path": path}, "meta")
