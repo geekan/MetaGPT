@@ -54,6 +54,13 @@ Your changes have NOT been applied. Please fix your edit command and try again
 
 """
 
+LINE_NUMBER_AND_CONTENT_MISMATCH = """
+Error: The `{position}_line_number` does not match the `{position}_line_content`. Please correct the parameters.
+The `{position}_line_number` is {line_number} and the corresponding content is "{true_content}".
+But the `{position}_line_content` is "{fake_content}".
+The content around the specified line is:
+{context}
+""".strip()
 SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
@@ -756,6 +763,32 @@ class Editor(BaseModel):
 
         file_name = self._try_fix_path(file_name)
 
+        # Check if the start_line_number and end_line_number correspond to the appropriate content.
+        mismatch_error = ""
+        with file_name.open() as file:
+            content = file.read()
+            # Ensure the content ends with a newline character
+            if not content.endswith("\n"):
+                content += "\n"
+            lines = content.splitlines(True)
+            total_lines = len(lines)
+            check_list = [("start", start_line_number, start_line_content), ("end", end_line_number, end_line_content)]
+            for position, line_number, line_content in check_list:
+                if lines[line_number - 1].rstrip() != line_content:
+                    start = max(1, line_number - 3)
+                    end = min(total_lines, line_number + 3)
+                    context = "".join(
+                        [f"{line_number:03d}|{lines[line_number-1]}" for line_number in range(start, end + 1)]
+                    )
+                    mismatch_error += LINE_NUMBER_AND_CONTENT_MISMATCH.format(
+                        position=position,
+                        line_number=line_number,
+                        true_content=lines[line_number - 1].rstrip(),
+                        fake_content=line_content,
+                        context=context,
+                    )
+        if mismatch_error:
+            return mismatch_error
         ret_str = self._edit_file_impl(
             file_name,
             start=start_line_number,

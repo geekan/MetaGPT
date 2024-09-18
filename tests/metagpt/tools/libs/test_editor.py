@@ -539,14 +539,53 @@ def test_edit_file_by_replace(temp_py_file):
     editor.edit_file_by_replace(
         file_name=str(temp_py_file),
         start_line_number=5,
+        start_line_content="    b = 2",
+        new_content="    b = 9",
+        end_line_number=5,
+        end_line_content="    b = 2",
+    )
+    with open(temp_py_file, "r") as f:
+        new_content = f.read()
+    assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
+
+
+MISMATCH_ERROR = """
+Error: The `start_line_number` does not match the `start_line_content`. Please correct the parameters.
+The `start_line_number` is 5 and the corresponding content is "    b = 2".
+But the `start_line_content` is "".
+The content around the specified line is:
+002|def test_function_for_fm():
+003|    "some docstring"
+004|    a = 1
+005|    b = 2
+006|    c = 3
+007|    # this is the 7th line
+Error: The `end_line_number` does not match the `end_line_content`. Please correct the parameters.
+The `end_line_number` is 5 and the corresponding content is "    b = 2".
+But the `end_line_content` is "".
+The content around the specified line is:
+002|def test_function_for_fm():
+003|    "some docstring"
+004|    a = 1
+005|    b = 2
+006|    c = 3
+007|    # this is the 7th line
+""".strip()
+
+
+def test_edit_file_by_replace_mismatch(temp_py_file):
+    editor = Editor()
+    output = editor.edit_file_by_replace(
+        file_name=str(temp_py_file),
+        start_line_number=5,
         start_line_content="",
         new_content="    b = 9",
         end_line_number=5,
         end_line_content="",
     )
-    with open(temp_py_file, "r") as f:
-        new_content = f.read()
-    assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
+    with open("tmp.txt", "w", encoding="utf-8") as f:
+        f.write(output)
+    assert output.strip() == MISMATCH_ERROR.strip()
 
 
 def test_append_file(temp_file_path):
