@@ -992,7 +992,6 @@ the previous file look like:
 032|            self.location = (0,0)
 I only need to add a few lines to the file, so I will use Editor.insert_content_at_line. The new code will not cover the original code.
 Note that the Editor command must be executed in a single response, so this step will only involve using the Editor command.
-
 ```json
 [
     {

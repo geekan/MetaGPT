@@ -871,7 +871,7 @@ class Editor(BaseModel):
         return ret_str
 
     def insert_content_at_line(self, file_name: str, line_number: int, insert_content: str) -> str:
-        """Insert a complete block of code before the given line number in a file That is, the new content will start at the beginning of the specified line, and the existing content of that line will be moved down.
+        """Insert a complete block of code before the given line number in a file. That is, the new content will start at the beginning of the specified line, and the existing content of that line will be moved down.
         This operation will NOT modify the content of the lines before or after the given line number.
         This function can not insert content the end of the file. Please use append_file instead,
         For example, if the file has the following content:
