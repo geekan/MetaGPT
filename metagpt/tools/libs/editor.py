@@ -698,7 +698,7 @@ class Editor(BaseModel):
         """
         Line numbers start from 1. Replaces lines start_line through end_line (inclusive) with the given text in the open file.
         All of the new_content will be entered, so makesure your indentation is formatted properly.
-        The new_content must be a complete block of code .
+        The new_content must be a complete block of code.
 
         Example 1:
         Given a file "/workspace/example.txt" with the following content:
@@ -742,7 +742,7 @@ class Editor(BaseModel):
             first_replaced_line_content="contain g",
             last_replaced_line_number =3,
             last_replaced_line_content="contain h",
-            new_content='new line',
+            new_content='',
         )
         This will remove line 2 and line 3
         The resulting file will be:
@@ -752,12 +752,12 @@ class Editor(BaseModel):
         003|contain i
         ```
         Args:
-            file_name str:The name of the file to edit.
-            first_replaced_line_number  int:The line number to start the edit at, starting from 1.
-            first_replaced_line_content str:The content of the start replace line, according to the first_replaced_line_number .
-            last_replaced_line_number  int:The line number to end the edit at (inclusive), starting from 1.
-            last_replaced_line_content str:The content of the end replace line, according to the last_replaced_line_number .
-            new_content str: The text to replace the current selection with, must conform to PEP8 standards.The content in the start line and end line will also be replaced.
+            file_name (str):The name of the file to edit.
+            first_replaced_line_number  (int):The line number to start the edit at, starting from 1.
+            first_replaced_line_content (str):The content of the start replace line, according to the first_replaced_line_number .
+            last_replaced_line_number  (int):The line number to end the edit at (inclusive), starting from 1.
+            last_replaced_line_content (str):The content of the end replace line, according to the last_replaced_line_number .
+            new_content (str): The text to replace the current selection with, must conform to PEP8 standards.The content in the start line and end line will also be replaced.
 
         """
 
@@ -847,9 +847,9 @@ class Editor(BaseModel):
         )
 
         Args:
-            file_name: str: The name of the file to edit.
-            to_replace: str: The content to search for and replace.
-            new_content: str: The new content to replace the old content with.
+            file_name: (str): The name of the file to edit.
+            to_replace: (str): The content to search for and replace.
+            new_content: (str): The new content to replace the old content with.
         NOTE:
             This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
             If you need to use it multiple times, wait for the next turn.
@@ -924,7 +924,8 @@ class Editor(BaseModel):
         insert_content_at_line(
             file_name='file.txt',
             line_number=2,
-            insert_content='new line')`
+            insert_content='new line'
+        )
         the file will be updated to:
         ```
         001|contain g
@@ -935,8 +936,8 @@ class Editor(BaseModel):
         ```
 
         Args:
-            file_name: str: The name of the file to edit.
-            line_number int: The line number (starting from 1) to insert the content after.the insert content will be add between the line of line_number-1 and line_number
+            file_name: (str): The name of the file to edit.
+            line_number (int): The line number (starting from 1) to insert the content after.the insert content will be add between the line of line_number-1 and line_number
             insert_content (str): The content to insert betweed the previous_line_content and current_line_content.The insert_content must be  a complete block of code at.
 
         NOTE:

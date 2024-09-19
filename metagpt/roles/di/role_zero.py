@@ -247,19 +247,19 @@ class RoleZero(Role):
                     break
         return memory
 
-    async def parse_editor_result(self, memory: list[Message]) -> list[Message]:
+    async def parse_editor_result(self, memory: list[Message], keep_latest_count=5) -> list[Message]:
         """Retain the latest result and remove outdated editor results."""
-        keep_count = 5
-        pattern = re.compile(r"Command Editor\.(\w+) executed")
+        pattern = re.compile(r"Command Editor\.(\w+?) executed")
         new_memory = []
+        i = 0
         for msg in reversed(memory):
             matches = pattern.findall(msg.content)
             if matches:
-                if keep_count < 0:
+                i += 1
+                if i > keep_latest_count:
                     new_content = msg.content[: msg.content.find("Command Editor")]
-                    new_content += "\n".join([f"Command Editor\.{match} executed." for match in matches])
+                    new_content += "\n".join([f"Command Editor.{match} executed." for match in matches])
                     msg = UserMessage(content=new_content)
-                keep_count -= 1
             new_memory.append(msg)
         # Reverse the new memory list so the latest message is at the end
         new_memory.reverse()
