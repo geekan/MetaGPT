@@ -113,7 +113,7 @@ class Engineer2(RoleZero):
         command_output += await super()._run_special_command(cmd)
         return command_output
 
-    async def write_new_code(self, path: str, instruction: str = "") -> str:
+    async def write_new_code(self, path: str, instruction: str = "Write code for the current file.") -> str:
         """Write a new code file.
 
         Args:
