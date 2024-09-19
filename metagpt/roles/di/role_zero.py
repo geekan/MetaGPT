@@ -248,22 +248,22 @@ class RoleZero(Role):
         return memory
 
     async def parse_editor_result(self, memory: list[Message]) -> list[Message]:
-        """Retain the latest result for each editor command and remove outdated editor results."""
-        # Set to keep track of unique editor commands
-        record = set()
+        """Retain the latest result and remove outdated editor results."""
+        keep_count = 5
         pattern = re.compile(r"Command Editor\.(\w+) executed")
-        # Iterate over the memory in reverse order
+        new_memory = []
         for msg in reversed(memory):
             matches = pattern.findall(msg.content)
-            if not matches:
-                continue
-            # If all matches are already in the record, remove the editor content
-            if all(match in record for match in matches):
-                msg.content = msg.content[: msg.content.find("Command Editor")]
-            else:
-                # Add new matches to the record
-                record.update(matches)
-        return memory
+            if matches:
+                if keep_count < 0:
+                    new_content = msg.content[: msg.content.find("Command Editor")]
+                    new_content += "\n".join([f"Command Editor\.{match} executed." for match in matches])
+                    msg = UserMessage(content=new_content)
+                keep_count -= 1
+            new_memory.append(msg)
+        # Reverse the new memory list so the latest message is at the end
+        new_memory.reverse()
+        return new_memory
 
     def parse_images(self, memory: list[Message]) -> list[Message]:
         if not self.llm.support_image_input():
@@ -446,11 +446,7 @@ class RoleZero(Role):
         if command_flag.count(False) > 1:
             # Keep only the first exclusive command
             index_of_first_exclusive = command_flag.index(False)
-            commands = [
-                cmd
-                for index, cmd in enumerate(commands)
-                if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
-            ]
+            commands = commands[: index_of_first_exclusive + 1]
             command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```"
             logger.info(
                 "exclusive command more than one in current command list. change the command list.\n" + command_rsp

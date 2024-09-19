@@ -780,14 +780,17 @@ class Editor(BaseModel):
                 if lines[line_number - 1].rstrip() != line_content:
                     start = max(1, line_number - 3)
                     end = min(total_lines, line_number + 3)
-                    context = "".join(
-                        [f"{line_number:03d}|{lines[line_number-1]}" for line_number in range(start, end + 1)]
+                    context = "\n".join(
+                        [
+                            f'The {line_number:03d} line is "{lines[line_number-1].rstrip()}"'
+                            for line_number in range(start, end + 1)
+                        ]
                     )
                     mismatch_error += LINE_NUMBER_AND_CONTENT_MISMATCH.format(
                         position=position,
                         line_number=line_number,
                         true_content=lines[line_number - 1].rstrip(),
-                        fake_content=line_content,
+                        fake_content=line_content.replace("\n", "\\n"),
                         context=context.strip(),
                     )
         if mismatch_error:
