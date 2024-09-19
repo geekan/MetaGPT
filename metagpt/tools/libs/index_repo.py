@@ -93,6 +93,12 @@ class IndexRepo(BaseModel):
         meta = await self._read_meta()
         new_files = {}
         for i in filenames:
+            if Path(i).suffix.lower() in {".pdf", ".doc", ".docx"}:
+                if str(i) not in self.fingerprints:
+                    new_files[i] = ""
+                    logger.warning(f'file: "{i}" not indexed')
+                filter_filenames.add(str(i))
+                continue
             content = await File.read_text_file(i)
             token_count = len(encoding.encode(content))
             if not self._is_buildable(
@@ -101,9 +107,7 @@ class IndexRepo(BaseModel):
                 result.append(TextScore(filename=str(i), text=content))
                 continue
             file_fingerprint = generate_fingerprint(content)
-            if str(i) not in self.fingerprints or (
-                self.fingerprints.get(str(i)) != file_fingerprint and Path(i).suffix.lower() not in {".pdf"}
-            ):
+            if str(i) not in self.fingerprints or (self.fingerprints.get(str(i)) != file_fingerprint):
                 new_files[i] = content
                 logger.warning(f'file: "{i}" changed but not indexed')
                 continue
@@ -113,6 +117,7 @@ class IndexRepo(BaseModel):
             filter_filenames.update([str(i) for i in added])
             for i in others:
                 result.append(TextScore(filename=str(i), text=new_files.get(i)))
+                filter_filenames.discard(str(i))
         nodes = await self._search(query=query, filters=filter_filenames)
         return result + nodes
 
@@ -142,7 +147,21 @@ class IndexRepo(BaseModel):
         scores = []
         query_embedding = await self.embedding.aget_text_embedding(query)
         for i in flat_nodes:
-            text_embedding = await self.embedding.aget_text_embedding(i.text)
+            try:
+                text_embedding = await self.embedding.aget_text_embedding(i.text)
+            except Exception as e:  # 超过最大长度
+                tenth = int(len(i.text) / 10)  # DEFAULT_MIN_TOKEN_COUNT = 10000
+                logger.warning(
+                    f"{e}, tenth len={tenth}, pre_part_len={len(i.text[: tenth * 6])}, post_part_len={len(i.text[tenth * 4:])}"
+                )
+                pre_win_part = await self.embedding.aget_text_embedding(i.text[: tenth * 6])
+                post_win_part = await self.embedding.aget_text_embedding(i.text[tenth * 4 :])
+                similarity = max(
+                    self.embedding.similarity(query_embedding, pre_win_part),
+                    self.embedding.similarity(query_embedding, post_win_part),
+                )
+                scores.append((similarity, i))
+                continue
             similarity = self.embedding.similarity(query_embedding, text_embedding)
             scores.append((similarity, i))
         scores.sort(key=lambda x: x[0], reverse=True)
@@ -169,6 +188,7 @@ class IndexRepo(BaseModel):
         file_datas = file_datas or {}
         for i in filenames:
             content = file_datas.get(i) or await File.read_text_file(i)
+            file_datas[i] = content
             if not self._is_fingerprint_changed(filename=i, content=content):
                 continue
             token_count = len(encoding.encode(content))
