@@ -19,6 +19,7 @@ from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRankerConfig
 from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
 from metagpt.utils.file import File
+from metagpt.utils.report import EditorReporter
 
 UPLOADS_INDEX_ROOT = "/data/.index/uploads"
 DEFAULT_INDEX_ROOT = UPLOADS_INDEX_ROOT
@@ -89,8 +90,9 @@ class IndexRepo(BaseModel):
         filenames, excludes = await self._filter(filenames)
         if not filenames:
             raise ValueError(f"Unsupported file types: {[str(i) for i in excludes]}")
+        resource = EditorReporter()
         for i in filenames:
-            self.resource.report(str(i), "path")
+            await resource.async_report(str(i), "path")
         filter_filenames = set()
         meta = await self._read_meta()
         new_files = {}
