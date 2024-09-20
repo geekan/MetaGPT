@@ -21,6 +21,7 @@ from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     DETECT_LANGUAGE_PROMPT,
+    END_COMMAND,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
     QUICK_THINK_EXAMPLES,
@@ -383,8 +384,8 @@ class RoleZero(Role):
 
         return rsp_msg, intent_result
 
-    async def _check_duplicates(self, req: list[dict], command_rsp: str):
-        past_rsp = [mem.content for mem in self.rc.memory.get(self.memory_k)]
+    async def _check_duplicates(self, req: list[dict], command_rsp: str, check_window: int = 10):
+        past_rsp = [mem.content for mem in self.rc.memory.get(check_window)]
         if command_rsp in past_rsp:
             # Normal response with thought contents are highly unlikely to reproduce
             # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
@@ -393,6 +394,10 @@ class RoleZero(Role):
 
             #  Hard rule to ask human for help
             if past_rsp.count(command_rsp) >= 3:
+                if '"command_name": "Plan.finish_current_task",' in command_rsp:
+                    # Detect the deplicate of "Plan.finish_current_task" command, use command "end" to finish the task
+                    logger.warning(f"Duplicate response detected: {command_rsp}")
+                    return END_COMMAND
                 return ASK_HUMAN_COMMAND
             # Try correction by self
             logger.warning(f"Duplicate response detected: {command_rsp}")

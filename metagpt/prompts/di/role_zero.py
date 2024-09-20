@@ -108,6 +108,17 @@ Describe if you should terminate using **end** command, or use **RoleZero.ask_hu
 You should use "end" to stop when all tasks have been completed and the requirements are satisfied.
 Your reflection, then the commands in a json array:
 """
+END_COMMAND = """
+```json
+[
+    {
+        "command_name": "end",
+        "args": {}
+    }
+]
+```
+"""
+
 ASK_HUMAN_COMMAND = """
 ```json
 [
