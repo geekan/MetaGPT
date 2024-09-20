@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 
+import numpy as np
 import pandas as pd
 
 from expo.evaluation.evaluation import evaluate_score
@@ -58,17 +59,21 @@ class Experimenter:
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
             )
             self.save_result(results)  # save intermediate results
-        dev_scores = [
-            result["score_dict"]["dev_score"] for result in results if result["score_dict"]["dev_score"] != -1
-        ]
-        best_dev_score = max(dev_scores) if not self.args.low_is_better else min(dev_scores)
+        dev_scores = [result["score_dict"]["dev_score"] for result in results]
+        best_dev_score = (
+            max(dev_scores)
+            if not self.args.low_is_better
+            else min([score for score in dev_scores if score != -1] + [np.inf])
+        )
         best_score_idx = dev_scores.index(best_dev_score)
 
-        test_scores = [
-            result["score_dict"]["test_score"] for result in results if result["score_dict"]["dev_score"] != -1
-        ]
+        test_scores = [result["score_dict"]["test_score"] for result in results]
         avg_score = sum(test_scores) / len(test_scores)
-        global_best_score = max(test_scores) if not self.args.low_is_better else min(test_scores)
+        global_best_score = (
+            max(test_scores)
+            if not self.args.low_is_better
+            else min([score for i, score in enumerate(test_scores) if dev_scores[i] != -1] + [np.inf])
+        )
 
         results.insert(
             0,
@@ -103,6 +108,9 @@ class Experimenter:
         score_dict.update(scores)
         return score_dict
 
+    def get_save_name(self):
+        return f"{self.args.exp_mode}-{self.args.task}_{self.start_time}"
+
     def save_result(self, result):
         end_time_raw = datetime.datetime.now()
         end_time = end_time_raw.strftime("%Y%m%d%H%M")
@@ -113,6 +121,7 @@ class Experimenter:
         }
         result = result.copy()
         result.insert(0, time_info)
+        save_name = self.get_save_name()
         os.makedirs(self.result_path, exist_ok=True)
-        with open(f"{self.result_path}/{self.args.exp_mode}-{self.args.task}_{self.start_time}.json", "w") as f:
+        with open(f"{self.result_path}/{save_name}.json", "w") as f:
             json.dump(result, f, indent=4)

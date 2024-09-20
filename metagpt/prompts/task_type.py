@@ -37,6 +37,7 @@ The current task is about training a model, please ensure high performance:
 - For tabular datasets - you have access to XGBoost, CatBoost, random forest, extremely randomized trees, k-nearest neighbors, linear regression, etc.
 - For image datasets - you have access to ResNet, VGG, Inception, MobileNet, DenseNet, EfficientNet, etc.
 - For text datasets - you have access to BERT, GPT-2, RoBERTa, DistilBERT, T5, etc.
+- Avoid the use of SVM because of its high training time.
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as XGBoost, CatBoost, etc.
 - If non-numeric columns exist, perform label encode together with all steps.
 - Use the data from previous task result directly, do not mock or reload data yourself.

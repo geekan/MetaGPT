@@ -87,6 +87,9 @@ class Node:
     def get_depth(self):
         return self.depth
 
+    def get_node_dir(self):
+        return self.state["node_dir"]
+
     def generate_depth(self):
         if self.parent is None:
             return 0
