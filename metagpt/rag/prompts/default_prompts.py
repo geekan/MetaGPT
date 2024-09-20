@@ -23,6 +23,7 @@ Doc: 9, Relevance: 7
 - Evaluate the relevance between the question and the documents.
 - The relevance score is a number from 1-10 based on how relevant you think the document is to the question.
 - Do not include any documents that are not relevant to the question.
+- If none of the documents provided contain information that directly answers the question, simply respond with "no relevant documents".
 
 ## Constraint
 Format: Just print the result in format like **Format Example**.
