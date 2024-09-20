@@ -54,11 +54,19 @@ Your changes have NOT been applied. Please fix your edit command and try again
 
 """
 
+LINE_NUMBER_AND_CONTENT_MISMATCH = """Error: The `{position}_replaced_line_number` does not match the `{position}_replaced_line_content`. Please correct the parameters.
+The `{position}_replaced_line_number` is {line_number} and the corresponding content is "{true_content}".
+But the `{position}_replaced_line_content ` is "{fake_content}".
+The content around the specified line is:
+{context}
+Pay attention to the new content. Ensure that it aligns with the new parameters.
+"""
 SUCCESS_EDIT_INFO = """
 [File: {file_name} ({n_total_lines} lines total after edit)]
 {window_after_applied}
-[File updated (edited at line {line_number}). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]
+[File updated (edited at line {line_number})].
 """
+# Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.
 
 
 class FileBlock(BaseModel):
@@ -72,7 +80,24 @@ class LineNumberError(Exception):
     pass
 
 
-@register_tool()
+@register_tool(
+    include_functions=[
+        "write",
+        "read",
+        "open_file",
+        "goto_line",
+        "scroll_down",
+        "scroll_up",
+        "create_file",
+        "edit_file_by_replace",
+        "insert_content_at_line",
+        "append_file",
+        "search_dir",
+        "search_file",
+        "find_file",
+        "search_index_repo",
+    ]
+)
 class Editor(BaseModel):
     """
     A tool for reading, understanding, writing, and editing files.
@@ -83,7 +108,7 @@ class Editor(BaseModel):
     resource: EditorReporter = EditorReporter()
     current_file: Optional[Path] = None
     current_line: int = 1
-    window: int = 100
+    window: int = 200
     enable_auto_lint: bool = False
     working_dir: Path = DEFAULT_WORKSPACE_ROOT
 
@@ -207,7 +232,7 @@ class Editor(BaseModel):
             else:
                 output += "(this is the beginning of the file)\n"
             for i in range(start, end + 1):
-                _new_line = f"{i}|{lines[i - 1]}"
+                _new_line = f"{i:03d}|{lines[i - 1]}"
                 if not _new_line.endswith("\n"):
                     _new_line += "\n"
                 output += _new_line
@@ -632,8 +657,8 @@ class Editor(BaseModel):
             )
             error_info = ERROR_GUIDANCE.format(
                 linter_error_msg=LINTER_ERROR_MSG + str(e),
-                window_after_applied=self._print_window(file_name, start or len(lines), 40),
-                window_before_applied=self._print_window(Path(temp_backup_file.name), start or len(lines), 40),
+                window_after_applied=self._print_window(file_name, start or len(lines), 100),
+                window_before_applied=self._print_window(Path(temp_backup_file.name), start or len(lines), 100),
                 guidance_message=guidance_message,
             ).strip()
             # Clean up the temporary file if an error occurs
@@ -661,7 +686,126 @@ class Editor(BaseModel):
         ).strip()
         return success_edit_info
 
-    def edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
+    def edit_file_by_replace(
+        self,
+        file_name: str,
+        first_replaced_line_number: int,
+        first_replaced_line_content: str,
+        last_replaced_line_number: int,
+        last_replaced_line_content: str,
+        new_content: str,
+    ) -> str:
+        """
+        Line numbers start from 1. Replace lines from start_line to end_line (inclusive) with the new_content in the open file.
+        All of the new_content will be entered, so makesure your indentation is formatted properly.
+        The new_content must be a complete block of code.
+
+        Example 1:
+        Given a file "/workspace/example.txt" with the following content:
+        ```
+        001|contain f
+        002|contain g
+        003|contain h
+        004|contain i
+        ```
+
+        EDITING: If you want to replace line 2 and line 3
+
+        edit_file_by_replace(
+            "/workspace/example.txt",
+            first_replaced_line_number=2,
+            first_replaced_line_content="contain g",
+            last_replaced_line_number=3,
+            last_replaced_line_content="contain h",
+            new_content="new content",
+        )
+        This will replace the second line 2 and line 3 with "new content".
+
+        The resulting file will be:
+        ```
+        001|contain f
+        002|new content
+        003|contain i
+        ```
+        Example 2:
+        Given a file "/workspace/example.txt" with the following content:
+        ```
+        001|contain f
+        002|contain g
+        003|contain h
+        004|contain i
+        ```
+        EDITING: If you want to remove the line 2 and line 3.
+        edit_file_by_replace(
+            "/workspace/example.txt",
+            first_replaced_line_number=2,
+            first_replaced_line_content="contain g",
+            last_replaced_line_number=3,
+            last_replaced_line_content="contain h",
+            new_content="",
+        )
+        This will remove line 2 and line 3.
+        The resulting file will be:
+        ```
+        001|contain f
+        002|
+        003|contain i
+        ```
+        Args:
+            file_name (str): The name of the file to edit.
+            first_replaced_line_number (int): The line number to start the edit at, starting from 1.
+            first_replaced_line_content (str): The content of the start replace line, according to the first_replaced_line_number.
+            last_replaced_line_number (int): The line number to end the edit at (inclusive), starting from 1.
+            last_replaced_line_content (str): The content of the end replace line, according to the last_replaced_line_number.
+            new_content (str): The text to replace the current selection with, must conform to PEP8 standards. The content in the start line and end line will also be replaced.
+
+        """
+
+        file_name = self._try_fix_path(file_name)
+
+        # Check if the first_replaced_line_number  and last_replaced_line_number  correspond to the appropriate content.
+        mismatch_error = ""
+        with file_name.open() as file:
+            content = file.read()
+            # Ensure the content ends with a newline character
+            if not content.endswith("\n"):
+                content += "\n"
+            lines = content.splitlines(True)
+            total_lines = len(lines)
+            check_list = [
+                ("first_replaced", first_replaced_line_number, first_replaced_line_content),
+                ("last_replaced", last_replaced_line_number, last_replaced_line_content),
+            ]
+            for position, line_number, line_content in check_list:
+                if lines[line_number - 1].rstrip() != line_content:
+                    start = max(1, line_number - 3)
+                    end = min(total_lines, line_number + 3)
+                    context = "\n".join(
+                        [
+                            f'The {line_number:03d} line is "{lines[line_number-1].rstrip()}"'
+                            for line_number in range(start, end + 1)
+                        ]
+                    )
+                    mismatch_error += LINE_NUMBER_AND_CONTENT_MISMATCH.format(
+                        position=position,
+                        line_number=line_number,
+                        true_content=lines[line_number - 1].rstrip(),
+                        fake_content=line_content.replace("\n", "\\n"),
+                        context=context.strip(),
+                    )
+        if mismatch_error:
+            return mismatch_error
+        ret_str = self._edit_file_impl(
+            file_name,
+            start=first_replaced_line_number,
+            end=last_replaced_line_number,
+            content=new_content,
+        )
+        # TODO: automatically tries to fix linter error (maybe involve some static analysis tools on the location near the edit to figure out indentation)
+        self.resource.report(file_name, "path")
+        return ret_str
+
+    def _edit_file_by_replace(self, file_name: str, to_replace: str, new_content: str) -> str:
         """Edit a file. This will search for `to_replace` in the given file and replace it with `new_content`.
 
         Every *to_replace* must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
@@ -703,10 +847,9 @@ class Editor(BaseModel):
         )
 
         Args:
-            file_name: str: The name of the file to edit.
-            to_replace: str: The content to search for and replace.
-            new_content: str: The new content to replace the old content with.
-
+            file_name: (str): The name of the file to edit.
+            to_replace: (str): The content to search for and replace.
+            new_content: (str): The new content to replace the old content with.
         NOTE:
             This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
             If you need to use it multiple times, wait for the next turn.
@@ -732,7 +875,6 @@ class Editor(BaseModel):
             raise ValueError(
                 "`to_replace` appears more than once, please include enough lines to make code in `to_replace` unique."
             )
-
         start = file_content.find(to_replace)
         if start != -1:
             # Convert start from index to line number
@@ -767,28 +909,37 @@ class Editor(BaseModel):
         self.resource.report(file_name, "path")
         return ret_str
 
-    def insert_content_at_line(self, file_name: str, line_number: int, content: str) -> str:
-        """Insert content at the given line number in a file.
-        This will NOT modify the content of the lines before OR after the given line number.
-
+    def insert_content_at_line(self, file_name: str, line_number: int, insert_content: str) -> str:
+        """Insert a complete block of code before the given line number in a file. That is, the new content will start at the beginning of the specified line, and the existing content of that line will be moved down.
+        This operation will NOT modify the content of the lines before or after the given line number.
+        This function can not insert content the end of the file. Please use append_file instead,
         For example, if the file has the following content:
         ```
-        line 1
-        line 2
-        line 3
+        001|contain g
+        002|contain h
+        003|contain i
+        004|contain j
         ```
-        and you call `insert_content_at_line('file.txt', 2, 'new line')`, the file will be updated to:
+        and you call
+        insert_content_at_line(
+            file_name='file.txt',
+            line_number=2,
+            insert_content='new line'
+        )
+        the file will be updated to:
         ```
-        line 1
-        new line
-        line 2
-        line 3
+        001|contain g
+        002|new line
+        003|contain h
+        004|contain i
+        005|contain j
         ```
 
         Args:
-            file_name: str: The name of the file to edit.
-            line_number: int: The line number (starting from 1) to insert the content after.
-            content: str: The content to insert.
+            file_name: (str): The name of the file to edit.
+            line_number (int): The line number (starting from 1) to insert the content after.the insert content will be add between the line of line_number-1 and line_number
+            insert_content (str): The content to insert betweed the previous_line_content and current_line_content.The insert_content must be a complete block of code at.
+
         NOTE:
             This tool is exclusive. If you use this tool, you cannot use any other commands in the current response.
             If you need to use it multiple times, wait for the next turn.
@@ -798,7 +949,7 @@ class Editor(BaseModel):
             file_name,
             start=line_number,
             end=line_number,
-            content=content,
+            content=insert_content,
             is_insert=True,
             is_append=False,
         )

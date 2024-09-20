@@ -61,9 +61,7 @@ class Engineer2(RoleZero):
         This information will be dynamically added to the command prompt.
         """
         current_directory = (await self.terminal.run_command("pwd")).strip()
-        # Synchronize Terminal and Editor Working Directories
-        if str(self.editor.working_dir.absolute()).strip() != current_directory:
-            self.editor._set_workdir(current_directory)
+        self.editor._set_workdir(current_directory)
         state = {
             "editor_open_file": self.editor.current_file,
             "current_directory": current_directory,
@@ -73,6 +71,7 @@ class Engineer2(RoleZero):
     def _update_tool_execution(self):
         # validate = ValidateAndRewriteCode()
         cr = CodeReview()
+        image_getter = ImageGetter()
         self.exclusive_tool_commands.append("Engineer2.write_new_code")
         if self.run_eval is True:
             # Evalute tool map
@@ -80,6 +79,7 @@ class Engineer2(RoleZero):
                 {
                     "git_create_pull": git_create_pull,
                     "Engineer2.write_new_code": self.write_new_code,
+                    "ImageGetter.get_image": image_getter.get_image,
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self._eval_terminal_run,
@@ -89,7 +89,6 @@ class Engineer2(RoleZero):
             )
         else:
             # Default tool map
-            image_getter = ImageGetter()
             self.tool_execution_map.update(
                 {
                     "git_create_pull": git_create_pull,
@@ -114,7 +113,7 @@ class Engineer2(RoleZero):
         command_output += await super()._run_special_command(cmd)
         return command_output
 
-    async def write_new_code(self, path: str, instruction: str = "") -> str:
+    async def write_new_code(self, path: str, instruction: str = "Write code for the current file.") -> str:
         """Write a new code file.
 
         Args:

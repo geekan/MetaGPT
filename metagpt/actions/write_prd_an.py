@@ -19,8 +19,8 @@ LANGUAGE = ActionNode(
 PROGRAMMING_LANGUAGE = ActionNode(
     key="Programming Language",
     expected_type=str,
-    instruction="Mainstream programming language. If not specified in the requirements, use HTML, CSS, and Pure JavaScript.",
-    example="HTML, CSS, and Pure JavaScript",
+    instruction="Mainstream programming language. If not specified in the requirements, use native HTML",
+    example="native HTML",
 )
 
 ORIGINAL_REQUIREMENTS = ActionNode(

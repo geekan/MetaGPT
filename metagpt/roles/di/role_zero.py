@@ -21,6 +21,7 @@ from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     DETECT_LANGUAGE_PROMPT,
+    END_COMMAND,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
     QUICK_THINK_EXAMPLES,
@@ -213,6 +214,7 @@ class RoleZero(Role):
         ### Recent Observation ###
         memory = self.rc.memory.get(self.memory_k)
         memory = await self.parse_browser_actions(memory)
+        memory = await self.parse_editor_result(memory)
         memory = self.parse_images(memory)
 
         req = self.llm.format_msg(memory + [UserMessage(content=prompt)])
@@ -245,6 +247,24 @@ class RoleZero(Role):
                     memory.insert(index, UserMessage(cause_by="browser", content=await self.browser.view()))
                     break
         return memory
+
+    async def parse_editor_result(self, memory: list[Message], keep_latest_count=5) -> list[Message]:
+        """Retain the latest result and remove outdated editor results."""
+        pattern = re.compile(r"Command Editor\.(\w+?) executed")
+        new_memory = []
+        i = 0
+        for msg in reversed(memory):
+            matches = pattern.findall(msg.content)
+            if matches:
+                i += 1
+                if i > keep_latest_count:
+                    new_content = msg.content[: msg.content.find("Command Editor")]
+                    new_content += "\n".join([f"Command Editor.{match} executed." for match in matches])
+                    msg = UserMessage(content=new_content)
+            new_memory.append(msg)
+        # Reverse the new memory list so the latest message is at the end
+        new_memory.reverse()
+        return new_memory
 
     def parse_images(self, memory: list[Message]) -> list[Message]:
         if not self.llm.support_image_input():
@@ -310,8 +330,10 @@ class RoleZero(Role):
             if self.rc.max_react_loop >= 10 and actions_taken >= self.rc.max_react_loop:
                 # If max_react_loop is a small value (e.g. < 10), it is intended to be reached and make the agent stop
                 logger.warning(f"reached max_react_loop: {actions_taken}")
-                rsp = await self.ask_human("I have reached my max action rounds, do you want me to continue? Yes or no")
-                if "yes" in rsp.lower():
+                human_rsp = await self.ask_human(
+                    "I have reached my max action rounds, do you want me to continue? Yes or no"
+                )
+                if "yes" in human_rsp.lower():
                     actions_taken = 0
         return rsp  # return output from the last action
 
@@ -362,8 +384,8 @@ class RoleZero(Role):
 
         return rsp_msg, intent_result
 
-    async def _check_duplicates(self, req: list[dict], command_rsp: str):
-        past_rsp = [mem.content for mem in self.rc.memory.get(self.memory_k)]
+    async def _check_duplicates(self, req: list[dict], command_rsp: str, check_window: int = 10):
+        past_rsp = [mem.content for mem in self.rc.memory.get(check_window)]
         if command_rsp in past_rsp:
             # Normal response with thought contents are highly unlikely to reproduce
             # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
@@ -372,6 +394,10 @@ class RoleZero(Role):
 
             #  Hard rule to ask human for help
             if past_rsp.count(command_rsp) >= 3:
+                if '"command_name": "Plan.finish_current_task",' in command_rsp:
+                    # Detect the deplicate of "Plan.finish_current_task" command, use command "end" to finish the task
+                    logger.warning(f"Duplicate response detected: {command_rsp}")
+                    return END_COMMAND
                 return ASK_HUMAN_COMMAND
             # Try correction by self
             logger.warning(f"Duplicate response detected: {command_rsp}")
@@ -425,11 +451,7 @@ class RoleZero(Role):
         if command_flag.count(False) > 1:
             # Keep only the first exclusive command
             index_of_first_exclusive = command_flag.index(False)
-            commands = [
-                cmd
-                for index, cmd in enumerate(commands)
-                if index == index_of_first_exclusive or cmd["command_name"] not in self.exclusive_tool_commands
-            ]
+            commands = commands[: index_of_first_exclusive + 1]
             command_rsp = "```json\n" + json.dumps(commands, indent=4, ensure_ascii=False) + "\n```"
             logger.info(
                 "exclusive command more than one in current command list. change the command list.\n" + command_rsp

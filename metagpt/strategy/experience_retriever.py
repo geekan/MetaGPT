@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. And create a product requirement document (PRD) outlining the features, user interface. ",
+            "instruction": "Use native HTML for the program. And create a product requirement document (PRD) outlining the features, user interface. ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Design the software architecture for the CLI snake game, including the data flow.",
+            "instruction": "Use native HTML for the program. Design the software architecture for the CLI snake game, including the data flow.",
             "assignee": "Bob"
         }
     },
@@ -506,14 +506,14 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
-            "instruction": "Use HTML, CSS, Pure JavaScrip as the programming language. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
+            "instruction": "Use native HTML for the program. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
             "assignee": "Alex"
         }
     },
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Use HTML, CSS, Pure JavaScrip as the programming language. Create a cli snake game.",
+            "content": "Use native HTML for the program. Create a cli snake game.",
             "send_to": "Alice"
         }
     },
@@ -956,8 +956,15 @@ I have opened the openai_api.py file. However, the range of lines shown is from 
 ```
 
 ## example 9
-I've found the bug and will start fixing it. I'll pay close attention to the indentation.
-Since I only need to modify a few lines in this file, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
+I want to change the key bindings from (w/s) to the arrow keys (up, down). And add the space bar to pause.
+the previous file look like:
+142|    while not self.is_game_over():
+143|        if event.key == pygame.K_w:
+144|            self.move_up()
+145|        elif event.key == pygame.K_s:
+146|            self.move_down()
+147|        self.add_random_tile()
+Since I only need to modify the lines 143 to 146, I will use Editor.edit_file_by_replace. The original content will be replaced by the new code.
 Editor tool is exclusive. If I use this tool, I cannot use any other commands in the current response.
 ```json
 [
@@ -965,14 +972,24 @@ Editor tool is exclusive. If I use this tool, I cannot use any other commands in
         "command_name": "Editor.edit_file_by_replace",
         "args": {
             "file_name":"/workspace/MetaGPT/provider/openai_api.py",
-            "to_replace": "            inv_trig_table = ["asin", "acos", "atan", "acot"]"
-            "new_content": "            inv_trig_table = ["asin", "acos", "atan", "acsc", "asec", "acot"]"
-        }
+            "first_replaced_line_number": 143,
+            "first_replaced_line_content":"        if event.key == pygame.K_w:",
+            "new_content": "        if event.key == pygame.K_UP:\\n             self.move_up()\\n         elif event.key == pygame.K_DOWN:\\n             self.move_down()\\n         elif event.key == pygame.K_SPACE:\\n             self.stop()"
+            "last_replaced_line_number": 146,
+            "last_replaced_line_content": "            self.move_down()",
+            }
     }
 ]
 ```
 
 ## example 10
+I want to add a score variable in the initialization of the game. 
+the previous file look like:
+028|        if restart:
+029|            self.snake = Snake()
+030|            self.food = Food(self.board_size)
+031|            self.start_game()
+032|            self.location = (0,0)
 I only need to add a few lines to the file, so I will use Editor.insert_content_at_line. The new code will not cover the original code.
 Note that the Editor command must be executed in a single response, so this step will only involve using the Editor command.
 ```json
@@ -981,29 +998,20 @@ Note that the Editor command must be executed in a single response, so this step
         "command_name": "Editor.insert_content_at_line",
         "args": {
             "file_name":"/workspace/MetaGPT/provider/openai_api.py"
-            "line_number":727,
-            "content": "if hasattr(self, '_print_' + func) and not isinstance(expr.func, UndefinedFunction):\\n            return getattr(self, '_print_' + func)(expr, exp)"
-        }
-    }
-]
-```
+            "line_number":31,
+            "insert_content": "            self.score = Score()"
 
-## example 10.1
-To enhance the functionality of the 2048 game, including game end detection and score tracking, we need to add these features to the existing game_2048.py file. First, we will add a score tracking feature, and then we will insert game end detection logic into the game loop.
-We will use the Editor.insert_content_at_line command to insert new code into the file for adding score tracking and game end detection.
-Since Editor.insert_content_at_line can only be used once per response, this time I will use it to create the variable self.score
-```json
-[
-    {
-        "command_name": "Editor.insert_content_at_line",
-        "args": {
-            "file_name": "/home/mgx/mgx/MetaGPT/workspace/2048_game_py/game_2048.py",
-            "line_number": 4,
-            "content": "        self.score = 0\n"
         }
     }
 ]
 ```
+After executing the command, the file will be:
+028|        if restart:
+029|            self.snake = Snake()
+030|            self.food = Food(self.board_size)
+031|            self.score = Score()
+032|            self.start_game()
+033|            self.location = (0,0)
 In the next turn, I will try to add another code snippet
 
 ## example 11

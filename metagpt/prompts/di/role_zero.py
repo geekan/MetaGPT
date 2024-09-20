@@ -69,6 +69,7 @@ CMD_PROMPT = (
 you must respond in {respond_language}.
 
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
+If you open a file, the line number is displayed at the front of each line.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
@@ -107,6 +108,17 @@ Describe if you should terminate using **end** command, or use **RoleZero.ask_hu
 You should use "end" to stop when all tasks have been completed and the requirements are satisfied.
 Your reflection, then the commands in a json array:
 """
+END_COMMAND = """
+```json
+[
+    {
+        "command_name": "end",
+        "args": {}
+    }
+]
+```
+"""
+
 ASK_HUMAN_COMMAND = """
 ```json
 [

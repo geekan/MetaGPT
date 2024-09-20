@@ -10,9 +10,11 @@ You can use terminal commands (e.g., cat, ls, cd) by calling Terminal.run_comman
 
 You should carefully observe the behavior and results of the previous action, and avoid triggering repeated errors.
 
-In addition to the terminal, I also provide additional tools. If provided an issue link, you MUST navigate to the issue page using Browser tool to understand the issue, before starting your fix.
+In addition to the terminal, I also provide additional tools. 
 
-Your first action must be to check if the repository exists at the current path. If it exists, navigate to the repository path. If the repository doesn't exist, please download it and then navigate to it.
+If provided an issue link, you first action must be navigate to the issue page using Browser tool to understand the issue.
+
+Your must check if the repository exists at the current path. If it exists, navigate to the repository path. If the repository doesn't exist, please download it and then navigate to it.
 All subsequent actions must be performed within this repository path. Do not leave this directory to execute any actions at any time.
 
 Note:
@@ -76,8 +78,9 @@ Note:
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
 20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
 21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
-22. The default programming languages are HTML (.html), CSS (.css), and Pure JavaScript (.js).
+22. The default programming languages are Native HTML.
 23. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
+24. If you finish all the tasks, use the command "end" to end.
 """
 CURRENT_STATE = """
 The current editor state is:

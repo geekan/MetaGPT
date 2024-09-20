@@ -25,7 +25,7 @@ def test_function_for_fm():
     # this is the 7th line
 """.strip()
 
-WINDOW = 100
+WINDOW = 200
 
 
 @pytest.fixture
@@ -120,7 +120,7 @@ def test_insert_content(temp_py_file):
     editor.insert_content_at_line(
         file_name=temp_py_file,
         line_number=3,
-        content="    # This is the new line to be inserted, at line 3",
+        insert_content="    # This is the new line to be inserted, at line 3",
     )
     with open(temp_py_file, "r") as f:
         new_content = f.read()
@@ -196,11 +196,11 @@ def test_open_file(temp_file_path):
     expected = (
         f"[File: {temp_file_path} (5 lines total)]\n"
         "(this is the beginning of the file)\n"
-        "1|Line 1\n"
-        "2|Line 2\n"
-        "3|Line 3\n"
-        "4|Line 4\n"
-        "5|Line 5\n"
+        "001|Line 1\n"
+        "002|Line 2\n"
+        "003|Line 3\n"
+        "004|Line 4\n"
+        "005|Line 5\n"
         "(this is the end of the file)"
     )
     assert result.split("\n") == expected.split("\n")
@@ -215,11 +215,11 @@ def test_open_file_with_indentation(temp_file_path):
     expected = (
         f"[File: {temp_file_path} (5 lines total)]\n"
         "(this is the beginning of the file)\n"
-        "1|Line 1\n"
-        "2|    Line 2\n"
-        "3|Line 3\n"
-        "4|Line 4\n"
-        "5|Line 5\n"
+        "001|Line 1\n"
+        "002|    Line 2\n"
+        "003|Line 3\n"
+        "004|Line 4\n"
+        "005|Line 5\n"
         "(this is the end of the file)"
     )
     assert result.split("\n") == expected.split("\n")
@@ -235,7 +235,7 @@ def test_open_file_long(temp_file_path):
     expected = f"[File: {temp_file_path} (1000 lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, 51):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     expected += "(950 more lines below)"
     assert result.split("\n") == expected.split("\n")
 
@@ -245,7 +245,7 @@ def test_open_file_long_with_lineno(temp_file_path):
     content = "\n".join([f"Line {i}" for i in range(1, 1001)])
     temp_file_path.write_text(content)
 
-    cur_line = 100
+    cur_line = 300
 
     result = editor.open_file(str(temp_file_path), cur_line)
     assert result is not None
@@ -256,7 +256,7 @@ def test_open_file_long_with_lineno(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == 1000:
         expected += "(this is the end of the file)\n"
     else:
@@ -290,7 +290,7 @@ def test_goto_line(temp_file_path):
     expected = f"[File: {temp_file_path} ({total_lines} lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, WINDOW + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     expected += f"({total_lines - WINDOW} more lines below)"
     assert result.split("\n") == expected.split("\n")
 
@@ -306,7 +306,7 @@ def test_goto_line(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
@@ -349,7 +349,7 @@ def test_scroll_down(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == total_lines:
         expected += "(this is the end of the file)"
     else:
@@ -367,7 +367,7 @@ def test_scroll_down(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
@@ -381,7 +381,7 @@ def test_scroll_up(temp_file_path):
     content = "\n".join([f"Line {i}" for i in range(1, total_lines + 1)])
     temp_file_path.write_text(content)
 
-    cur_line = 300
+    cur_line = 500
 
     result = editor.open_file(str(temp_file_path), cur_line)
     assert result is not None
@@ -393,11 +393,12 @@ def test_scroll_up(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
         expected += f"({total_lines - end} more lines below)"
+
     assert result.split("\n") == expected.split("\n")
     result = editor.scroll_up()
     assert result is not None
@@ -411,11 +412,13 @@ def test_scroll_up(temp_file_path):
     else:
         expected += f"({start - 1} more lines above)\n"
     for i in range(start, end + 1):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     if end == total_lines:
         expected += "(this is the end of the file)\n"
     else:
         expected += f"({total_lines - end} more lines below)"
+    print(result)
+    print(expected)
     assert result.split("\n") == expected.split("\n")
 
 
@@ -430,7 +433,7 @@ def test_scroll_down_edge(temp_file_path):
     expected = f"[File: {temp_file_path} (9 lines total)]\n"
     expected += "(this is the beginning of the file)\n"
     for i in range(1, 10):
-        expected += f"{i}|Line {i}\n"
+        expected += f"{i:03d}|Line {i}\n"
     expected += "(this is the end of the file)"
 
     result = editor.scroll_down()
@@ -450,7 +453,7 @@ def test_print_window_internal(temp_file_path):
     window = 2
 
     result = editor._print_window(temp_file_path, current_line, window)
-    expected = "(48 more lines above)\n" "49|Line `49`\n" "50|Line `50`\n" "51|Line `51`\n" "(49 more lines below)"
+    expected = "(48 more lines above)\n" "049|Line `49`\n" "050|Line `50`\n" "051|Line `51`\n" "(49 more lines below)"
     assert result == expected
 
 
@@ -533,19 +536,56 @@ def test_function_for_fm():
 
 def test_edit_file_by_replace(temp_py_file):
     editor = Editor()
-    editor.edit_file_by_replace(file_name=str(temp_py_file), to_replace="    b = 2", new_content="    b = 9")
+    editor.edit_file_by_replace(
+        file_name=str(temp_py_file),
+        first_replaced_line_number=5,
+        first_replaced_line_content="    b = 2",
+        new_content="    b = 9",
+        last_replaced_line_number=5,
+        last_replaced_line_content="    b = 2",
+    )
     with open(temp_py_file, "r") as f:
         new_content = f.read()
     assert new_content.strip() == EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
 
 
-def test_edit_file_by_replace_to_palce_empty(empty_file):
+MISMATCH_ERROR = """
+Error: The `first_replaced_replaced_line_number` does not match the `first_replaced_replaced_line_content`. Please correct the parameters.
+The `first_replaced_replaced_line_number` is 5 and the corresponding content is "    b = 2".
+But the `first_replaced_replaced_line_content ` is "".
+The content around the specified line is:
+The 002 line is "def test_function_for_fm():"
+The 003 line is "    "some docstring""
+The 004 line is "    a = 1"
+The 005 line is "    b = 2"
+The 006 line is "    c = 3"
+The 007 line is "    # this is the 7th line"
+Pay attention to the new content. Ensure that it aligns with the new parameters.
+Error: The `last_replaced_replaced_line_number` does not match the `last_replaced_replaced_line_content`. Please correct the parameters.
+The `last_replaced_replaced_line_number` is 5 and the corresponding content is "    b = 2".
+But the `last_replaced_replaced_line_content ` is "".
+The content around the specified line is:
+The 002 line is "def test_function_for_fm():"
+The 003 line is "    "some docstring""
+The 004 line is "    a = 1"
+The 005 line is "    b = 2"
+The 006 line is "    c = 3"
+The 007 line is "    # this is the 7th line"
+Pay attention to the new content. Ensure that it aligns with the new parameters.
+""".strip()
+
+
+def test_edit_file_by_replace_mismatch(temp_py_file):
     editor = Editor()
-    with pytest.raises(ValueError) as exc_info:
-        editor.edit_file_by_replace(
-            file_name=str(empty_file), to_replace="", new_content=EXPECTED_CONTENT_AFTER_REPLACE_TEXT.strip()
-        )
-        assert "is empty. Use the append method to add content." in str(exc_info.value)
+    output = editor.edit_file_by_replace(
+        file_name=str(temp_py_file),
+        first_replaced_line_number=5,
+        first_replaced_line_content="",
+        new_content="    b = 9",
+        last_replaced_line_number=5,
+        last_replaced_line_content="",
+    )
+    assert output.strip() == MISMATCH_ERROR.strip()
 
 
 def test_append_file(temp_file_path):
@@ -571,13 +611,13 @@ def test_append_file(temp_file_path):
     expected_output = (
         f"[File: {temp_file_path.resolve()} (5 lines total after edit)]\n"
         "(this is the beginning of the file)\n"
-        "1|Line 1\n"
-        "2|Line 2\n"
-        "3|Line 3\n"
-        "4|Line 4\n"
-        "5|Line 5\n"
+        "001|Line 1\n"
+        "002|Line 2\n"
+        "003|Line 3\n"
+        "004|Line 4\n"
+        "005|Line 5\n"
         "(this is the end of the file)\n"
-        "[File updated (edited at line 3). Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary.]"
+        "[File updated (edited at line 3)]."
     )
 
     assert result.split("\n") == expected_output.split("\n")
