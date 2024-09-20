@@ -9,6 +9,7 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.libs.index_repo import (
     CHATS_INDEX_ROOT,
     CHATS_ROOT,
+    DEFAULT_MIN_TOKEN_COUNT,
     UPLOAD_ROOT,
     IndexRepo,
 )
@@ -780,8 +781,10 @@ async def test_similarity_search(query, filename):
 @pytest.mark.asyncio
 async def test_read():
     editor = Editor()
-    content = await editor.read(str(TEST_DATA_PATH / "pdf/9112674.pdf"))
-    assert "similarity_search" in content.block_content
+    filename = TEST_DATA_PATH / "pdf/9112674.pdf"
+    content = await editor.read(str(filename))
+    size = filename.stat().st_size
+    assert "similarity_search" in content.block_content and size > 5 * DEFAULT_MIN_TOKEN_COUNT
 
 
 if __name__ == "__main__":

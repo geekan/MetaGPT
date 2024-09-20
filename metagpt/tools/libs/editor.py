@@ -104,14 +104,18 @@ class Editor(BaseModel):
 
     async def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
+        error = FileBlock(
+            file_path=str(path),
+            block_content="The file is too large to read. Use `Editor.similarity_search` to read the file instead.",
+        )
+        path = Path(path)
+        if path.stat().st_size > 5 * DEFAULT_MIN_TOKEN_COUNT:
+            return error
         content = await File.read_text_file(path)
         if not content:
             return FileBlock(file_path=str(path), block_content="")
         if self.is_large_file(content=content):
-            return FileBlock(
-                file_path=str(path),
-                block_content="The file is too large to read. Use `Editor.similarity_search` to read the file instead.",
-            )
+            return error
         self.resource.report(str(path), "path")
 
         lines = content.splitlines(keepends=True)
