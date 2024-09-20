@@ -89,6 +89,8 @@ class IndexRepo(BaseModel):
         filenames, excludes = await self._filter(filenames)
         if not filenames:
             raise ValueError(f"Unsupported file types: {[str(i) for i in excludes]}")
+        for i in filenames:
+            self.resource.report(str(i), "path")
         filter_filenames = set()
         meta = await self._read_meta()
         new_files = {}
