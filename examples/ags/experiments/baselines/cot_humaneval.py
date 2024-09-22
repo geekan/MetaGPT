@@ -11,8 +11,6 @@ HUMANEVAL_PROMPT_GPT = """
 {question}\nPlease provide a step-by-step explanation in text, followed by your Python function without any additional text or test cases. 
 """
 
-# TODO 这里的Code_fill 不是很好做，需要对应着之前的代码修改一个版本才能跑通
-
 class GenerateOp(BaseModel):
     solution: str = Field(default="", description="Python Solution For This Question.")
 
@@ -42,9 +40,10 @@ if __name__ == "__main__":
     async def main():
         # llm_config = ModelsConfig.default().get("gpt-4o-mini")
         # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
-        llm_config = ModelsConfig.default().get("deepseek-chat")
+        # llm_config = ModelsConfig.default().get("deepseek-chat")
+        llm_config = ModelsConfig.default().get("gpt-4o")
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="HumanEval")
-        file_path = "examples/ags/data/human-eval.jsonl"
+        file_path = "examples/ags/data/baseline_data/human-eval.jsonl"
         samples = 33 # 33/131  
         path = "examples/ags/data/baselines/general/humaneval"
         score = await humaneval_evaluation(graph, file_path, samples, path,test=True)

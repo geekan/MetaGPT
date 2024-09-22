@@ -41,10 +41,10 @@ class IOSolveGraph(SolveGraph):
 if __name__ == "__main__":
     async def main():
         # llm_config = ModelsConfig.default().get("gpt-4o-mini")
-        # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
+        # llm_config = ModelsConfig.default().get("gpt-4o")
         llm_config = ModelsConfig.default().get("deepseek-chat")
         graph = IOSolveGraph(name="Io", llm_config=llm_config, dataset="HumanEval")
-        file_path = "examples/ags/data/human-eval.jsonl"
+        file_path = "examples/ags/data/baseline_data/human-eval.jsonl"
         samples = 33 # 33/131  
         path = "examples/ags/data/baselines/general/humaneval"
         score = await humaneval_evaluation(graph, file_path, samples, path,test=True)
