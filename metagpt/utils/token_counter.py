@@ -360,6 +360,7 @@ def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4o",
         "gpt-4o-2024-05-13",
         "gpt-4o-mini",
+        "claude-3-5-sonnet-20240620"
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1

@@ -189,7 +189,7 @@ async def load_file_data(file_path: str) -> List[dict]:
 
 async def optimize_humaneval_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
     data = await load_file_data(file_path)
-    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=50)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=10)
     average_score, total_cost = save_results_to_jsonl(results, path=path)
     print(f"Average score on HumanEval dataset: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")
