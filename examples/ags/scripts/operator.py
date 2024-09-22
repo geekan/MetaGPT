@@ -347,6 +347,7 @@ class ScEnsemble(Operator):
         return {"solution": solutions[answer_mapping[answer]]}  # {"final_solution": "xxx"}
 
 
+
 class Rephrase(Operator):
     """
     Paper: Code Generation with AlphaCodium: From Prompt Engineering to Flow Engineering
@@ -403,15 +404,7 @@ class Test(Operator):
             return "no error"
 
     async def __call__(
-        self,
-        problem_id,
-        problem,
-        rephrase_problem,
-        solution,
-        test_cases,
-        entry_point,
-        test_loop: int = 3,
-        mode: str = None,
+        self, problem_id, problem, rephrase_problem, solution, test_cases, entry_point, test_loop: int = 3
     ):
         solution = solution["final_solution"]
         for _ in range(test_loop):
@@ -427,10 +420,7 @@ class Test(Operator):
                     exec_pass=f"executed unsuccessfully, error: \n {result}",
                     test_fail="executed unsucessfully",
                 )
-                fill_kwargs = {"context": prompt, "llm": self.llm}
-                if mode:
-                    fill_kwargs["mode"] = mode
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(**fill_kwargs)
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
                 response = node.instruct_content.model_dump()
                 solution = response["refined_solution"]
             else:
@@ -441,10 +431,7 @@ class Test(Operator):
                     exec_pass="executed successfully",
                     test_fail=result,
                 )
-                fill_kwargs = {"context": prompt, "llm": self.llm}
-                if mode:
-                    fill_kwargs["mode"] = mode
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(**fill_kwargs)
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
                 response = node.instruct_content.model_dump()
                 solution = response["refined_solution"]
 
@@ -455,22 +442,24 @@ class PythonInterpreterOp(Operator):
     def __init__(self, name: str = "PythonInterpreterOp", llm: LLM = LLM()):
         super().__init__(name, llm)
 
-    async def run_code(self, code, timeout=600):
-        with open("solve_code.py", "w", encoding="utf-8") as f:  # TODO 这种依赖
-            f.write(code)
+    async def exec_code(self, code, timeout=600):
         try:
-            process = Popen([sys.executable, "solve_code.py"], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate(timeout=timeout)
-            if process.returncode != 0:
-                return "Error", stderr.decode("utf-8", errors="ignore")
+            # 创建一个新的全局命名空间
+            global_namespace = {}
+            
+            # 使用exec执行代码
+            exec(code, global_namespace)
+            
+            # 假设代码中定义了一个名为'solve'的函数
+            if 'solve' in global_namespace:
+                result = global_namespace['solve']()
+                return "Success", str(result)
             else:
-                return "Success", stdout.decode("utf-8", errors="ignore")
-        except TimeoutExpired:
-            process.terminate()
-            stdout, stderr = process.communicate()
-            return "Timeout", "代码执行超时。请尝试优化代码、算法或其他技术以减少执行时间。"
+                return "Error", "未找到'solve'函数"
         except Exception as e:
-            return "Error", str(e)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            return "Error", f"执行错误: {str(e)}\n{''.join(tb_str)}"
 
     def extract_code_block(self, code_block):
         match = re.search(r"```python(.*?)```", code_block, re.DOTALL)
@@ -491,9 +480,9 @@ class PythonInterpreterOp(Operator):
             response = node.instruct_content.model_dump()
 
             code = self.extract_code_block(response["code"])
-            status, output = await self.run_code(code)
+            status, output = await self.exec_code(code)
 
             if status == "Success":
                 return {"code": code, "output": output}
 
-        return {"code": code, "output": "code execution error, no result!"}
+        return {"code": code, "output": "代码执行错误，无结果！"}

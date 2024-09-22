@@ -1,6 +1,6 @@
 from examples.ags.scripts.operator import Operator
 from examples.ags.scripts.graph import SolveGraph
-from examples.ags.benchmark.gsm8k import gsm8k_evaluation
+from examples.ags.benchmark.humaneval import humaneval_evaluation
 from examples.ags.scripts.operator_an import GenerateOp
 from metagpt.actions.action_node import ActionNode 
 from metagpt.configs.models_config import ModelsConfig
@@ -11,43 +11,36 @@ from collections import Counter
 
 import random
 
-GSM8K_PROMPT_GPT = """
-{question}\nPlease reason step by step, and to ensure accuracy, provide the correct answer in the final, without any additional text.
+HUMANEVAL_PROMPT_GPT = """
+{question}\nPlease provide a step-by-step explanation in text, followed by your Python function without any additional text or test cases. 
 """
 
-GSM8K_PROMPT_DS = """
-{question}\nPlease reason step by step, and put your final answer within \\boxed{{}}.
+MD_ENSEMBLE_PROMPT = """
+Given the question described as follows: {question}
+Several solutions have been generated to address the given question. They are as follows:
+{solutions}
+
+Carefully evaluate these solutions and identify the solution that is more capable of solving the problem compared to other solutions, as this is crucial for problem-solving.
+
+In the "thought" field, provide a detailed explanation of your thought process. In the "solution_letter" field, output only the single letter ID (A, B, C, etc.) corresponding to the solution. Do not include any additional text or explanation in the "solution_letter" field.
 """
 
 class GenerateOp(BaseModel):
-    solution: str = Field(default="", description="solution for the problem")
+    solution: str = Field(default="", description="Python Solution For This Question.")
 
 class CoTGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "Generate"):
         super().__init__(name, llm)
 
-    async def __call__(self, problem, mode: str = None):
-        prompt = GSM8K_PROMPT_GPT.format(question=problem)
-        fill_kwargs = {"context": prompt, "llm": self.llm}
+    async def __call__(self, problem, function_name, mode: str = None):
+        prompt = HUMANEVAL_PROMPT_GPT.format(question=problem)
+        fill_kwargs = {"context": prompt, "llm": self.llm, "function_name": function_name}
         if mode:
             fill_kwargs["mode"] = mode
         node = await ActionNode.from_pydantic(GenerateOp).fill(**fill_kwargs)
         response = node.instruct_content.model_dump()
         return response
 
-MD_ENSEMBLE_PROMPT = """
-You are given a problem:
-{question}
-
-Here is a list of possible solutions to the problem:
-{solutions}
-
-Using the inputs above, your goal is to choose the best solution to the problem.
-The main consideration is that the solution can fully solve the problem in a correct and robust manner.
-Provide your final decision by writing the chosen solution letter.
-
-Please follow the required format in your response.
-"""
 
 class MdEnsembleOp(BaseModel):
     thought: str = Field(
@@ -63,7 +56,7 @@ class MdEnsemble(Operator):
     Link: https://arxiv.org/abs/2311.16452
     """
 
-    def __init__(self, llm: LLM, name: str = "MdEnsemble", vote_count: int = 3):
+    def __init__(self, llm: LLM, name: str = "MdEnsemble", vote_count: int = 5):
         super().__init__(name, llm)
         self.vote_count = vote_count
 
@@ -92,7 +85,7 @@ class MdEnsemble(Operator):
             node = await ActionNode.from_pydantic(MdEnsembleOp).fill(**fill_kwargs)
             response = node.instruct_content.model_dump()
 
-            answer = response.get("solution_letter", "")
+            answer = response.get("solution_letter", "A")
             answer = answer.strip().upper()
 
             if answer in answer_mapping:
@@ -104,29 +97,27 @@ class MdEnsemble(Operator):
         return {"solution": final_answer}  
 
 class MedPromptGraph(SolveGraph):
-    def __init__(self, name: str, llm_config, dataset: str, vote_count: int = 3):
+    def __init__(self, name: str, llm_config, dataset: str, vote_count: int = 5):
         super().__init__(name, llm_config, dataset)
         self.cot_generate = CoTGenerate(self.llm)
-        self.md_ensemble = MdEnsemble(llm=self.llm, vote_count=vote_count)
+        self.md_ensemble = MdEnsemble(self.llm, vote_count=vote_count)
 
-    async def __call__(self, problem):
+    async def __call__(self, problem, function_name):
         solutions = []
         for i in range(3):
-            solution = await self.cot_generate(problem, mode="context_fill")
+            solution = await self.cot_generate(problem, function_name, mode="code_fill")
             solutions.append(solution["solution"])
         solution = await self.md_ensemble(solutions, problem, mode="context_fill")
-        return solution, self.llm.cost_manager.total_cost
+        return solution["solution"], self.llm.cost_manager.total_cost
 
 if __name__ == "__main__":
     async def main():
-        # llm_config = ModelsConfig.default().get("deepseek-coder")
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
-        # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
-        graph = MedPromptGraph(name="MedPrompt", llm_config=llm_config, dataset="Gsm8K", vote_count=5)
-        file_path = "examples/ags/data/gsm8k.jsonl"
-        samples = 264
-        path = "examples/ags/data/baselines/general"
-        score, cost = await gsm8k_evaluation(graph, file_path, samples, path, test=True)
+        graph = MedPromptGraph(name="MedPrompt", llm_config=llm_config, dataset="HumanEval", vote_count=5)
+        file_path = "examples/ags/data/human-eval.jsonl"
+        samples = 33
+        path = "examples/ags/data/baselines/general/humaneval"
+        score, cost = await humaneval_evaluation(graph, file_path, samples, path, test=True)
         return score, cost
 
     import asyncio

@@ -1,6 +1,6 @@
 from examples.ags.scripts.operator import Operator
 from examples.ags.scripts.graph import SolveGraph
-from examples.ags.benchmark.gsm8k import gsm8k_evaluation
+from examples.ags.benchmark.math import math_evaluation
 from examples.ags.scripts.operator_an import GenerateOp
 from metagpt.actions.action_node import ActionNode 
 from metagpt.configs.models_config import ModelsConfig
@@ -11,12 +11,8 @@ from collections import Counter
 
 import random
 
-GSM8K_PROMPT_GPT = """
-{question}\nPlease reason step by step, and to ensure accuracy, provide the correct answer in the final, without any additional text.
-"""
-
-GSM8K_PROMPT_DS = """
-{question}\nPlease reason step by step, and put your final answer within \\boxed{{}}.
+GENERATE_COT_PROMPT = """
+{question}\nPlease reason step by step. At the end, provide the final answer in the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
 """
 
 class GenerateOp(BaseModel):
@@ -27,13 +23,14 @@ class CoTGenerate(Operator):
         super().__init__(name, llm)
 
     async def __call__(self, problem, mode: str = None):
-        prompt = GSM8K_PROMPT_GPT.format(question=problem)
+        prompt = GENERATE_COT_PROMPT.format(question=problem)
         fill_kwargs = {"context": prompt, "llm": self.llm}
         if mode:
             fill_kwargs["mode"] = mode
         node = await ActionNode.from_pydantic(GenerateOp).fill(**fill_kwargs)
         response = node.instruct_content.model_dump()
         return response
+
 
 MD_ENSEMBLE_PROMPT = """
 You are given a problem:
@@ -63,7 +60,7 @@ class MdEnsemble(Operator):
     Link: https://arxiv.org/abs/2311.16452
     """
 
-    def __init__(self, llm: LLM, name: str = "MdEnsemble", vote_count: int = 3):
+    def __init__(self, name: str = "MdEnsemble", llm: LLM = LLM(), vote_count: int = 3):
         super().__init__(name, llm)
         self.vote_count = vote_count
 
@@ -106,12 +103,12 @@ class MdEnsemble(Operator):
 class MedPromptGraph(SolveGraph):
     def __init__(self, name: str, llm_config, dataset: str, vote_count: int = 3):
         super().__init__(name, llm_config, dataset)
-        self.cot_generate = CoTGenerate(self.llm)
+        self.cot_generate = CoTGenerate(llm=self.llm)
         self.md_ensemble = MdEnsemble(llm=self.llm, vote_count=vote_count)
 
     async def __call__(self, problem):
         solutions = []
-        for i in range(3):
+        for i in range(2):
             solution = await self.cot_generate(problem, mode="context_fill")
             solutions.append(solution["solution"])
         solution = await self.md_ensemble(solutions, problem, mode="context_fill")
@@ -119,15 +116,14 @@ class MedPromptGraph(SolveGraph):
 
 if __name__ == "__main__":
     async def main():
-        # llm_config = ModelsConfig.default().get("deepseek-coder")
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
-        # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
-        graph = MedPromptGraph(name="MedPrompt", llm_config=llm_config, dataset="Gsm8K", vote_count=5)
-        file_path = "examples/ags/data/gsm8k.jsonl"
-        samples = 264
-        path = "examples/ags/data/baselines/general"
-        score, cost = await gsm8k_evaluation(graph, file_path, samples, path, test=True)
-        return score, cost
+        graph = MedPromptGraph(name="MedPrompt", llm_config=llm_config, dataset="Gsm8K", vote_count=2)
+        file_path = "examples/ags/data/math_test.jsonl"
+        # samples = None
+        samples = 0
+        path = "examples/ags/data/baselines/general/math"
+        score = await math_evaluation(graph, file_path, samples, path,test=True)
+        return score
 
     import asyncio
     asyncio.run(main())

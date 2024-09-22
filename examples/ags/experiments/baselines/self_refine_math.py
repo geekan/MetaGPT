@@ -1,14 +1,14 @@
 from examples.ags.scripts.operator import Operator
 from examples.ags.scripts.graph import SolveGraph
-from examples.ags.benchmark.gsm8k import gsm8k_evaluation
+from examples.ags.benchmark.math import math_evaluation
 from metagpt.actions.action_node import ActionNode 
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.llm import LLM
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 
-GSM8K_PROMPT_GPT = """
-{question}\nPlease reason step by step. At the end, provide the final answer in the format "Answer is <number>", where <number> is a single number, without any additional information or explanation.
+GENERATE_COT_PROMPT = """
+{question}\nPlease reason step by step. At the end, provide the final answer in the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
 """
 
 REVIEW_PROMPT = """
@@ -21,7 +21,7 @@ If you are more than 95 percent confident that the final answer is incorrect, pl
 """
 
 REVISE_PROMPT = """
-Given a problem and a thoughtful solution which is just reviewed as incorrect, your task is to revise the solution to solve the question and ensure the final answer in the format "Answer is <number>", where <number> is a single number.
+Given a problem and a thoughtful solution which is just reviewed as incorrect, your task is to revise the solution to solve the question and ensure the final answer in the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
 
 problem: {problem}
 solution: {solution}
@@ -46,12 +46,15 @@ class ReviseOp(BaseModel):
     solution: str = Field(default="", description="Based on the feedback, revised solution for this problem")
 
 
+class GenerateOp(BaseModel):
+    solution: str = Field(default="", description="solution for the problem")
+
 class CoTGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "Generate"):
         super().__init__(name, llm)
 
-    async def __call__(self, problem, mode: str = "context_fill"):
-        prompt = GSM8K_PROMPT_GPT.format(question=problem)
+    async def __call__(self, problem, mode: str = None):
+        prompt = GENERATE_COT_PROMPT.format(question=problem)
         fill_kwargs = {"context": prompt, "llm": self.llm}
         if mode:
             fill_kwargs["mode"] = mode
@@ -105,11 +108,12 @@ if __name__ == "__main__":
     async def main():
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
         graph = SelfRefineGraph(name="self-refine", llm_config=llm_config, dataset="Gsm8K")
-        file_path = "examples/ags/data/gsm8k.jsonl"
-        samples = 264
-        path = "examples/ags/data/baselines/general"
-        score, cost = await gsm8k_evaluation(graph, file_path, samples, path, test=True)
-        return score, cost
+        file_path = "examples/ags/data/math_test.jsonl"
+        # samples = None
+        samples = 10
+        path = "examples/ags/data/baselines/general/math"
+        score = await math_evaluation(graph, file_path, samples, path,test=False)
+        return score
 
     import asyncio
     asyncio.run(main())

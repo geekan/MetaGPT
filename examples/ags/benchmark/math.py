@@ -21,7 +21,7 @@ def extract_answer(text: str) -> str:
         return boxed_match.group(1)
 
     # If no \boxed{...}, return the last sentence
-    sentences = text.split(".")
+    sentences = text.split(".") # TODO 使用jinyu修改
     return sentences[-1].strip() if sentences else ""
 
 def parse_digits(num):
@@ -221,10 +221,11 @@ async def load_data(file_path: str, samples: int = 200, test=False) -> List[dict
     data = [data[i] for i in random_indices]
     return data
 
+
 def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
     df = pd.DataFrame(results, columns=["question", "prediction", "expected_output", "score", "cost"])
     average_score = df["score"].mean()
-    total_cost = df["cost"].iloc[-1]
+    total_cost = df["cost"].max()
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
@@ -273,6 +274,21 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 async def math_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
     data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
+    average_score, total_cost = save_results_to_csv(results, path=path)
+    print(f"Average score on MATH dataset: {average_score:.5f}")
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost
+
+async def load_file_data(file_path: str) -> List[dict]:
+    data = []
+    async with aiofiles.open(file_path, mode="r") as file:
+        async for line in file:
+            data.append(json.loads(line))
+    return data
+
+async def optimize_math_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
+    data = await load_file_data(file_path)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=50)
     average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on MATH dataset: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")

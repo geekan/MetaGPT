@@ -8,12 +8,8 @@ from metagpt.llm import LLM
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 
-MATH_PROMPT_GPT = """
-{question}\nPlease reason step by step, and put your final answer in the end. Wrap content using xml tags.
-"""
-
-MATH_PROMPT_DS = """
-{question}\nPlease reason step by step, and put your final answer within \\boxed{{}}.
+GENERATE_COT_PROMPT = """
+{question}\nPlease reason step by step. At the end, provide the final answer in the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
 """
 
 class GenerateOp(BaseModel):
@@ -24,7 +20,7 @@ class CoTGenerate(Operator):
         super().__init__(name, llm)
 
     async def __call__(self, problem, mode: str = None):
-        prompt = MATH_PROMPT_GPT.format(question=problem)
+        prompt = GENERATE_COT_PROMPT.format(question=problem)
         fill_kwargs = {"context": prompt, "llm": self.llm}
         if mode:
             fill_kwargs["mode"] = mode
@@ -47,27 +43,12 @@ if __name__ == "__main__":
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
         # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
         graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="Gsm8K")
-        file_path = "examples/ags/data/math.jsonl"
-        samples = 100
-        # samples = 100
+        file_path = "examples/ags/data/math_test.jsonl"
+        # samples = None
+        samples = 0
         path = "examples/ags/data/baselines/general/math"
-        score = await math_evaluation(graph, file_path, samples, path)
+        score = await math_evaluation(graph, file_path, samples, path,test=True)
         return score
 
     import asyncio
     asyncio.run(main())
-
-
-# self consistency operator; universal self consistency; 
-
-# IO指的没有任何Trick，看LLM自身的一个效果。使用 model 发布者在对应的 dataset 使用的 prompt。
-
-# deepseek-chat; gpt-4o-mini; gpt-35-turbo-1106
-
-
-
-GENERATE_PROMPT = """
-Generate Solution for the following problem: {problem_description}
-"""
-
-# med ensemble 

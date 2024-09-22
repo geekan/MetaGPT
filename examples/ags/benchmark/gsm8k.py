@@ -72,6 +72,8 @@ async def evaluate_problem(input: str, graph: Callable, expected_output: str) ->
 
             score = loose_match_score(expected_output, output)
             break
+        
+        # TODO 添加LOG入口
 
         except Exception as e:
             retries += 1
@@ -104,6 +106,23 @@ async def gsm8k_evaluation(graph: Callable, file_path: str, samples: int, path: 
     """GSM8K evaluation main function"""
     data = await load_data(file_path, samples, test=test)
     results = await evaluate_all_problems(data, graph, max_concurrent_tasks=10)
+    average_score, total_cost = save_results_to_csv(results, path=path)
+    print(f"Average score: {average_score:.5f}")
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost
+
+
+async def load_file_data(file_path: str) -> List[dict]:
+    data = []
+    async with aiofiles.open(file_path, mode="r") as file:
+        async for line in file:
+            data.append(json.loads(line))
+    return data
+
+async def optimize_gsm8k_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
+    """Optimize GSM8K evaluation main function"""
+    data = await load_file_data(file_path)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=50)
     average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")

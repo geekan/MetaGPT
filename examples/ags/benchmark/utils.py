@@ -15,3 +15,5 @@ def generate_random_indices(n, n_samples, test=False):
         return indices[n_samples:]
     else:
         return indices[:n_samples]
+    
+# TODO yzy 补充分割数据集的函数

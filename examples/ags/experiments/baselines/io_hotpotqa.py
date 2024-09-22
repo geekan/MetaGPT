@@ -13,8 +13,8 @@ from pydantic import BaseModel, Field
 from typing import Tuple
 
 HOTPOTQA_PROMPT = """
-Think step by step and solve the problem.
-1. In the "thought" field, explain your thinking process in detail.
+Given a question and a context, please answer the question.
+1. In the "thought" field, explain your thinking process.
 2. In the "answer" field, provide the final answer concisely and clearly. The answer should be a direct response to the question, without including explanations or reasoning.
 Question: {question}
 The revelant context: {context}
@@ -24,7 +24,7 @@ class GenerateOp(BaseModel):
     thought: str = Field(default="", description="The step by step thinking process")
     answer: str = Field(default="", description="The final answer to the question")
 
-class CoTGenerate(Operator):
+class IOGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "Generate"):
         super().__init__(name, llm)
 
@@ -39,10 +39,10 @@ class CoTGenerate(Operator):
 
         return response
 
-class CoTSolveGraph(SolveGraph):
+class IOSolveGraph(SolveGraph):
     def __init__(self, name: str, llm_config, dataset: str):
         super().__init__(name, llm_config, dataset)
-        self.cot_generate = CoTGenerate(self.llm)
+        self.cot_generate = IOGenerate(self.llm)
 
     async def __call__(self, question: str, context: str) -> Tuple[str, str]:
         answer = await self.cot_generate(question, context, mode="context_fill")
@@ -54,13 +54,13 @@ if __name__ == "__main__":
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
         # llm_config = ModelsConfig.default().get("gpt-35-turbo-1106")
 
-        graph = CoTSolveGraph(name="CoT", llm_config=llm_config, dataset="HotpotQA")
+        graph = IOSolveGraph(name="IO", llm_config=llm_config, dataset="HotpotQA")
 
         file_path = "examples/ags/data/hotpotqa.jsonl"   #相对路径有问题 等着再改
-        samples = 10 # 250 for validation, 1000 for test
+        samples = 250 # 250 for validation, 1000 for test
         path = "examples/ags/data/baselines/general/hotpotqa" #相对路径有问题 等着再改
 
-        score = await hotpotqa_evaluation(graph, file_path, samples, path, test=False)
+        score = await hotpotqa_evaluation(graph, file_path, samples, path, test=True)
         return score
 
     import asyncio 

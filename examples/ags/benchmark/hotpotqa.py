@@ -59,25 +59,29 @@ def f1_score(prediction, ground_truth):
     return f1
 
 
-async def load_data(file_path: str, samples=20, total_length=1000, test=False) -> List[dict]:
+async def load_data(file_path: str, samples=20, total_length=1250, test=False) -> List[dict]:
     data = []
     async with aiofiles.open(file_path, mode="r") as file:
         async for line in file:
             data.append(json.loads(line))
-    data = data[:total_length] 
-    random_indices = generate_random_indices(len(data), samples, test)
+    random_indices = generate_random_indices(len(data), total_length, False) # get random indices of 1250
+    random_indices = random_indices[:samples] if not test else random_indices[samples:] # get n_samples for validation or test
     data = [data[i] for i in random_indices]
     return data
 
 async def evaluate_problem(input: str, context_str: str, graph: Callable, expected_output: str):
     max_retries = 5
     retries = 0
-    
+
+    # global cost
+    # prediction, cost = await graph(input, context_str) if graph else "None"
+    # score = f1_score(prediction, expected_output)
+
     while retries < max_retries:
         try:
             global cost
             prediction, cost = await graph(input, context_str) if graph else "None"
-            score = f1_score(prediction["solution"], expected_output)
+            score = f1_score(prediction, expected_output)
 
             break
         except Exception as e:
@@ -125,5 +129,23 @@ async def hotpotqa_evaluation(graph: Callable, file_path: str, samples: int, pat
     average_score = save_results_to_csv(results, path=path)
     print(f"Average score on HotpotQA dataset: {average_score:.5f}")
     global cost
-    print(f"Total cost: {cost}")
+    print(f"Total cost: {cost: .5f}")
+    print(f"Cost per sample: {(cost / len(data)):.9f}")
     return average_score
+
+async def load_file_data(file_path: str) -> List[dict]:
+    data = []
+    async with aiofiles.open(file_path, mode="r") as file:
+        async for line in file:
+            data.append(json.loads(line))
+    return data
+
+async def optimize_hotpotqa_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
+    data = await load_file_data(file_path)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=50)
+    average_score = save_results_to_csv(results, path=path)
+    print(f"Average score on HotpotQA dataset: {average_score:.5f}")
+    global cost
+    print(f"Total cost: {cost: .5f}")
+    print(f"Cost per sample: {(cost / len(data)):.9f}")
+    return average_score, cost

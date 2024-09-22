@@ -188,5 +188,4 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
-*.jsonl
-*.json
+*.csv

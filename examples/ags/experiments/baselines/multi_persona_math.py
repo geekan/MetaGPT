@@ -1,6 +1,6 @@
 from examples.ags.scripts.operator import Operator
 from examples.ags.scripts.graph import SolveGraph
-from examples.ags.benchmark.gsm8k import gsm8k_evaluation
+from examples.ags.benchmark.math import math_evaluation
 from metagpt.actions.action_node import ActionNode 
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.llm import LLM
@@ -8,13 +8,14 @@ from pydantic import BaseModel, Field
 from typing import List
 
 DEBATE_INITIAL_PROMPT = """
-{question}
-Please think step by step and then solve this task.
+{question}\nPlease reason step by step, the reason process can be put in the thinking field. At the end, provide the final answer in the answer field with the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
+Make sure the output is wrapped with correct xml tags!
 """
 
 DEBATE_PROMPT = """
 {question}
-Considering the solutions provided by other agents as additional suggestions. Please think carefully and provide an updated answer.
+Considering the solutions provided by other agents as additional suggestions, the reason process can be put in the thinking field. Please think carefully and provide an updated answer in the answer field with the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
+Make sure the output is wrapped with correct xml tags!
 """
 
 FINAL_DECISION_PROMPT = """
@@ -22,7 +23,10 @@ FINAL_DECISION_PROMPT = """
 Considering all the thinking processes and answers:
 {all_thinking}
 {all_answers}
-Please reason carefully and provide the final answer. To ensure accuracy, At the end, provide the final answer in solution field with the format "Answer is <number>", where <number> is a single number, without any additional information or explanation.
+
+The thinking process can be put in the thinking field.
+Please reason carefully and provide the final answer in the answer field with the format "\\boxed{{<number>}}", where <number> is a math answer(an expression or number), without any additional information or explanation.
+Make sure the output is wrapped with correct xml tags!
 """
 
 class DebateOp(BaseModel):
@@ -107,12 +111,12 @@ class MultiPersonaGraph(SolveGraph):
 if __name__ == "__main__":
     async def main():
         llm_config = ModelsConfig.default().get("gpt-4o-mini")
-        graph = MultiPersonaGraph(name="multi-persona", llm_config=llm_config, dataset="Gsm8K")
-        file_path = "examples/ags/data/gsm8k.jsonl"
-        samples = 264
-        path = "examples/ags/data/baselines/general"
-        score, cost = await gsm8k_evaluation(graph, file_path, samples, path, test=True)
-        return score, cost
+        graph = MultiPersonaGraph(name="multi-persona", llm_config=llm_config, dataset="MATH")
+        file_path = "examples/ags/data/math_test.jsonl"
+        samples = 0
+        path = "examples/ags/data/baselines/general/math"
+        score = await math_evaluation(graph, file_path, samples, path,test=True)
+        return score
 
     import asyncio
     asyncio.run(main())

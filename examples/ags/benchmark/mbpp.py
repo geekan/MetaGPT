@@ -1,8 +1,9 @@
 import json
+import time
 import asyncio
 import aiofiles
 import pandas as pd
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Any, Optional, Dict
 from tqdm.asyncio import tqdm_asyncio
 
 from examples.ags.benchmark.utils import generate_random_indices
@@ -19,37 +20,52 @@ async def load_data(file_path: str, samples=1, test=False) -> List[dict]:
     data = [data[i] for i in random_indices]
     return data
 
-async def check_solution(solution, test_cases, timeout=1):
-    # Define a local dictionary to execute the solution
-    local_dict = {}
-    exec(solution, {}, local_dict)
 
-    details = [False for _ in range(len(test_cases))]
-
-    async def evaluate_test(test):
-        # Delete 'assert' from test
-        test_expr = test.replace("assert ", "")
-        try:
-            # Evaluate the test case with timeout
-            await asyncio.wait_for(asyncio.to_thread(eval, test_expr, {}, local_dict), timeout)
-            return True
-        except asyncio.TimeoutError:
-            print(f"Test case '{test}' timed out.")
-        except Exception as e:
-            print(f"Error evaluating test case '{test}': {e}")
-        return False
-
-    # Check each test case
-    for i, test in enumerate(test_cases):
-        result = await evaluate_test(test)
-        details[i] = result
-        if not result:
-            return FAIL, details
-
-    if all(details):
-        return PASS, details
-
-    return FAIL, details
+async def check_solution(solution, test, entry_point):
+    try:
+        # 定义一个包含所有必要模块的全局字典
+        global_dict = {
+            'math': __import__('math'),
+            'hashlib': __import__('hashlib'),
+            're': __import__('re'),
+            'List': List,
+            'Dict': Dict,
+            'Tuple': Tuple,
+            'Optional': Optional,
+            'Any': Any
+        }
+        # 执行解决方案
+        exec(solution, global_dict)
+        
+        # 确保入口点函数已定义
+        if entry_point not in global_dict:
+            raise ValueError(f"函数 {entry_point} 在解决方案中未定义。")
+        
+        # 执行测试用例
+        exec(test, global_dict)
+        
+        # 获取检查函数
+        check = global_dict["check"]
+        
+        # 运行检查函数
+        result = check()
+        
+        if result is None:
+            result = (PASS, "解决方案通过了所有测试用例。")
+    
+    # except ValueError as ve:
+    #     if "函数" in str(ve) and "在解决方案中未定义" in str(ve):
+    #         raise
+    except Exception as e:
+        # 记录详细的错误信息
+        error_message = f"错误: {str(e)}.\n 解决方案: {solution}.\n 测试: {test}"
+        result = (FAIL, error_message)
+        
+        # 将错误信息写入error.log文件
+        with open('error_mbpp.log', 'a', encoding='utf-8') as log_file:
+            log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {error_message}\n")
+    
+    return result
 
 async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, int, str]:
     max_retries = 5
@@ -57,10 +73,10 @@ async def evaluate_problem(data: dict, graph: Callable) -> Tuple[str, str, str, 
 
     while retries < max_retries:
         try:
-            prediction = await graph(data["prompt"]) if graph else "None"
+            prediction = await graph(data["prompt"], data["entry_point"]) if graph else "None"
             cost = prediction[1]
             solution = prediction[0]
-            ret = await check_solution(solution, data["test_list"])
+            ret = await check_solution(solution, data["test"], data["entry_point"]) 
 
             score = 1 if ret[0] == PASS else 0
             break
@@ -92,7 +108,7 @@ async def evaluate_all_problems(data: List[dict], graph: Callable, max_concurren
 def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str) -> Tuple[float, float]:
     df = pd.DataFrame(results, columns=["question", "prediction", "test_case_details", "score", "cost"])
     average_score = df["score"].mean()
-    total_cost = df["cost"].iloc[-1]
+    total_cost = df["cost"].max()
 
     output_file = f"{path}/{average_score:.5f}.csv"
     df.to_csv(output_file, index=False)
@@ -100,9 +116,25 @@ def save_results_to_csv(results: List[Tuple[str, str, str, int, str]], path: str
     return average_score, total_cost
 
 async def mbpp_evaluation(graph: Callable, file_path: str, samples: int, path: str, test=False) -> Tuple[float, float]:
-    data = await load_data(file_path, samples)
-    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=20)
-    average_score, total_cost = save_results_to_csv(results, path=path, test=test)
+    data = await load_data(file_path, samples, test)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=25)
+    average_score, total_cost = save_results_to_csv(results, path=path)
+    print(f"Average score on MBPP dataset: {average_score:.5f}")
+    print(f"Total Cost: {total_cost:.5f}")
+    return average_score, total_cost
+
+
+async def load_file_data(file_path: str) -> List[dict]:
+    data = []
+    async with aiofiles.open(file_path, mode="r") as file:
+        async for line in file:
+            data.append(json.loads(line))
+    return data
+
+async def optimize_mbpp_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
+    data = await load_file_data(file_path)
+    results = await evaluate_all_problems(data, graph, max_concurrent_tasks=50)
+    average_score, total_cost = save_results_to_csv(results, path=path)
     print(f"Average score on MBPP dataset: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")
     return average_score, total_cost
