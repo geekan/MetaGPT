@@ -111,6 +111,8 @@ class ResearchAssistant(DataInterpreter):
         if int(current_task.task_id) == self.start_task_id + 1:
             # fe_id = current_task.dependent_task_ids
             self.save_state()
+            save_notebook(role=self, save_dir=self.role_dir, name=self.get_node_name(), save_to_depth=True)
+        else:
             save_notebook(role=self, save_dir=self.role_dir, name=self.get_node_name())
         return task_result
 

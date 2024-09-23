@@ -91,19 +91,21 @@ def process_cells(nb: NotebookNode) -> NotebookNode:
     return nb
 
 
-def save_notebook(role: Role, save_dir: str = "", name: str = ""):
+def save_notebook(role: Role, save_dir: str = "", name: str = "", save_to_depth=False):
     save_dir = Path(save_dir)
     tasks = role.planner.plan.tasks
-    codes = [task.code for task in tasks if task.code]
-    clean_nb = nbformat.v4.new_notebook()
-    for code in codes:
-        clean_nb.cells.append(nbformat.v4.new_code_cell(code))
     nb = process_cells(role.execute_code.nb)
     os.makedirs(save_dir, exist_ok=True)
     file_path = save_dir / f"{name}.ipynb"
-    clean_file_path = save_dir / f"{name}_clean.ipynb"
     nbformat.write(nb, file_path)
-    nbformat.write(clean_nb, clean_file_path)
+
+    if save_to_depth:
+        clean_file_path = save_dir / f"{name}_clean.ipynb"
+        codes = [task.code for task in tasks if task.code]
+        clean_nb = nbformat.v4.new_notebook()
+        for code in codes:
+            clean_nb.cells.append(nbformat.v4.new_code_cell(code))
+        nbformat.write(clean_nb, clean_file_path)
 
 
 async def load_execute_notebook(role):
