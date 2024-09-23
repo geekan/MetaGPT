@@ -174,7 +174,13 @@ class RoleZero(Role):
         """
 
         if self.config.role_zero.enable_longterm_memory:
-            self.rc.memory = RoleZeroLongTermMemory(collection_name=self.name.replace(" ", ""), memory_k=self.memory_k)
+            self.rc.memory = RoleZeroLongTermMemory(
+                collection_name=self.name.replace(" ", ""),
+                memory_k=self.memory_k,
+                storage=self.rc.memory.storage,
+                index=self.rc.memory.index,
+                ignore_id=self.rc.memory.ignore_id,
+            )
             logger.info(f"Long-term memory set for role '{self.name}'")
 
         return self
