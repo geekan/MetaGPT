@@ -11,6 +11,7 @@ from collections import Counter
 from subprocess import PIPE, Popen, TimeoutExpired
 from typing import Dict, List, Tuple
 
+import concurrent.futures
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from examples.ags.scripts.operator_an import (
@@ -33,7 +34,7 @@ from examples.ags.scripts.prompt import (
     GENERATE_CODEBLOCK_PROMPT,
     GENERATE_PROMPT,
     MD_ENSEMBLE_PROMPT,
-    PYTHON_CODE_SOLVER_PROMPT,
+    PYTHON_CODE_VERIFIER_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
     REPHRASE_ON_PROBLEM_PROMPT,
     REVIEW_PROMPT,
@@ -437,52 +438,57 @@ class Test(Operator):
 
         return {"solution": solution}
 
-
-class PythonInterpreterOp(Operator):
-    def __init__(self, name: str = "PythonInterpreterOp", llm: LLM = LLM()):
+class Programmer(Operator):
+    def __init__(self, llm: LLM, name: str = "Programmer"):
         super().__init__(name, llm)
 
-    async def exec_code(self, code, timeout=600):
-        try:
-            # 创建一个新的全局命名空间
-            global_namespace = {}
+    async def exec_code(self, code, timeout=180):
+        def run_code():
+            try:
+                # 创建一个新的全局命名空间
+                global_namespace = {}
+                
+                # 使用exec执行代码
+                exec(code, global_namespace)
+                
+                # 假设代码中定义了一个名为'solve'的函数
+                if 'solve' in global_namespace:
+                    result = global_namespace['solve']()
+                    return "Success", str(result)
+                else:
+                    return "Error", "未找到'solve'函数"
+            except Exception as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                return "Error", f"执行错误: {str(e)}\n{''.join(tb_str)}"
             
-            # 使用exec执行代码
-            exec(code, global_namespace)
-            
-            # 假设代码中定义了一个名为'solve'的函数
-            if 'solve' in global_namespace:
-                result = global_namespace['solve']()
-                return "Success", str(result)
-            else:
-                return "Error", "未找到'solve'函数"
-        except Exception as e:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            return "Error", f"执行错误: {str(e)}\n{''.join(tb_str)}"
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(run_code)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                return "Error", "代码执行超时"
 
-    def extract_code_block(self, code_block):
-        match = re.search(r"```python(.*?)```", code_block, re.DOTALL)
-        if match:
-            code = match.group(1)
-            return code.encode("utf-8", "ignore").decode("utf-8")
-        else:
-            return "No code"
+    async def code_generate(self, problem, analysis, feedback, mode):
+        prompt = PYTHON_CODE_VERIFIER_PROMPT.format(problem=problem, analysis=analysis, feedback=feedback)
+        fill_kwargs = {"context": prompt, "llm": self.llm, "function_name": "solve"}
+        if mode:
+            fill_kwargs["mode"] = mode
+        node = await ActionNode.from_pydantic(CodeGenerateOp).fill(**fill_kwargs)
+        response = node.instruct_content.model_dump()
+        return response
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-    async def __call__(self, problem: str, mode: str = None):
+    async def __call__(self, problem: str, analysis: str = "None"):
+        code = None
+        feedback = ""
         for i in range(3):
-            prompt = PYTHON_CODE_SOLVER_PROMPT.format(problem=problem)
-            fill_kwargs = {"context": prompt, "llm": self.llm, "function_name": "solve"}
-            if mode:
-                fill_kwargs["mode"] = mode
-            node = await ActionNode.from_pydantic(CodeGenerateOp).fill(**fill_kwargs)
-            response = node.instruct_content.model_dump()
-
-            code = self.extract_code_block(response["code"])
+            code = await self.code_generate(problem, analysis, feedback, mode="code_fill")
+            code = code["code"]
             status, output = await self.exec_code(code)
-
             if status == "Success":
                 return {"code": code, "output": output}
-
-        return {"code": code, "output": "代码执行错误，无结果！"}
+            else:
+                print(f"第{i + 1}次执行错误，错误信息：{output}")
+                feedback = f"\nThe result of the error from the code you wrote in the previous round:\nCode:{code}\n\nStatus:{status},{output}"
+        return {"code": code, "output": "error"}

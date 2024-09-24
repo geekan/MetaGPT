@@ -181,7 +181,7 @@ def load_drop_from_file(file_path):
 
     return data
 
-async def optimize_hotpotqa_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
+async def optimize_drop_evaluation(graph: Callable, file_path: str, path: str) -> Tuple[float, float]:
     data = await load_drop_from_file(file_path)
     results = await evaluate_all_questions(data, graph, max_concurrent_tasks=50)
     average_score = save_results_to_csv(results, path=path)

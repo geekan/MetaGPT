@@ -5,16 +5,14 @@
 
 from typing import Literal
 
-from examples.ags.scripts.operator import *
+from examples.ags.scripts.operator import Generate
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
 
-DatasetType = Literal["HumanEval", "MBPP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
+DatasetType = Literal["HumanEval", "MMBP", "Gsm8K", "MATH", "HotpotQa", "MMLU"]
 
 cost_manager = CostManager()
 
-
-# TODO 这个类应该作为一个基类，不能够这样使用
 class SolveGraph:
     def __init__(
         self,

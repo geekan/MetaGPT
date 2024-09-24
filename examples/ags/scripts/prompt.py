@@ -150,45 +150,6 @@ Select the most consistent solution based on majority consensus.
 Give your answer with a single id of solution (without anything else).
 """
 
-DE_ENSEMBLE_TXT_FORMAT_PROMPT = """
-Now please output your answer in json format, with the format as follows:
-    {\"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
-Please strictly output in JSON format, do not output irrelevant content. """
-
-DE_ENSEMBLE_CODE_FORMAT_PROMPT = """
-Now please output your answer in json format, with the format as follows:
-{
-    "reason":"<why do it this way>",
-    "code_solution":"<the solution you think is appropriate, expressed in code>"
-}
-Please strictly output in JSON format, do not output irrelevant content. """
-
-DE_ENSEMBLE_ANGEL_PROMPT = """
-Do you agree with my perspective? Please provide your reasons and answer.
-"""
-
-DE_ENSEMBLE_DEVIL_PROMPT = """
-You agree with my answer 90% of the time and have almost no reservations. Affirm your agreement, share any additional thoughts if you have them, and conclude with the capital letter corresponding to your answer at the end of your response.
-"""
-
-DE_ENSEMBLE_JUDGE_FINAL_PROMPT = """
-You, as the moderator, will evaluate both sides' answers and determine your
-            preference for an answer candidate. Please summarize your reasons for supporting affirmative/negative side and
-            give the final answer that you think is correct to conclude the debate. Now please output your answer in json format, with the format as follows:
-            {\"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
-            Please strictly output in JSON format, do not output irrelevant content.
-"""
-
-DE_ENSEMBLE_JUDGE_UNIVERSAL_PROMPT = """
-You, as the moderator, will evaluate both sides' answers and determine if there is a clear
-            preference for an answer candidate. If so, please summarize your reasons for supporting affirmative/negative side and
-            give the final answer that you think is correct, and the debate will conclude. If not, the debate will continue to
-            the next round. Now please output your answer in json format, with the format as follows:
-            {\"Whether there is a preference\": \"Yes or No\", \"Supported Side\": \"Affirmative or Negative\",
-            \"Reason\": \"\", \"debate_answer\": \"the capital letter corresponding to the answer\"}.
-            Please strictly output in JSON format, do not output irrelevant content
-"""
-
 REPHRASE_ON_PROBLEM_PROMPT = """
 You are given a code contest problem:
 
@@ -240,90 +201,7 @@ The fixed code should keep the solution robust, and work for all other input exa
 Make sure the fixed code has a reasonable runtime - less than three seconds on a modern computer, given the problem constraints for large input.
 """
 
-EXTRACT_CASE_PROMPT = """
-You are given a coding problem, and you need to extract the test cases from the problem description.
-
-## Problem Description
-{problem_description}
-
-Your task is to extract test cases from the above description and convert them into Python assert statements (as strings). These statements should be returned in a list for testing purposes.
-
-Example:
-Input:
->>> has_close_elements([1.0, 2.0, 3.0], 0.5)
-False
->>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
-True
-
-Output:
-[
-    "assert candidate([1.0, 2.0, 3.0], 0.5) == False",
-    "assert candidate([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3) == True"
-]
-
-Please ensure that:
-1. Each test case is converted to a separate assert statement.
-2. The function name in the original example (e.g., 'has_close_elements') is replaced with 'candidate'.
-3. The assert statements are returned as strings in a list.
-"""
-
-MATH_GENERATE_PROMPT = """
-{problem_description}
-
-### Instructions
-Please extract the core question, only the most comprehensive and detailed one!
-extract the problem-solving information related to the core question , Only extract the most useful information, list them one by one!
-Please understand the Hint and question information, then solve the question step by step and show the answer.
-
-Please provide the solution without using any backslash (\) characters (such as LaTeX formatting) or other special symbols that may cause formatting issues in JSON.
-"""
-
-MATH_GENERATE_PROMPT = """
-{problem_description}
-### Instructions
-Please extract the core question, only the most comprehensive and detailed one!
-extract the problem-solving information related to the core question , Only extract the most useful information, list them one by one!
-Understand the Hint and question information, then solve the question step by step and show the answer.
-"""
-
-MATH_CORE_PROMPT = """
-### Problem
-{problem_description}
-
-Please extract the core question, only the most comprehensive and detailed one!
-"""
-
-MATH_EXTRACT_PROMPT = """
-### Problem
-{problem_description}
-
-Note: Please extract the problem-solving information related to the core question [Core Question info], Only extract the most useful information, list them one by one!
-"""
-
-MATH_REPHRASE_ON_PROBLEM_PROMPT = """
-You are presented with a math contest question:
-
-### Problem
-{problem_description}
-
-### Instructions
-When faced with this math problem, your goal is to:
-1. Read the problem carefully and understand the basic requirements and conditions.
-2. Restate the problem in your own words, capturing the nuances, details, notes, and examples provided in the problem description.
-3. List the key points for solving the problem, including known conditions, unknowns, and mathematical concepts or formulas that need to be applied.
-4. Consider possible strategies and methods for solving the problem, thinking about how to break it down into smaller parts or steps.
-5. Attempt to represent the problem with mathematical expressions or equations to prepare for solving it.
-"""
-
-MATH_ANSWER_FORMAT_PROMPT = """
-### Answer
-{problem_description}
-
-### Instructions
-Provide the answer as a numerical value only, without units or any additional text.
-"""
-
-PYTHON_CODE_SOLVER_PROMPT = """You are a professional Python programmer. Your task is to write Python code based on the user's request. Make sure to add appropriate explanations and your personal thought process to your code. Additionally, all code should be encapsulated in Python code blocks.
+PYTHON_CODE_VERIFIER_PROMPT = """You are a professional Python programmer. Your task is to write Python code based on the user's request. Make sure to add appropriate explanations and your personal thought process to your code. Additionally, all code should be encapsulated in Python code blocks.
 
 The packages you can use include: numpy, scipy, pandas, sympy, statsmodels, scikit-learn. If you attempt to import another external package and encounter an error, do not say it cannot be imported. Instead, try to write new code that avoids this issue.
 

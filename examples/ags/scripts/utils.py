@@ -9,7 +9,6 @@ import re
 from typing import Any, List, Tuple
 
 from examples.ags.scripts.operator_an import TestCaseExtractOp
-from examples.ags.scripts.prompt import EXTRACT_CASE_PROMPT
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 
@@ -125,13 +124,13 @@ def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
     return test_cases
 
 
-async def llm_extract_test_case(id, problem_description: str, file_path: str = "public_test.jsonl"):
-    prompt = EXTRACT_CASE_PROMPT.format(problem_description=problem_description)
-    node = await ActionNode.from_pydantic(TestCaseExtractOp).fill(context=prompt, llm=LLM())
-    result = node.instruct_content.model_dump()
-    with open(file_path, "a") as f:
-        f.write(json.dumps({id: result["test_cases"]}) + "\n")
-    return {id: result["test_cases"]}
+# async def llm_extract_test_case(id, problem_description: str, file_path: str = "public_test.jsonl"):
+#     prompt = EXTRACT_CASE_PROMPT.format(problem_description=problem_description)
+#     node = await ActionNode.from_pydantic(TestCaseExtractOp).fill(context=prompt, llm=LLM())
+#     result = node.instruct_content.model_dump()
+#     with open(file_path, "a") as f:
+#         f.write(json.dumps({id: result["test_cases"]}) + "\n")
+#     return {id: result["test_cases"]}
 
 
 def test_cases_2_test_functions(solution: str, test_cases: str):

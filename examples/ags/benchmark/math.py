@@ -14,15 +14,18 @@ from tqdm.asyncio import tqdm_asyncio
 
 from examples.ags.benchmark.utils import generate_random_indices
 
-def extract_answer(text: str) -> str:
-    # Look for the answer within \boxed{...}
-    boxed_match = re.search(r"\\boxed{(.*?)}", text)
-    if boxed_match:
-        return boxed_match.group(1)
+def extract_model_answer(text: str) -> str:
+    # 提取最后一个 \boxed{...}
+    pattern = r"\\boxed{((?:[^{}]|{[^{}]*})*)}"
+    boxed_matches = re.findall(pattern, text, re.DOTALL)
+    if boxed_matches:
+        return boxed_matches[-1].strip()
 
-    # If no \boxed{...}, return the last sentence
-    sentences = text.split(".") # TODO 使用jinyu修改
-    return sentences[-1].strip() if sentences else ""
+    # 提取最后一句话
+    sentence_end_pattern = r'(?<!\d)[.!?]\s+'
+    sentences = re.split(sentence_end_pattern, text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    return sentences[-1] if sentences else ""
 
 def parse_digits(num):
     # format: 234.23 || 23%
@@ -207,8 +210,8 @@ def math_equal(
     return False
 
 def calculate_score(expected_output: str, prediction: str) -> int:
-    expected_answer = extract_answer(expected_output)
-    predicted_answer = extract_answer(prediction)
+    expected_answer = extract_model_answer(expected_output)
+    predicted_answer = extract_model_answer(prediction)
 
     return 1 if math_equal(predicted_answer, expected_answer) else 0
 
@@ -293,3 +296,4 @@ async def optimize_math_evaluation(graph: Callable, file_path: str, path: str) -
     print(f"Average score on MATH dataset: {average_score:.5f}")
     print(f"Total Cost: {total_cost:.5f}")
     return average_score, total_cost
+
