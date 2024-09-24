@@ -3,10 +3,10 @@ import asyncio
 
 from expo.experimenter.aug import AugExperimenter
 from expo.experimenter.autogluon import GluonExperimenter
+from expo.experimenter.autosklearn import AutoSklearnExperimenter
 from expo.experimenter.custom import CustomExperimenter
 from expo.experimenter.experimenter import Experimenter
 from expo.experimenter.mcts import MCTSExperimenter
-from expo.experimenter.autosklearn import AutoSklearnExperimenter
 
 
 def get_args():
@@ -43,7 +43,7 @@ def get_di_args(parser):
     parser.add_argument("--reflection", dest="reflection", action="store_true")
     parser.add_argument("--no_reflection", dest="reflection", action="store_false")
     parser.add_argument("--num_experiments", type=int, default=1)
-    parser.add_argument("--special_instruction", type=str, default=None, choices=["ag", "stacking"])
+    parser.add_argument("--special_instruction", type=str, default=None, choices=["ag", "stacking", "text", "image"])
     parser.set_defaults(reflection=True)
 
 

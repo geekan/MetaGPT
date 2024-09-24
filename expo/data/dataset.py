@@ -20,12 +20,23 @@ USE_AG = """
 7. Please use autogluon for model training with presets='medium_quality', time_limit=None, give dev dataset to tuning_data, and use right eval_metric.
 """
 
+TEXT_MODALITY = """
+7. You could use models from transformers library for this text dataset.
+8. Use gpu if available for faster training.
+"""
+
+IMAGE_MODALITY = """
+7. You could use models from torchvision library for this image dataset.
+8. Use gpu if available for faster training.
+"""
+
 STACKING = """
 7. To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor.
 8. You could do some quick model prototyping to see which models work best and then use them in the ensemble. 
 """
 
-SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING}
+
+SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING, "text": TEXT_MODALITY, "image": IMAGE_MODALITY}
 
 DI_INSTRUCTION = """
 ## Attention
