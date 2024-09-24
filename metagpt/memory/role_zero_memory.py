@@ -1,3 +1,8 @@
+"""
+This module implements a memory system combining short-term and long-term storage for AI role memory management.
+It utilizes a RAG (Retrieval-Augmented Generation) engine for long-term memory storage and retrieval.
+"""
+
 from typing import TYPE_CHECKING, Any, Optional
 
 from pydantic import Field
@@ -17,6 +22,12 @@ if TYPE_CHECKING:
 
 
 class RoleZeroLongTermMemory(Memory):
+    """
+    Implements a memory system combining short-term and long-term storage using a RAG engine.
+    Transfers old memories to long-term storage when short-term capacity is reached.
+    Retrieves combined short-term and long-term memories as needed.
+    """
+
     persist_path: str = Field(default=".role_memory_data", description="The directory to save data.")
     collection_name: str = Field(default="role_zero", description="The name of the collection, such as the role name.")
     memory_k: int = Field(default=200, description="The capacity of short-term memory.")
