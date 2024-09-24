@@ -47,18 +47,7 @@ class Experimenter:
             score_dict = {"train_score": -1, "dev_score": -1, "test_score": -1, "score": -1}
         return score_dict
 
-    async def run_experiment(self):
-        state = self.state
-        user_requirement = state["requirement"]
-        results = []
-
-        for i in range(self.args.num_experiments):
-            di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
-            score_dict = await self.run_di(di, user_requirement, run_idx=i)
-            results.append(
-                {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
-            )
-            self.save_result(results)  # save intermediate results
+    def summarize_results(self, results):
         dev_scores = [result["score_dict"]["dev_score"] for result in results]
         best_dev_score = (
             max(dev_scores)
@@ -85,6 +74,22 @@ class Experimenter:
                 "global_best_test_score": global_best_score,
             },
         )
+        return results
+
+    async def run_experiment(self):
+        state = self.state
+        user_requirement = state["requirement"]
+        results = []
+
+        for i in range(self.args.num_experiments):
+            di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
+            score_dict = await self.run_di(di, user_requirement, run_idx=i)
+            results.append(
+                {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}
+            )
+            self.save_result(results)  # save intermediate results
+        results = self.summarize_results(results)
+
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):
