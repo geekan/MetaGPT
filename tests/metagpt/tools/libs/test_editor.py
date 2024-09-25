@@ -9,8 +9,8 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.libs.index_repo import (
     CHATS_INDEX_ROOT,
     CHATS_ROOT,
+    DEFAULT_MIN_TOKEN_COUNT,
     UPLOAD_ROOT,
-    UPLOADS_INDEX_ROOT,
     IndexRepo,
 )
 from metagpt.utils.common import list_files
@@ -756,8 +756,6 @@ async def mock_index_repo():
     os.system(command)
     filenames = list_files(UPLOAD_ROOT)
     uploads_files = [i for i in filenames if Path(i).suffix in {".md", ".txt", ".json", ".pdf"}]
-    uploads_repo = IndexRepo(persist_path=UPLOADS_INDEX_ROOT, root_path=UPLOAD_ROOT, min_token_count=0)
-    await uploads_repo.add(uploads_files)
     assert uploads_files
 
     filenames = list_files(src_path)
@@ -771,18 +769,62 @@ async def mock_index_repo():
 @pytest.mark.asyncio
 async def test_index_repo():
     # mock data
-    chat_path, UPLOAD_ROOT, src_path = await mock_index_repo()
+    chat_path, upload_path, src_path = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=chat_path)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=chat_path)
     assert rsp
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=UPLOAD_ROOT)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=upload_path)
     assert rsp
-    rsp = await editor.search_index_repo(query="业务线", file_or_path=src_path)
+    rsp = await editor.similarity_search(query="业务线", file_or_path=src_path)
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)
     shutil.rmtree(UPLOAD_ROOT)
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("query", "filename"),
+    [
+        (
+            "In this document, who are the legal representatives of both parties?",
+            TEST_DATA_PATH / "pdf/20210709逗你学云豆付费课程协议.pdf",
+        ),
+        (
+            "What is the short name of the company in this document?",
+            TEST_DATA_PATH / "pdf/company_stock_code.pdf",
+        ),
+        ("平安创新推出中国版的什么模式，将差异化的医疗健康服务与作为支付方的金融业务无缝结合", TEST_DATA_PATH / "pdf/9112674.pdf"),
+        (
+            "What principle is introduced by the author to explain the conditions necessary for the emergence of complexity?",
+            TEST_DATA_PATH / "pdf/9781444323498.ch2_1.pdf",
+        ),
+        ("行高的继承性的代码示例是？", TEST_DATA_PATH / "pdf/02-CSS.pdf"),
+    ],
+)
+async def test_similarity_search(query, filename):
+    filename = Path(filename)
+    save_to = Path(UPLOAD_ROOT) / filename.name
+    save_to.parent.mkdir(parents=True, exist_ok=True)
+    os.system(f"cp {str(filename)} {str(save_to)}")
+
+    editor = Editor()
+    rsp = await editor.similarity_search(query=query, file_or_path=save_to)
+    assert rsp
+
+    save_to.unlink(missing_ok=True)
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_read():
+    editor = Editor()
+    filename = TEST_DATA_PATH / "pdf/9112674.pdf"
+    content = await editor.read(str(filename))
+    size = filename.stat().st_size
+    assert "similarity_search" in content.block_content and size > 5 * DEFAULT_MIN_TOKEN_COUNT
 
 
 if __name__ == "__main__":

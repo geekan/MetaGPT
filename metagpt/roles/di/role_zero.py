@@ -158,6 +158,7 @@ class RoleZero(Role):
                     "scroll_up",
                     "search_dir",
                     "search_file",
+                    "similarity_search",
                     # "set_workdir",
                     "write",
                 ]

@@ -30,8 +30,15 @@ class DataAnalyst(RoleZero):
     instruction: str = ROLE_INSTRUCTION + EXTRA_INSTRUCTION
     task_type_desc: str = TASK_TYPE_DESC
 
-    tools: list[str] = ["Plan", "DataAnalyst", "RoleZero", "Browser", "Editor:write,read", "SearchEnhancedQA"]
-    custom_tools: list[str] = ["web scraping", "Terminal", "Editor:write,read"]
+    tools: list[str] = [
+        "Plan",
+        "DataAnalyst",
+        "RoleZero",
+        "Browser",
+        "Editor:write,read,similarity_search",
+        "SearchEnhancedQA",
+    ]
+    custom_tools: list[str] = ["web scraping", "Terminal", "Editor:write,read,similarity_search"]
     custom_tool_recommender: ToolRecommender = None
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = KeywordExpRetriever()
 
