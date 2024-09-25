@@ -125,7 +125,7 @@ ASK_HUMAN_COMMAND = """
     {
         "command_name": "RoleZero.ask_human",
         "args": {
-            "question": "I'm a little uncertain about the next step, could you provide me with some guidance?"
+            "question": "I'm a little uncertain about the next step, could you provide me with some guidance? If want to stop, please contain \"<STOP>\" in your response."
         }
     }
 ]
@@ -227,7 +227,7 @@ Thought: The request is vague and lacks specifics, requiring clarification on th
 Response Category: AMBIGUOUS.
 
 9. Request: "Change the color of the text to blue in styles.css, add a new button in web page, delete the old background image."
-Thought: The request is a incremental development task needing to modify a file.
+Thought: The request is an incremental development task that requires modifying one or more files.
 Response Category: TASK.
 """
 QUICK_RESPONSE_SYSTEM_PROMPT = """

@@ -74,11 +74,7 @@ class TeamLeader(RoleZero):
         Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work.
         DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.
         """
-        if self.rc.todo is None:
-            # Teamleader have send message to ask a teammember to do something in this turn, the following message will not be sent to team member
-            return "This message will not be sent to team leader, you have already sent a message to a team member in this turn."
         self._set_state(-1)  # each time publishing a message, pause to wait for the response
-
         if send_to == self.name:
             return  # Avoid sending message to self
         # Specify the outer send_to to overwrite the default "no one" value. Use UserMessage because message from self is like a user request for others.
