@@ -772,11 +772,11 @@ async def test_index_repo():
     chat_path, upload_path, src_path = await mock_index_repo()
 
     editor = Editor()
-    rsp = await editor.similarity_search(query="业务线", file_or_path=chat_path)
+    rsp = await editor.similarity_search(query="业务线", path=chat_path)
     assert rsp
-    rsp = await editor.similarity_search(query="业务线", file_or_path=upload_path)
+    rsp = await editor.similarity_search(query="业务线", path=upload_path)
     assert rsp
-    rsp = await editor.similarity_search(query="业务线", file_or_path=src_path)
+    rsp = await editor.similarity_search(query="业务线", path=src_path)
     assert rsp
 
     shutil.rmtree(CHATS_ROOT)
@@ -811,7 +811,7 @@ async def test_similarity_search(query, filename):
     os.system(f"cp {str(filename)} {str(save_to)}")
 
     editor = Editor()
-    rsp = await editor.similarity_search(query=query, file_or_path=save_to)
+    rsp = await editor.similarity_search(query=query, path=save_to)
     assert rsp
 
     save_to.unlink(missing_ok=True)
