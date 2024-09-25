@@ -82,7 +82,7 @@ class Optimizer:
         self.root_path = f"{optimized_path}/{self.dataset}"
         self.sample = sample # 从过去的轮次中采样的数量
         self.top_scores = []
-        self.round = 1  # 起始轮次
+        self.round = 1 # 起始轮次
 
     def optimize(self, mode: OptimizerType = "Graph", max_rounds: int = 30):
         """
@@ -447,7 +447,7 @@ class Optimizer:
             else:
                 data = []
 
-            if self.round == 1:
+            if self.round == 0:
                 # 创建文件夹（如果不存在）
                 directory = os.path.join(graph_path, f"round_{self.round}")
                 os.makedirs(directory, exist_ok=True)
@@ -545,7 +545,7 @@ class Optimizer:
 
                 except Exception as e:
                     retries += 1
-                    print(f"Error generating prediction during graph optimize: {e}. Retrying... ({retries}/{max_retries})")
+                    print(f"Error generating prediction during : {e}. Retrying... ({retries}/{max_retries})")
                     if retries == max_retries:
                         print("Maximum retries reached. Skipping this sample.")
                         break
@@ -588,9 +588,9 @@ class Optimizer:
 
             for i in range(validation_n):
 
-                score, avg_cost, total_cost = await evaluator.validation_evaluate(
+                score, avg_cost, total_cost = await evaluator.graph_evaluate(
                     self.dataset, self.graph, {"dataset": self.dataset, "llm_config": self.execute_llm_config},
-                    directory
+                    directory, is_test=False
                 )
 
                 now = datetime.datetime.now()
