@@ -1096,7 +1096,7 @@ class Editor(BaseModel):
         return path
 
     @staticmethod
-    async def similarity_search(query: str, file_or_path: Union[str, Path]) -> List[str]:
+    async def similarity_search(query: str, path: Union[str, Path]) -> List[str]:
         """Given a filename or a pathname, performs a similarity search for a given query across the specified file or path.
 
         This method searches the index repository for the provided query, classifying the specified
@@ -1106,7 +1106,7 @@ class Editor(BaseModel):
 
         Args:
             query (str): The search query string to look for in the indexed files.
-            file_or_path (Union[str, Path]): A pathname or filename to search within.
+            path (Union[str, Path]): A pathname or filename to search within.
 
         Returns:
             List[str]: A list of results as strings, containing the text from the merged results
@@ -1115,10 +1115,10 @@ class Editor(BaseModel):
         Example:
             >>> query = "The problem to be analyzed from the document"
             >>> file_or_path = "The pathname or filename you want to search within"
-            >>> texts: List[str] = await Editor.similarity_search(query=query, file_or_path=file_or_path)
+            >>> texts: List[str] = await Editor.similarity_search(query=query, path=file_or_path)
             >>> print(texts)
         """
-        return await IndexRepo.cross_repo_search(query=query, file_or_path=file_or_path)
+        return await IndexRepo.cross_repo_search(query=query, file_or_path=path)
 
     @staticmethod
     def is_large_file(content: str, mix_token_count: int = 0) -> bool:
