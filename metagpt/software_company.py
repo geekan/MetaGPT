@@ -80,7 +80,7 @@ def startup(
     run_tests: bool = typer.Option(default=False, help="Whether to enable QA for adding & running tests."),
     implement: bool = typer.Option(default=True, help="Enable or disable code implementation."),
     project_name: str = typer.Option(default="", help="Unique project name, such as 'game_2048'."),
-    inc: bool = typer.Option(default=False, help="Incremental mode. Use it to coop with existing repo."),
+    inc: bool = typer.Option(default=False, help="Incremental mode. Use it to cope with existing repo."),
     project_path: str = typer.Option(
         default="",
         help="Specify the directory path of the old version project to fulfill the incremental requirements.",
@@ -135,16 +135,16 @@ def copy_config_to():
     """Initialize the configuration file for MetaGPT."""
     target_path = CONFIG_ROOT / "config2.yaml"
 
-    # 创建目标目录（如果不存在）
+    # 创建目标目录（如果不存在）/ Create the target directory if it does not exist
     target_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 如果目标文件已经存在，则重命名为 .bak
+    # 如果目标文件已经存在，则重命名为 .bak / If the target file already exists, rename it to .bak
     if target_path.exists():
         backup_path = target_path.with_suffix(".bak")
         target_path.rename(backup_path)
         print(f"Existing configuration file backed up at {backup_path}")
 
-    # 复制文件
+    # 复制文件 / Copy files
     target_path.write_text(DEFAULT_CONFIG, encoding="utf-8")
     print(f"Configuration file initialized at {target_path}")
 
