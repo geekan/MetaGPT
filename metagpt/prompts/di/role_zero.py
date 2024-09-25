@@ -125,7 +125,7 @@ ASK_HUMAN_COMMAND = """
     {
         "command_name": "RoleZero.ask_human",
         "args": {
-            "question": "I'm a little uncertain about the next step, could you provide me with some guidance? If want to stop, please contain \"<STOP>\" in your response."
+            "question": "I'm a little uncertain about the next step, could you provide me with some guidance? If you want to stop, please include <STOP> in your response."
         }
     }
 ]
