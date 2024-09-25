@@ -26,7 +26,7 @@ TEXT_MODALITY = """
 """
 
 IMAGE_MODALITY = """
-7. You could use models from torchvision library for this image dataset.
+7. You could use models from transformers library for this image dataset.
 8. Use gpu if available for faster training.
 """
 
