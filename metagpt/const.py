@@ -157,3 +157,6 @@ SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/
 
 # experience pool
 EXPERIENCE_MASK = "<experience>"
+
+# TeamLeader's name
+TEAMLEADER_NAME = "Mike"

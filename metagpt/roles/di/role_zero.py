@@ -17,6 +17,7 @@ from metagpt.exp_pool import exp_cache
 from metagpt.exp_pool.context_builders import RoleZeroContextBuilder
 from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
+from metagpt.memory.role_zero_memory import RoleZeroLongTermMemory
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
@@ -166,6 +167,24 @@ class RoleZero(Role):
         self._update_tool_execution()
         return self
 
+    @model_validator(mode="after")
+    def set_longterm_memory(self) -> "RoleZero":
+        """Set up long-term memory for the role if enabled in the configuration.
+
+        If `enable_longterm_memory` is True, set up long-term memory.
+        The role name will be used as the collection name.
+        """
+
+        if self.config.role_zero.enable_longterm_memory:
+            self.rc.memory = RoleZeroLongTermMemory(
+                **self.rc.memory.model_dump(),
+                collection_name=self.name.replace(" ", ""),
+                memory_k=self.memory_k,
+            )
+            logger.info(f"Long-term memory set for role '{self.name}'")
+
+        return self
+
     def _update_tool_execution(self):
         pass
 
@@ -289,12 +308,12 @@ class RoleZero(Role):
         self.rc.memory.add(AIMessage(content=self.command_rsp))
         if not ok:
             error_msg = commands
-            self.rc.memory.add(UserMessage(content=error_msg))
+            self.rc.memory.add(UserMessage(content=error_msg, cause_by=RunCommand))
             return error_msg
         logger.info(f"Commands: \n{commands}")
         outputs = await self._run_commands(commands)
         logger.info(f"Commands outputs: \n{outputs}")
-        self.rc.memory.add(UserMessage(content=outputs))
+        self.rc.memory.add(UserMessage(content=outputs, cause_by=RunCommand))
 
         return AIMessage(
             content=f"I have finished the task, please mark my task as finished. Outputs: {outputs}",
