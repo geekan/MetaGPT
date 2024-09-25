@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic import Field
@@ -113,19 +114,20 @@ class Engineer2(RoleZero):
         command_output += await super()._run_special_command(cmd)
         return command_output
 
-    async def write_new_code(self, path: str, instruction: str = "Write code for the current file.") -> str:
+    async def write_new_code(self, path: str, file_description: str = "") -> str:
         """Write a new code file.
 
         Args:
             path (str): The absolute path of the file to be created.
-            instruction (optional, str): Further hints or notice other than the current task instruction, must be very concise and can be empty. Defaults to "".
+            file_description (optional, str): Further hints or notice other than the current task description, must be very concise and can be empty. Defaults to "".
         """
         plan_status, _ = self._get_plan_status()
         prompt = WRITE_CODE_PROMPT.format(
             user_requirement=self.planner.plan.goal,
-            file_path=path,
             plan_status=plan_status,
-            instruction=instruction,
+            file_path=path,
+            file_description=file_description,
+            file_name=os.path.basename(path),
         )
         # Sometimes the Engineer repeats the last command to respond.
         # Replace the last command with a manual prompt to guide the Engineer to write new code.

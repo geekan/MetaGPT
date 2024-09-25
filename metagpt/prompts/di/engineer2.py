@@ -108,8 +108,11 @@ WRITE_CODE_PROMPT = """
 # Current Coding File
 {file_path}
 
-# Further Instruction
-{instruction}
+# File Description
+{file_description}
+
+# Instruction
+Your task is to write the {file_name} according to the User Requirement. 
 
 # Output
 While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. Output code in the following format:
