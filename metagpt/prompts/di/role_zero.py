@@ -71,7 +71,7 @@ you must respond in {respond_language}.
 Pay close attention to the Example provided, you can reuse the example for your current situation if it fits.
 If you open a file, the line number is displayed at the front of each line.
 You may use any of the available commands to create a plan or update the plan. You may output mutiple commands, they will be executed sequentially.
-If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_task, DON'T append a new task.
+If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_current_task, DON'T append a new task.
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 Using Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden. Because the command is mutually exclusive and will change the line number after execution.
 In your response, include at least one command.
@@ -226,8 +226,10 @@ Response Category: TASK.
 Thought: The request is vague and lacks specifics, requiring clarification on the process to optimize.
 Response Category: AMBIGUOUS.
 
+9. Request: "Change the color of the text to blue in styles.css, add a new button in web page, delete the old background image."
+Thought: The request is a incremental development task needing to modify a file.
+Response Category: TASK.
 """
-
 QUICK_RESPONSE_SYSTEM_PROMPT = """
 {role_info}
 However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
@@ -237,11 +239,11 @@ REPORT_TO_HUMAN_PROMPT = """
 ## Examlpe
 example 1: 
 User requirement: create a 2048 game
-reply: The development of the 2048 game has been completed. All files (index.html, style.css, and script.js) have been created and reviewed.
+Reply: The development of the 2048 game has been completed. All files (index.html, style.css, and script.js) have been created and reviewed.
 
 example 2: 
 User requirement: Crawl and extract all the herb names from the website, Tell me the number of herbs.
-reply : The herb names have been successfully extracted. A total of 8 herb names were extracted.
+Reply : The herb names have been successfully extracted. A total of 8 herb names were extracted.
 
 ------------
 
