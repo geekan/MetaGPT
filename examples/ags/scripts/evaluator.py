@@ -47,13 +47,13 @@ class Evaluator:
         elif dataset == "MATH":
             return self._math_eval(graph, params, path, is_test)
         elif dataset == "HumanEval":
-            return self._humaneval_eval(graph, params, is_test)
+            return self._humaneval_eval(graph, params, path, is_test)
         elif dataset == "HotpotQA":
-            return self._hotpotqa_eval(graph, params, is_test)
+            return self._hotpotqa_eval(graph, params, path, is_test)
         elif dataset == "MBPP":
-            return self._mbpp_eval(graph, params, is_test)
+            return self._mbpp_eval(graph, params, path, is_test)
         elif dataset == "DROP":
-            return self._drop_eval(graph, params, is_test)
+            return self._drop_eval(graph, params, path, is_test)
 
     # def graph_evaluate(self, dataset: DatasetType, graph, params: dict, path):
     #     """
@@ -154,7 +154,7 @@ class Evaluator:
             va_list = [0]
         else:
             data_path = "examples/ags/data/human-eval_validate.jsonl"  # 替换为您的JSONL文件路径
-            va_list = [0]
+            va_list = None
 
         graph = await load_graph()
         
