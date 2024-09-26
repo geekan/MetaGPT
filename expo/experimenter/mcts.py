@@ -29,6 +29,7 @@ class MCTSExperimenter(Experimenter):
         )
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
+        score_dict = best_nodes["scores"]
 
         self.copy_notebook(best_node, "best")
         self.copy_notebook(dev_best_node, "dev_best")
@@ -50,6 +51,7 @@ class MCTSExperimenter(Experimenter):
                 "user_requirement": best_node.state["requirement"],
                 "tree_text": text,
                 "args": vars(self.args),
+                "scores": score_dict,
             }
         ]
         self.save_result(results)
