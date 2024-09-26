@@ -14,6 +14,8 @@ question_type = "code"  # Question Type
 optimized_path = "examples/ags/scripts/optimized"  # Optimized Result Save Path
 
 # Initialize LLM Model
+four_o_llm_config = ModelsConfig.default().get("gpt-4o")
+deepseek_llm_config = ModelsConfig.default().get("deepseek-chat")
 mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
 claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
 
@@ -29,7 +31,7 @@ operators = [
 optimizer = Optimizer(
     dataset=dataset,
     opt_llm_config=claude_llm_config,
-    exec_llm_config=mini_llm_config,
+    exec_llm_config=four_o_llm_config,
     operators=operators,
     optimized_path=optimized_path,
     sample=sample,
@@ -37,7 +39,7 @@ optimizer = Optimizer(
 )
 
 # Run the optimizer
-optimizer.optimize("Graph", 10)
-# optimizer.optimize("Graph")
+# optimizer.optimize("Graph", 30)
+optimizer.optimize("Test")
 # optimizer.optimize("Operator")
 

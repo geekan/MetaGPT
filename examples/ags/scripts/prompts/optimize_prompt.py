@@ -14,10 +14,10 @@ Considering information loss, complex graphs may yield better results, but insuf
 
 
 GRAPH_INPUT = """
-Here is a Graph and corresponding Prompt(only relate to the Custom method) that performed excellently in a previous iteration (maximum score is 1):\n
+Here is a graph and the corresponding prompt (prompt only related to the custom method) that performed excellently in a previous iteration (maximum score is 1). You must make further optimizations and improvements based on this graph. The modified graph must differ from the provided example, and the specific differences should be noted within the <modification>xxx</modification> section.\n
 <sample>
     <experience>{experience}</experience>
-    <modification>None</modification>
+    <modification>(such as:add a review step/delete a operator/modify a prompt)</modification>
     <score>{score}</score>
     <graph>{graph}</graph>
     <prompt>{prompt}</prompt>(only prompt_custom)
@@ -30,6 +30,7 @@ First, provide optimization ideas. **Only one detail point can be modified at a 
 When introducing new functionalities in the graph, please make sure to import the necessary libraries or modules yourself, except for operator, prompt_custom, create_llm_instance, and CostManage, which have already been automatically imported.
 **Under no circumstances should Graph output None for any field.**
 Use custom methods to restrict your output format, rather than using code (outside of the code, the system will extract answers based on certain rules and score them).
+It is very important to format the Graph output answers, you can refer to the standard answer format in the log.
 """
 
 GRAPH_CUSTOM_USE = """\nHere's an example of using the `custom` method in graph:
@@ -45,7 +46,6 @@ Note: In custom, the input and instruction are directly concatenated(instruction
 
 **Introducing multiple operators at appropriate points can enhance performance. If you find that some provided operators are not yet used in the graph, try incorporating them.**
 """
-
 
 GRAPH_TEMPLATE = """from typing import Literal
 import examples.ags.scripts.optimized.{dataset}.graphs.template.operator as operator

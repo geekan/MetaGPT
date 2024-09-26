@@ -379,7 +379,7 @@ class Test(Operator):
     def exec_code(self, solution, entry_point):
 
         test_cases = extract_test_cases_from_jsonl(entry_point)
-        
+                
         fail_cases = []
         for test_case in test_cases:
             test_code = test_case_2_test_function(solution, test_case, entry_point)
@@ -399,10 +399,9 @@ class Test(Operator):
                     }
                 }
                 fail_cases.append(error_infomation)
-                logger.info(f"test error: {error_infomation}")
             except Exception as e:
                 with open("tester.txt", "a") as f:
-                    f.write(entry_point + "\n")
+                    f.write(entry_point + " " + str(e) + "\n")
                 return {"exec_fail_case": str(e)}
         if fail_cases != []:
             return fail_cases
@@ -419,7 +418,7 @@ class Test(Operator):
         }
         """
         for _ in range(test_loop):
-            result = self.exec_code(solution, problem, entry_point)
+            result = self.exec_code(solution, entry_point)
             if result == "no error":
                 return {"result": True, "solution": solution}
             elif "exec_fail_case" in result:
@@ -430,9 +429,9 @@ class Test(Operator):
                     exec_pass=f"executed unsuccessfully, error: \n {result}",
                     test_fail="executed unsucessfully",
                 )
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm, mode="code_fill")
                 response = node.instruct_content.model_dump()
-                solution = response["refined_solution"]
+                solution = response["reflection_and_solution"]
             else:
                 prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
                     problem=problem,
@@ -440,11 +439,15 @@ class Test(Operator):
                     exec_pass="executed successfully",
                     test_fail=result,
                 )
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm)
+                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm, mode="code_fill")
                 response = node.instruct_content.model_dump()
-                solution = response["refined_solution"]
-
-        return {"solution": solution}
+                solution = response["reflection_and_solution"]
+        
+        result = self.exec_code(solution, entry_point)
+        if result == "no error":
+            return {"result": True, "solution": solution}
+        else:
+            return {"result": False, "solution": solution}
 
 class Programmer(Operator):
     def __init__(self, llm: LLM, name: str = "Programmer"):

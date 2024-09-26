@@ -7,11 +7,13 @@ import threading
 from datetime import datetime
 from typing import List, Tuple, Callable, Dict, Any, Optional
 
+import re
 import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
 
 from examples.ags.benchmark.utils import generate_random_indices
 from examples.ags.benchmark.utils import log_mismatch
+from metagpt.actions.code_sanitize import sanitize
 
 
 async def load_data(file_path: str, samples=1, test=False) -> List[dict]:
@@ -38,58 +40,6 @@ async def load_file_data(file_path: str, specific_indices: List[int] = None) -> 
 
     return data
 
-# async def check_solution(solution, test, entry_point):
-
-#     print(f"solution: {solution}")
-
-#     try:
-#         # 定义一个包含所有必要模块的全局字典
-#         global_dict = {
-#             'math': __import__('math'),
-#             'hashlib': __import__('hashlib'),
-#             're': __import__('re'),
-#             'List': List,
-#             'Dict': Dict,
-#             'Tuple': Tuple,
-#             'Optional': Optional,
-#             'Any': Any
-#         }
-#         if entry_point == "decode_cyclic":
-#             solution = "\n\ndef encode_cyclic(s: str):\n    \"\"\"\n    returns encoded string by cycling groups of three characters.\n    \"\"\"\n    # split string to groups. Each of length 3.\n    groups = [s[(3 * i):min((3 * i + 3), len(s))] for i in range((len(s) + 2) // 3)]\n    # cycle elements in each group. Unless group has fewer elements than 3.\n    groups = [(group[1:] + group[0]) if len(group) == 3 else group for group in groups]\n    return \"\".join(groups)" + "\n\n" + solution
-#         elif entry_point == "decode_shift":
-#             solution = "\n\ndef encode_shift(s: str):\n    \"\"\"\n    returns encoded string by shifting every character by 5 in the alphabet.\n    \"\"\"\n    return \"\".join([chr(((ord(ch) + 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n\n\n" + solution
-#         elif entry_point == "find_zero":
-#             solution = "\n\ndef poly(xs: list, x: float):\n    return sum(coeff * (x ** i) for i, coeff in enumerate(xs))\n\n" + solution
-#         # 执行解决方案
-#         exec(solution, global_dict)
-        
-#         # 确保入口点函数已定义
-#         if entry_point not in global_dict:
-#             raise ValueError(f"函数 {entry_point} 在解决方案中未定义。")
-        
-#         # 执行测试用例
-#         exec(test, global_dict)
-        
-#         # 获取检查函数
-#         check = global_dict["check"]
-        
-#         # 运行检查函数
-#         result = check(global_dict[entry_point])
-        
-#         if result is None:
-#             result = (PASS, "解决方案通过了所有测试用例。")
-    
-#     except Exception as e:
-#         # 记录详细的错误信息
-#         error_message = f"错误: {str(e)}.\n 解决方案: {solution}.\n 测试: {test}"
-#         result = (FAIL, error_message)
-        
-#         # 将错误信息写入error.log文件
-#         with open('error.log', 'a', encoding='utf-8') as log_file:
-#             log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {error_message}\n")
-    
-#     return result
-
 PASS = "PASS"
 FAIL = "FAIL"
 
@@ -98,24 +48,33 @@ class TimeoutError(Exception):
 
 def run_with_timeout(func, args, timeout):
     result = []
+    stop_event = threading.Event()
+
     def target():
         try:
             result.append(func(*args))
         except Exception as e:
             result.append(e)
+        finally:
+            stop_event.set()
 
     thread = threading.Thread(target=target)
     thread.start()
-    thread.join(timeout)
-    if thread.is_alive():
+    is_timeout = not stop_event.wait(timeout)
+
+    if is_timeout:
+        # 线程仍在运行，我们无法强制终止它，但至少可以标记超时
         raise TimeoutError("Function execution timed out")
+
+    if not result:
+        return None
     if isinstance(result[0], Exception):
         raise result[0]
     return result[0]
 
 def check_solution(solution, test, entry_point):
-    print(f"solution: {solution}")
 
+    solution = sanitize(code=solution, entrypoint=entry_point)
     try:
         # 定义一个包含所有必要模块的全局字典
         global_dict = {
@@ -147,8 +106,8 @@ def check_solution(solution, test, entry_point):
         # 获取检查函数
         check = global_dict["check"]
         
-        # 运行检查函数，设置超时时间为5秒
-        result = run_with_timeout(check, (global_dict[entry_point],), 120)
+        # 运行检查函数，设置超时时间为120秒
+        result = run_with_timeout(check, (global_dict[entry_point],), 15)
         
         if result is None:
             result = (PASS, "解决方案通过了所有测试用例。")
@@ -171,13 +130,7 @@ async def evaluate_problem(data: dict, graph: Callable, path) -> Tuple[str, str,
     max_retries = 5
     retries = 0
 
-    # prediction = await graph(data["prompt"], data["entry_point"]) if graph else "None"
-    # cost = prediction[1]  
-    # solution = prediction[0]
-    # ret = check_solution(solution, data["test"], data["entry_point"])
-    # test_case_details = ret[1]
-    # expected_output = test_case_details + "\nCorrect Solution:\ndef " + data["entry_point"] + "(params you should put here):" + "\n\n" + data["canonical_solution"]
-    # score = 1 if ret[0] == PASS else 0
+    expected_output = "\nCorrect Solution:\ndef " + data["entry_point"] + "(params you should put here):" + "\n\n" + data["canonical_solution"]
 
     while retries < max_retries:
         try:
@@ -186,7 +139,7 @@ async def evaluate_problem(data: dict, graph: Callable, path) -> Tuple[str, str,
             solution = prediction[0]
             ret = check_solution(solution, data["test"], data["entry_point"])
             test_case_details = ret[1]
-            expected_output = test_case_details + "\nCorrect Solution:\ndef " + data["entry_point"] + "(params you should put here):" + "\n\n" + data["canonical_solution"]
+            expected_output = test_case_details + "\nCorrect Solution:\ndef " + data["entry_point"] + "(params you should put here):" + "\n\n" + data["canonical_solution"]        
             score = 1 if ret[0] == PASS else 0
 
             if score == 0:
@@ -258,8 +211,3 @@ async def optimize_humaneval_evaluation(graph: Callable, file_path: str, path: s
     print(f"Total Cost: {total_cost:.5f}")
     print(f"Average cost on HumanEval dataset: {average_cost:.5f}")
     return average_score, average_cost, total_cost  
-
-# TODO HumanEval 主实验后续任务
-
-# 1. 修改optimized中的内容，让优化代码能够跑起来
-# 2. 启动主实验

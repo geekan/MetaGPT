@@ -173,32 +173,20 @@ Reflect on the problem, and describe it in your own words, in bullet points. Pay
 """
 
 REFLECTION_ON_PUBLIC_TEST_PROMPT = """
-You are given a code contest problem, and a self-reflection on the problem: 
+Given a code problem and a python code solution which failed to pass test or execute, you need to analyze the reason for the failure and propose a better code solution.: 
 ### problem
-{problem_description}
+{problem}
 
-
-### self reflection on the problem
-{rephrase_problem}
-
-
-A Python code solution was generated for the problem:
 ### Code Solution
-{code_solution}
+{solution}
 
-
-This section of the code execution result is
 ### Execution Result
 {exec_pass}
 
-
-However, when running the following input example, the code solution above failed to produce the expected output:
 #### Failed Test Case
 {test_fail}
 
-Your goal is to analyze the code solution and the error, and propose a fixed code which will produce the expected output for the provided test input.
-The fixed code should keep the solution robust, and work for all other input examples as well.
-Make sure the fixed code has a reasonable runtime - less than three seconds on a modern computer, given the problem constraints for large input.
+Please provide a reflection on the failed test cases and code solution, followed by a better code solution without any additional text or test cases.
 """
 
 PYTHON_CODE_VERIFIER_PROMPT = """You are a professional Python programmer. Your task is to write Python code based on the user's request. Make sure to add appropriate explanations and your personal thought process to your code. Additionally, all code should be encapsulated in Python code blocks.

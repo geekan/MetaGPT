@@ -151,10 +151,10 @@ class Evaluator:
 
         if test:
             data_path = "examples/ags/data/human-eval_test.jsonl"  # 替换为您的JSONL文件路径
-            va_list = [0]
+            va_list = None
         else:
             data_path = "examples/ags/data/human-eval_validate.jsonl"  # 替换为您的JSONL文件路径
-            va_list = None
+            va_list = [19, 21, 22, 23, 24, 25, 17, 26, 27, 28, 29, 30, 31, 18, 0, 1, 15, 14, 13, 12, 11, 10, 8, 7, 6, 5, 4, 3, 2, 32]
 
         graph = await load_graph()
         

@@ -189,3 +189,6 @@ cov.xml
 *.dot
 .python-version
 *.csv
+/examples/ags/data/baselines/general
+/examples/ags/scripts/optimized/HumanEval/graphs
+/examples/ags/scripts/optimized/HumanEval/graphs_test

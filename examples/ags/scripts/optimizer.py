@@ -89,7 +89,7 @@ class Optimizer:
         Generate and optimize the workflow for given dataset.
         """
         if mode == "Test":
-            for i in range(3):
+            for i in range(1): 
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 score = loop.run_until_complete(self.test())
@@ -509,11 +509,11 @@ class Optimizer:
             if experience_data:
                 # 构建 experience 字符串
                 experience = f"Original Score: {experience_data['score']}\n"
-                experience += "Here are some incorrect paths that should not be attempted again:\n```\n"
+                experience += "These are some conclusions drawn from experience:\n```\n"
                 for key, value in experience_data["failure"].items():
-                    experience += f"- {value['modification']} (Score: {value['score']})\n"
+                    experience += f"-Absolutely prohibit {value['modification']} (Score: {value['score']})\n"
                 for key, value in experience_data["success"].items():
-                    experience += f"- {value['modification']} \n"
+                    experience += f"-Absolutely prohibit {value['modification']} \n"
                 experience += "\n```\n\nNote: Take into account past failures and avoid repeating the same mistakes, as these failures indicate that these approaches are ineffective. You must fundamentally change your way of thinking, rather than simply using more advanced Python syntax like for, if, else, etc., or modifying the prompt."
             else:
                 experience = f"No experience data found for round {current_round}."
@@ -694,7 +694,7 @@ class Optimizer:
         # rounds = list(range(1, 20))
         # print(rounds)
 
-        rounds = [3,9,10]
+        rounds = [5]
         data = []
 
         # 获取项目的根目录
@@ -722,9 +722,9 @@ class Optimizer:
             print(round)
             print(self.graph)
 
-            score, avg_cost, total_cost = await evaluator.test_evaluate(
+            score, avg_cost, total_cost = await evaluator.graph_evaluate(
                 self.dataset, self.graph, {"dataset": self.dataset, "llm_config": self.execute_llm_config},
-                directory
+                directory, is_test=True
             )
 
             now = datetime.datetime.now()

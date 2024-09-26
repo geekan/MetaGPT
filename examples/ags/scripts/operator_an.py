@@ -72,10 +72,7 @@ class RephraseOp(BaseModel):
 
 
 class ReflectionTestOp(BaseModel):
-    reflection: str = Field(
-        default="", description="Step-by-step reflection on code execution errors or test case failures"
-    )
-    refined_solution: str = Field(
+    reflection_and_solution: str = Field(
         default="", description="Corrective solution for code execution errors or test case failures"
     )
 

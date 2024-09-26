@@ -58,27 +58,40 @@ def parse_python_literal(s):
 
 
 def extract_test_cases_from_jsonl(
-    problem_id: str, file_path: str = "examples/ags/benchmark/data/humaneval_public_test.jsonl"
+    entry_point: str, dataset: str = "HumanEval"
 ):
+    if dataset == "HumanEval":
+        file_path = "examples/ags/data/humaneval_public_test.jsonl"
     # 保留原有的硬编码测试用例
-    hardcoded_cases = {
-        "HumanEval/32": "",
-        "HumanEval/38": "",
-        "HumanEval/50": "",
-    }
+        hardcoded_cases = {
+        "find_zero": "",
+        "decode_cyclic": "",
+        "decode_shift": "",
+        "by_length":"",
+        "add":"",
+        "triangle_area":"",
+        "correct_bracketing":"",
+        "solve":"",
+        "sum_squares":"",
+        "starts_one_ends":""
+        }
+    elif dataset == "MBPP":
+        file_path = "examples/ags/data/mbpp_public_test.jsonl"
+        hardcoded_cases = {
 
+        }
     # 检查是否有硬编码的测试用例
-    if problem_id in hardcoded_cases:
-        return hardcoded_cases[problem_id]
+    if entry_point in hardcoded_cases:
+        return hardcoded_cases[entry_point]
 
     # 如果没有硬编码的测试用例，从文件中读取
     with open(file_path, "r") as file:
         for line in file:
             data = json.loads(line)
-            if data.get("task_id") == problem_id:
+            if data.get("entry_point") == entry_point:
                 return data.get("test")
 
-    return None  # 如果没有找到问题，返回 None
+    return None  
 
 
 def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
@@ -122,15 +135,6 @@ def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
         test_cases.append([func_name, input_list, expected_output])
 
     return test_cases
-
-
-# async def llm_extract_test_case(id, problem_description: str, file_path: str = "public_test.jsonl"):
-#     prompt = EXTRACT_CASE_PROMPT.format(problem_description=problem_description)
-#     node = await ActionNode.from_pydantic(TestCaseExtractOp).fill(context=prompt, llm=LLM())
-#     result = node.instruct_content.model_dump()
-#     with open(file_path, "a") as f:
-#         f.write(json.dumps({id: result["test_cases"]}) + "\n")
-#     return {id: result["test_cases"]}
 
 
 def test_cases_2_test_functions(solution: str, test_cases: str):
