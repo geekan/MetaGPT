@@ -215,6 +215,8 @@ python experimenter/aide.py
 pip install -U pip
 pip install -U setuptools wheel
 pip install autogluon
+
+python run_expriment.py --exp_mode autogluon --task fashion_mnist
 ```
 
 提供github链接，并说明使用的命令以及参数设置
