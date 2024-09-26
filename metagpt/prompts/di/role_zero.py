@@ -119,18 +119,20 @@ END_COMMAND = """
 ```
 """
 
-ASK_HUMAN_COMMAND = """
-```json
-[
-    {
-        "command_name": "RoleZero.ask_human",
-        "args": {
-            "question": "I'm a little uncertain about the next step, could you provide me with some guidance? If you want to stop, please include <STOP> in your response."
-        }
-    }
-]
-```
+SUMMARY_TROUBLE = """
+You are repeating the same action.
+Please summarize what is confusing or troubling you, and tell me directly.
+Do not output any commands.
+Your response must be in {language} and should be within 30 words.
 """
+DUPULICATE_QUESTTION_FORMAT = """
+I meet the following trouble:
+{trouble}
+Could you provide me with some guidance?
+If want to stop, please contain \"<STOP>\" in your guidance.
+"""
+ASK_HUMAN_COMMAND = [{"command_name": "RoleZero.ask_human", "args": {"question": ""}}]
+
 JSON_REPAIR_PROMPT = """
 ## json data
 {json_data}

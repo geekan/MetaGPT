@@ -21,6 +21,7 @@ from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
     CMD_PROMPT,
     DETECT_LANGUAGE_PROMPT,
+    DUPULICATE_QUESTTION_FORMAT,
     END_COMMAND,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
@@ -31,6 +32,7 @@ from metagpt.prompts.di.role_zero import (
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
     SUMMARY_PROMPT,
+    SUMMARY_TROUBLE,
     SYSTEM_PROMPT,
 )
 from metagpt.roles import Role
@@ -120,7 +122,7 @@ class RoleZero(Role):
             "Plan.append_task": self.planner.plan.append_task,
             "Plan.reset_task": self.planner.plan.reset_task,
             "Plan.replace_task": self.planner.plan.replace_task,
-            "RoleZero.ask_human": self.ask_human,
+            "RoleZero.ask_human": self.request_and_analyze_human_response,
             "RoleZero.reply_to_human": self.reply_to_human,
             "SearchEnhancedQA.run": SearchEnhancedQA().run,
         }
@@ -386,7 +388,7 @@ class RoleZero(Role):
 
     async def _check_duplicates(self, req: list[dict], command_rsp: str, check_window: int = 10):
         past_rsp = [mem.content for mem in self.rc.memory.get(check_window)]
-        if command_rsp in past_rsp:
+        if command_rsp in past_rsp and '"command_name": "end"' not in command_rsp:
             # Normal response with thought contents are highly unlikely to reproduce
             # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
             # In this case, ask human for help and regenerate
@@ -395,10 +397,15 @@ class RoleZero(Role):
             #  Hard rule to ask human for help
             if past_rsp.count(command_rsp) >= 3:
                 if '"command_name": "Plan.finish_current_task",' in command_rsp:
-                    # Detect the deplicate of "Plan.finish_current_task" command, use command "end" to finish the task
+                    # Detect the duplicate of the 'Plan.finish_current_task' command, and use the 'end' command to finish the task.
                     logger.warning(f"Duplicate response detected: {command_rsp}")
                     return END_COMMAND
-                return ASK_HUMAN_COMMAND
+                trouble_content = await self.llm.aask(
+                    req + [UserMessage(content=SUMMARY_TROUBLE.format(language=self.respond_language))]
+                )
+                ASK_HUMAN_COMMAND[0]["args"]["question"] = DUPULICATE_QUESTTION_FORMAT.format(trouble=trouble_content)
+                ask_human_command = "```json\n" + json.dumps(ASK_HUMAN_COMMAND, indent=4, ensure_ascii=False) + "\n```"
+                return ask_human_command
             # Try correction by self
             logger.warning(f"Duplicate response detected: {command_rsp}")
             regenerate_req = req + [UserMessage(content=REGENERATE_PROMPT)]
@@ -556,6 +563,13 @@ class RoleZero(Role):
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.ask_human(question, sent_from=self)
+
+    async def request_and_analyze_human_response(self, question: str) -> str:
+        """This fucntion will call ask_human and then analyze and decorate the human response."""
+        human_response = await self.ask_human(question)
+        if "<STOP>" in human_response:
+            human_response += f"\nUser ask you to stop the current task immediately.\nIn your next response, use end command to stop the current task.\nLike:\n{END_COMMAND}"
+        return human_response
 
     async def reply_to_human(self, content: str) -> str:
         """Reply to human user with the content provided. Use this when you have a clear answer or solution to the user's question."""
