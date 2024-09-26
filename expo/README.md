@@ -216,8 +216,18 @@ pip install -U pip
 pip install -U setuptools wheel
 pip install autogluon
 
-python run_expriment.py --exp_mode autogluon --task fashion_mnist
 ```
+
+For Tabular data:
+```
+python run_expriment.py --exp_mode autogluon --task {task_name}
+```
+For Multimodal data:
+```
+python run_expriment.py --exp_mode autogluon --task {task_name} --is_multimodal
+```
+Replace {task_name} with the specific task you want to run.
+
 
 提供github链接，并说明使用的命令以及参数设置
 ### AutoSklearn
