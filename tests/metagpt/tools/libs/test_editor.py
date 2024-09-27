@@ -550,9 +550,9 @@ def test_edit_file_by_replace(temp_py_file):
 
 
 MISMATCH_ERROR = """
-Error: The `first_replaced_replaced_line_number` does not match the `first_replaced_replaced_line_content`. Please correct the parameters.
-The `first_replaced_replaced_line_number` is 5 and the corresponding content is "    b = 2".
-But the `first_replaced_replaced_line_content ` is "".
+Error: The `first_replaced_line_number` does not match the `first_replaced_line_content`. Please correct the parameters.
+The `first_replaced_line_number` is 5 and the corresponding content is "    b = 2".
+But the `first_replaced_line_content ` is "".
 The content around the specified line is:
 The 002 line is "def test_function_for_fm():"
 The 003 line is "    "some docstring""
@@ -561,9 +561,9 @@ The 005 line is "    b = 2"
 The 006 line is "    c = 3"
 The 007 line is "    # this is the 7th line"
 Pay attention to the new content. Ensure that it aligns with the new parameters.
-Error: The `last_replaced_replaced_line_number` does not match the `last_replaced_replaced_line_content`. Please correct the parameters.
-The `last_replaced_replaced_line_number` is 5 and the corresponding content is "    b = 2".
-But the `last_replaced_replaced_line_content ` is "".
+Error: The `last_replaced_line_number` does not match the `last_replaced_line_content`. Please correct the parameters.
+The `last_replaced_line_number` is 5 and the corresponding content is "    b = 2".
+But the `last_replaced_line_content ` is "".
 The content around the specified line is:
 The 002 line is "def test_function_for_fm():"
 The 003 line is "    "some docstring""

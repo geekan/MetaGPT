@@ -75,7 +75,7 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
-    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run", "RoleZero.ask_human"]
     # List of exclusive tool commands.
     # If multiple instances of these commands appear, only the first occurrence will be retained.
     exclusive_tool_commands: list[str] = [
@@ -122,7 +122,7 @@ class RoleZero(Role):
             "Plan.append_task": self.planner.plan.append_task,
             "Plan.reset_task": self.planner.plan.reset_task,
             "Plan.replace_task": self.planner.plan.replace_task,
-            "RoleZero.ask_human": self.request_and_analyze_human_response,
+            "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
             "SearchEnhancedQA.run": SearchEnhancedQA().run,
         }
@@ -229,7 +229,6 @@ class RoleZero(Role):
             await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
-
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -403,7 +402,7 @@ class RoleZero(Role):
                 problem = await self.llm.aask(
                     req + [UserMessage(content=SUMMARY_PROBLEM_WHEN_DUPLICATE.format(language=self.respond_language))]
                 )
-                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(problem=problem)
+                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(problem=problem).strip()
                 ask_human_command = "```json\n" + json.dumps(ASK_HUMAN_COMMAND, indent=4, ensure_ascii=False) + "\n```"
                 return ask_human_command
             # Try correction by self
@@ -513,7 +512,15 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             command_output = await self._end()
-
+        elif cmd["command_name"] == "RoleZero.ask_human":
+            human_response = await self.ask_human(**cmd["args"])
+            if "<STOP>" in human_response:
+                human_response += "The user has asked me to stop because I have encountered a problem."
+                self.rc.memory.add(UserMessage(content=human_response, cause_by=RunCommand))
+                end_output = "\nCommand end executed:"
+                end_output += await self._end()
+                return end_output
+            return human_response
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Bash.run":
             tool_obj = self.tool_execution_map[cmd["command_name"]]
@@ -563,15 +570,6 @@ class RoleZero(Role):
         if not isinstance(self.rc.env, MGXEnv):
             return "Not in MGXEnv, command will not be executed."
         return await self.rc.env.ask_human(question, sent_from=self)
-
-    async def request_and_analyze_human_response(self, question: str) -> str:
-        """This fucntion will call ask_human and then analyze and decorate the human response."""
-        human_response = await self.ask_human(question)
-        if "<STOP>" in human_response:
-            human_response += "\nCommand end executed:"
-            human_response += await self._end()
-            return human_response
-        return human_response
 
     async def reply_to_human(self, content: str) -> str:
         """Reply to human user with the content provided. Use this when you have a clear answer or solution to the user's question."""

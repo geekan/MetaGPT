@@ -119,7 +119,12 @@ END_COMMAND = """
 ```
 """
 
-SUMMARY_PROBLEM_WHEN_DUPLICATE = """Please directly tell me what is confusing or troubling you. Your response should be in {language} and within 30 words."""
+SUMMARY_PROBLEM_WHEN_DUPLICATE = """
+You has meet a problem and cause duplicate command.
+Please directly tell me what is confusing or troubling you. 
+Do Not output any command.
+Ouput you problem in {language} and within 30 words.
+"""
 ASK_HUMAN_GUIDANCE_FORMAT = """
 I am facing the following problem:
 {problem}
