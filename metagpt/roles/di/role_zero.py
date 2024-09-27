@@ -400,10 +400,10 @@ class RoleZero(Role):
                     # Detect the duplicate of the 'Plan.finish_current_task' command, and use the 'end' command to finish the task.
                     logger.warning(f"Duplicate response detected: {command_rsp}")
                     return END_COMMAND
-                trouble_content = await self.llm.aask(
+                problem = await self.llm.aask(
                     req + [UserMessage(content=SUMMARY_PROBLEM_WHEN_DUPLICATE.format(language=self.respond_language))]
                 )
-                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(trouble=trouble_content)
+                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(problem=problem)
                 ask_human_command = "```json\n" + json.dumps(ASK_HUMAN_COMMAND, indent=4, ensure_ascii=False) + "\n```"
                 return ask_human_command
             # Try correction by self
