@@ -19,9 +19,9 @@ from metagpt.exp_pool.serializers import RoleZeroSerializer
 from metagpt.logs import logger
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
+    ASK_HUMAN_GUIDANCE_FORMAT,
     CMD_PROMPT,
     DETECT_LANGUAGE_PROMPT,
-    DUPULICATE_QUESTTION_FORMAT,
     END_COMMAND,
     JSON_REPAIR_PROMPT,
     QUICK_RESPONSE_SYSTEM_PROMPT,
@@ -31,8 +31,8 @@ from metagpt.prompts.di.role_zero import (
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
+    SUMMARY_PROBLEM_WHEN_DUPLICATE,
     SUMMARY_PROMPT,
-    SUMMARY_TROUBLE,
     SYSTEM_PROMPT,
 )
 from metagpt.roles import Role
@@ -401,9 +401,9 @@ class RoleZero(Role):
                     logger.warning(f"Duplicate response detected: {command_rsp}")
                     return END_COMMAND
                 trouble_content = await self.llm.aask(
-                    req + [UserMessage(content=SUMMARY_TROUBLE.format(language=self.respond_language))]
+                    req + [UserMessage(content=SUMMARY_PROBLEM_WHEN_DUPLICATE.format(language=self.respond_language))]
                 )
-                ASK_HUMAN_COMMAND[0]["args"]["question"] = DUPULICATE_QUESTTION_FORMAT.format(trouble=trouble_content)
+                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(trouble=trouble_content)
                 ask_human_command = "```json\n" + json.dumps(ASK_HUMAN_COMMAND, indent=4, ensure_ascii=False) + "\n```"
                 return ask_human_command
             # Try correction by self

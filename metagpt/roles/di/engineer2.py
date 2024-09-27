@@ -119,7 +119,7 @@ class Engineer2(RoleZero):
 
         Args:
             path (str): The absolute path of the file to be created.
-            file_description (optional, str): Further hints or notice other than the current task description, must be very concise and can be empty. Defaults to "".
+            file_description (optional, str): "Brief description and important notes of the file content, must be very concise and can be empty. Defaults to "".
         """
         plan_status, _ = self._get_plan_status()
         prompt = WRITE_CODE_PROMPT.format(

@@ -119,17 +119,11 @@ END_COMMAND = """
 ```
 """
 
-SUMMARY_TROUBLE = """
-You are repeating the same action.
-Please summarize what is confusing or troubling you, and tell me directly.
-Do not output any commands.
-Your response must be in {language} and should be within 30 words.
-"""
-DUPULICATE_QUESTTION_FORMAT = """
-I meet the following trouble:
-{trouble}
-Could you provide me with some guidance?
-If want to stop, please contain \"<STOP>\" in your guidance.
+SUMMARY_PROBLEM_WHEN_DUPLICATE = """Please directly tell me what is confusing or troubling you. Your response should be in {language} and within 30 words."""
+ASK_HUMAN_GUIDANCE_FORMAT = """
+I am facing the following problem:
+{problem}
+Could you please provide me with some guidance?If you want to stop, please include "<STOP>" in your guidance.
 """
 ASK_HUMAN_COMMAND = [{"command_name": "RoleZero.ask_human", "args": {"question": ""}}]
 
