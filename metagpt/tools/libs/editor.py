@@ -773,8 +773,8 @@ class Editor(BaseModel):
             lines = content.splitlines(True)
             total_lines = len(lines)
             check_list = [
-                ("first_replaced", first_replaced_line_number, first_replaced_line_content),
-                ("last_replaced", last_replaced_line_number, last_replaced_line_content),
+                ("first", first_replaced_line_number, first_replaced_line_content),
+                ("last", last_replaced_line_number, last_replaced_line_content),
             ]
             for position, line_number, line_content in check_list:
                 if lines[line_number - 1].rstrip() != line_content:

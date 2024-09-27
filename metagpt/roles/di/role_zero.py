@@ -568,7 +568,9 @@ class RoleZero(Role):
         """This fucntion will call ask_human and then analyze and decorate the human response."""
         human_response = await self.ask_human(question)
         if "<STOP>" in human_response:
-            human_response += f"\nUser ask you to stop the current task immediately.\nIn your next response, use end command to stop the current task.\nLike:\n{END_COMMAND}"
+            human_response += "\nCommand end executed:"
+            human_response += await self._end()
+            return human_response
         return human_response
 
     async def reply_to_human(self, content: str) -> str:
