@@ -34,6 +34,7 @@ def get_mcts_args(parser):
 
 def get_aug_exp_args(parser):
     parser.add_argument("--aug_mode", type=str, default="single", choices=["single", "set"])
+    parser.add_argument("--is_multimodal", action="store_true", help="Specify if the model is multi-modal")
 
 
 def get_di_args(parser):
