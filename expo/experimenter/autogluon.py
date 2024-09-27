@@ -1,6 +1,5 @@
 from datetime import datetime
 from expo.experimenter.custom import CustomExperimenter
-from autogluon.tabular import TabularDataset, TabularPredictor
 import os
 import pandas as pd
 
@@ -11,6 +10,7 @@ class AGRunner:
         self.datasets = self.state["datasets_dir"]
 
     def run(self):
+        from autogluon.tabular import TabularDataset, TabularPredictor
         train_path = self.datasets["train"]
         dev_path = self.datasets["dev"]
         dev_wo_target_path = self.datasets["dev_wo_target"]
