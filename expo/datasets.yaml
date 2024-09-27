@@ -202,7 +202,7 @@ datasets:
   oxford-iiit-pet:
     dataset: oxford-iiit-pet
     metric: f1
-    target_col: label_cat_dog
+    target_col: label
     user_requirement: "This is a oxford-iiit-pet dataset. Your goal is to predict\
       \ the target column `label_cat_dog`.\nPerform data analysis, data preprocessing,\
       \ feature engineering, and modeling to predict the target. \nReport f1 on the\
