@@ -26,7 +26,7 @@ TEXT_MODALITY = """
 """
 
 IMAGE_MODALITY = """
-7. You could use models from transformers library for this image dataset.
+7. You could use models from transformers/torchvision library for this image dataset.
 8. Use gpu if available for faster training.
 """
 
@@ -50,8 +50,8 @@ DI_INSTRUCTION = """
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
-2. Make sure the prediction results are in the same format as the target column in the training set. 
-- For instance, if the target column is categorical, the prediction results should be categorical as well.
+2. Make sure the prediction results are in the same format as the target column in the original training set. 
+- For instance, if the original target column is a list of string, the prediction results should also be strings.
 
 ## Output Performance
 Print the train and dev set performance in the last step.
