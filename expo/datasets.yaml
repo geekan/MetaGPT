@@ -205,7 +205,7 @@ datasets:
     target_col: label
     user_requirement: "This is a oxford-iiit-pet dataset. Your goal is to predict\
       \ the target column `label`.\nPerform data analysis, data preprocessing,\
-      \ feature engineering, and modeling to predict the target. \nReport f1 on the\
+      \ feature engineering, and modeling to predict the target. \nReport f1 weighted on the\
       \ eval data. Do not plot or make any visualizations.\n"
   sms_spam:
     dataset: sms_spam
