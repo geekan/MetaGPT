@@ -138,6 +138,10 @@ class OpenAILLM(BaseLLM):
             "model": self.model,
             "timeout": self.get_timeout(timeout),
         }
+        if "o1-" in self.model:
+            # compatible to openai o1-series
+            kwargs["temperature"] = 1
+            kwargs.pop("max_tokens")
         if extra_kwargs:
             kwargs.update(extra_kwargs)
         return kwargs

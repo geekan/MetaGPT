@@ -37,7 +37,11 @@ def register_provider(keys):
 
 def create_llm_instance(config: LLMConfig) -> BaseLLM:
     """get the default llm provider"""
-    return LLM_REGISTRY.get_provider(config.api_type)(config)
+    llm = LLM_REGISTRY.get_provider(config.api_type)(config)
+    if llm.use_system_prompt and not config.use_system_prompt:
+        # for models like o1-series, default openai provider.use_system_prompt is True, but it should be False for o1-*
+        llm.use_system_prompt = config.use_system_prompt
+    return llm
 
 
 # Registry instance
