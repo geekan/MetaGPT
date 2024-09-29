@@ -352,13 +352,14 @@ class Editor(BaseModel):
         """Creates and opens a new file with the given name.
 
         Args:
-            filename: str: The name of the file to create.
+            filename: str: The name of the file to create. If the parent directory does not exist, it will be created.
         """
         filename = self._try_fix_path(filename)
 
         if filename.exists():
             raise FileExistsError(f"File '{filename}' already exists.")
-
+        if not filename.parent.exists():
+            os.makedirs(filename.parent, exist_ok=True)
         with filename.open("w") as file:
             file.write("\n")
 
