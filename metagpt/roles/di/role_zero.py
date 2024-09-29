@@ -20,6 +20,7 @@ from metagpt.logs import logger
 from metagpt.memory.role_zero_memory import RoleZeroLongTermMemory
 from metagpt.prompts.di.role_zero import (
     ASK_HUMAN_COMMAND,
+    ASK_HUMAN_GUIDANCE_FORMAT,
     CMD_PROMPT,
     DETECT_LANGUAGE_PROMPT,
     END_COMMAND,
@@ -31,6 +32,7 @@ from metagpt.prompts.di.role_zero import (
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
+    SUMMARY_PROBLEM_WHEN_DUPLICATE,
     SUMMARY_PROMPT,
     SYSTEM_PROMPT,
 )
@@ -74,7 +76,7 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
-    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run"]
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run", "RoleZero.ask_human"]
     # List of exclusive tool commands.
     # If multiple instances of these commands appear, only the first occurrence will be retained.
     exclusive_tool_commands: list[str] = [
@@ -247,7 +249,6 @@ class RoleZero(Role):
             await reporter.async_report({"type": "react"})
             self.command_rsp = await self.llm_cached_aask(req=req, system_msgs=[system_prompt], state_data=state_data)
         self.command_rsp = await self._check_duplicates(req, self.command_rsp)
-
         return True
 
     @exp_cache(context_builder=RoleZeroContextBuilder(), serializer=RoleZeroSerializer())
@@ -406,7 +407,7 @@ class RoleZero(Role):
 
     async def _check_duplicates(self, req: list[dict], command_rsp: str, check_window: int = 10):
         past_rsp = [mem.content for mem in self.rc.memory.get(check_window)]
-        if command_rsp in past_rsp:
+        if command_rsp in past_rsp and '"command_name": "end"' not in command_rsp:
             # Normal response with thought contents are highly unlikely to reproduce
             # If an identical response is detected, it is a bad response, mostly due to LLM repeating generated content
             # In this case, ask human for help and regenerate
@@ -415,10 +416,15 @@ class RoleZero(Role):
             #  Hard rule to ask human for help
             if past_rsp.count(command_rsp) >= 3:
                 if '"command_name": "Plan.finish_current_task",' in command_rsp:
-                    # Detect the deplicate of "Plan.finish_current_task" command, use command "end" to finish the task
+                    # Detect the duplicate of the 'Plan.finish_current_task' command, and use the 'end' command to finish the task.
                     logger.warning(f"Duplicate response detected: {command_rsp}")
                     return END_COMMAND
-                return ASK_HUMAN_COMMAND
+                problem = await self.llm.aask(
+                    req + [UserMessage(content=SUMMARY_PROBLEM_WHEN_DUPLICATE.format(language=self.respond_language))]
+                )
+                ASK_HUMAN_COMMAND[0]["args"]["question"] = ASK_HUMAN_GUIDANCE_FORMAT.format(problem=problem).strip()
+                ask_human_command = "```json\n" + json.dumps(ASK_HUMAN_COMMAND, indent=4, ensure_ascii=False) + "\n```"
+                return ask_human_command
             # Try correction by self
             logger.warning(f"Duplicate response detected: {command_rsp}")
             regenerate_req = req + [UserMessage(content=REGENERATE_PROMPT)]
@@ -526,7 +532,15 @@ class RoleZero(Role):
 
         elif cmd["command_name"] == "end":
             command_output = await self._end()
-
+        elif cmd["command_name"] == "RoleZero.ask_human":
+            human_response = await self.ask_human(**cmd["args"])
+            if "<STOP>" in human_response:
+                human_response += "The user has asked me to stop because I have encountered a problem."
+                self.rc.memory.add(UserMessage(content=human_response, cause_by=RunCommand))
+                end_output = "\nCommand end executed:"
+                end_output += await self._end()
+                return end_output
+            return human_response
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Bash.run":
             tool_obj = self.tool_execution_map[cmd["command_name"]]

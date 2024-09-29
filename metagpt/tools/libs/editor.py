@@ -783,8 +783,8 @@ class Editor(BaseModel):
             lines = content.splitlines(True)
             total_lines = len(lines)
             check_list = [
-                ("first_replaced", first_replaced_line_number, first_replaced_line_content),
-                ("last_replaced", last_replaced_line_number, last_replaced_line_content),
+                ("first", first_replaced_line_number, first_replaced_line_content),
+                ("last", last_replaced_line_number, last_replaced_line_content),
             ]
             for position, line_number, line_content in check_list:
                 if lines[line_number - 1].rstrip() != line_content:
@@ -947,7 +947,7 @@ class Editor(BaseModel):
 
         Args:
             file_name: (str): The name of the file to edit.
-            line_number (int): The line number (starting from 1) to insert the content after.the insert content will be add between the line of line_number-1 and line_number
+            line_number (int): The line number (starting from 1) to insert the content after. The insert content will be add between the line of line_number-1 and line_number
             insert_content (str): The content to insert betweed the previous_line_content and current_line_content.The insert_content must be a complete block of code at.
 
         NOTE:

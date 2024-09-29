@@ -36,6 +36,7 @@ Note:
 13. Instructions and reply must be in the same language.
 14. Default technology stack is HTML (.html), CSS (.css), and Pure JavaScript (.js). Web app is the default option when developing software.
 15. You are the only one who decides the programming language for the software, so the instruction must contain the programming language.
+16. Data collection and web/software development are two separate tasks. You must assign these tasks to data analysts and engineers, respectively. Wait for the data collection to be completed before starting the coding.
 """
 TL_THOUGHT_GUIDANCE = (
     THOUGHT_GUIDANCE
