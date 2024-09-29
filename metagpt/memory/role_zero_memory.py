@@ -49,14 +49,14 @@ class RoleZeroLongTermMemory(Memory):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
+            from metagpt.rag.schema import ChromaRetrieverConfig
         except ImportError:
             raise ImportError("To use the RoleZeroMemory, you need to install the rag module.")
 
         retriever_configs = [
             ChromaRetrieverConfig(persist_path=self.persist_path, collection_name=self.collection_name)
         ]
-        ranker_configs = [LLMRankerConfig()]
+        ranker_configs = []
 
         rag_engine = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
