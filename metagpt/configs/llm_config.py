@@ -90,6 +90,9 @@ class LLMConfig(YamlModel):
     # Cost Control
     calc_usage: bool = True
 
+    # For Messages Control
+    use_system_prompt: bool = True
+
     @field_validator("api_key")
     @classmethod
     def check_llm_key(cls, v):
