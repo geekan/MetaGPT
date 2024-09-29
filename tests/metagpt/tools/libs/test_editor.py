@@ -270,9 +270,10 @@ def test_create_file_unexist_path():
         editor.create_file("/unexist/path/a.txt")
 
 
-def test_create_file(temp_file_path):
+@pytest.mark.asyncio
+async def test_create_file(temp_file_path):
     editor = Editor()
-    result = editor.create_file(str(temp_file_path))
+    result = await editor.create_file(str(temp_file_path))
 
     expected = f"[File {temp_file_path} created.]"
     assert result.split("\n") == expected.split("\n")
