@@ -17,6 +17,7 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.libs.index_repo import DEFAULT_MIN_TOKEN_COUNT, IndexRepo
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import awrite
 from metagpt.utils.file import File
 from metagpt.utils.report import EditorReporter
 
@@ -348,19 +349,17 @@ class Editor(BaseModel):
         output += self._print_window(self.current_file, self.current_line, self.window)
         return output
 
-    def create_file(self, filename: str) -> str:
+    async def create_file(self, filename: str) -> str:
         """Creates and opens a new file with the given name.
 
         Args:
-            filename: str: The name of the file to create.
+            filename: str: The name of the file to create. If the parent directory does not exist, it will be created.
         """
         filename = self._try_fix_path(filename)
 
         if filename.exists():
             raise FileExistsError(f"File '{filename}' already exists.")
-
-        with filename.open("w") as file:
-            file.write("\n")
+        await awrite(filename, "\n")
 
         self.open_file(filename)
         return f"[File {filename} created.]"
