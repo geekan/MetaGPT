@@ -37,7 +37,6 @@ from metagpt.utils.token_counter import (
     count_input_tokens,
     count_output_tokens,
     get_max_completion_tokens,
-    get_openrouter_tokens,
 )
 
 
@@ -92,6 +91,7 @@ class OpenAILLM(BaseLLM):
         )
         usage = None
         collected_messages = []
+        has_finished = False
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
             finish_reason = (
@@ -99,6 +99,10 @@ class OpenAILLM(BaseLLM):
             )
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
+            if has_finished:
+                # for oneapi, there has a usage chunk after finish_reason not none chunk
+                if hasattr(chunk, "usage"):
+                    usage = CompletionUsage(**chunk.usage)
             if finish_reason:
                 if hasattr(chunk, "usage") and chunk.usage is not None:
                     # Some services have usage as an attribute of the chunk, such as Fireworks
@@ -109,9 +113,10 @@ class OpenAILLM(BaseLLM):
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
-                elif "openrouter.ai" in self.config.base_url:
+                elif "openrouter.ai" in self.config.base_url and hasattr(chunk, "usage") and chunk.usage is not None:
                     # due to it get token cost from api
-                    usage = await get_openrouter_tokens(chunk)
+                    usage = chunk.usage
+                has_finished = True
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
