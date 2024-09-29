@@ -114,22 +114,55 @@ class RoleZeroLongTermMemory(Memory):
         item = self._get_longterm_memory_item()
         self._add_to_longterm_memory(item)
 
-    @handle_exception
     def _get_longterm_memory_item(self) -> Optional[LongTermMemoryItem]:
         """Retrieves the most recent message before the last k messages."""
 
         index = -(self.memory_k + 1)
         message = self.get_by_position(index)
 
-        return LongTermMemoryItem(message=message)
+        return LongTermMemoryItem(message=message) if message else None
 
+    @handle_exception
     def _add_to_longterm_memory(self, item: LongTermMemoryItem):
-        """Adds a long-term memory item to the RAG engine."""
+        """Adds a long-term memory item to the RAG engine.
+
+        If adding long-term memory fails, it will only log the error without interrupting program execution.
+        """
 
         if not item:
             return
 
         self.rag_engine.add_objs([item])
+
+    @handle_exception(default_return=[])
+    def _fetch_longterm_memories(self, query: str) -> list[Message]:
+        """Fetches long-term memories based on a query.
+
+        If fetching long-term memories fails, it will return the default value (an empty list) without interrupting program execution.
+
+        Args:
+            query (str): The query string to search for relevant memories.
+
+        Returns:
+            list[Message]: A list of user and AI messages related to the query.
+        """
+
+        if not query:
+            return []
+
+        nodes = self.rag_engine.retrieve(query)
+        items = self._get_items_from_nodes(nodes)
+        memories = [item.message for item in items]
+
+        return memories
+
+    def _get_items_from_nodes(self, nodes: list["NodeWithScore"]) -> list[LongTermMemoryItem]:
+        """Get items from nodes and arrange them in order of their `created_at`."""
+
+        items: list[LongTermMemoryItem] = [node.metadata["obj"] for node in nodes]
+        items.sort(key=lambda item: item.created_at)
+
+        return items
 
     def _build_longterm_memory_query(self) -> str:
         """Build the content used to query related long-term memory.
@@ -160,30 +193,3 @@ class RoleZeroLongTermMemory(Memory):
         sent_from_team_leader = message.sent_from == TEAMLEADER_NAME
 
         return is_user_message and (cause_by_user_requirement or sent_from_team_leader)
-
-    def _fetch_longterm_memories(self, query: str) -> list[Message]:
-        """Fetches long-term memories based on a query.
-
-        Args:
-            query (str): The query string to search for relevant memories.
-
-        Returns:
-            list[Message]: A list of user and AI messages related to the query.
-        """
-
-        if not query:
-            return []
-
-        nodes = self.rag_engine.retrieve(query)
-        items = self._get_items_from_nodes(nodes)
-        memories = [item.message for item in items]
-
-        return memories
-
-    def _get_items_from_nodes(self, nodes: list["NodeWithScore"]) -> list[LongTermMemoryItem]:
-        """Get items from nodes and arrange them in order of their `created_at`."""
-
-        items: list[LongTermMemoryItem] = [node.metadata["obj"] for node in nodes]
-        items.sort(key=lambda item: item.created_at)
-
-        return items
