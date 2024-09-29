@@ -99,12 +99,13 @@ class OpenAILLM(BaseLLM):
             )
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
+            chunk_has_usage = hasattr(chunk, "usage") and chunk.usage
             if has_finished:
                 # for oneapi, there has a usage chunk after finish_reason not none chunk
-                if hasattr(chunk, "usage"):
+                if chunk_has_usage:
                     usage = CompletionUsage(**chunk.usage)
             if finish_reason:
-                if hasattr(chunk, "usage") and chunk.usage is not None:
+                if chunk_has_usage:
                     # Some services have usage as an attribute of the chunk, such as Fireworks
                     if isinstance(chunk.usage, CompletionUsage):
                         usage = chunk.usage
@@ -113,7 +114,7 @@ class OpenAILLM(BaseLLM):
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
-                elif "openrouter.ai" in self.config.base_url and hasattr(chunk, "usage") and chunk.usage is not None:
+                elif "openrouter.ai" in self.config.base_url and chunk_has_usage:
                     # due to it get token cost from api
                     usage = chunk.usage
                 has_finished = True
