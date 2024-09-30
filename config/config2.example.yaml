@@ -9,16 +9,22 @@ llm:
   pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
 
 
+rag:
 # RAG Embedding.
 # For backward compatibility, if the embedding is not set and the llm's api_type is either openai or azure, the llm's config will be used. 
-embedding:
-  api_type: "" # openai / azure / gemini / ollama etc. Check EmbeddingType for more options.
-  base_url: ""
-  api_key: ""
-  model: ""
-  api_version: ""
-  embed_batch_size: 100
-  dimensions: # output dimension of embedding model
+  embedding:
+    api_type: "" # openai / azure / gemini / ollama etc. Check EmbeddingType for more options.
+    base_url: ""
+    api_key: ""
+    model: ""
+    api_version: ""
+    embed_batch_size: 100
+    dimensions: # output dimension of embedding model
+  # RAG Query Analysis
+  query_analysis:
+    hyde:
+      include_original: true  # In the query rewrite, determines whether to include the original
+
 
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
