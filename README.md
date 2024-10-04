@@ -59,7 +59,7 @@
 
 ### Installation
 
-> Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.  
+> Ensure that Python 3.9 or later, but less than 3.12, is installed on your system. You can check this by using: `python --version`.  
 > You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash

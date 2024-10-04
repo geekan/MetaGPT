@@ -109,7 +109,7 @@ setup(
     license="MIT",
     keywords="metagpt multi-agent multi-role programming gpt llm metaprogramming",
     packages=find_packages(exclude=["contrib", "docs", "examples", "tests*"]),
-    python_requires=">=3.9",
+    python_requires=">=3.9, <3.12",
     install_requires=requirements,
     extras_require=extras_require,
     cmdclass={
