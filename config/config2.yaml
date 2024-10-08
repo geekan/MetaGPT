@@ -5,4 +5,4 @@ llm:
   api_type: 'openai' # or azure / ollama / groq etc. Check LLMType for more options
   model: 'gpt-4o' # or gpt-3.5-turbo
   base_url: "https://oneapi.deepwisdom.ai/v1" # or forward url / other llm url
-  api_key: "sk-NIIgRdoQLIK9bfVV7f35696d96E7493c8bBb20102e5cDb40"
+  api_key: ""
