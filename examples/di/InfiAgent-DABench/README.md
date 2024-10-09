@@ -7,6 +7,5 @@ git clone https://github.com/InfiAgent/InfiAgent.git
 ```
 ## How to run
 ```
-python run_InfiAgent-DABench_sigle.py --id x  # Run a task
-python run_InfiAgent-DABench_all.py  # Run all tasks
+python run_InfiAgent-DABench.py --id x
 ```
