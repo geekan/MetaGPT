@@ -1,4 +1,4 @@
-#InfiAgent-DABench requirements
+# InfiAgent-DABench requirements
 DABENCH = "You are required to {question} from a CSV file named {file_name}. {constraints}. The output format should be {format}. This task is categorized as {level}."
 
 # ML-Benchmark requirements
