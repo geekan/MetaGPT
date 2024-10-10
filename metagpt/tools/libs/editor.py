@@ -116,6 +116,9 @@ class Editor(BaseModel):
 
     def write(self, path: str, content: str):
         """Write the whole content to a file. When used, make sure content arg contains the full content of the file."""
+
+        path = self._try_fix_path(path)
+
         if "\n" not in content and "\\n" in content:
             # A very raw rule to correct the content: If 'content' lacks actual newlines ('\n') but includes '\\n', consider
             # replacing them with '\n' to potentially correct mistaken representations of newline characters.
@@ -130,6 +133,9 @@ class Editor(BaseModel):
 
     async def read(self, path: str) -> FileBlock:
         """Read the whole content of a file. Using absolute paths as the argument for specifying the file location."""
+
+        path = self._try_fix_path(path)
+
         error = FileBlock(
             file_path=str(path),
             block_content="The file is too large to read. Use `Editor.similarity_search` to read the file instead.",
