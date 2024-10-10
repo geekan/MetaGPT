@@ -48,13 +48,17 @@ def build_api_arequest(
         request_timeout,
         form,
         resources,
+        base_address,
+        _,
     ) = _get_protocol_params(kwargs)
     task_id = kwargs.pop("task_id", None)
     if api_protocol in [ApiProtocol.HTTP, ApiProtocol.HTTPS]:
-        if not dashscope.base_http_api_url.endswith("/"):
-            http_url = dashscope.base_http_api_url + "/"
+        if base_address is None:
+            base_address = dashscope.base_http_api_url
+        if not base_address.endswith("/"):
+            http_url = base_address + "/"
         else:
-            http_url = dashscope.base_http_api_url
+            http_url = base_address
 
         if is_service:
             http_url = http_url + SERVICE_API_PATH + "/"
