@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 
@@ -10,7 +11,7 @@ from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, Task, TaskResult
-from metagpt.utils.common import CodeParser, write_json_file
+from metagpt.utils.common import CodeParser, role_raise_decorator, write_json_file
 
 EXTRACT_SCORE_PROMPT = """
 # Code:
@@ -32,6 +33,27 @@ If you cannot find the scores, please still return a dictionary with the keys 't
 }}
 ```
 """
+
+
+class TimeoutException(Exception):
+    pass
+
+
+def async_timeout(seconds):
+    def decorator(func):
+        async def wrapper(self, *args, **kwargs):
+            try:
+                result = await asyncio.wait_for(func(self, *args, **kwargs), timeout=seconds)
+            except asyncio.TimeoutError:
+                text = f"Function timed out after {seconds} seconds"
+                mcts_logger.error(text)
+                self.save_state()
+                raise TimeoutException(text)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 class ResearchAssistant(DataInterpreter):
@@ -117,6 +139,12 @@ class ResearchAssistant(DataInterpreter):
         return task_result
 
     def save_state(self, static_save=False):
+        """
+        attribute:
+            state_saved - the state has been saved
+        input:
+            static_save - saving the state without changing the state_saved flag - used when a new role is created
+        """
         if self.state_saved and not static_save:
             return
         if not static_save:
@@ -135,18 +163,15 @@ class ResearchAssistant(DataInterpreter):
             self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())
         ]
 
+    @async_timeout(1000)
+    @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
         if with_message == "continue":
-            # self.set_todo(None)
-            # working_memory = self.working_memory
-            # self.remap_tasks()
             mcts_logger.info("Continue to run")
             self.rc.working_memory.clear()
             self.working_memory.clear()
-            # self.rc.todo = WriteAnalysisCode()
             rsp = await self.react()
-            # 发送响应消息给 Environment 对象，以便它将消息传递给订阅者
             self.set_todo(None)
             self.publish_message(rsp)
             return rsp

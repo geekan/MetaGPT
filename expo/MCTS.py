@@ -10,7 +10,7 @@ import pandas as pd
 from expo.data.dataset import generate_task_requirement, get_split_dataset_path
 from expo.evaluation.evaluation import evaluate_score
 from expo.insights.instruction_generator import InstructionGenerator
-from expo.research_assistant import ResearchAssistant
+from expo.research_assistant import ResearchAssistant, TimeoutException
 from expo.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
 from metagpt.tools.tool_recommend import ToolRecommender
 from metagpt.utils.common import read_json_file
@@ -211,10 +211,14 @@ class Node:
                 score_dict = self.evaluate_simulation(score_dict)
                 self.raw_reward = score_dict
                 run_finished = True
+            except TimeoutException as e:
+                mcts_logger.log("MCTS", f"Role-level timeout: {e}")
+                break
             except Exception as e:
                 print(f"Error: {e}")
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
+
         if not run_finished:
             mcts_logger.log("MCTS", f"Role {role.node_id} failed to run")
             if self.state["low_is_better"]:

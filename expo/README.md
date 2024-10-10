@@ -1,21 +1,21 @@
-# Expo
+# SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning
 
+![pipeline](resources/MCTS-Experimenter.jpg)
 
 
 
 ## 1. Data Preparation
 
-- 下载数据集：https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink
-- 修改`data.yaml`的`datasets_dir`为数据集合集根目录存储位置
+- Download Datasets：https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink
 
 
 ## 2. Configs
 
 ### Data Config
 
-`datasets.yaml` 提供数据集对应的指标和基础提示词
+`datasets.yaml` Provide base prompts, metrics, target columns for respective datasets
 
-`data.yaml` 继承了`datasets.yaml`以及一些路径信息，需要将`datasets_dir`指到数据集合集的根目录下
+- Modify `datasets_dir` to the root directory of all the datasets in `data.yaml`
 
 
 ### LLM Config
@@ -30,28 +30,64 @@ llm:
 ```
 
 ### Budget
-实验轮次 k = 10, 20
+Experiment rollouts k = 5, 10, 20
 
 
 ### Prompt Usage
 
-- 通过执行`dataset.py`中的`generate_task_requirement`函数获取提示词
-  - 非DI-based方法设置`is_di=False`
-  - `data_config`用`utils.DATA_CONFIG`
-- 每一个数据集里有`dataset_info.json`，里面的内容需要提供给baselines以保证公平（`generate_task_requirement`已经默认提供）
+- Use the function `generate_task_requirement` in `dataset.py` to get task requirement.
+  - If the method is non-DI-based, set `is_di=False`.
+  - Use `utils.DATA_CONFIG` as `data_config`
 
 
-## 3. Evaluation
+## 3. SELA
 
-运行各个框架，运行后框架需要提供Dev和Test的`dev_predictions.csv`和`test_predictions.csv`，每个csv文件只需要单个名为target的列
+### Run SELA
 
-- 使用`CustomExperimenter`
+#### Setup
+In the root directory, 
+
 ```
-experimenter = CustomExperimenter(task="titanic")
-score_dict = experimenter.evaluate_pred_files(dev_pred_path, test_pred_path)
+pip install -e .
+
+cd expo
+
+pip install -r requirements.txt
 ```
 
-## 4. Baselines
+#### Run
+
+- `python run_experiment.py --exp_mode mcts --task titanic --rollouts 10`
+
+If the dataset has reg metric, remember to use `--low_is_better`:
+
+- `python run_experiment.py --exp_mode mcts --task house_prices --rollouts 10 --low_is_better`
+
+
+In addition to the generated insights, include the fixed insights saved in `expo/insights/fixed_insights.json`
+- `--use_fixed_insights`
+  
+
+
+#### Ablation Study
+
+**DI RandomSearch**
+
+- Single insight
+`python run_experiment.py --exp_mode aug --task titanic --aug_mode single`
+
+- Set insight
+`python run_experiment.py --exp_mode aug --task titanic --aug_mode set`
+
+
+## 4. Evaluation
+
+Each baseline needs to produce `dev_predictions.csv`和`test_predictions.csv`. Each csv file only needs a `target` column.
+
+- Use the function `evaluate_score` to evaluate.
+
+
+## 5. Baselines
 ### DS Agent
 ```
 git clone https://github.com/guosyjlu/DS-Agent.git
@@ -257,53 +293,12 @@ python run_experiment.py --exp_mode autosklearn --task titanic
 ```
 
 ### Base DI 
-For setup, check 5.
-
+For setup, check 4.
 - `python run_experiment.py --exp_mode base --task titanic --num_experiments 10`
-- Ask DI to use AutoGluon: `--special_instruction ag`
-- Ask DI to use the stacking ensemble method: `--special_instruction stacking`
+- Specifically instruct DI to use AutoGluon: `--special_instruction ag`
+- Specifically instruct DI to use the stacking ensemble method: `--special_instruction stacking`
 
 
-
-
-## 5. DI MCTS
-
-### Run DI MCTS
-
-#### Setup
-In the root directory, 
-
-```
-pip install -e .
-
-cd expo
-
-pip install -r requirements.txt
-```
-
-#### Run
-
-- `python run_experiment.py --exp_mode mcts --task titanic --rollout 10`
-
-If the dataset has reg metric, remember to use `--low_is_better`:
-
-- `python run_experiment.py --exp_mode mcts --task househouse_prices --rollout 10 --low_is_better`
-
-
-In addition to the generated insights, include the fixed insights saved in `expo/insights/fixed_insights.json`
-- `--use_fixed_insights`
-  
-
-
-#### Ablation Study
-
-**DI RandomSearch**
-
-- Single insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode single`
-
-- Set insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode set`
 
 
 
