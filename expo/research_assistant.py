@@ -6,7 +6,7 @@ import os
 
 from pydantic import model_validator
 
-from expo.utils import mcts_logger, save_notebook
+from expo.utils import DATA_CONFIG, mcts_logger, save_notebook
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter
@@ -163,7 +163,7 @@ class ResearchAssistant(DataInterpreter):
             self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())
         ]
 
-    @async_timeout(1000)
+    @async_timeout(DATA_CONFIG["role_timeout"])
     @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
