@@ -70,10 +70,16 @@ class DABench:
         true_label = self.get_answer(id)["common_answers"]
         # Parse the prediction string into a dictionary of metric-value pairs
         pred_dict = {}
-        for pred in prediction.split(","):
+        for pred in prediction.split("@"):
+            if pred == "":
+                continue
             parts = pred.strip().split("[")
-            metric = parts[0].strip().replace("@", "")
-            value = float(parts[1].rstrip("]"))
+            metric = parts[0].strip().replace(",", "")
+            value = parts[1].replace(",", "").replace("]", "")
+            try:
+                value = float(value)
+            except:
+                value = value
             pred_dict[metric] = value
 
         # Sort the true labels to match the order of predictions
@@ -82,7 +88,16 @@ class DABench:
         # Compare each prediction with the corresponding true label
         correct = True
         for metric, true_value in sorted_true_label:
-            if metric not in pred_dict or abs(pred_dict[metric] - float(true_value)) > 1e-6:
+            try:
+                true_value = float(true_value)
+            except:
+                true_value = true_value
+            if isinstance(true_value, (int, float)) and (
+                metric not in pred_dict or abs(pred_dict[metric] - true_value) > 1e-6
+            ):
+                correct = False
+                break
+            if isinstance(true_value, str) and (metric not in pred_dict or str(pred_dict[metric]) != str(true_value)):
                 correct = False
                 break
 
@@ -97,10 +112,16 @@ class DABench:
             pred_dict = {}
 
             # Parse the prediction string into a dictionary of metric-value pairs
-            for pred in prediction.split(","):
+            for pred in prediction.split("@"):
+                if pred == "":
+                    continue
                 parts = pred.strip().split("[")
-                metric = parts[0].strip().replace("@", "")
-                value = float(parts[1].rstrip("]"))
+                metric = parts[0].strip().replace(",", "")
+                value = parts[1].replace(",", "").replace("]", "")
+                try:
+                    value = float(value)
+                except:
+                    value = value
                 pred_dict[metric] = value
 
             # Initialize the correctness dictionary with False values
@@ -108,11 +129,16 @@ class DABench:
 
             # Check each metric's prediction against the true label
             for metric, true_value in true_label:
+                try:
+                    true_value = float(true_value)
+                except:
+                    true_value = true_value
                 if metric in pred_dict:
                     # Consider the prediction correct if it's within a small tolerance
-                    if abs(pred_dict[metric] - float(true_value)) < 1e-6:
+                    if isinstance(true_value, (int, float)) and abs(pred_dict[metric] - true_value) < 1e-6:
                         correctness[metric] = True
-
+                    if isinstance(true_value, str) and str(pred_dict[metric]) == str(true_value):
+                        correctness[metric] = True
             return correctness
 
         results = []
@@ -134,10 +160,15 @@ class DABench:
 
 if __name__ == "__main__":
     DA = DABench()
-    id = [0, 5, 6]
-    prediction = [
-        "@mean_fare[34.89]",
-        "@correlation_coefficient[0.21]",
-        "@mean_fare_child[31.09], @mean_fare_teenager[31.98], @mean_fare_adult[35.17], @mean_fare_elderly[43.47]",
-    ]
-    print(DA.eval_all(id, prediction))
+    # id = [0, 5, 6]
+    # prediction = [
+    #     "@mean_fare[34.89]",
+    #     "@correlation_coefficient[0.21]",
+    #     "@mean_fare_child[31.09], @mean_fare_teenager[31.98], @mean_fare_adult[35.17], @mean_fare_elderly[43.47]",
+    # ]
+    id = 6
+    prediction = (
+        "@mean_fare_child[31.09], @mean_fare_teenager[31.98], @mean_fare_adult[35.17], @mean_fare_elderly[43.47]"
+    )
+    print(DA.eval(id, prediction))
+    print(DA.get_answer(id))

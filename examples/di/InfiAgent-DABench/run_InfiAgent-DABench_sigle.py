@@ -6,7 +6,7 @@ from DABench import DABench
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
-async def main(id=5):
+async def main(id=0):
     DA = DABench()
     requirement = DA.get_prompt(id)
     di = DataInterpreter()
