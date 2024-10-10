@@ -26,7 +26,9 @@ def initialize_di_root_node(state, reflection: bool = True):
     return role, Node(parent=None, state=state, action=None, value=0)
 
 
-def create_initial_state(task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str):
+def create_initial_state(
+    task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str, args
+):
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
@@ -40,6 +42,7 @@ def create_initial_state(task, start_task_id, data_config, low_is_better: bool, 
         "has_run": False,
         "start_task_id": start_task_id,
         "low_is_better": low_is_better,
+        "role_timeout": args.role_timeout,
     }
     os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state

@@ -27,6 +27,7 @@ class Experimenter:
             low_is_better=self.args.low_is_better,
             name=self.args.name,
             special_instruction=self.args.special_instruction,
+            args=self.args,
         )
 
     async def run_di(self, di, user_requirement, run_idx):
@@ -82,7 +83,9 @@ class Experimenter:
         results = []
 
         for i in range(self.args.num_experiments):
-            di = ResearchAssistant(node_id="0", use_reflection=self.args.reflection)
+            di = ResearchAssistant(
+                node_id="0", use_reflection=self.args.reflection, role_timeout=self.args.role_timeout
+            )
             score_dict = await self.run_di(di, user_requirement, run_idx=i)
             results.append(
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}

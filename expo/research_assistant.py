@@ -6,7 +6,7 @@ import os
 
 from pydantic import model_validator
 
-from expo.utils import DATA_CONFIG, mcts_logger, save_notebook
+from expo.utils import mcts_logger, save_notebook
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter
@@ -39,13 +39,13 @@ class TimeoutException(Exception):
     pass
 
 
-def async_timeout(seconds):
+def async_timeout():
     def decorator(func):
         async def wrapper(self, *args, **kwargs):
             try:
-                result = await asyncio.wait_for(func(self, *args, **kwargs), timeout=seconds)
+                result = await asyncio.wait_for(func(self, *args, **kwargs), timeout=self.role_timeout)
             except asyncio.TimeoutError:
-                text = f"Function timed out after {seconds} seconds"
+                text = f"Function timed out after {self.role_timeout} seconds"
                 mcts_logger.error(text)
                 self.save_state()
                 raise TimeoutException(text)
@@ -61,6 +61,7 @@ class ResearchAssistant(DataInterpreter):
     start_task_id: int = 1
     state_saved: bool = False
     role_dir: str = SERDESER_PATH.joinpath("team", "environment", "roles", "Experimenter")
+    role_timeout: int = 1000
 
     def get_node_name(self):
         return f"Node-{self.node_id}"
@@ -163,7 +164,7 @@ class ResearchAssistant(DataInterpreter):
             self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())
         ]
 
-    @async_timeout(DATA_CONFIG["role_timeout"])
+    @async_timeout()
     @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""

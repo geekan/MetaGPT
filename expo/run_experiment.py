@@ -18,6 +18,7 @@ def get_args():
         default="mcts",
         choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random", "autosklearn"],
     )
+    parser.add_argument("--role_timeout", type=int, default=1000)
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)

@@ -1,4 +1,3 @@
 datasets_dir: "D:/work/automl/datasets" # path to the datasets directory
 work_dir: ../workspace # path to the workspace directory
 role_dir: storage/SELA # path to the role directory
-role_timeout: 1000 # timeout for each node/role in seconds
