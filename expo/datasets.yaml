@@ -201,11 +201,11 @@ datasets:
       \ Do not plot or make any visualizations.\n"
   oxford-iiit-pet:
     dataset: oxford-iiit-pet
-    metric: f1
-    target_col: label_cat_dog
+    metric: f1 weighted
+    target_col: label
     user_requirement: "This is a oxford-iiit-pet dataset. Your goal is to predict\
-      \ the target column `label_cat_dog`.\nPerform data analysis, data preprocessing,\
-      \ feature engineering, and modeling to predict the target. \nReport f1 on the\
+      \ the target column `label`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport f1 weighted on the\
       \ eval data. Do not plot or make any visualizations.\n"
   sms_spam:
     dataset: sms_spam

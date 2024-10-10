@@ -18,7 +18,7 @@ HFDATSETS = [
         "name": "oxford-iiit-pet",
         "dataset_name": "timm/oxford-iiit-pet",
         "image_col": "image",
-        "target_col": "label_cat_dog",
+        "target_col": "label",
         "modality": "image",
     },
     {
@@ -115,7 +115,7 @@ class HFExpDataset(ExpDataset):
 
 if __name__ == "__main__":
     dataset_dir = "D:/work/automl/datasets"
-    save_analysis_pool = False
+    save_analysis_pool = True
     force_update = False
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()

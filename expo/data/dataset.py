@@ -20,12 +20,23 @@ USE_AG = """
 7. Please use autogluon for model training with presets='medium_quality', time_limit=None, give dev dataset to tuning_data, and use right eval_metric.
 """
 
+TEXT_MODALITY = """
+7. You could use models from transformers library for this text dataset.
+8. Use gpu if available for faster training.
+"""
+
+IMAGE_MODALITY = """
+7. You could use models from transformers/torchvision library for this image dataset.
+8. Use gpu if available for faster training.
+"""
+
 STACKING = """
 7. To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor.
 8. You could do some quick model prototyping to see which models work best and then use them in the ensemble. 
 """
 
-SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING}
+
+SPECIAL_INSTRUCTIONS = {"ag": USE_AG, "stacking": STACKING, "text": TEXT_MODALITY, "image": IMAGE_MODALITY}
 
 DI_INSTRUCTION = """
 ## Attention
@@ -39,8 +50,8 @@ DI_INSTRUCTION = """
 ## Saving Dev and Test Predictions
 1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
 - Both files should contain a single column named `target` with the predicted values.
-2. Make sure the prediction results are in the same format as the target column in the training set. 
-- For instance, if the target column is categorical, the prediction results should be categorical as well.
+2. Make sure the prediction results are in the same format as the target column in the original training set. 
+- For instance, if the original target column is a list of string, the prediction results should also be strings.
 
 ## Output Performance
 Print the train and dev set performance in the last step.

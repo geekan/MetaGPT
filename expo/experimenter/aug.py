@@ -49,9 +49,5 @@ class AugExperimenter(Experimenter):
                     "args": vars(self.args),
                 }
             )
-        scores = [result["score_dict"]["test_score"] for result in results]
-        avg_score = sum(scores) / len(scores)
-        best_score = max(scores) if not self.args.low_is_better else min(scores)
-        best_score_idx = scores.index(best_score)
-        results.insert(0, {"avg_score": avg_score, "best_score": best_score, "best_score_idx": best_score_idx})
+        results = self.summarize_results(results)
         self.save_result(results)

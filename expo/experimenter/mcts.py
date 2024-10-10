@@ -29,17 +29,13 @@ class MCTSExperimenter(Experimenter):
         )
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
-
-        self.copy_notebook(best_node, "best")
-        self.copy_notebook(dev_best_node, "dev_best")
+        score_dict = best_nodes["scores"]
 
         text, num_generated_codes = get_tree_text(mcts.root_node)
         text += f"Generated {num_generated_codes} unique codes.\n"
         text += f"Best node: {best_node.id}, score: {best_node.raw_reward}\n"
         text += f"Dev best node: {dev_best_node.id}, score: {dev_best_node.raw_reward}\n"
         print(text)
-        self.save_tree(text)
-
         results = [
             {
                 "best_node": best_node.id,
@@ -50,9 +46,13 @@ class MCTSExperimenter(Experimenter):
                 "user_requirement": best_node.state["requirement"],
                 "tree_text": text,
                 "args": vars(self.args),
+                "scores": score_dict,
             }
         ]
         self.save_result(results)
+        self.copy_notebook(best_node, "best")
+        self.copy_notebook(dev_best_node, "dev_best")
+        self.save_tree(text)
 
     def copy_notebook(self, node, name):
         node_dir = node.get_node_dir()
