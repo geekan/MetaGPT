@@ -155,18 +155,15 @@ class Node:
         role = role.model_copy()
         role.save_state(static_save=True)
 
-    async def expand(self, max_children, use_fixed_insights):
+    async def expand(self, max_children: int, instruction_generator: InstructionGenerator):
         if self.is_fully_expanded():
             return
-        insight_geneartor = InstructionGenerator()
         role = self.load_role()
         original_instruction = role.get_next_instruction()
-        insights = await insight_geneartor.generate_new_instructions(
+        insights = await instruction_generator.generate_new_instructions(
             task_id=role.start_task_id + 1,
             original_instruction=original_instruction,
             max_num=max_children,
-            file_path=self.state["exp_pool_path"],
-            use_fixed_insights=use_fixed_insights,
         )
         new_state = self.state.copy()
         new_state["start_task_id"] += 1
@@ -249,6 +246,8 @@ class MCTS:
     c_explore: float = 1.4
     c_unvisited: float = 0.8
     node_order: list = []
+    # insight generator
+    instruction_generator: InstructionGenerator = None
 
     def __init__(self, root_node, max_depth, use_fixed_insights):
         self.root_node = root_node
@@ -272,7 +271,7 @@ class MCTS:
         return max(all_children, key=uct)
 
     async def expand(self, node: Node, max_children=5):
-        await node.expand(max_children, self.use_fixed_insights)
+        await node.expand(max_children, self.instruction_generator)
         if node not in self.children or not self.children[node]:
             self.children[node] = node.children
         return node.children
@@ -284,6 +283,7 @@ class MCTS:
             node = random.choice(node.children)
         reward = await node.run_node(role)
         mcts_logger.log("MCTS", f"Simulated node's reward: {reward}")
+
         return reward
 
     def backpropagate(self, node: Node, reward):
@@ -344,6 +344,10 @@ class MCTS:
     async def search(self, state, rollouts, load_tree=False, reflection=False):
         role, root = initialize_di_root_node(state, reflection=reflection)
         self.root_node = root
+        self.instruction_generator = InstructionGenerator(
+            file_path=state["exp_pool_path"], use_fixed_insights=self.use_fixed_insights
+        )
+
         tree_loaded = False
         if load_tree:
             tree_loaded = self.load_tree()

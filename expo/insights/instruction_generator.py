@@ -2,6 +2,7 @@ import json
 import os
 import random
 
+from expo.insights.solution_designer import SolutionDesigner
 from expo.utils import clean_json_from_rsp, load_data_config, mcts_logger
 from metagpt.llm import LLM
 from metagpt.schema import Message
@@ -31,6 +32,12 @@ DATA_CONFIG = load_data_config()
 
 class InstructionGenerator:
     data_config = DATA_CONFIG
+
+    def __init__(self, file_path, use_fixed_insights=False):
+        self.file_path = file_path
+        self.use_fixed_insights = use_fixed_insights
+        self.analysis_pool = self.load_analysis_pool(file_path, use_fixed_insights)
+        self.proposer = SolutionDesigner()
 
     @staticmethod
     def load_json_data(json_dir):
@@ -83,13 +90,8 @@ class InstructionGenerator:
             data = [item for item in data if int(item["task_id"]) == int(task_id)]
         return data
 
-    @staticmethod
-    async def generate_new_instructions(
-        task_id, original_instruction, max_num, file_path, ext_info=None, use_fixed_insights=False
-    ):
-        data = InstructionGenerator.load_analysis_pool(
-            file_path, task_id=task_id, use_fixed_insights=use_fixed_insights
-        )
+    async def generate_new_instructions(self, task_id, original_instruction, max_num, ext_info=None):
+        data = self.analysis_pool
         new_instructions = []
         if len(data) == 0:
             mcts_logger.log("MCTS", f"No insights available for task {task_id}")
