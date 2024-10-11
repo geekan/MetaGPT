@@ -546,7 +546,7 @@ class RoleZero(Role):
         elif cmd["command_name"] == "Terminal.run_command":
             if "npm run dev" in cmd["args"]:
                 command_output = "command run failed! Pleae use Delopyer to deploy your project after build."
-
+                return command_output
             tool_obj = self.tool_execution_map[cmd["command_name"]]
             tool_output = await tool_obj(**cmd["args"])
             if len(tool_output) <= 10:
