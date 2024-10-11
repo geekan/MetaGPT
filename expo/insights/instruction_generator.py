@@ -36,7 +36,7 @@ class InstructionGenerator:
     def __init__(self, file_path, use_fixed_insights=False):
         self.file_path = file_path
         self.use_fixed_insights = use_fixed_insights
-        self.analysis_pool = self.load_analysis_pool(file_path, use_fixed_insights)
+        self.analysis_pool = self.load_insight_pool(file_path, use_fixed_insights)
         self.proposer = SolutionDesigner()
 
     @staticmethod
@@ -76,7 +76,7 @@ class InstructionGenerator:
         return new_data
 
     @staticmethod
-    def load_analysis_pool(file_path, use_fixed_insights, task_id=None):
+    def load_insight_pool(file_path, use_fixed_insights, task_id=None):
         data = InstructionGenerator.load_json_data(file_path)
         if use_fixed_insights:
             current_directory = os.path.dirname(__file__)
