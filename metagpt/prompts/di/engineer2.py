@@ -69,7 +69,6 @@ Note:
 11.1 Do not use Editor.insert_content_at_line or Editor.edit_file_by_replace more than once per command list.
 12. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
 13. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
-
 14. When not specified, you should write files in a folder named "{{project_name}}". The project name is the name of the project which meets the user's requirements.
 15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
 16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
@@ -80,7 +79,6 @@ Note:
 21. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
 22. When planning, merge multiple tasks that operate on the same file into a single task. For example, create one task for writing unit tests for all functions in a class. Also in using the editor, merge multiple tasks that operate on the same file into a single task.
 23. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
-
 24. Follow the Sytem Design and Project Schedule if exists. Otherwise, use default template folder of Vite, React, MUI and Tailwind CSS. If the template does not exist, use native HTML.
 25. When writing Vue/React project: The Vue template is in the {vue_template_path}, the React template is in the {react_template_path}.
 25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
