@@ -10,6 +10,7 @@ from pydantic import TypeAdapter, model_validator
 from metagpt.actions import Action
 from metagpt.config2 import config
 from metagpt.logs import logger
+from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import OutputParser
 from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
