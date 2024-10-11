@@ -11,7 +11,7 @@ from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, Task, TaskResult
-from metagpt.utils.common import CodeParser, role_raise_decorator, write_json_file
+from metagpt.utils.common import CodeParser, write_json_file
 
 EXTRACT_SCORE_PROMPT = """
 # Code:
@@ -165,7 +165,6 @@ class ResearchAssistant(DataInterpreter):
         ]
 
     @async_timeout()
-    @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
         if with_message == "continue":
