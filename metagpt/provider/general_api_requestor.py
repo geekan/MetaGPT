@@ -82,9 +82,7 @@ class GeneralAPIRequestor(APIRequestor):
     ) -> Tuple[Union[bytes, AsyncGenerator[bytes, None]], bool]:
         content_type = result.headers.get("Content-Type", "")
         if stream and (
-                "text/event-stream" in content_type or
-                "application/x-ndjson" in content_type or
-                content_type == ''
+            "text/event-stream" in content_type or "application/x-ndjson" in content_type or content_type == ""
         ):
             # the `Content-Type` of ollama stream resp is "application/x-ndjson"
             return (
