@@ -49,6 +49,7 @@ from metagpt.utils.token_counter import (
         LLMType.MISTRAL,
         LLMType.YI,
         LLMType.OPENROUTER,
+        LLMType.UNIFY,
     ]
 )
 class OpenAILLM(BaseLLM):
