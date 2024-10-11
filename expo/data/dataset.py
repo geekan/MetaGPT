@@ -9,6 +9,7 @@ import yaml
 from sklearn.model_selection import train_test_split
 
 from expo.insights.solution_designer import SolutionDesigner
+from expo.utils import DATA_CONFIG
 
 BASE_USER_REQUIREMENT = """
 This is a {datasetname} dataset. Your goal is to predict the target column `{target_col}`.
@@ -361,7 +362,7 @@ async def process_dataset(dataset, solution_designer: SolutionDesigner, save_ana
 
 
 if __name__ == "__main__":
-    datasets_dir = "D:/work/automl/datasets"
+    datasets_dir = DATA_CONFIG["datasets_dir"]
     force_update = False
     save_analysis_pool = True
     datasets_dict = {"datasets": {}}
