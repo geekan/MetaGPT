@@ -117,7 +117,7 @@ class QianFanLLM(BaseLLM):
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
-        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True))
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True),request_timeout = timeout)
         collected_content = []
         usage = {}
         async for chunk in resp:
