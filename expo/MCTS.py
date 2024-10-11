@@ -235,7 +235,8 @@ class Node:
 
             score_dict = {k: normalize_score(v) for k, v in score_dict.items()}
         self.normalized_reward = score_dict
-        return score_dict
+        result_dict = role.get_solution()
+        return score_dict, result_dict
 
 
 class MCTS:
@@ -281,7 +282,7 @@ class MCTS:
         mcts_logger.log("MCTS", f"Start simulating node {node.id}:")
         while node.children:
             node = random.choice(node.children)
-        reward = await node.run_node(role)
+        reward, result_dict = await node.run_node(role)
         mcts_logger.log("MCTS", f"Simulated node's reward: {reward}")
 
         return reward
@@ -341,12 +342,17 @@ class MCTS:
             scores["test_raw"].append(node.raw_reward["test_score"])
         return scores
 
-    async def search(self, state, rollouts, load_tree=False, reflection=False):
+    async def search(self, state, args):
+        reflection = args.reflection
+        load_tree = args.load_tree
+        rollouts = args.rollouts
+        from_scratch = args.from_scratch
         role, root = initialize_di_root_node(state, reflection=reflection)
         self.root_node = root
         self.instruction_generator = InstructionGenerator(
-            file_path=state["exp_pool_path"], use_fixed_insights=self.use_fixed_insights
+            state=state, use_fixed_insights=self.use_fixed_insights, from_scratch=from_scratch
         )
+        await self.instruction_generator.initialize()
 
         tree_loaded = False
         if load_tree:

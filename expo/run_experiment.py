@@ -32,6 +32,9 @@ def get_mcts_args(parser):
     parser.add_argument("--rollouts", type=int, default=5)
     parser.add_argument("--use_fixed_insights", dest="use_fixed_insights", action="store_true")
     parser.add_argument("--start_task_id", type=int, default=2)
+    parser.add_argument(
+        "--from_scratch", dest="from_scratch", action="store_true", help="Generate solutions from scratch"
+    )
 
 
 def get_aug_exp_args(parser):

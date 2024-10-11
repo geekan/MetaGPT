@@ -70,6 +70,45 @@ Your model choices should be advanced enough to be helpful.
 ```
 """
 
+
+INSIGHT_PROPOSAL_PROMPT = """
+You are an AI assistant tasked with analyzing a machine learning solution and proposing new insights to improve its performance. Given the current solution code and development score, suggest innovative approaches to enhance the model.
+
+Current Solution Code:
+{solution_code}
+
+Development Score: {dev_score}
+
+Based on this information, propose 3-5 new insights across different aspects of the machine learning pipeline (Data Preprocessing, Feature Engineering, and Model Training). Your insights should be specific, actionable, and have the potential to improve the model's performance.
+
+Please format your response as a JSON array with the following structure:
+[
+
+    {{
+        "task_type": "Data Preprocessing",
+        "insights": [
+            "insight1",
+            "insight2"
+        ]
+    }},
+    {{
+        "task_type": "Feature Engineering",
+        "insights": [
+            "insight1",
+            "insight2"
+        ]
+    }},
+    {{
+        "task_type": "Model Training",
+        "insights": [
+            "insight1",
+            "insight2"
+        ]
+    }}
+]
+"""
+
+
 KEY_DATASET_FEATURES = [
     "NumberOfClasses",
     "NumberOfFeatures",
@@ -86,7 +125,7 @@ TASK_TO_ID = {"EDA": 1, "Data Preprocessing": 2, "Feature Engineering": 3, "Mode
 class SolutionDesigner:
     data_dir: str = DATA_CONFIG["datasets_dir"]
 
-    async def generate_solutions(self, dataset_info, dataset_name):
+    async def generate_solutions(self, dataset_info, dataset_name, save_analysis_pool=True):
         llm = LLM()
         context = DATASET_INSIGHT_PROMPT.format(
             dataset=dataset_info["description"],
@@ -96,8 +135,18 @@ class SolutionDesigner:
         rsp = await llm.aask(context)
         rsp = clean_json_from_rsp(rsp)
         analysis_pool = self.process_analysis_pool(json.loads(rsp))
-        dataset_path = f"{self.data_dir}/{dataset_name}"
-        self.save_analysis_pool(dataset_path, analysis_pool)
+        if save_analysis_pool:
+            dataset_path = f"{self.data_dir}/{dataset_name}"
+            self.save_analysis_pool(dataset_path, analysis_pool)
+        return analysis_pool
+
+    async def propose_new_insights(self, solution, score):
+        llm = LLM()
+        context = INSIGHT_PROPOSAL_PROMPT.format(solution_code=solution, dev_score=score)
+        rsp = await llm.aask(context)
+        rsp = clean_json_from_rsp(rsp)
+        new_insights = self.process_analysis_pool(json.loads(rsp))
+        return new_insights
 
     def process_analysis_pool(self, insights_rsp):
         analysis_pool = []

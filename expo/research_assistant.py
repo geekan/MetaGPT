@@ -139,6 +139,11 @@ class ResearchAssistant(DataInterpreter):
             save_notebook(role=self, save_dir=self.role_dir, name=self.get_node_name())
         return task_result
 
+    def get_solution(self):
+        codes = [task.code for task in self.planner.plan.tasks]
+        results = [task.result for task in self.planner.plan.tasks]
+        return {"codes": codes, "results": results}
+
     def save_state(self, static_save=False):
         """
         attribute:
