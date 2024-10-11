@@ -5,7 +5,7 @@
 import asyncio
 from abc import abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Union
 
 from gymnasium import spaces
 from gymnasium.core import ActType, ObsType
@@ -131,7 +131,7 @@ class Environment(ExtEnv):
     desc: str = Field(default="")  # 环境描述
     roles: dict[str, SerializeAsAny["Role"]] = Field(default_factory=dict, validate_default=True)
     member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
-    history: str = ""  # For debug
+    history: List[Message] = Field(default_factory=list)  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
     def reset(
@@ -190,7 +190,7 @@ class Environment(ExtEnv):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
-        self.history += f"\n{message}"  # For debug
+        self.history.append(message)
 
         return True
 
