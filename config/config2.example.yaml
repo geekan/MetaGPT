@@ -87,6 +87,7 @@ role_zero:
   enable_longterm_memory: false # Whether to use long-term memory. Default is `false`.
   longterm_memory_persist_path: .role_memory_data # The directory to save data.
   memory_k: 200 # The capacity of short-term memory.
+  similarity_top_k: 5 # The number of long-term memories to retrieve.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"

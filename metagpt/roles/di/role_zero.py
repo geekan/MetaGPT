@@ -185,6 +185,7 @@ class RoleZero(Role):
                 persist_path=self.config.role_zero.longterm_memory_persist_path,
                 collection_name=self.name.replace(" ", ""),
                 memory_k=self.config.role_zero.memory_k,
+                similarity_top_k=self.config.role_zero.similarity_top_k,
             )
             logger.info(f"Long-term memory set for role '{self.name}'")
 
