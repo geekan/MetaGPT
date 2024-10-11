@@ -266,7 +266,7 @@ class STRole(Role):
         # We will order our percept based on the distance, with the closest ones
         # getting priorities.
         percept_events_list = []
-        # First, we put all events that are occuring in the nearby tiles into the
+        # First, we put all events that are occurring in the nearby tiles into the
         # percept_events_list
         for tile in nearby_tiles:
             tile_details = self.rc.env.observe(EnvObsParams(obs_type=EnvObsType.GET_TITLE, coord=tile))
