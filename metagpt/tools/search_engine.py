@@ -6,9 +6,9 @@
 @File    : search_engine.py
 """
 import importlib
-from typing import Callable, Coroutine, Literal, Optional, Union, overload
+from typing import Annotated, Callable, Coroutine, Literal, Optional, Union, overload
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.configs.search_config import SearchConfig
 from metagpt.logs import logger
@@ -29,7 +29,9 @@ class SearchEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: SearchEngineType = SearchEngineType.SERPER_GOOGLE
-    run_func: Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]] = None
+    run_func: Annotated[
+        Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]], Field(exclude=True)
+    ] = None
     api_key: Optional[str] = None
     proxy: Optional[str] = None
 

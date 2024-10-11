@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Coroutine, Optional, Union, overload
+from typing import Annotated, Any, Callable, Coroutine, Optional, Union, overload
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
 from metagpt.tools import WebBrowserEngineType
@@ -29,7 +29,10 @@ class WebBrowserEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: WebBrowserEngineType = WebBrowserEngineType.PLAYWRIGHT
-    run_func: Optional[Callable[..., Coroutine[Any, Any, Union[WebPage, list[WebPage]]]]] = None
+    run_func: Annotated[
+        Optional[Callable[..., Coroutine[Any, Any, Union[WebPage, list[WebPage]]]]],
+        Field(exclude=True),
+    ] = None
     proxy: Optional[str] = None
 
     @model_validator(mode="after")

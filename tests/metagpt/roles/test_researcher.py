@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 from random import random
 from tempfile import TemporaryDirectory
@@ -6,6 +7,7 @@ import pytest
 
 from metagpt.actions.research import CollectLinks
 from metagpt.roles import researcher
+from metagpt.team import Team
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
 
@@ -55,6 +57,14 @@ def test_write_report(mocker, context):
             content = "# Research Report"
             researcher.Researcher(context=context).write_report(topic, content)
             assert (researcher.RESEARCH_PATH / f"{i+1}. metagpt.md").read_text().startswith("# Research Report")
+
+
+@pytest.mark.asyncio
+async def test_serialize():
+    team = Team()
+    team.hire([researcher.Researcher()])
+    with tempfile.TemporaryDirectory() as dirname:
+        team.serialize(Path(dirname) / "team.json")
 
 
 if __name__ == "__main__":
