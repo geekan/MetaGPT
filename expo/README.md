@@ -1,6 +1,5 @@
 # SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning
 
-![pipeline](resources/MCTS-Experimenter.jpg)
 
 
 
