@@ -179,11 +179,12 @@ class RoleZero(Role):
         """
 
         if self.config.role_zero.enable_longterm_memory:
+            # Use config.role_zero to initialize long-term memory
             self.rc.memory = RoleZeroLongTermMemory(
                 **self.rc.memory.model_dump(),
                 persist_path=self.config.role_zero.longterm_memory_persist_path,
                 collection_name=self.name.replace(" ", ""),
-                memory_k=self.memory_k,
+                memory_k=self.config.role_zero.memory_k,
             )
             logger.info(f"Long-term memory set for role '{self.name}'")
 
