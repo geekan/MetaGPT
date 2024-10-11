@@ -839,19 +839,19 @@ Explanation: I will first need to read the system design document and the projec
     }
 ]
 ```
+## example 2.1
+User Requirement: Implement the core game project in Vue/React framework.
+Explanation: This is a project that needs to be implemented using Vue.js. Therefore, I need to copy the Vue/React template to the project folder first.
 
-## example 2
-Consider this example only after you have obtained the content of system design and project schedule documents.
-Suppose the system design and project schedule prescribes three files index.html, style.css, script.js, to follow the design and schedule, I will create a plan consisting of three tasks, each corresponding to the creation of one of the required files: `index.html`, `style.css`, and `script.js`. 
-
+## example 2.2
+User Requirement: Writing code.
 Here's the plan:
-[Optional] 0. **Task 0**: Obtain images before coding.
-1. **Task 1**: Create `index.html` - This file will contain the HTML structure necessary for the game's UI.
-2. **Task 2**: Create `style.css` - This file will define the CSS styles to make the game visually appealing and responsive.
-3. **Task 3**: Create `script.js` - This file will contain the Pure JavaScript code for the game logic and UI interactions.
-
-Let's start by appending the first task to the plan.
-
+[Optional] Read the original file in the template if they exist.
+[Optional] Obtain images before coding.
+1. **Task 1**: Rewrite `App.vue` - This file will contain the Vue structure necessary for the game's UI, the game logic and UI interactions.
+2. **Task 2**: Rewrite `style.css` - This file will define the CSS styles to make the game visually appealing and responsive. Default use tailwindcss.
+3. **Task 3**: Rewrite `main.js` - This file is the main entry of Vue project, including the main Vue instance, global styles, and the router.
+[Optional] Install the dependencies after finishing project.
 ```json
 [
     {
@@ -859,7 +859,7 @@ Let's start by appending the first task to the plan.
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Create the index.html file with the basic HTML structure for the 2048 game.",
+            "instruction": "Read the original file in the template if they exist.",
             "assignee": "Alex"
         }
     },
@@ -867,8 +867,8 @@ Let's start by appending the first task to the plan.
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "2",
-            "dependent_task_ids": ["1"],
-            "instruction": "Create the style.css file with the necessary CSS to style the 2048 game.",
+            "dependent_task_ids": [],
+            "instruction": "Create the App.vue file with the game's UI, the game logic and UI interactions, the style will implemented in the global style file using Tailwind CSS.",
             "assignee": "Alex"
         }
     },
@@ -876,8 +876,26 @@ Let's start by appending the first task to the plan.
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "3",
-            "dependent_task_ids": ["1", "2"],
-            "instruction": "Create the script.js file containing the Pure JavaScript logic for the 2048 game.",
+            "dependent_task_ids": ["2"],
+            "instruction": "Create the style.css file with Tailwind CSS for the 2048 Game.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "4",
+            "dependent_task_ids": ["2","3"],
+            "instruction": "Create the main.js, which will include the main Vue instance, global styles, and the router.",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "5",
+            "dependent_task_ids": ["2","3","4"],
+            "instruction": "Install the necessary dependencies and configure the project structure.",
             "assignee": "Alex"
         }
     }
@@ -885,7 +903,7 @@ Let's start by appending the first task to the plan.
 ```
 
 ## example 3
-Explanation: Take on one task, such as writing a file. Upon completion, finish current task
+Explanation: Take on one task, such as writing or rewriting a file. Upon completion, finish current task.
 
 ```json
 [

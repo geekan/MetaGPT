@@ -13,7 +13,7 @@ from metagpt.utils.mermaid import MMC1, MMC2
 IMPLEMENTATION_APPROACH = ActionNode(
     key="Implementation approach",
     expected_type=str,
-    instruction="Analyze the difficult points of the requirements, select the appropriate open-source framework",
+    instruction="Analyze the difficult points of the requirements, select the appropriate open-source framework.",
     example="We will ...",
 )
 

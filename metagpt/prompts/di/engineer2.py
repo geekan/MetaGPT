@@ -1,3 +1,4 @@
+from metagpt.const import REACT_TEMPLATE_PATH, VUE_TEMPLATE_PATH
 from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 
 EXTRA_INSTRUCTION = """
@@ -6,7 +7,6 @@ You are an autonomous programmer
 The special interface consists of a file editor that shows you 100 lines of a file at a time.
 
 You can use terminal commands (e.g., cat, ls, cd) by calling Terminal.run_command.
-
 
 You should carefully observe the behavior and results of the previous action, and avoid triggering repeated errors.
 
@@ -69,20 +69,27 @@ Note:
 11.1 Do not use Editor.insert_content_at_line or Editor.edit_file_by_replace more than once per command list.
 12. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
 13. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
-
-14. When not specified, you should write files in a folder named "src". If you know the project path, then write in a "src" folder under the project path.
+14. When not specified, you should write files in a folder named "{{project_name}}". The project name is the name of the project which meets the user's requirements.
 15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
 16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
 17. If you plan to read a file, do not include other plans in the same response.
 18. Write only one code file each time and provide its full implementation.
 19. When the requirement is simple, you don't need to create a plan, just do it right away.
-20. If the code exists, use the Editor tool's open and edit commands to modify it. Since it is not a new code, do not use write_new_code.
-21. When using the editor, pay attention to the editor's current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
-22. The default programming languages are Native HTML.
-23. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
-24. When planning, merge multiple tasks that operate on the same file into a single task. For example, create one task for writing unit tests for all functions in a class. Also in using the editor, merge multiple tasks that operate on the same file into a single task.
-25. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
-"""
+20. When using the editor, pay attention to current directory. When you use editor tools, the paths must be either absolute or relative to the editor's current directory.
+21. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
+22. When planning, merge multiple tasks that operate on the same file into a single task. For example, create one task for writing unit tests for all functions in a class. Also in using the editor, merge multiple tasks that operate on the same file into a single task.
+23. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
+24. Follow the Sytem Design and Project Schedule if exists. Otherwise, use default template folder of Vite, React, MUI and Tailwind CSS. If the template does not exist, use native HTML.
+25. When writing Vue/React project: The Vue template is in the {vue_template_path}, the React template is in the {react_template_path}.
+25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
+25.2. Copy a Vue/React template to your project and view all files. This must be a single respond. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f".
+25.3. Read the content of each file and use the write_new_code command to rewrite the code. Be sure you are in the {{project_name}}. Reorganize the file structure to match the project template if it differs from the system design.
+25.4. After finish the project. use "npm install" and "npm run build" to build the project. 
+26. Engineer2.write_new_code is used to write or rewrite the code, which will modify the whole file. Editor.edit_file_by_replace is used to edit a small part of the file.
+""".format(
+    vue_template_path=VUE_TEMPLATE_PATH.absolute(),
+    react_template_path=REACT_TEMPLATE_PATH.absolute(),
+)
 CURRENT_STATE = """
 The current editor state is:
 (Current directory: {current_directory})
@@ -113,10 +120,11 @@ WRITE_CODE_PROMPT = """
 {file_description}
 
 # Instruction
-Your task is to write the {file_name} according to the User Requirement. 
+Your task is to write the {file_name} according to the User Requirement. You must ensure the code is complete, correct, and bug-free.
 
 # Output
-While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. Output code in the following format:
+While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. DO NOT leave any TODO or placeholder.
+Output code in the following format:
 ```
 your code
 ```

@@ -5,7 +5,7 @@ from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
 from metagpt.config2 import Config
-from metagpt.const import SWE_SETUP_PATH
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
@@ -33,6 +33,8 @@ class Terminal:
             *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash", env=os.environ.copy()
         )
         await self._check_state()
+        # Goto the default directory
+        await self.run_command(f"cd {DEFAULT_WORKSPACE_ROOT.absolute()}")
 
     async def _check_state(self):
         """

@@ -104,12 +104,6 @@ class Engineer2(RoleZero):
     def _retrieve_experience(self) -> str:
         return ENGINEER_EXAMPLE
 
-    async def _run_special_command(self, cmd) -> str:
-        """command requiring special check or parsing."""
-        # finish current task before end.
-        command_output = await super()._run_special_command(cmd)
-        return command_output
-
     async def write_new_code(self, path: str, file_description: str = "") -> str:
         """Write a new code file.
 
@@ -117,6 +111,8 @@ class Engineer2(RoleZero):
             path (str): The absolute path of the file to be created.
             file_description (optional, str): "Brief description and important notes of the file content, must be very concise and can be empty. Defaults to "".
         """
+        # If the path is not absolute, try to fix it with the editor's working directory.
+        path = self.editor._try_fix_path(path)
         plan_status, _ = self._get_plan_status()
         prompt = WRITE_CODE_PROMPT.format(
             user_requirement=self.planner.plan.goal,
