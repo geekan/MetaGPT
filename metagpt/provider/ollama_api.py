@@ -51,9 +51,13 @@ class OllamaLLM(BaseLLM):
         return json.loads(chunk)
 
     async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
-        headers = None if not self.config.api_key or self.config.api_key == "sk-" else {
-            "Authorization": f"Bearer {self.config.api_key}",
-        }
+        headers = (
+            None
+            if not self.config.api_key or self.config.api_key == "sk-"
+            else {
+                "Authorization": f"Bearer {self.config.api_key}",
+            }
+        )
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,
@@ -70,9 +74,13 @@ class OllamaLLM(BaseLLM):
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
-        headers = None if not self.config.api_key or self.config.api_key == "sk-" else {
-            "Authorization": f"Bearer {self.config.api_key}",
-        }
+        headers = (
+            None
+            if not self.config.api_key or self.config.api_key == "sk-"
+            else {
+                "Authorization": f"Bearer {self.config.api_key}",
+            }
+        )
         stream_resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.suffix_url,
