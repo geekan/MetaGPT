@@ -76,7 +76,7 @@ class RoleZero(Role):
     tools: list[str] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: Optional[ToolRecommender] = None
     tool_execution_map: Annotated[dict[str, Callable], Field(exclude=True)] = {}
-    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Bash.run", "RoleZero.ask_human"]
+    special_tool_commands: list[str] = ["Plan.finish_current_task", "end", "Terminal.run_command", "RoleZero.ask_human"]
     # List of exclusive tool commands.
     # If multiple instances of these commands appear, only the first occurrence will be retained.
     exclusive_tool_commands: list[str] = [
@@ -543,7 +543,10 @@ class RoleZero(Role):
                 return end_output
             return human_response
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
-        elif cmd["command_name"] == "Bash.run":
+        elif cmd["command_name"] == "Terminal.run_command":
+            if "npm run dev" in cmd["args"]:
+                command_output = "command run failed! Pleae use Delopyer to deploy your project after build."
+
             tool_obj = self.tool_execution_map[cmd["command_name"]]
             tool_output = await tool_obj(**cmd["args"])
             if len(tool_output) <= 10:

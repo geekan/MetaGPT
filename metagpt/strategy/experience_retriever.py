@@ -845,13 +845,21 @@ Explanation: This is a project that needs to be implemented using Vue.js. Theref
 
 ## example 2.2
 User Requirement: Writing code.
+The template is :
+├── public
+├── src
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+└── vite.config.js
+
 Here's the plan:
 [Optional] Read the original file in the template if they exist.
 [Optional] Obtain images before coding.
-1. **Task 1**: Rewrite `App.vue` - This file will contain the Vue structure necessary for the game's UI, the game logic and UI interactions.
+1. **Task 1**: Rewrite `App.jsx` - This file will contain the Vue structure necessary for the game's UI, the game logic and UI interactions.
 2. **Task 2**: Rewrite `style.css` - This file will define the CSS styles to make the game visually appealing and responsive. Default use tailwindcss.
 3. **Task 3**: Rewrite `main.js` - This file is the main entry of Vue project, including the main Vue instance, global styles, and the router.
-[Optional] Install the dependencies after finishing project.
+If the project is a Vue or React Project, install the dependencies after finishing project. And then deploy the project to the public.
 ```json
 [
     {
@@ -894,8 +902,8 @@ Here's the plan:
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "5",
-            "dependent_task_ids": ["2","3","4"],
-            "instruction": "Install the necessary dependencies and configure the project structure.",
+            "dependent_task_ids": [],
+            "instruction": "Install the necessary dependencies, configure the project structure and deploy it to the public",
             "assignee": "Alex"
         }
     }
@@ -919,6 +927,29 @@ Explanation: Take on one task, such as writing or rewriting a file. Upon complet
     }
 ]
 ```
+## example 3.2
+Explanation: The project have been completed. And this project is a Vue/React Project,so i will deploy the project to the public.
+
+```json
+[
+    {
+        "command_name": "Terminal.run_command",
+        "args": {
+            "cmd": "pnpm install && pnpm run build"
+        }
+    }
+]
+## example 3.3
+Explanation: After install the project. I will deploy the project to the public.
+```json
+[
+    {
+        "command_name": "Deployer.deploy_to_public,
+        "args": {
+            "dist_dir": "{{project_path}}/dist"
+        }
+    }
+]
 
 ## example 4
 I have received a GitHub issue URL.
