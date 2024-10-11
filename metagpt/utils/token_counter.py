@@ -40,11 +40,20 @@ TOKEN_COSTS = {
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
+    "gpt-4o-mini-2024-07-18": {"prompt": 0.00015, "completion": 0.0006},
     "gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
+    "gpt-4o-2024-08-06": {"prompt": 0.0025, "completion": 0.01},
+    "o1-preview": {"prompt": 0.015, "completion": 0.06},
+    "o1-preview-2024-09-12": {"prompt": 0.015, "completion": 0.06},
+    "o1-mini": {"prompt": 0.003, "completion": 0.012},
+    "o1-mini-2024-09-12": {"prompt": 0.003, "completion": 0.012},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
-    "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
+    "gemini-1.5-flash": {"prompt": 0.000075, "completion": 0.0003},
+    "gemini-1.5-pro": {"prompt": 0.0035, "completion": 0.0105},
+    "gemini-1.0-pro": {"prompt": 0.0005, "completion": 0.0015},
     "moonshot-v1-8k": {"prompt": 0.012, "completion": 0.012},  # prompt + completion tokens=0.012￥/k-tokens
     "moonshot-v1-32k": {"prompt": 0.024, "completion": 0.024},
     "moonshot-v1-128k": {"prompt": 0.06, "completion": 0.06},
@@ -68,15 +77,20 @@ TOKEN_COSTS = {
     "llama3-70b-8192": {"prompt": 0.0059, "completion": 0.0079},
     "openai/gpt-3.5-turbo-0125": {"prompt": 0.0005, "completion": 0.0015},
     "openai/gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
+    "openai/o1-preview": {"prompt": 0.015, "completion": 0.06},
+    "openai/o1-mini": {"prompt": 0.003, "completion": 0.012},
+    "anthropic/claude-3-opus": {"prompt": 0.015, "completion": 0.075},
+    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
+    "google/gemini-pro-1.5": {"prompt": 0.0025, "completion": 0.0075},  # for openrouter, end
     "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
     "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
     # For ark model https://www.volcengine.com/docs/82379/1099320
-    "doubao-lite-4k-240515": {"prompt": 0.000042, "completion": 0.000084},
-    "doubao-lite-32k-240515": {"prompt": 0.000042, "completion": 0.000084},
-    "doubao-lite-128k-240515": {"prompt": 0.00011, "completion": 0.00013},
-    "doubao-pro-4k-240515": {"prompt": 0.00011, "completion": 0.00028},
-    "doubao-pro-32k-240515": {"prompt": 0.00011, "completion": 0.00028},
-    "doubao-pro-128k-240515": {"prompt": 0.0007, "completion": 0.0012},
+    "doubao-lite-4k-240515": {"prompt": 0.000043, "completion": 0.000086},
+    "doubao-lite-32k-240515": {"prompt": 0.000043, "completion": 0.000086},
+    "doubao-lite-128k-240515": {"prompt": 0.00011, "completion": 0.00014},
+    "doubao-pro-4k-240515": {"prompt": 0.00011, "completion": 0.00029},
+    "doubao-pro-32k-240515": {"prompt": 0.00011, "completion": 0.00029},
+    "doubao-pro-128k-240515": {"prompt": 0.0007, "completion": 0.0013},
     "llama3-70b-llama3-70b-instruct": {"prompt": 0.0, "completion": 0.0},
     "llama3-8b-llama3-8b-instruct": {"prompt": 0.0, "completion": 0.0},
 }
@@ -137,8 +151,17 @@ QIANFAN_ENDPOINT_TOKEN_COSTS = {
 """
 DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
 Different model has different detail page. Attention, some model are free for a limited time.
+Some new model published by Alibaba will be prioritized to be released on the Model Studio instead of the Dashscope.
+Token price on Model Studio shows on https://help.aliyun.com/zh/model-studio/getting-started/models#ced16cb6cdfsy
 """
 DASHSCOPE_TOKEN_COSTS = {
+    "qwen2.5-72b-instruct": {"prompt": 0.00057, "completion": 0.0017},  # per 1k tokens
+    "qwen2.5-32b-instruct": {"prompt": 0.0005, "completion": 0.001},
+    "qwen2.5-14b-instruct": {"prompt": 0.00029, "completion": 0.00086},
+    "qwen2.5-7b-instruct": {"prompt": 0.00014, "completion": 0.00029},
+    "qwen2.5-3b-instruct": {"prompt": 0.0, "completion": 0.0},
+    "qwen2.5-1.5b-instruct": {"prompt": 0.0, "completion": 0.0},
+    "qwen2.5-0.5b-instruct": {"prompt": 0.0, "completion": 0.0},
     "qwen2-72b-instruct": {"prompt": 0.000714, "completion": 0.001428},
     "qwen2-57b-a14b-instruct": {"prompt": 0.0005, "completion": 0.001},
     "qwen2-7b-instruct": {"prompt": 0.000143, "completion": 0.000286},
@@ -187,10 +210,26 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
+# https://console.volcengine.com/ark/region:ark+cn-beijing/model
+DOUBAO_TOKEN_COSTS = {
+    "doubao-lite": {"prompt": 0.000043, "completion": 0.000086},
+    "doubao-lite-128k": {"prompt": 0.00011, "completion": 0.00014},
+    "doubao-pro": {"prompt": 0.00011, "completion": 0.00029},
+    "doubao-pro-128k": {"prompt": 0.00071, "completion": 0.0013},
+    "doubao-pro-256k": {"prompt": 0.00071, "completion": 0.0013},
+}
+
 # https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 TOKEN_MAX = {
-    "gpt-4o-2024-05-13": 128000,
+    "o1-preview": 128000,
+    "o1-preview-2024-09-12": 128000,
+    "o1-mini": 128000,
+    "o1-mini-2024-09-12": 128000,
     "gpt-4o": 128000,
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o-2024-08-06": 128000,
+    "gpt-4o-mini-2024-07-18": 128000,
+    "gpt-4o-mini": 128000,
     "gpt-4-turbo-2024-04-09": 128000,
     "gpt-4-0125-preview": 128000,
     "gpt-4-turbo-preview": 128000,
@@ -212,7 +251,9 @@ TOKEN_MAX = {
     "text-embedding-ada-002": 8192,
     "glm-3-turbo": 128000,
     "glm-4": 128000,
-    "gemini-pro": 32768,
+    "gemini-1.5-flash": 1000000,
+    "gemini-1.5-pro": 2000000,
+    "gemini-1.0-pro": 32000,
     "moonshot-v1-8k": 8192,
     "moonshot-v1-32k": 32768,
     "moonshot-v1-128k": 128000,
@@ -236,6 +277,11 @@ TOKEN_MAX = {
     "llama3-70b-8192": 8192,
     "openai/gpt-3.5-turbo-0125": 16385,
     "openai/gpt-4-turbo-preview": 128000,
+    "openai/o1-preview": 128000,
+    "openai/o1-mini": 128000,
+    "anthropic/claude-3-opus": 200000,
+    "anthropic/claude-3.5-sonnet": 200000,
+    "google/gemini-pro-1.5": 4000000,
     "deepseek-chat": 32768,
     "deepseek-coder": 16385,
     "doubao-lite-4k-240515": 4000,
@@ -245,6 +291,13 @@ TOKEN_MAX = {
     "doubao-pro-32k-240515": 32000,
     "doubao-pro-128k-240515": 128000,
     # Qwen https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-qianwen-7b-14b-72b-api-detailes?spm=a2c4g.11186623.0.i20
+    "qwen2.5-72b-instruct": 131072,
+    "qwen2.5-32b-instruct": 131072,
+    "qwen2.5-14b-instruct": 131072,
+    "qwen2.5-7b-instruct": 131072,
+    "qwen2.5-3b-instruct": 32768,
+    "qwen2.5-1.5b-instruct": 32768,
+    "qwen2.5-0.5b-instruct": 32768,
     "qwen2-57b-a14b-instruct": 32768,
     "qwen2-72b-instruct": 131072,
     "qwen2-7b-instruct": 32768,
@@ -344,11 +397,19 @@ def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
         "gpt-4-turbo",
         "gpt-4-turbo-preview",
         "gpt-4-0125-preview",
+        "gpt-4-1106-preview",
         "gpt-4-turbo",
         "gpt-4-vision-preview",
         "gpt-4-1106-vision-preview",
-        "gpt-4o-2024-05-13",
         "gpt-4o",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini",
+        "gpt-4o-mini-2024-07-18",
+        "o1-preview",
+        "o1-preview-2024-09-12",
+        "o1-mini",
+        "o1-mini-2024-09-12",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1

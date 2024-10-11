@@ -68,9 +68,14 @@ anytree
 ipywidgets==8.1.1
 Pillow
 imap_tools==1.5.0  # Used by metagpt/tools/libs/email_login.py
-qianfan~=0.3.16
+qianfan~=0.4.4
 dashscope~=1.19.3
 rank-bm25==0.2.2  # for tool recommendation
+jieba==0.42.1  # for tool recommendation
+volcengine-python-sdk[ark]~=1.0.94
+# llama-index-vector-stores-elasticsearch~=0.2.5 # Used by `metagpt/memory/longterm_memory.py`
+# llama-index-vector-stores-chroma~=0.1.10 # Used by `metagpt/memory/longterm_memory.py`
 gymnasium==0.29.1
 boto3~=1.34.69
 spark_ai_python~=0.3.30
+agentops
