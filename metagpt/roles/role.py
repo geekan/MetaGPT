@@ -422,8 +422,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
-        if self.recovered:
-            news = [self.latest_observed_msg] if self.latest_observed_msg else []
+        if self.recovered and self.latest_observed_msg:
+            news = self.rc.memory.find_news(observed=[self.latest_observed_msg], k=10)
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.

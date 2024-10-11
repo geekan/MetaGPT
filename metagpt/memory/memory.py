@@ -81,7 +81,7 @@ class Memory(BaseModel):
         return self.storage[-k:]
 
     def find_news(self, observed: list[Message], k=0) -> list[Message]:
-        """find news (previously unseen messages) from the the most recent k memories, from all memories when k=0"""
+        """find news (previously unseen messages) from the most recent k memories, from all memories when k=0"""
         already_observed = self.get(k)
         news: list[Message] = []
         for i in observed:
