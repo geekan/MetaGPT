@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from metagpt.const import METAGPT_ROOT
 from metagpt.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
 
@@ -67,6 +68,14 @@ async def test_git():
 
     repo.delete_repository()
     assert not local_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_git2():
+    repo = GitRepository(local_path=METAGPT_ROOT, auto_init=False)
+    history = repo.graph()
+    assert history.head_index >= 0
+    assert history.commits
 
 
 @pytest.mark.asyncio
