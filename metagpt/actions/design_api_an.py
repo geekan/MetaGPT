@@ -29,45 +29,12 @@ REFINED_IMPLEMENTATION_APPROACH = ActionNode(
 PROJECT_NAME = ActionNode(
     key="Project name", expected_type=str, instruction="The project name with underline", example="game_2048"
 )
-FILE_LIST_INSTRUCTION = """
-The default React project file list is:
-├── ./eslint.config.js
-├── ./index.html
-├── ./package.json
-├── ./pnpm-lock.yaml
-├── ./postcss.config.js
-├── ./public
-├── ./src
-│   ├── ./src/App.jsx
-│   ├── ./src/index.css
-│   └── ./src/main.jsx
-├── ./tailwind.config.js
-└── ./vite.config.js
 
-The default Vue project file list is:
-.
-├── ./index.html
-├── ./package.json
-├── ./pnpm-lock.yaml
-├── ./postcss.config.js
-├── ./public
-│   └── ./public/vite.svg
-├── ./README.md
-├── ./src
-│   ├── ./src/App.vue
-│   ├── ./src/main.js
-│   └── ./src/style.css
-├── ./tailwind.config.js
-└── ./vite.config.js
-
-If no technical stack is specified, use the Vite, React, MUI and Tailwind CSS as the default stack.
-Succinctly designate the correct entry file for your project based on the programming language. If the project is React or Vue, refer to the file structure provided in the template.
-"""
 FILE_LIST = ActionNode(
     key="File list",
     expected_type=List[str],
-    instruction=FILE_LIST_INSTRUCTION,
-    example=["a.js", "b.py", "c.css", "d.html", "e.vue", "f.jsx"],
+    instruction="Only need relative paths. Succinctly designate the correct entry file for your project based on the programming language: use main.js for JavaScript, main.py for Python, and so on for other languages.",
+    example=["a.js", "b.py", "c.css", "d.html"],
 )
 
 REFINED_FILE_LIST = ActionNode(

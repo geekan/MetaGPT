@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Use Vite, React and Tailwind CSS for the program. And create a product requirement document (PRD) outlining the features, user interface. ",
+            "instruction": "Use native HTML for the program. And create a product requirement document (PRD) outlining the features, user interface. ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Use Vite, React and Tailwind CSS for the program. Design the software architecture for the CLI snake game, including the data flow.",
+            "instruction": "Use native HTML for the program. Design the software architecture for the CLI snake game, including the data flow.",
             "assignee": "Bob"
         }
     },

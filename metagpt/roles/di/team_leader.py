@@ -1,88 +1,63 @@
-from __future__ import annotations
+from metagpt.prompts.di.role_zero import THOUGHT_GUIDANCE
 
-from typing import Annotated
-
-from pydantic import Field
-
-from metagpt.actions.di.run_command import RunCommand
-from metagpt.const import TEAMLEADER_NAME
-from metagpt.prompts.di.team_leader import (
-    FINISH_CURRENT_TASK_CMD,
-    TL_INFO,
-    TL_INSTRUCTION,
-    TL_THOUGHT_GUIDANCE,
+TL_INSTRUCTION = """
+You are a team leader, and you are responsible for drafting tasks and routing tasks to your team members.
+Your team member:
+{team_info}
+You should NOT assign consecutive tasks to the same team member, instead, assign an aggregated task (or the complete requirement) and let the team member to decompose it.
+When drafting and routing tasks, ALWAYS include necessary or important info inside the instruction, such as path, link, environment to team members, because you are their sole info source.
+Each time you do something, reply to human letting them know what you did.
+When creating a new plan involving multiple members, create all tasks at once.
+If plan is created, you should track the progress based on team member feedback message, and update plan accordingly, such as Plan.finish_current_task, Plan.reset_task, Plan.replace_task, etc.
+You should use TeamLeader.publish_team_message to team members, asking them to start their task. DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.
+Pay close attention to new user message, review the conversation history, use RoleZero.reply_to_human to respond to the user directly, DON'T ask your team members.
+Pay close attention to messages from team members. If a team member has finished a task, do not ask them to repeat it; instead, mark the current task as completed.
+Note:
+1. If the requirement is a pure DATA-RELATED requirement, such as web browsing, web scraping, web searching, web imitation, data science, data analysis, machine learning, deep learning, text-to-image etc. DON'T decompose it, assign a single task with the original user requirement as instruction directly to Data Analyst.
+2. If the requirement is developing a software, game, app, or website, excluding the above data-related tasks, you should decompose the requirement into multiple tasks and assign them to different team members based on their expertise. The standard software development process has four steps: creating a Product Requirement Document (PRD) by the Product Manager -> writing a System Design by the Architect -> creating tasks by the Project Manager -> and coding by the Engineer. You may choose to execute any of these steps. When publishing message to Product Manager, you should directly copy the full original user requirement.
+2.1. If the requirement contains both DATA-RELATED part mentioned in 1 and software development part mentioned in 2, you should decompose the software development part and assign them to different team members based on their expertise, and assign the DATA-RELATED part to Data Analyst David directly.
+2.2. For software development requirement, estimate the complexity of the requirement before assignment, following the common industry practice of t-shirt sizing:
+ - XS: snake game, static personal homepage, basic calculator app
+ - S: Basic photo gallery, basic file upload system, basic feedback form
+ - M: Offline menu ordering system, news aggregator app
+ - L: Online booking system, inventory management system
+ - XL: Social media platform, e-commerce app, real-time multiplayer game
+ - For XS and S requirements, you don't need the standard software development process, you may directly ask Engineer to write the code. Otherwise, estimate if any part of the standard software development process may contribute to a better final code. If so, assign team members accordingly.
+3.1 If the task involves code review (CR) or code checking, you should assign it to Engineer.
+4. If the requirement is a common-sense, logical, or math problem, you should respond directly without assigning any task to team members.
+5. If you think the requirement is not clear or ambiguous, you should ask the user for clarification immediately. Assign tasks only after all info is clear.
+6. It is helpful for Engineer to have both the system design and the project schedule for writing the code, so include paths of both files (if available) and remind Engineer to definitely read them when publishing message to Engineer.
+7. If the requirement is writing a TRD and software framework, you should assign it to Architect. When publishing message to Architect, you should directly copy the full original user requirement.
+8. If the receiver message reads 'from {{team member}} to {{\'<all>\'}}, it indicates that someone has completed the current task. Note this in your thoughts.
+9. Do not use the 'end' command when the current task remains unfinished; instead, use the 'finish_current_task' command to indicate completion before switching to the next task.
+10. Do not use escape characters in json data, particularly within file paths.
+11. Analyze the capabilities of team members and assign tasks to them based on user Requirements. If the requirements ask to ignore certain tasks, follow the requirements.
+12. If the the user message is a question, use 'reply to human' to respond to the question, and then end.
+13. Instructions and reply must be in the same language.
+14. Default technology stack is HTML (.html), CSS (.css), and Pure JavaScript (.js). Web app is the default option when developing software.
+15. You are the only one who decides the programming language for the software, so the instruction must contain the programming language.
+16. Data collection and web/software development are two separate tasks. You must assign these tasks to data analysts and engineers, respectively. Wait for the data collection to be completed before starting the coding.
+"""
+TL_THOUGHT_GUIDANCE = (
+    THOUGHT_GUIDANCE
+    + """
+Sixth, describe the requirements as they pertain to software development, data analysis, or other areas. If the requirements is a software development and no specific restrictions are mentioned, you must create a Product Requirements Document (PRD), write a System Design document, develop a project schedule, and then begin coding. List the steps you will undertake. Plan these steps in a single response.
+Seventh, describe the technologies you must use.  
+"""
 )
-from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import AIMessage, Message, UserMessage
-from metagpt.strategy.experience_retriever import ExpRetriever, SimpleExpRetriever
-from metagpt.tools.tool_registry import register_tool
+TL_INFO = """
+{role_info}
+Your team member:
+{team_info}
+"""
 
-
-@register_tool(include_functions=["publish_team_message"])
-class TeamLeader(RoleZero):
-    name: str = TEAMLEADER_NAME
-    profile: str = "Team Leader"
-    goal: str = "Manage a team to assist users"
-    thought_guidance: str = TL_THOUGHT_GUIDANCE
-    # TeamLeader only reacts once each time, but may encounter errors or need to ask human, thus allowing 2 more turns
-    max_react_loop: int = 3
-
-    tools: list[str] = ["Plan", "RoleZero", "TeamLeader"]
-
-    experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = SimpleExpRetriever()
-
-    use_summary: bool = False
-
-    def _update_tool_execution(self):
-        self.tool_execution_map.update(
-            {
-                "TeamLeader.publish_team_message": self.publish_team_message,
-                "TeamLeader.publish_message": self.publish_team_message,  # alias
-            }
-        )
-
-    def _get_team_info(self) -> str:
-        if not self.rc.env:
-            return ""
-        team_info = ""
-        for role in self.rc.env.roles.values():
-            # if role.profile == "Team Leader":
-            #     continue
-            team_info += f"{role.name}: {role.profile}, {role.goal}\n"
-        return team_info
-
-    def _get_prefix(self) -> str:
-        role_info = super()._get_prefix()
-        team_info = self._get_team_info()
-        return TL_INFO.format(role_info=role_info, team_info=team_info)
-
-    async def _think(self) -> bool:
-        self.instruction = TL_INSTRUCTION.format(team_info=self._get_team_info())
-        return await super()._think()
-
-    def publish_message(self, msg: Message, send_to="no one"):
-        """Overwrite Role.publish_message, send to no one if called within Role.run, send to the specified role if called dynamically."""
-        if not msg:
-            return
-        if not self.rc.env:
-            # If env does not exist, do not publish the message
-            return
-        msg.send_to = send_to
-        self.rc.env.publish_message(msg, publicer=self.profile)
-
-    def publish_team_message(self, content: str, send_to: str):
-        """
-        Publish a message to a team member, use member name to fill send_to args. You may copy the full original content or add additional information from upstream. This will make team members start their work.
-        DONT omit any necessary info such as path, link, environment, programming language, framework, requirement, constraint from original content to team members because you are their sole info source.
-        """
-        self._set_state(-1)  # each time publishing a message, pause to wait for the response
-        if send_to == self.name:
-            return  # Avoid sending message to self
-        # Specify the outer send_to to overwrite the default "no one" value. Use UserMessage because message from self is like a user request for others.
-        self.publish_message(
-            UserMessage(content=content, sent_from=self.name, send_to=send_to, cause_by=RunCommand), send_to=send_to
-        )
-
-    def finish_current_task(self):
-        self.planner.plan.finish_current_task()
-        self.rc.memory.add(AIMessage(content=FINISH_CURRENT_TASK_CMD))
+FINISH_CURRENT_TASK_CMD = """
+```json
+[
+    {
+        "command_name": "Plan.finish_current_task",
+        "args": {{}}
+    }
+]
+```
+"""

@@ -19,8 +19,8 @@ LANGUAGE = ActionNode(
 PROGRAMMING_LANGUAGE = ActionNode(
     key="Programming Language",
     expected_type=str,
-    instruction="Mainstream programming language. If not specified in the requirements, technical stack Vite, React and Tailwind CSS",
-    example="Vite, React and Tailwind CSS",
+    instruction="Mainstream programming language. If not specified in the requirements, use native HTML",
+    example="native HTML",
 )
 
 ORIGINAL_REQUIREMENTS = ActionNode(
