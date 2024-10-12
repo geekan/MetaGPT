@@ -85,6 +85,8 @@ class RoleZero(Role):
         "Editor.append_file",
         "Editor.open_file",
     ]
+    # The cmd in forbidden_terminal_commands will be replace by pass ana return the advise. {"cmd":"forbidden_reason/advice"}
+    forbidden_terminal_commands: dict = {}
     # Equipped with three basic tools by default for optional use
     editor: Editor = Editor(enable_auto_lint=True)
     browser: Browser = Browser()
@@ -544,11 +546,16 @@ class RoleZero(Role):
             return human_response
         # output from bash.run may be empty, add decorations to the output to ensure visibility.
         elif cmd["command_name"] == "Terminal.run_command":
-            if "npm run dev" in cmd["args"]:
-                command_output = "command run failed! Pleae use Delopyer to deploy your project after build."
-                return command_output
+            tool_output = ""
+            # Remove forbidden commands
+            if any([forbidden_cmd in cmd["args"]["cmd"] for forbidden_cmd in self.forbidden_terminal_commands.keys()]):
+                for cmd_name, reason in self.forbidden_terminal_commands.items():
+                    # 'true' is a pass command in linux terminal.
+                    cmd["args"]["cmd"] = cmd["args"]["cmd"].replace(cmd_name, "true")
+                    tool_output += f"{cmd_name} is failed to executed. {reason}\n"
+
             tool_obj = self.tool_execution_map[cmd["command_name"]]
-            tool_output = await tool_obj(**cmd["args"])
+            tool_output += await tool_obj(**cmd["args"])
             if len(tool_output) <= 10:
                 command_output += (
                     f"\n[command]: {cmd['args']['cmd']} \n[command output] : {tool_output} (pay attention to this.)"
