@@ -839,11 +839,11 @@ Explanation: I will first need to read the system design document and the projec
     }
 ]
 ```
-## example 2.1
+## example 2
 User Requirement: Implement the core game project in Vue/React framework.
 Explanation: This is a project that needs to be implemented using Vue.js. Therefore, I need to copy the Vue/React template to the project folder first.
 
-## example 2.2
+## example 3
 User Requirement: Writing code.
 The template is :
 ├── public
@@ -910,7 +910,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
 ]
 ```
 
-## example 3
+## example 4
 Explanation: Take on one task, such as writing or rewriting a file. Upon completion, finish current task.
 
 ```json
@@ -927,7 +927,7 @@ Explanation: Take on one task, such as writing or rewriting a file. Upon complet
     }
 ]
 ```
-## example 3.2
+## example 5
 Explanation: The project have been completed. And this project is a Vue/React Project,so i will deploy the project to the public.
 
 ```json
@@ -939,7 +939,7 @@ Explanation: The project have been completed. And this project is a Vue/React Pr
         }
     }
 ]
-## example 3.3
+## example 6
 Explanation: After install the project. I will deploy the project to the public.
 ```json
 [
@@ -951,7 +951,7 @@ Explanation: After install the project. I will deploy the project to the public.
     }
 ]
 
-## example 4
+## example 7
 I have received a GitHub issue URL.
 I will use browser to review the detailed information of this issue in order to understand the problem.
 ```json
@@ -965,7 +965,7 @@ I will use browser to review the detailed information of this issue in order to 
 ]
 ```
 
-## example 6
+## example 8
 I need to locating the `openai_api.py` file, so I will search for the `openai_api.py` file.
 ```json
 [
@@ -980,7 +980,7 @@ I need to locating the `openai_api.py` file, so I will search for the `openai_ap
 
 
 
-## example 7
+## example 9
 I have located the openai_api.py file. I want to edit this file, so I will open it first.
 ```json
 [
@@ -993,7 +993,7 @@ I have located the openai_api.py file. I want to edit this file, so I will open 
 ]
 ```
 
-## example 8
+## example 10
 I have opened the openai_api.py file. However, the range of lines shown is from 001 to 100, and I want to see more. Therefore, I want to use the scroll_down command to view additional lines.
 ```json
 [
@@ -1004,7 +1004,7 @@ I have opened the openai_api.py file. However, the range of lines shown is from 
 ]
 ```
 
-## example 9
+## example 11
 I want to change the key bindings from (w/s) to the arrow keys (up, down). And add the space bar to pause.
 the previous file look like:
 142|    while not self.is_game_over():
@@ -1031,7 +1031,7 @@ Editor tool is exclusive. If I use this tool, I cannot use any other commands in
 ]
 ```
 
-## example 10
+## example 12
 I want to add a score variable in the initialization of the game. 
 the previous file look like:
 028|        if restart:
@@ -1063,7 +1063,7 @@ After executing the command, the file will be:
 033|            self.location = (0,0)
 In the next turn, I will try to add another code snippet
 
-## example 11
+## example 13
 
 Create a pull request (Optional): Merge the changes from the new branch into the master branch.
 Thought: Now that the changes have been pushed to the remote repository, due to the user's requirement, let's create a pull request to merge the changes into the master branch.
@@ -1084,7 +1084,7 @@ Thought: Now that the changes have been pushed to the remote repository, due to 
 ]
 ```
 
-## example 12
+## example 14
 The requirement is to create a product website featuring goods such as caps, dresses, and T-shirts. 
 I believe pictures would improve the site, so I will get the images first.
 ```json

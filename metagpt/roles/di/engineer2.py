@@ -34,8 +34,6 @@ class Engineer2(RoleZero):
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
-    # The cmd in forbidden_terminal_commands will be replace by pass ana return the advise.
-    forbidden_terminal_commands: dict = {"npm run dev": "Use Deployer.deploy_to_public instead."}
     deployer: Deployer = Field(default_factory=Deployer)
     tools: list[str] = [
         "Plan",

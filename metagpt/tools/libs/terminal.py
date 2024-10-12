@@ -26,6 +26,11 @@ class Terminal:
         self.stdout_queue = Queue(maxsize=1000)
         self.observer = TerminalReporter()
         self.process: Optional[asyncio.subprocess.Process] = None
+        #  The cmd in forbidden_terminal_commands will be replace by pass ana return the advise. example:{"cmd":"forbidden_reason/advice"}
+        self.forbidden_commands = {
+            "npm run dev": "Use Deployer.deploy_to_public instead.",
+            "pnpm run dev": "Use Deployer.deploy_to_public instead.",
+        }
 
     async def _start_process(self):
         # Start a persistent shell process
@@ -60,6 +65,14 @@ class Terminal:
         if self.process is None:
             await self._start_process()
 
+        output = ""
+        # Remove forbidden commands
+        for cmd_name, reason in self.forbidden_commands.items():
+            # 'true' is a pass command in linux terminal.
+            if cmd_name in cmd:
+                cmd = cmd.replace(cmd_name, "true")
+                output += f"{cmd_name} is failed to executed. {reason}\n"
+
         # Send the command
         self.process.stdin.write((cmd + self.command_terminator).encode())
         self.process.stdin.write(
@@ -68,9 +81,10 @@ class Terminal:
         await self.process.stdin.drain()
         if daemon:
             asyncio.create_task(self._read_and_process_output(cmd))
-            return ""
         else:
-            return await self._read_and_process_output(cmd)
+            output += await self._read_and_process_output(cmd)
+
+        return output
 
     async def execute_in_conda_env(self, cmd: str, env, daemon=False) -> str:
         """
