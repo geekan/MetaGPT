@@ -8,7 +8,7 @@ from metagpt.actions import (
     WriteTest,
 )
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import AGENT, IMAGES, TEAMLEADER_NAME
+from metagpt.const import AGENT, IMAGES, MESSAGE_ROUTE_TO_ALL, TEAMLEADER_NAME
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
 from metagpt.roles import Architect, ProductManager, ProjectManager, Role
@@ -24,7 +24,12 @@ class MGXEnv(Environment, SerializationMixin):
 
     direct_chat_roles: set[str] = set()  # record direct chat: @role_name
 
+    is_public_chat: bool = True
+
     def _publish_message(self, message: Message, peekable: bool = True) -> bool:
+        if self.is_public_chat:
+            message.send_to.add(MESSAGE_ROUTE_TO_ALL)
+        message = self.move_message_info_to_content(message)
         return super().publish_message(message, peekable)
 
     def publish_message(self, message: Message, user_defined_recipient: str = "", publicer: str = "") -> bool:
@@ -81,9 +86,8 @@ class MGXEnv(Environment, SerializationMixin):
 
         else:
             # every regular message goes through team leader
-            message = self.move_message_info_to_content(message)
             message.send_to.add(tl.name)
-            tl.put_message(message)
+            self._publish_message(message)
 
         self.history.add(message)
 
@@ -122,9 +126,11 @@ class MGXEnv(Environment, SerializationMixin):
         if converted_msg.role not in ["system", "user", "assistant"]:
             converted_msg.role = "assistant"
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
-        converted_msg.content = (
-            f"[Message] from {sent_from or 'User'} to {converted_msg.send_to}: {converted_msg.content}"
-        )
+        if converted_msg.send_to == {MESSAGE_ROUTE_TO_ALL}:
+            send_to = TEAMLEADER_NAME
+        else:
+            send_to = ", ".join({role for role in converted_msg.send_to if role != MESSAGE_ROUTE_TO_ALL})
+        converted_msg.content = f"[Message] from {sent_from or 'User'} to {send_to}: {converted_msg.content}"
         return converted_msg
 
     def attach_images(self, message: Message) -> Message:

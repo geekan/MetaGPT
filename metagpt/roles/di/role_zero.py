@@ -93,6 +93,7 @@ class RoleZero(Role):
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = DummyExpRetriever()
 
     # Others
+    observe_all_msg_from_buffer: bool = True
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 200  # number of memories (messages) to use as historical context
