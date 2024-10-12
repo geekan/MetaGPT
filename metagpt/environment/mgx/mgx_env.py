@@ -1,26 +1,15 @@
 from __future__ import annotations
 
-from metagpt.actions import (
-    UserRequirement,
-    WriteDesign,
-    WritePRD,
-    WriteTasks,
-    WriteTest,
-)
-from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.const import AGENT, IMAGES, MESSAGE_ROUTE_TO_ALL, TEAMLEADER_NAME
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
-from metagpt.roles import Architect, ProductManager, ProjectManager, Role
+from metagpt.roles import Role
 from metagpt.schema import Message, SerializationMixin
-from metagpt.utils.common import any_to_str, any_to_str_set, extract_and_encode_images
+from metagpt.utils.common import extract_and_encode_images
 
 
 class MGXEnv(Environment, SerializationMixin):
     """MGX Environment"""
-
-    # If True, fixed software sop bypassing TL is allowed, otherwise, TL will fully take over the routing
-    allow_bypass_team_leader: bool = False
 
     direct_chat_roles: set[str] = set()  # record direct chat: @role_name
 
@@ -54,29 +43,6 @@ class MGXEnv(Environment, SerializationMixin):
             # direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
             self.direct_chat_roles.remove(message.sent_from)
 
-        elif (
-            self.allow_bypass_team_leader
-            and self.message_within_software_sop(message)
-            and not self.has_user_requirement()
-        ):
-            # Quick routing for messages within software SOP, bypassing TL.
-            # Use rules to check for user intervention and to finish task.
-            # NOTE: This escapes TL's supervision and has pitfalls such as routing obsolete messages even if TL has acquired a new user requirement.
-            #       In addition, we should not determine the status of a task based on message cause_by.
-            #       Consider replacing this in the future.
-            self._publish_message(message)
-            if self.is_software_task_finished(message):
-                tl.rc.memory.add(self.move_message_info_to_content(message))
-                from metagpt.utils.report import CURRENT_ROLE
-
-                role = CURRENT_ROLE.get(None)
-                if role:
-                    CURRENT_ROLE.set(tl)
-                    tl.finish_current_task()
-                    CURRENT_ROLE.set(role)
-                else:
-                    tl.finish_current_task()
-
         elif publicer == tl.profile:
             if message.send_to == {"no one"}:
                 # skip the dummy message from team leader
@@ -101,21 +67,6 @@ class MGXEnv(Environment, SerializationMixin):
     async def reply_to_human(self, content: str, sent_from: Role = None) -> str:
         # NOTE: Can be overwritten in remote setting
         return "SUCCESS, human has received your reply. Refrain from resending duplicate messages.  If you no longer need to take action, use the command ‘end’ to stop."
-
-    def message_within_software_sop(self, message: Message) -> bool:
-        # Engineer, QaEngineer can be end of the SOP. Their msg requires routing outside.
-        members_concerned = [ProductManager, Architect, ProjectManager]
-        return message.sent_from in any_to_str_set(members_concerned)
-
-    def has_user_requirement(self, k=1) -> bool:
-        """A heuristics to check if there is a recent user intervention"""
-        return any_to_str(UserRequirement) in [msg.cause_by for msg in self.history.get(k)]
-
-    def is_software_task_finished(self, message: Message) -> bool:
-        """Use a hard-coded rule to check if one software task is finished"""
-        return message.cause_by in any_to_str_set([WritePRD, WriteDesign, WriteTasks, SummarizeCode]) or (
-            message.cause_by == any_to_str(WriteTest) and "Exceeding" in message.content
-        )
 
     def move_message_info_to_content(self, message: Message) -> Message:
         """Two things here:
