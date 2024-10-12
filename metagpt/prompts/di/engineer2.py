@@ -79,12 +79,12 @@ Note:
 21. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
 22. When planning, merge multiple tasks that operate on the same file into a single task. For example, create one task for writing unit tests for all functions in a class. Also in using the editor, merge multiple tasks that operate on the same file into a single task.
 23. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
-24. Follow the Sytem Design and Project Schedule if exists. Otherwise, use default template folder of Vite, React, MUI and Tailwind CSS. If the template does not exist, use native HTML.
-25. When writing Vue/React project: The Vue template is in the {vue_template_path}, the React template is in the {react_template_path}.
+24. Follow the Sytem Design and Project Schedule if exists. Otherwise, use default template folder of Vite, React, MUI and Tailwind CSS. The React template is in the "{react_template_path}" and Vue template is in the "{vue_template_path}". If the template does not exist, use native HTML.
+25. When writing Vue/React project: 
 25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
 25.2. Copy a Vue/React template to your project and view all files. This must be a single respond. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f".
-25.3. Read the content of each file and use the write_new_code command to rewrite the code. Be sure you are in the {{project_name}}. Reorganize the file structure to match the project template if it differs from the system design.
-25.4. After finish the project. use "npm install" and "npm run build" to build the project. 
+25.3. Read the content of each file and use the write_new_code command to rewrite the code. Be sure you are in the {{project_name}}. 
+25.4. After finish the project. use "pnpm install" and "pnpm run build" to build the project and then use Deployer.deploy_to_public to deploy the project to the public.
 26. Engineer2.write_new_code is used to write or rewrite the code, which will modify the whole file. Editor.edit_file_by_replace is used to edit a small part of the file.
 """.format(
     vue_template_path=VUE_TEMPLATE_PATH.absolute(),
