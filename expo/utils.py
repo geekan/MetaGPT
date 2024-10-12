@@ -51,6 +51,8 @@ def get_exp_pool_path(task_name, data_config, pool_name="analysis_pool"):
             f"Dataset {task_name} not found in config file. Available datasets: {data_config['datasets'].keys()}"
         )
     exp_pool_path = os.path.join(data_path, f"{pool_name}.json")
+    if not os.path.exists(exp_pool_path):
+        return None
     return exp_pool_path
 
 

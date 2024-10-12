@@ -3,10 +3,12 @@ import math
 import os
 import pickle
 import random
+import shutil
 
 import numpy as np
 import pandas as pd
 
+from expo.data.custom_task import get_mle_bench_requirements
 from expo.data.dataset import generate_task_requirement, get_split_dataset_path
 from expo.evaluation.evaluation import evaluate_score
 from expo.insights.instruction_generator import InstructionGenerator
@@ -17,9 +19,6 @@ from metagpt.utils.common import read_json_file
 
 
 def initialize_di_root_node(state, reflection: bool = True):
-    # state = create_initial_state(
-    #     task, start_task_id=start_task_id, data_config=data_config, low_is_better=low_is_better, name=name
-    # )
     role = ResearchAssistant(
         node_id="0", start_task_id=state["start_task_id"], use_reflection=reflection, role_dir=state["node_dir"]
     )
@@ -29,20 +28,33 @@ def initialize_di_root_node(state, reflection: bool = True):
 def create_initial_state(
     task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str, args
 ):
+    external_eval = args.external_eval
+
+    if args.custom_dataset_dir:
+        dataset_config = None
+        datasets_dir = args.custom_dataset_dir
+        requirement = get_mle_bench_requirements(args.custom_dataset_dir, data_config)
+        exp_pool_path = None
+    else:
+        dataset_config = data_config["datasets"][task]
+        datasets_dir = get_split_dataset_path(task, data_config)
+        requirement = generate_task_requirement(task, data_config, is_di=True, special_instruction=special_instruction)
+        exp_pool_path = get_exp_pool_path(task, data_config, pool_name="ds_analysis_pool")
+
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
         "node_dir": os.path.join(data_config["work_dir"], data_config["role_dir"], f"{task}{name}"),
-        "dataset_config": data_config["datasets"][task],
-        "datasets_dir": get_split_dataset_path(task, data_config),
-        "exp_pool_path": get_exp_pool_path(task, data_config, pool_name="ds_analysis_pool"),
-        "requirement": generate_task_requirement(
-            task, data_config, is_di=True, special_instruction=special_instruction
-        ),
+        "dataset_config": dataset_config,
+        "datasets_dir": datasets_dir,  # won't be used if external eval is used
+        "exp_pool_path": exp_pool_path,
+        "requirement": requirement,
         "has_run": False,
         "start_task_id": start_task_id,
         "low_is_better": low_is_better,
         "role_timeout": args.role_timeout,
+        "external_eval": external_eval,
+        "custom_dataset_dir": args.custom_dataset_dir,
     }
     os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state
@@ -173,22 +185,34 @@ class Node:
             node.save_new_role(new_role)
             self.add_child(node)
 
-    def evaluate_prediction(self, split):
-        pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}_predictions.csv")
-        pred_node_path = os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}_predictions.csv")
+    def get_predictions_path(self, split):
+        return os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}_predictions.csv")
+
+    def get_and_move_predictions(self, split):
+        if not os.path.exists(self.get_predictions_path(split)):
+            pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}_predictions.csv")
+            shutil.copy(pred_path, self.get_predictions_path(split))
+            os.remove(pred_path)
+        return pd.read_csv(self.get_predictions_path(split))
+
+    def get_gt(self, split):
         gt_path = os.path.join(self.state["datasets_dir"][f"{split}_target"])
-        preds = pd.read_csv(pred_path)["target"]
-        preds.to_csv(pred_node_path, index=False)
-        gt = pd.read_csv(gt_path)["target"]
+        return pd.read_csv(gt_path)
+
+    def evaluate_prediction(self, split):
+        preds = self.get_and_move_predictions(split)["target"]
+        gt = self.get_gt(split)["target"]
         metric = self.state["dataset_config"]["metric"]
-        # remove original predictions.csv
-        os.remove(pred_path)
         return evaluate_score(preds, gt, metric)
 
     def evaluate_simulation(self, score_dict):
-        scores = {"dev_score": self.evaluate_prediction("dev"), "test_score": self.evaluate_prediction("test")}
-        scores["score"] = scores["dev_score"]
-        score_dict.update(scores)
+        if self.state["external_eval"]:  # use external evaluation
+            scores = {"dev_score": self.evaluate_prediction("dev"), "test_score": self.evaluate_prediction("test")}
+            scores["score"] = scores["dev_score"]
+            score_dict.update(scores)
+        else:
+            self.get_and_move_predictions("dev")
+            self.get_and_move_predictions("test")
         return score_dict
 
     async def run_node(self, role=None):
@@ -215,7 +239,6 @@ class Node:
                 mcts_logger.log("MCTS", f"Role-level timeout: {e}")
                 break
             except Exception as e:
-                print(f"Error: {e}")
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
 

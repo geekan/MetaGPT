@@ -43,7 +43,10 @@ class Experimenter:
             except Exception as e:
                 print(f"Error: {e}")
                 num_runs += 1
-        save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
+        # save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
+        save_name = self.get_save_name()
+        save_notebook(role=di, save_dir=self.result_path, name=f"{save_name}_{run_idx}")
+
         if not run_finished:
             score_dict = {"train_score": -1, "dev_score": -1, "test_score": -1, "score": -1}
         return score_dict

@@ -37,12 +37,18 @@ class InstructionGenerator:
     def __init__(self, state, use_fixed_insights, from_scratch):
         self.state = state
         self.file_path = state["exp_pool_path"]
-        self.dataset_info_path = f"{self.data_config['datasets_dir']}/{state['task']}/dataset_info.json"
-        with open(self.dataset_info_path, "r") as file:
-            self.dataset_info = json.load(file)
+        if state["custom_dataset_dir"]:
+            self.dataset_info = "xxx"
+        else:
+            dataset_info_path = f"{self.data_config['datasets_dir']}/{state['task']}/dataset_info.json"
+            with open(dataset_info_path, "r") as file:
+                self.dataset_info = json.load(file)
         self.use_fixed_insights = use_fixed_insights
         self.proposer = SolutionDesigner()
-        self.from_scratch = from_scratch
+        if self.file_path is None:
+            self.from_scratch = True
+        else:
+            self.from_scratch = from_scratch
 
     async def initialize(self):
         if self.from_scratch:

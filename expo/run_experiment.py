@@ -31,10 +31,16 @@ def get_mcts_args(parser):
     parser.set_defaults(load_tree=False)
     parser.add_argument("--rollouts", type=int, default=5)
     parser.add_argument("--use_fixed_insights", dest="use_fixed_insights", action="store_true")
+    parser.set_defaults(use_fixed_insights=False)
     parser.add_argument("--start_task_id", type=int, default=2)
     parser.add_argument(
         "--from_scratch", dest="from_scratch", action="store_true", help="Generate solutions from scratch"
     )
+    parser.set_defaults(from_scratch=False)
+    parser.add_argument("--no_external_eval", dest="external_eval", action="store_false")
+    parser.set_defaults(external_eval=True)
+    parser.add_argument("--eval_func", type=str, default="sela", choices=["sela", "mlebench"])
+    parser.add_argument("--custom_dataset_dir", type=str, default=None)
 
 
 def get_aug_exp_args(parser):

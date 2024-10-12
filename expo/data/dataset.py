@@ -268,7 +268,7 @@ class ExpDataset:
         dataset_info = self.get_dataset_info()
         num_classes = dataset_info["metadata"]["NumberOfClasses"]
         if num_classes == 2:
-            metric = "f1"
+            metric = "f1 binary"
         elif 2 < num_classes <= 200:
             metric = "f1 weighted"
         elif num_classes > 200 or num_classes == 0:

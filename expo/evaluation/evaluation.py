@@ -22,3 +22,15 @@ def evaluate_score(pred, gt, metric):
         return mean_squared_error(np.log1p(gt), np.log1p(pred), squared=False)
     else:
         raise ValueError(f"Metric {metric} not supported")
+
+
+def node_evaluate_score_sela(node):
+    preds = node.get_and_move_predictions("test")["target"]
+    gt = node.get_gt("test")["target"]
+    metric = node.state["dataset_config"]["metric"]
+    return evaluate_score(preds, gt, metric)
+
+
+def node_evaluate_score_mlebench(node):
+    # TODO
+    return 0
