@@ -141,8 +141,7 @@ class Engineer2(RoleZero):
         return f"The file {path} has been successfully created, with content:\n{code}"
 
     def deploy_to_public(self, dist_dir):
-        """fix the path to absolute path"""
-        # fix the path according to the editor's working directory
+        """fix the dist_dir path to absolute path before deploying"""
         dist_dir = self.editor._try_fix_path(dist_dir)
         return self.deployer.deploy_to_public(dist_dir)
 
