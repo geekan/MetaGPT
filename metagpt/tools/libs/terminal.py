@@ -68,10 +68,10 @@ class Terminal:
         output = ""
         # Remove forbidden commands
         for cmd_name, reason in self.forbidden_commands.items():
-            # 'true' is a pass command in linux terminal.
+            # "true" is a pass command in linux terminal.
             if cmd_name in cmd:
                 cmd = cmd.replace(cmd_name, "true")
-                output += f"{cmd_name} is failed to executed. {reason}\n"
+                output += f"Failed to execut {cmd_name}. {reason}\n"
 
         # Send the command
         self.process.stdin.write((cmd + self.command_terminator).encode())

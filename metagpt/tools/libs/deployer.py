@@ -12,7 +12,7 @@ class Deployer:
 
     async def static_server(self, src_path: str) -> str:
         """This function will be implemented in the remote service."""
-        return f"http://127.0.0.1:{8000}/index.html"
+        return "http://127.0.0.1:8000/index.html"
 
     async def deploy_to_public(self, dist_dir: str):
         """
