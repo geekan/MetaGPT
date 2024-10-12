@@ -18,6 +18,7 @@ from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import UserMessage
 from metagpt.strategy.experience_retriever import ENGINEER_EXAMPLE
 from metagpt.tools.libs.cr import CodeReview
+from metagpt.tools.libs.deployer import Deployer
 from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.image_getter import ImageGetter
 from metagpt.tools.libs.terminal import Terminal
@@ -33,7 +34,7 @@ class Engineer2(RoleZero):
     goal: str = "Take on game, app, and web development."
     instruction: str = ENGINEER2_INSTRUCTION
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
-
+    deployer: Deployer = Field(default_factory=Deployer, exclude=True)
     tools: list[str] = [
         "Plan",
         "Editor",
@@ -45,6 +46,7 @@ class Engineer2(RoleZero):
         "Engineer2",
         "CodeReview",
         "ImageGetter",
+        "Deployer",
     ]
     # SWE Agent parameter
     run_eval: bool = False
@@ -86,6 +88,7 @@ class Engineer2(RoleZero):
                     "Terminal.run_command": self._eval_terminal_run,
                     "RoleZero.ask_human": self._end,
                     "RoleZero.reply_to_human": self._end,
+                    "Deployer.deploy_to_public": self.deployer.deploy_to_public,
                 }
             )
         else:
@@ -98,6 +101,7 @@ class Engineer2(RoleZero):
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self.terminal.run_command,
+                    "Deployer.deploy_to_public": self.deployer.deploy_to_public,
                 }
             )
 
