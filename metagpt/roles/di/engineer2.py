@@ -101,7 +101,7 @@ class Engineer2(RoleZero):
                     "CodeReview.review": cr.review,
                     "CodeReview.fix": cr.fix,
                     "Terminal.run_command": self.terminal.run_command,
-                    "Deployer.deploy_to_public": self.deployer.deploy_to_public,
+                    "Deployer.deploy_to_public": self.deploy_to_public,
                 }
             )
 
