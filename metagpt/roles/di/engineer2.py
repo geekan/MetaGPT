@@ -88,7 +88,7 @@ class Engineer2(RoleZero):
                     "Terminal.run_command": self._eval_terminal_run,
                     "RoleZero.ask_human": self._end,
                     "RoleZero.reply_to_human": self._end,
-                    "Deployer.deploy_to_public": self.deployer.deploy_to_public,
+                    "Deployer.deploy_to_public": self.deploy_to_public,
                 }
             )
         else:
@@ -139,6 +139,12 @@ class Engineer2(RoleZero):
 
         # TODO: Consider adding line no to be ready for editing.
         return f"The file {path} has been successfully created, with content:\n{code}"
+
+    def deploy_to_public(self, dist_dir):
+        """fix the path to absolute path"""
+        # fix the path according to the editor's working directory
+        dist_dir = self.editor._try_fix_path(dist_dir)
+        return self.deployer.deploy_to_public(dist_dir)
 
     async def _eval_terminal_run(self, cmd):
         """change command pull/push/commit to end."""

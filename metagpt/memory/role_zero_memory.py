@@ -129,7 +129,7 @@ class RoleZeroLongTermMemory(Memory):
         If adding long-term memory fails, it will only log the error without interrupting program execution.
         """
 
-        if not item or not item.message.content:
+        if not item:
             return
 
         self.rag_engine.add_objs([item])
