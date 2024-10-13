@@ -2,7 +2,7 @@
 # MetaGPT: Architecture Multi-Agent
 
 <p align="center">
-<a href=""><img src="docs/resources/MetaGPT-new-log.png" alt="Logo de MetaGPT : Permettre à GPT de travailler dans une entreprise de logiciels, en collaborant pour relever des tâches plus complexes." width="150px"></a>
+<a href=""><img src="resources/MetaGPT-new-log.png" alt="Logo de MetaGPT : Permettre à GPT de travailler dans une entreprise de logiciels, en collaborant pour relever des tâches plus complexes." width="150px"></a>
 </p>
 
 <p align="center">
