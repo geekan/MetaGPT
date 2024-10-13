@@ -7,7 +7,7 @@
 
 <p align="center">
 <b>Assigner différents rôles aux GPTs pour former une entité collaborative capable de gérer des tâches complexes.</b>
-</p>
+</p> 
 
 <p align="center">
 <a href="README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
