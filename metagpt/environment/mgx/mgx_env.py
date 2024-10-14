@@ -40,8 +40,10 @@ class MGXEnv(Environment, SerializationMixin):
             # tl.rc.memory.add(self.move_message_info_to_content(message))
 
         elif message.sent_from in self.direct_chat_roles:
-            # direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
+            # if chat is not public, direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
             self.direct_chat_roles.remove(message.sent_from)
+            if self.is_public_chat:
+                self._publish_message(message)
 
         elif publicer == tl.profile:
             if message.send_to == {"no one"}:

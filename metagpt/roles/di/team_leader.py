@@ -6,6 +6,7 @@ from pydantic import Field
 
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.const import TEAMLEADER_NAME
+from metagpt.prompts.di.role_zero import QUICK_THINK_TAG
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     TL_INFO,
@@ -61,13 +62,14 @@ class TeamLeader(RoleZero):
         return await super()._think()
 
     def publish_message(self, msg: Message, send_to="no one"):
-        """Overwrite Role.publish_message, send to no one if called within Role.run, send to the specified role if called dynamically."""
+        """Overwrite Role.publish_message, send to no one if called within Role.run (except for quick think), send to the specified role if called dynamically."""
         if not msg:
             return
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
-        msg.send_to = send_to
+        if msg.cause_by != QUICK_THINK_TAG:
+            msg.send_to = send_to
         self.rc.env.publish_message(msg, publicer=self.profile)
 
     def publish_team_message(self, content: str, send_to: str):
