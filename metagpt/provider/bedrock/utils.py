@@ -64,26 +64,26 @@ SUPPORT_STREAM_MODELS = {
     # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html
     # + Legacy: 2024-05-12
     # + EOL: 2024-10-30
-    "meta.llama2-13b-chat-v1": 2048,
-    "meta.llama2-13b-chat-v1:0:4k": 2048,
-    "meta.llama2-70b-v1": 2048,
-    "meta.llama2-70b-v1:0:4k": 2048,
-    "meta.llama2-70b-chat-v1": 2048,
-    "meta.llama2-70b-chat-v1:0:4k": 2048,
+    # "meta.llama2-13b-chat-v1": 2048,
+    # "meta.llama2-13b-chat-v1:0:4k": 2048,
+    # "meta.llama2-70b-v1": 2048,
+    # "meta.llama2-70b-v1:0:4k": 2048,
+    # "meta.llama2-70b-chat-v1": 2048,
+    # "meta.llama2-70b-chat-v1:0:4k": 2048,
     # Llama 3 Instruct
-    "meta.llama3-8b-instruct-v1:0": 2048,
+    # "meta.llama3-8b-instruct-v1:0": 2048,
     "meta.llama3-70b-instruct-v1:0": 2048,
     # Llama 3.1 Instruct
-    "meta.llama3-1-8b-instruct-v1:0": 2048,
+    # "meta.llama3-1-8b-instruct-v1:0": 2048,
     "meta.llama3-1-70b-instruct-v1:0": 2048,
     "meta.llama3-1-405b-instruct-v1:0": 2048,
     # Llama 3.2 Instruct
-    "meta.llama3-2-3b-instruct-v1:0": 2048,
-    "meta.llama3-2-11b-instruct-v1:0": 2048,
+    # "meta.llama3-2-3b-instruct-v1:0": 2048,
+    # "meta.llama3-2-11b-instruct-v1:0": 2048,
     "meta.llama3-2-90b-instruct-v1:0": 2048,
     # Mistral 7B Instruct
     # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral-text-completion.html
-    "mistral.mistral-7b-instruct-v0:2": 8192,
+    # "mistral.mistral-7b-instruct-v0:2": 8192,
     # Mixtral 8x7B Instruct
     "mistral.mixtral-8x7b-instruct-v0:1": 4096,
     # Mistral Small
