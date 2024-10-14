@@ -172,7 +172,9 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
-        self._watch(kwargs.pop("watch", []))
+        # if observe_all_msg_from_buffer, we should not use cause_by to select messages but observe all
+        if not self.observe_all_msg_from_buffer:
+            self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
