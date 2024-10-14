@@ -38,7 +38,8 @@ class InstructionGenerator:
         self.state = state
         self.file_path = state["exp_pool_path"]
         if state["custom_dataset_dir"]:
-            self.dataset_info = "xxx"
+            with open(f"{state['custom_dataset_dir']}/description.md", "r", encoding="utf-8") as file:
+                self.dataset_info = file.read()
         else:
             dataset_info_path = f"{self.data_config['datasets_dir']}/{state['task']}/dataset_info.json"
             with open(dataset_info_path, "r") as file:

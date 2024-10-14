@@ -5,7 +5,8 @@ from metagpt.llm import LLM
 
 DATA_CONFIG = load_data_config()
 
-DATASET_INSIGHT_PROMPT = """
+
+DATASET_DESCRIPTION_SELA_PROMPT = """
 # Dataset Description
 {dataset}
 
@@ -14,6 +15,15 @@ DATASET_INSIGHT_PROMPT = """
 
 # Dataset Head
 {head}
+"""
+
+DATASET_DESCRIPTION_CUSTOM_PROMPT = """
+# Dataset Description
+{dataset_description}
+"""
+
+DATASET_INSIGHT_PROMPT = """
+{description}
 
 # Instruction
 Propose insights to help improve the performance of the model on this dataset.
@@ -127,11 +137,15 @@ class SolutionDesigner:
 
     async def generate_solutions(self, dataset_info, dataset_name, save_analysis_pool=True):
         llm = LLM()
-        context = DATASET_INSIGHT_PROMPT.format(
-            dataset=dataset_info["description"],
-            metadata=self.metadata_builder(dataset_info["metadata"]),
-            head=dataset_info["df_head"],
-        )
+        if type(dataset_info) == dict:
+            description_prompt = DATASET_DESCRIPTION_SELA_PROMPT.format(
+                dataset=dataset_info["description"],
+                metadata=self.metadata_builder(dataset_info["metadata"]),
+                head=dataset_info["df_head"],
+            )
+        else:
+            description_prompt = DATASET_DESCRIPTION_CUSTOM_PROMPT.format(dataset_description=dataset_info)
+        context = DATASET_INSIGHT_PROMPT.format(description=description_prompt)
         rsp = await llm.aask(context)
         rsp = clean_json_from_rsp(rsp)
         analysis_pool = self.process_analysis_pool(json.loads(rsp))
