@@ -11,19 +11,21 @@ NOT_SUPPORT_STREAM_MODELS = {
 
 SUPPORT_STREAM_MODELS = {
     # Jamba-Instruct
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-jamba.html
     "ai21.jamba-instruct-v1:0": 4096,
+    # Titan Text G1 - Lite
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html
+    "amazon.titan-text-lite-v1:0:4k": 4096,
+    "amazon.titan-text-lite-v1": 4096,
     # Titan Text G1 - Express
     "amazon.titan-text-express-v1": 8192,
     "amazon.titan-text-express-v1:0:8k": 8192,
-    # Titan Text G1 - Lite
-    "amazon.titan-text-lite-v1:0:4k": 4096,
-    "amazon.titan-text-lite-v1": 4096,
     # Titan Text Premier
     "amazon.titan-text-premier-v1:0": 3072,
     "amazon.titan-text-premier-v1:0:32k": 3072,
-    # Titan Text Large
-    "amazon.titan-tg1-large": 8000,
     # Claude Instant v1
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-text-completion.html
+    # https://docs.anthropic.com/en/docs/about-claude/models#model-comparison
     "anthropic.claude-instant-v1": 4096,
     "anthropic.claude-instant-v1:2:100k": 4096,
     # Claude v2
@@ -47,16 +49,19 @@ SUPPORT_STREAM_MODELS = {
     # Claude 3.5 Sonnet
     "anthropic.claude-3-5-sonnet-20240620-v1:0": 8192,
     # Command Text
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command.html
     "cohere.command-text-v14": 4096,
     "cohere.command-text-v14:7:4k": 4096,
     # Command Light Text
     "cohere.command-light-text-v14": 4096,
     "cohere.command-light-text-v14:7:4k": 4096,
     # Command R
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command-r-plus.html
     "cohere.command-r-v1:0": 4096,
     # Command R+
     "cohere.command-r-plus-v1:0": 4096,
-    # Llama 2 (--> Llama 3/3.1) !!!
+    # Llama 2 (--> Llama 3/3.1/3.2) !!!
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html
     # + Legacy: 2024-05-12
     # + EOL: 2024-10-30
     "meta.llama2-13b-chat-v1": 2048,
@@ -65,11 +70,19 @@ SUPPORT_STREAM_MODELS = {
     "meta.llama2-70b-v1:0:4k": 2048,
     "meta.llama2-70b-chat-v1": 2048,
     "meta.llama2-70b-chat-v1:0:4k": 2048,
-    # Llama 3 8B Instruct
+    # Llama 3 Instruct
     "meta.llama3-8b-instruct-v1:0": 2048,
-    # Llama 3 70B Instruct
     "meta.llama3-70b-instruct-v1:0": 2048,
+    # Llama 3.1 Instruct
+    "meta.llama3-1-8b-instruct-v1:0": 2048,
+    "meta.llama3-1-70b-instruct-v1:0": 2048,
+    "meta.llama3-1-405b-instruct-v1:0": 2048,
+    # Llama 3.2 Instruct
+    "meta.llama3-2-3b-instruct-v1:0": 2048,
+    "meta.llama3-2-11b-instruct-v1:0": 2048,
+    "meta.llama3-2-90b-instruct-v1:0": 2048,
     # Mistral 7B Instruct
+    # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral-text-completion.html
     "mistral.mistral-7b-instruct-v0:2": 8192,
     # Mixtral 8x7B Instruct
     "mistral.mixtral-8x7b-instruct-v0:1": 4096,
