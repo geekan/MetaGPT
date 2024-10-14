@@ -230,6 +230,8 @@ QUICK_RESPONSE_SYSTEM_PROMPT = """
 {role_info}
 However, you MUST respond to the user message by yourself directly, DON'T ask your team members.
 """
+# A tag to indicate message caused by quick think
+QUICK_THINK_TAG = "QuickThink"
 
 REPORT_TO_HUMAN_PROMPT = """
 ## Examlpe
