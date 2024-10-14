@@ -57,9 +57,7 @@
    1. La philosophie centrale du système est exprimée par l'énoncé : `Code = SOP(Équipe)`. Cela signifie que les SOP sont concrétisées et appliquées à des équipes composées de modèles de langage (LLMs), permettant ainsi une meilleure gestion et un meilleur déroulement des projets.
 
 
-
-
-![Une entreprise de logiciels se compose de rôles basés sur des LLM](docs/resources/software_company_cd.jpeg)
+![Une entreprise de logiciels se compose de rôles basés sur des LLM](resources/software_company_cd.jpeg)
 
 <p align="center">Schéma multi-agent d'une entreprise de logiciels (Mise en œuvre progressive)</p>
 
