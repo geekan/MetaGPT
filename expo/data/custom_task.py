@@ -22,19 +22,26 @@ COMPETITION INSTRUCTIONS
 ## More Instructions
 - output_dir: {output_dir}
 - Besides `submission.csv`, you should also save your output in the output directory.
-- Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory.
-
-Do not make visualizations.
+- You should split the training data into train and dev set.
+- Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. They should be in the same format as the `submission.csv`.
+- Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. 
+**Do not make any plots or visualizations.**
 """
+
+
+def get_mle_task_id(dataset_dir):
+    return dataset_dir.split("/")[-3]
 
 
 def get_mle_bench_requirements(dataset_dir, data_config, obfuscated=False):
     work_dir = data_config["work_dir"]
-    output_dir = f"{work_dir}/output"
+    task = get_mle_task_id(dataset_dir)
+    output_dir = f"{work_dir}/{task}"
+    final_output_dir = f"{work_dir}/submission"
     os.makedirs(output_dir, exist_ok=True)
 
     if obfuscated:
-        instructions = INSTRUCTIONS_OBFUSCATED.format(dataset_dir=dataset_dir, output_dir=output_dir)
+        instructions = INSTRUCTIONS_OBFUSCATED.format(dataset_dir=dataset_dir, output_dir=final_output_dir)
         task_file = "description_obfuscated.md"
     else:
         instructions = INSTRUCTIONS.format(dataset_dir=dataset_dir, output_dir=output_dir)

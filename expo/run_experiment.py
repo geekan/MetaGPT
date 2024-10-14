@@ -60,6 +60,11 @@ def get_di_args(parser):
 
 
 async def main(args):
+    if args.custom_dataset_dir:
+        args.external_eval = False
+        args.eval_func = "mlebench"
+        args.from_scratch = True
+
     if args.exp_mode == "mcts":
         experimenter = MCTSExperimenter(args)
     elif args.exp_mode == "greedy":

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, roc_auc_score
 
@@ -33,4 +35,14 @@ def node_evaluate_score_sela(node):
 
 def node_evaluate_score_mlebench(node):
     # TODO
-    return 0
+    from mlebench.grade import grade_csv
+    from mlebench.registry import registry
+
+    competition_id = node.state["task"]
+    pred_path = node.get_predictions_path("test")
+    new_registry = registry.set_data_dir(Path(registry.get_data_dir()))
+    competition = new_registry.get_competition(competition_id)
+    submission = Path(pred_path)
+    report = grade_csv(submission, competition).to_dict()
+    report["submission_path"] = str(submission)
+    return report

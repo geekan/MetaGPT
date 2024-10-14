@@ -8,7 +8,7 @@ import shutil
 import numpy as np
 import pandas as pd
 
-from expo.data.custom_task import get_mle_bench_requirements
+from expo.data.custom_task import get_mle_bench_requirements, get_mle_task_id
 from expo.data.dataset import generate_task_requirement, get_split_dataset_path
 from expo.evaluation.evaluation import evaluate_score
 from expo.insights.instruction_generator import InstructionGenerator
@@ -35,6 +35,8 @@ def create_initial_state(
         datasets_dir = args.custom_dataset_dir
         requirement = get_mle_bench_requirements(args.custom_dataset_dir, data_config)
         exp_pool_path = None
+        # external_eval = False # make sure external eval is false if custom dataset is used
+        task = get_mle_task_id(args.custom_dataset_dir)
     else:
         dataset_config = data_config["datasets"][task]
         datasets_dir = get_split_dataset_path(task, data_config)
@@ -120,7 +122,7 @@ class Node:
             return f"{self.parent.id}-{num_sibling}"
 
     def is_terminal(self):
-        return int(self.state["start_task_id"]) == self.max_depth + 1
+        return int(self.state["start_task_id"]) == self.max_depth + 1  # TODO: Check if this is correct or +1
 
     def is_fully_expanded(self):
         return len(self.children) > 0
