@@ -79,6 +79,8 @@ class MGXEnv(Environment, SerializationMixin):
         if converted_msg.role not in ["system", "user", "assistant"]:
             converted_msg.role = "assistant"
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
+        # When displaying send_to, change it to those who need to react and exclude those who only need to be aware, e.g.:
+        # send_to={<all>} -> Mike; send_to={Alice} -> Alice; send_to={Alice, <all>} -> Alice.
         if converted_msg.send_to == {MESSAGE_ROUTE_TO_ALL}:
             send_to = TEAMLEADER_NAME
         else:
