@@ -39,8 +39,9 @@ def node_evaluate_score_mlebench(node):
     from mlebench.registry import registry
 
     competition_id = node.state["task"]
+    data_dir = Path(node.state["custom_dataset_dir"]).parent.parent.parent  # prepared/public/../../../
     pred_path = node.get_predictions_path("test")
-    new_registry = registry.set_data_dir(Path(registry.get_data_dir()))
+    new_registry = registry.set_data_dir(data_dir)
     competition = new_registry.get_competition(competition_id)
     submission = Path(pred_path)
     report = grade_csv(submission, competition).to_dict()
