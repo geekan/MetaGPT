@@ -57,6 +57,7 @@ CMD_EXPERIENCE_MASK = f"""
 CMD_PROMPT = (
     CMD_EXPERIENCE_MASK
     + """
+# Tool State
 {current_state}
 
 # Current Plan
@@ -74,9 +75,9 @@ You may use any of the available commands to create a plan or update the plan. Y
 If you finish current task, you will automatically take the next task in the existing plan, use Plan.finish_current_task, DON'T append a new task.
 Review the latest plan's outcome, focusing on achievements. If your completed task matches the current, consider it finished.
 Using Editor.insert_content_at_line and Editor.edit_file_by_replace more than once in the current command list is forbidden. Because the command is mutually exclusive and will change the line number after execution.
-In your response, include at least one command.
+In your response, include at least one command. If you want to stop, use {{"command_name":"end"}} command.
 
-# Your commands in a json array, in the following output format with correct command_name and args. If there is nothing to do, use the pass or end command:
+# Your commands in a json array, in the following output format with correct command_name and args.
 Some text indicating your thoughts before JSON is required, such as what tasks have been completed, what tasks are next, how you should update the plan status, respond to inquiry, or seek for help. Then a json array of commands. You must output ONE and ONLY ONE json array. DON'T output multiple json arrays with thoughts between them.
 Output should adhere to the following format.
 ```json
@@ -244,14 +245,14 @@ Reply : The herb names have been successfully extracted. A total of 8 herb names
 ------------
 
 Carefully review the history and respond to the user in the expected language to meet their requirements.
-If you have any deliverables that are helpful in explaining the results (such as files, metrics, quantitative results, etc.), provide brief descriptions of them.
+If you have any deliverables that are helpful in explaining the results (such as deployment URL, files, metrics, quantitative results, etc.), provide brief descriptions of them.
 Your reply must be concise.
 You must respond in {respond_language}
 Directly output your reply content. Do not add any output format.
 """
 SUMMARY_PROMPT = """
 Summarize what you have accomplished lately. Be concise.
-If you produce any deliverables, include their short descriptions and file paths. If there are any metrics or quantitative results, include them, too.
+If you produce any deliverables, include their short descriptions and file paths. If there are any metrics, url or quantitative results, include them, too.
 If the deliverable is code, only output the file path.
 """
 

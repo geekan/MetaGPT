@@ -845,20 +845,11 @@ Explanation: This is a project that needs to be implemented using Vue.js. Theref
 
 ## example 3
 User Requirement: Writing code.
-The template is :
-├── public
-├── src
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-└── vite.config.js
 
-Here's the plan:
-[Optional] Read the original file in the template if they exist.
-[Optional] Obtain images before coding.
-1. **Task 1**: Rewrite `App.jsx` - This file will contain the Vue structure necessary for the game's UI, the game logic and UI interactions.
-2. **Task 2**: Rewrite `style.css` - This file will define the CSS styles to make the game visually appealing and responsive. Default use tailwindcss.
-3. **Task 3**: Rewrite `main.js` - This file is the main entry of Vue project, including the main Vue instance, global styles, and the router.
+Here's the Plan
+1. Rewrite the code index.html and the code in src folder. Specifically, this includes the index.html, src/main.jsx, src/index.css, and src/App.jsx. which is the main structure file, entry point of the project, the global style file, and the main component. All these files must Use Tailwind CSS for styling
+2. Create new files when needed. In the current ecommerce website project, I need to create homepage.jsx, product.jsx.
+3. Install, build and deploy after the project is finished.
 If the project is a Vue or React Project, install the dependencies after finishing project. And then deploy the project to the public.
 ```json
 [
@@ -867,7 +858,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Read the original file in the template if they exist.",
+            "instruction": "Rewrite the index.html file with the project title and main entry point.",
             "assignee": "Alex"
         }
     },
@@ -875,8 +866,8 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "2",
-            "dependent_task_ids": [],
-            "instruction": "Create the App.vue file with the game's UI, the game logic and UI interactions, the style will implemented in the global style file using Tailwind CSS.",
+            "dependent_task_ids": ["1"],
+            "instruction": "Rewrite the src/App.jsx file, which is the main component. Use Tailwind CSS for styling",
             "assignee": "Alex"
         }
     },
@@ -885,7 +876,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
-            "instruction": "Create the style.css file with Tailwind CSS for the 2048 Game.",
+            "instruction": "Rewrite the src/style.css file with Tailwind CSS.",
             "assignee": "Alex"
         }
     },
@@ -894,7 +885,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["2","3"],
-            "instruction": "Create the main.js, which will include the main Vue instance, global styles, and the router.",
+            "instruction": "Rewrite the src/main.js, which will include the main Vue instance, global styles, and the router.",
             "assignee": "Alex"
         }
     },
@@ -902,6 +893,24 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "command_name": "Plan.append_task",
         "args": {
             "task_id": "5",
+            "dependent_task_ids": ["2","3","4"],
+            "instruction": "Create the src/homepage.jsx, which will include the homepage content. Use Tailwind CSS for styling",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "6",
+            "dependent_task_ids": ["2","3","4","5"],
+            "instruction": "Create the src/product.js, which will include the product detail page. Use Tailwind CSS for styling",
+            "assignee": "Alex"
+        }
+    },
+    {
+        "command_name": "Plan.append_task",
+        "args": {
+            "task_id": "7",
             "dependent_task_ids": [],
             "instruction": "Install the necessary dependencies, configure the project structure and deploy it to the public",
             "assignee": "Alex"
@@ -928,7 +937,7 @@ Explanation: Take on one task, such as writing or rewriting a file. Upon complet
 ]
 ```
 ## example 5
-Explanation: The project have been completed. And this project is a Vue/React Project,so i will deploy the project to the public.
+Explanation: The project have been completed. This project is Vue/React Project, I will install and build the project to create static dist folder in the current project folder.
 
 ```json
 [
@@ -940,13 +949,13 @@ Explanation: The project have been completed. And this project is a Vue/React Pr
     }
 ]
 ## example 6
-Explanation: After install the project. I will deploy the project to the public.
+Explanation: After install and build the project, static dist is created in the current project folder. I will deploy the project to the public.
 ```json
 [
     {
         "command_name": "Deployer.deploy_to_public,
         "args": {
-            "dist_dir": "{{project_path}}/dist"
+            "dist_dir": "/example/dist"
         }
     }
 ]

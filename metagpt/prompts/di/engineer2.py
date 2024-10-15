@@ -27,41 +27,6 @@ Note:
 6. To avoid syntax errors when editing files multiple times, consider opening the file to view the surrounding code related to the error line and make modifications based on this context.
 7. Ensure to observe the currently open file and the current working directory, which is displayed right after the open file. The open file might be in a different directory than the working directory. Remember, commands like 'create' open files and might alter the current open file.
 8. Effectively using Use search commands (`search_dir`, `search_file`, `find_file`) and navigation commands (`open_file`, `goto_line`) to locate and modify files efficiently. The Editor tool can fully satisfy the requirements. Follow these steps and considerations for optimal results:
-    **General Search Guidelines:**
-    - Ensure you are in the repository's root directory before starting your search.
-    - Always double-check the current working directory and the currently open file to avoid confusion.
-    - Avoid repeating failed search commands without modifications to improve efficiency.
-
-    **Strategies for Searching and Navigating Files:**
-
-    1. **If you know the file's location:**
-       - Use the `open_file` command directly to open the file.
-       - Use `search_file` to find the `search_term` within the currently open file.
-       - Alternatively, use the `goto_line` command to jump to the specified line.
-       - **Boundary Consideration:** Ensure the file path is correctly specified and accessible.
-
-    2. **If you know the filename but not the exact location:**
-       - Use `find_file` to locate the file in the directory.
-       - Use `open_file` to open the file once located.
-       - Use `search_file` to find the `search_term` within the file.
-       - Use `goto_line` to jump to the specified line if needed.
-       - **Boundary Consideration:** Handle cases where the file may exist in multiple directories by verifying the correct path before opening.
-
-    3. **If you know the symbol but not the file's location:**
-       - Use "search_dir" to find files containing the symbol within the directory.
-       - Review the search results to identify the relevant file(s).
-       - Use `open_file` to open the identified file.
-       - Use `search_file` to locate the `search_term` within the open file.
-       - Use `goto_line` to jump to the specified line.
-       - **Boundary Consideration:** Be thorough in reviewing multiple search results to ensure you open the correct file. Consider using more specific search terms if initial searches return too many results.
-
-    **Search Tips:**
-    - The `<search_term>` for `search_dir`, `find_file`, or `search_file` should be an existing class name, function name, or file name.
-    - Enclose terms like `def` or `class` in quotes when searching for functions or classes (e.g., `search_dir 'def apow'` or `search_file 'class Pow'`).
-    - Use wildcard characters (`*`, `?`) in search terms to broaden or narrow down your search scope.
-    - If search commands return too many results, refine your search criteria or use more specific terms.
-    - If a search command fails, modify the search criteria, check for search_term or  paths, and then try again.
-    - Based on feedback of observation or Terminal command in trajectory to guide adjustments in your search strategy.
 
 9. When the edit fails, try to enlarge the range of code.
 10. You must use the Editor.open_file command to open a file before using the Editor tool's edit command to modify it. When you open a file, any currently open file will be automatically closed.
@@ -70,7 +35,7 @@ Note:
 12. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
 13. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
 14. When not specified, you should write files in a folder named "{{project_name}}". The project name is the name of the project which meets the user's requirements.
-15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule. You can create a plan first with each task corresponding to implementing one code file.
+15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule.
 16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
 17. If you plan to read a file, do not include other plans in the same response.
 18. Write only one code file each time and provide its full implementation.
@@ -82,10 +47,12 @@ Note:
 24. Follow the Sytem Design and Project Schedule if exists. Otherwise, use default template folder of Vite, React, MUI and Tailwind CSS. The React template is in the "{react_template_path}" and Vue template is in the "{vue_template_path}". If the template does not exist, use native HTML.
 25. When writing Vue/React project: 
 25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
-25.2. Copy a Vue/React template to your project and view all files. This must be a single respond. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f".
-25.3. Read the content of each file and use the write_new_code command to rewrite the code. Be sure you are in the {{project_name}}. 
-25.4. After finish the project. use "pnpm install" and "pnpm run build" to build the project and then use Deployer.deploy_to_public to deploy the project to the public.
+25.2. Copy a Vue/React template to your project folder, move into it and list the file in it. This must be a single respond. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f".
+25.3. User Editor.read to read the content of files in the src and read the index.html in the project root before making a plan.
+25.4. List the files that you need to rewrite and create when making a plan. Indicate clearly what file to rewrite or create in each task. "index.html" and all files in the src folder always must be rewritten. Use Tailwind CSS for styling. Notice that you are in {{project_name}}.
+25.5. After finish the project. use "pnpm install && pnpm run build" to build the project and then deploy the project to the public using the dist folder which contains the built project.
 26. Engineer2.write_new_code is used to write or rewrite the code, which will modify the whole file. Editor.edit_file_by_replace is used to edit a small part of the file.
+27. Deploye the project to the public after you install and build the project, there will be a folder named "dist" in the current directory after the build.
 """.format(
     vue_template_path=VUE_TEMPLATE_PATH.absolute(),
     react_template_path=REACT_TEMPLATE_PATH.absolute(),

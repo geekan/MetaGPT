@@ -1,11 +1,12 @@
 import asyncio
 import os
+import re
 from asyncio import Queue
 from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
 from metagpt.config2 import Config
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
+from metagpt.const import SWE_SETUP_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
@@ -28,8 +29,9 @@ class Terminal:
         self.process: Optional[asyncio.subprocess.Process] = None
         #  The cmd in forbidden_terminal_commands will be replace by pass ana return the advise. example:{"cmd":"forbidden_reason/advice"}
         self.forbidden_commands = {
-            "npm run dev": "Use Deployer.deploy_to_public instead.",
-            "pnpm run dev": "Use Deployer.deploy_to_public instead.",
+            "run dev": "Use Deployer.deploy_to_public instead.",
+            # serve cmd have a space behind it,
+            "serve ": "Use Deployer.deploy_to_public instead.",
         }
 
     async def _start_process(self):
@@ -38,8 +40,6 @@ class Terminal:
             *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash", env=os.environ.copy()
         )
         await self._check_state()
-        # Goto the default directory
-        await self.run_command(f"cd {DEFAULT_WORKSPACE_ROOT.absolute()}")
 
     async def _check_state(self):
         """
@@ -67,11 +67,14 @@ class Terminal:
 
         output = ""
         # Remove forbidden commands
+        commands = re.split(r"\s*&&\s*", cmd)
         for cmd_name, reason in self.forbidden_commands.items():
             # "true" is a pass command in linux terminal.
-            if cmd_name in cmd:
-                cmd = cmd.replace(cmd_name, "true")
-                output += f"Failed to execut {cmd_name}. {reason}\n"
+            for index, command in enumerate(commands):
+                if cmd_name in command:
+                    output += f"Failed to execut {command}. {reason}\n"
+                    commands[index] = "true"
+        cmd = " && ".join(commands)
 
         # Send the command
         self.process.stdin.write((cmd + self.command_terminator).encode())
