@@ -57,6 +57,7 @@ CMD_EXPERIENCE_MASK = f"""
 CMD_PROMPT = (
     CMD_EXPERIENCE_MASK
     + """
+# Tool State
 {current_state}
 
 # Current Plan

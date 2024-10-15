@@ -792,19 +792,21 @@ class Editor(BaseModel):
                 ("last", last_replaced_line_number, last_replaced_line_content),
             ]
             for position, line_number, line_content in check_list:
-                if lines[line_number - 1].rstrip() != line_content:
+                if line_number > len(lines) or lines[line_number - 1].rstrip() != line_content:
                     start = max(1, line_number - 3)
                     end = min(total_lines, line_number + 3)
                     context = "\n".join(
                         [
-                            f'The {line_number:03d} line is "{lines[line_number-1].rstrip()}"'
-                            for line_number in range(start, end + 1)
+                            f'The {cur_line_number:03d} line is "{lines[cur_line_number-1].rstrip()}"'
+                            for cur_line_number in range(start, end + 1)
                         ]
                     )
                     mismatch_error += LINE_NUMBER_AND_CONTENT_MISMATCH.format(
                         position=position,
                         line_number=line_number,
-                        true_content=lines[line_number - 1].rstrip(),
+                        true_content=lines[line_number - 1].rstrip()
+                        if line_number - 1 < len(lines)
+                        else "OUT OF FILE RANGE!",
                         fake_content=line_content.replace("\n", "\\n"),
                         context=context.strip(),
                     )

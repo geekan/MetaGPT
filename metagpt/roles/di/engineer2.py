@@ -141,8 +141,17 @@ class Engineer2(RoleZero):
         return f"The file {path} has been successfully created, with content:\n{code}"
 
     async def _deploy_to_public(self, dist_dir):
-        """fix the dist_dir path to absolute path before deploying"""
-        dist_dir = self.editor._try_fix_path(dist_dir)
+        """fix the dist_dir path to absolute path before deploying
+        Args:
+            dist_dir (str): The dist directory of the web project after run build. This must be an absolute path.
+        """
+        # Try to fix the path with the editor's working directory.
+        if not Path(dist_dir).is_absolute():
+            default_dir = self.editor._try_fix_path(dist_dir)
+            if not default_dir.exists():
+                raise ValueError("dist_dir must be an absolute path.")
+            else:
+                dist_dir = default_dir
         return await self.deployer.deploy_to_public(dist_dir)
 
     async def _eval_terminal_run(self, cmd):
