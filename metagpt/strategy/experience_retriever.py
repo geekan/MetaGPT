@@ -927,7 +927,7 @@ Explanation: Take on one task, such as writing or rewriting a file. Upon complet
     {
         "command_name": "Engineer2.write_new_code",
         "args": {
-            "path": "src/index.html"
+            "path": "/absolute/path/to/src/index.html"
         }
     },
     {

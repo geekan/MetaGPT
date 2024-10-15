@@ -97,7 +97,7 @@ class LineNumberError(Exception):
         "search_dir",
         "search_file",
         "find_file",
-        "search_index_repo",
+        "similarity_search",
     ]
 )
 class Editor(BaseModel):
@@ -811,7 +811,7 @@ class Editor(BaseModel):
                         context=context.strip(),
                     )
         if mismatch_error:
-            return mismatch_error
+            raise ValueError(mismatch_error)
         ret_str = self._edit_file_impl(
             file_name,
             start=first_replaced_line_number,
