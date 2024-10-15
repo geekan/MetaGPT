@@ -18,6 +18,7 @@ def get_args():
         default="mcts",
         choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random", "autosklearn"],
     )
+    parser.add_argument("--role_timeout", type=int, default=1000)
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
@@ -30,6 +31,7 @@ def get_mcts_args(parser):
     parser.set_defaults(load_tree=False)
     parser.add_argument("--rollouts", type=int, default=5)
     parser.add_argument("--use_fixed_insights", dest="use_fixed_insights", action="store_true")
+    parser.add_argument("--start_task_id", type=int, default=2)
 
 
 def get_aug_exp_args(parser):

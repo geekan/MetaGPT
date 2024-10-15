@@ -34,7 +34,9 @@ class AugExperimenter(Experimenter):
 
         results = []
         for i in range(self.args.num_experiments):
-            di = ResearchAssistant(node_id=str(i), use_reflection=self.args.reflection)
+            di = ResearchAssistant(
+                node_id=str(i), use_reflection=self.args.reflection, role_timeout=self.args.role_timeout
+            )
             di.role_dir = f"{di.role_dir}_{self.args.task}"
             requirement = user_requirement + EXPS_PROMPT.format(experience=exps[i])
             print(requirement)

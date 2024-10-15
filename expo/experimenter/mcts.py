@@ -8,9 +8,12 @@ from expo.MCTS import MCTS
 
 class MCTSExperimenter(Experimenter):
     result_path: str = "results/mcts"
-    start_task_id = 2
 
     def __init__(self, args, tree_mode=None, **kwargs):
+        if args.special_instruction == "image":
+            self.start_task_id = 1  # start from datapreprocessing if it is image task
+        else:
+            self.start_task_id = args.start_task_id
         super().__init__(args, **kwargs)
         self.tree_mode = tree_mode
 

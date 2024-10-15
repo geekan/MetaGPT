@@ -10,7 +10,7 @@ import pandas as pd
 from expo.data.dataset import generate_task_requirement, get_split_dataset_path
 from expo.evaluation.evaluation import evaluate_score
 from expo.insights.instruction_generator import InstructionGenerator
-from expo.research_assistant import ResearchAssistant
+from expo.research_assistant import ResearchAssistant, TimeoutException
 from expo.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
 from metagpt.tools.tool_recommend import ToolRecommender
 from metagpt.utils.common import read_json_file
@@ -26,7 +26,9 @@ def initialize_di_root_node(state, reflection: bool = True):
     return role, Node(parent=None, state=state, action=None, value=0)
 
 
-def create_initial_state(task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str):
+def create_initial_state(
+    task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str, args
+):
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
@@ -40,6 +42,7 @@ def create_initial_state(task, start_task_id, data_config, low_is_better: bool, 
         "has_run": False,
         "start_task_id": start_task_id,
         "low_is_better": low_is_better,
+        "role_timeout": args.role_timeout,
     }
     os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state
@@ -152,18 +155,15 @@ class Node:
         role = role.model_copy()
         role.save_state(static_save=True)
 
-    async def expand(self, max_children, use_fixed_insights):
+    async def expand(self, max_children: int, instruction_generator: InstructionGenerator):
         if self.is_fully_expanded():
             return
-        insight_geneartor = InstructionGenerator()
         role = self.load_role()
         original_instruction = role.get_next_instruction()
-        insights = await insight_geneartor.generate_new_instructions(
+        insights = await instruction_generator.generate_new_instructions(
             task_id=role.start_task_id + 1,
             original_instruction=original_instruction,
             max_num=max_children,
-            file_path=self.state["exp_pool_path"],
-            use_fixed_insights=use_fixed_insights,
         )
         new_state = self.state.copy()
         new_state["start_task_id"] += 1
@@ -211,10 +211,14 @@ class Node:
                 score_dict = self.evaluate_simulation(score_dict)
                 self.raw_reward = score_dict
                 run_finished = True
+            except TimeoutException as e:
+                mcts_logger.log("MCTS", f"Role-level timeout: {e}")
+                break
             except Exception as e:
                 print(f"Error: {e}")
                 mcts_logger.log("MCTS", f"Error in running the role: {e}")
                 num_runs += 1
+
         if not run_finished:
             mcts_logger.log("MCTS", f"Role {role.node_id} failed to run")
             if self.state["low_is_better"]:
@@ -242,6 +246,8 @@ class MCTS:
     c_explore: float = 1.4
     c_unvisited: float = 0.8
     node_order: list = []
+    # insight generator
+    instruction_generator: InstructionGenerator = None
 
     def __init__(self, root_node, max_depth, use_fixed_insights):
         self.root_node = root_node
@@ -265,7 +271,7 @@ class MCTS:
         return max(all_children, key=uct)
 
     async def expand(self, node: Node, max_children=5):
-        await node.expand(max_children, self.use_fixed_insights)
+        await node.expand(max_children, self.instruction_generator)
         if node not in self.children or not self.children[node]:
             self.children[node] = node.children
         return node.children
@@ -277,6 +283,7 @@ class MCTS:
             node = random.choice(node.children)
         reward = await node.run_node(role)
         mcts_logger.log("MCTS", f"Simulated node's reward: {reward}")
+
         return reward
 
     def backpropagate(self, node: Node, reward):
@@ -337,6 +344,10 @@ class MCTS:
     async def search(self, state, rollouts, load_tree=False, reflection=False):
         role, root = initialize_di_root_node(state, reflection=reflection)
         self.root_node = root
+        self.instruction_generator = InstructionGenerator(
+            file_path=state["exp_pool_path"], use_fixed_insights=self.use_fixed_insights
+        )
+
         tree_loaded = False
         if load_tree:
             tree_loaded = self.load_tree()

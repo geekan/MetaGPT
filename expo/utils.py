@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -21,22 +20,19 @@ def load_data_config(file_path="data.yaml"):
 
 DATASET_CONFIG = load_data_config("datasets.yaml")
 DATA_CONFIG = load_data_config()
-DATA_CONFIG["datasets"].update(DATASET_CONFIG["datasets"])
+DATA_CONFIG["datasets"] = DATASET_CONFIG["datasets"]
 
 
 def get_mcts_logger():
-    print_level = "INFO"
-    print_level2 = "MCTS"
-    logfile_level = "MCTS"
+    logfile_level = "DEBUG"
     name: str = None
     current_date = datetime.now()
     formatted_date = current_date.strftime("%Y%m%d")
     log_name = f"{name}_{formatted_date}" if name else formatted_date  # name a log with prefix name
 
-    _logger.remove()
-    _logger.level(logfile_level, color="<green>", no=25)
-    _logger.add(sys.stderr, level=print_level)
-    _logger.add(sys.stderr, level=print_level2)
+    # _logger.remove()
+    _logger.level("MCTS", color="<green>", no=25)
+    # _logger.add(sys.stderr, level=print_level)
     _logger.add(Path(DATA_CONFIG["work_dir"]) / DATA_CONFIG["role_dir"] / f"{log_name}.txt", level=logfile_level)
     _logger.propagate = False
     return _logger

@@ -21,6 +21,7 @@ The insights should be proposed based on the dataset description with different 
 Each task type should have at least 5 insights.
 Make sure each method is diverse enough and can be implemented separately.
 Be specific about models' choices, ensemble and tuning techniques, and preprocessing & feature engineering techniques.
+Your model choices should be advanced enough to be helpful.
 
 # Format
 ```json

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 
@@ -34,11 +35,33 @@ If you cannot find the scores, please still return a dictionary with the keys 't
 """
 
 
+class TimeoutException(Exception):
+    pass
+
+
+def async_timeout():
+    def decorator(func):
+        async def wrapper(self, *args, **kwargs):
+            try:
+                result = await asyncio.wait_for(func(self, *args, **kwargs), timeout=self.role_timeout)
+            except asyncio.TimeoutError:
+                text = f"Function timed out after {self.role_timeout} seconds"
+                mcts_logger.error(text)
+                self.save_state()
+                raise TimeoutException(text)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 class ResearchAssistant(DataInterpreter):
     node_id: str = "0"
     start_task_id: int = 1
     state_saved: bool = False
     role_dir: str = SERDESER_PATH.joinpath("team", "environment", "roles", "Experimenter")
+    role_timeout: int = 1000
 
     def get_node_name(self):
         return f"Node-{self.node_id}"
@@ -117,6 +140,12 @@ class ResearchAssistant(DataInterpreter):
         return task_result
 
     def save_state(self, static_save=False):
+        """
+        attribute:
+            state_saved - the state has been saved
+        input:
+            static_save - saving the state without changing the state_saved flag - used when a new role is created
+        """
         if self.state_saved and not static_save:
             return
         if not static_save:
@@ -135,18 +164,14 @@ class ResearchAssistant(DataInterpreter):
             self.planner.plan.task_map[task_id] for task_id in sorted(self.planner.plan.task_map.keys())
         ]
 
+    @async_timeout()
     async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
         if with_message == "continue":
-            # self.set_todo(None)
-            # working_memory = self.working_memory
-            # self.remap_tasks()
             mcts_logger.info("Continue to run")
             self.rc.working_memory.clear()
             self.working_memory.clear()
-            # self.rc.todo = WriteAnalysisCode()
             rsp = await self.react()
-            # 发送响应消息给 Environment 对象，以便它将消息传递给订阅者
             self.set_todo(None)
             self.publish_message(rsp)
             return rsp

@@ -9,6 +9,7 @@ from PIL import Image
 
 from expo.data.dataset import ExpDataset, process_dataset, save_datasets_dict_to_yaml
 from expo.insights.solution_designer import SolutionDesigner
+from expo.utils import DATA_CONFIG
 
 HFDATSETS = [
     {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},
@@ -114,7 +115,7 @@ class HFExpDataset(ExpDataset):
 
 
 if __name__ == "__main__":
-    dataset_dir = "D:/work/automl/datasets"
+    dataset_dir = DATA_CONFIG["datasets_dir"]
     save_analysis_pool = True
     force_update = False
     datasets_dict = {"datasets": {}}
