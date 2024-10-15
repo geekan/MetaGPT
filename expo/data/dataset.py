@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import os
@@ -18,22 +19,22 @@ Report {metric} on the eval data. Do not plot or make any visualizations.
 """
 
 USE_AG = """
-7. Please use autogluon for model training with presets='medium_quality', time_limit=None, give dev dataset to tuning_data, and use right eval_metric.
+- Please use autogluon for model training with presets='medium_quality', time_limit=None, give dev dataset to tuning_data, and use right eval_metric.
 """
 
 TEXT_MODALITY = """
-7. You could use models from transformers library for this text dataset.
-8. Use gpu if available for faster training.
+- You could use models from transformers library for this text dataset.
+- Use gpu if available for faster training.
 """
 
 IMAGE_MODALITY = """
-7. You could use models from transformers/torchvision library for this image dataset.
-8. Use gpu if available for faster training.
+- You could use models from transformers/torchvision library for this image dataset.
+- Use gpu if available for faster training.
 """
 
 STACKING = """
-7. To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor.
-8. You could do some quick model prototyping to see which models work best and then use them in the ensemble. 
+- To avoid overfitting, train a weighted ensemble model such as StackingClassifier or StackingRegressor.
+- You could do some quick model prototyping to see which models work best and then use them in the ensemble. 
 """
 
 
@@ -361,10 +362,22 @@ async def process_dataset(dataset, solution_designer: SolutionDesigner, save_ana
     datasets_dict["datasets"][dataset.name] = dataset_dict
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--force_update", action="store_true", help="Force update datasets")
+    parser.add_argument("--save_analysis_pool", action="store_true", help="Save analysis pool")
+    parser.add_argument(
+        "--no_save_analysis_pool", dest="save_analysis_pool", action="store_false", help="Do not save analysis pool"
+    )
+    parser.set_defaults(save_analysis_pool=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
     datasets_dir = DATA_CONFIG["datasets_dir"]
-    force_update = False
-    save_analysis_pool = True
+    args = parse_args()
+    force_update = args.force_update
+    save_analysis_pool = args.save_analysis_pool
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
     for dataset_id in OPENML_DATASET_IDS:

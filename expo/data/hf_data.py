@@ -7,7 +7,12 @@ import pandas as pd
 from datasets import load_dataset
 from PIL import Image
 
-from expo.data.dataset import ExpDataset, process_dataset, save_datasets_dict_to_yaml
+from expo.data.dataset import (
+    ExpDataset,
+    parse_args,
+    process_dataset,
+    save_datasets_dict_to_yaml,
+)
 from expo.insights.solution_designer import SolutionDesigner
 from expo.utils import DATA_CONFIG
 
@@ -116,8 +121,9 @@ class HFExpDataset(ExpDataset):
 
 if __name__ == "__main__":
     dataset_dir = DATA_CONFIG["datasets_dir"]
-    save_analysis_pool = True
-    force_update = False
+    args = parse_args()
+    force_update = args.force_update
+    save_analysis_pool = args.save_analysis_pool
     datasets_dict = {"datasets": {}}
     solution_designer = SolutionDesigner()
     for dataset_meta in HFDATSETS:
