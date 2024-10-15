@@ -847,8 +847,8 @@ Explanation: This is a project that needs to be implemented using Vue.js. Theref
 User Requirement: Writing code.
 
 Here's the Plan
-1. Rewrite the code index.html and the code in src folder. Specifically, this includes the index.html, src/main.jsx, src/index.css, and src/App.jsx. which is the main structure file, entry point of the project, the global style file, and the main component. All these files must be styled using Tailwind CSS.
-2. Create new files when needed. In the current ecommerce website project, I need to create homepage.jsx, product.jsx, and cart.jsx.
+1. Rewrite the code index.html and the code in src folder. Specifically, this includes the index.html, src/main.jsx, src/index.css, and src/App.jsx. which is the main structure file, entry point of the project, the global style file, and the main component. All these files must Use Tailwind CSS for styling
+2. Create new files when needed. In the current ecommerce website project, I need to create homepage.jsx, product.jsx.
 3. Install, build and deploy after the project is finished.
 If the project is a Vue or React Project, install the dependencies after finishing project. And then deploy the project to the public.
 ```json
@@ -867,7 +867,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Rewrite the src/App.jsx file, which is the main component. Be styled using Tailwind CSS.",
+            "instruction": "Rewrite the src/App.jsx file, which is the main component. Use Tailwind CSS for styling",
             "assignee": "Alex"
         }
     },
@@ -876,7 +876,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "3",
             "dependent_task_ids": ["2"],
-            "instruction": "Rewrite the src/style.css file with Tailwind CSS for the 2048 Game. Be styled using Tailwind CSS.",
+            "instruction": "Rewrite the src/style.css file with Tailwind CSS.",
             "assignee": "Alex"
         }
     },
@@ -894,7 +894,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "5",
             "dependent_task_ids": ["2","3","4"],
-            "instruction": "Create the src/homepage.jsx, which will include the homepage content. Be styled using Tailwind CSS.",
+            "instruction": "Create the src/homepage.jsx, which will include the homepage content. Use Tailwind CSS for styling",
             "assignee": "Alex"
         }
     },
@@ -903,7 +903,7 @@ If the project is a Vue or React Project, install the dependencies after finishi
         "args": {
             "task_id": "6",
             "dependent_task_ids": ["2","3","4","5"],
-            "instruction": "Create the src/product.js, which will include the product detail page. Be styled using Tailwind CSS.",
+            "instruction": "Create the src/product.js, which will include the product detail page. Use Tailwind CSS for styling",
             "assignee": "Alex"
         }
     },
