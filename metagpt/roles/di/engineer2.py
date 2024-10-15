@@ -150,8 +150,7 @@ class Engineer2(RoleZero):
             default_dir = self.editor._try_fix_path(dist_dir)
             if not default_dir.exists():
                 raise ValueError("dist_dir must be an absolute path.")
-            else:
-                dist_dir = default_dir
+            dist_dir = default_dir
         return await self.deployer.deploy_to_public(dist_dir)
 
     async def _eval_terminal_run(self, cmd):
