@@ -1,5 +1,6 @@
 import os
 
+from expo.data.dataset import SPECIAL_INSTRUCTIONS
 from expo.experimenter.mle_bench.instructions import (
     ADDITIONAL_NOTES,
     INSTRUCTIONS,
@@ -24,7 +25,7 @@ COMPETITION INSTRUCTIONS
 - Besides `submission.csv`, you should also save your output in the output directory.
 - You should split the training data into train and dev set.
 - Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. They should be in the same format as the `submission.csv`.
-- Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. 
+- Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. {special_instruction}
 **Do not make any plots or visualizations.**
 """
 
@@ -33,12 +34,13 @@ def get_mle_task_id(dataset_dir):
     return dataset_dir.split("/")[-3]
 
 
-def get_mle_bench_requirements(dataset_dir, data_config, obfuscated=False):
+def get_mle_bench_requirements(dataset_dir, data_config, obfuscated=False, special_instruction=""):
     work_dir = data_config["work_dir"]
     task = get_mle_task_id(dataset_dir)
     output_dir = f"{work_dir}/{task}"
     final_output_dir = f"{work_dir}/submission"
     os.makedirs(output_dir, exist_ok=True)
+    special_instruction = SPECIAL_INSTRUCTIONS[special_instruction]
 
     if obfuscated:
         instructions = INSTRUCTIONS_OBFUSCATED.format(dataset_dir=dataset_dir, output_dir=final_output_dir)
@@ -54,6 +56,7 @@ def get_mle_bench_requirements(dataset_dir, data_config, obfuscated=False):
         additonal_notes=ADDITIONAL_NOTES,
         task_description=task_description,
         output_dir=output_dir,
+        special_instruction=special_instruction,
     )
     print(mle_requirement)
     return mle_requirement

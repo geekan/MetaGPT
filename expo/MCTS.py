@@ -33,7 +33,9 @@ def create_initial_state(
     if args.custom_dataset_dir:
         dataset_config = None
         datasets_dir = args.custom_dataset_dir
-        requirement = get_mle_bench_requirements(args.custom_dataset_dir, data_config)
+        requirement = get_mle_bench_requirements(
+            args.custom_dataset_dir, data_config, special_instruction=special_instruction
+        )
         exp_pool_path = None
         # external_eval = False # make sure external eval is false if custom dataset is used
         task = get_mle_task_id(args.custom_dataset_dir)
@@ -309,7 +311,7 @@ class MCTS:
             node = random.choice(node.children)
         reward, result_dict = await node.run_node(role)
         mcts_logger.log("MCTS", f"Simulated node's reward: {reward}")
-
+        # TODO: add new insights
         return reward
 
     def backpropagate(self, node: Node, reward):
