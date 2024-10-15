@@ -104,7 +104,7 @@ mlebench prepare -c <competition-id> --data-dir <dataset-dir-save-path>
 
 Enter the following command to run the experiment:
 ```
-python run_experiment.py --exp_mode mcts --custom_dataset_dir <dataset-dir-save-path/prepared/public> --rollouts 10 --from_scratch
+python run_experiment.py --exp_mode mcts --custom_dataset_dir <dataset-dir-save-path/prepared/public> --rollouts 10 --from_scratch --role_timeout 3600
 ```
 
 
