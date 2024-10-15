@@ -3,7 +3,7 @@ import json
 import pytest
 
 from metagpt.provider.bedrock.utils import (
-    NOT_SUUPORT_STREAM_MODELS,
+    NOT_SUPPORT_STREAM_MODELS,
     SUPPORT_STREAM_MODELS,
 )
 from metagpt.provider.bedrock_api import BedrockLLM
@@ -14,7 +14,7 @@ from tests.metagpt.provider.req_resp_const import (
 )
 
 # all available model from bedrock
-models = SUPPORT_STREAM_MODELS | NOT_SUUPORT_STREAM_MODELS
+models = SUPPORT_STREAM_MODELS | NOT_SUPPORT_STREAM_MODELS
 messages = [{"role": "user", "content": "Hi!"}]
 usage = {
     "prompt_tokens": 1000000,

@@ -57,6 +57,7 @@ class LLMConfig(YamlModel):
     # For Cloud Service Provider like Baidu/ Alibaba
     access_key: Optional[str] = None
     secret_key: Optional[str] = None
+    session_token: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
 
     # For Spark(Xunfei), maybe remove later
