@@ -29,7 +29,7 @@ class MCTSExperimenter(Experimenter):
 
     async def run_experiment(self):
         use_fixed_insights = self.args.use_fixed_insights
-        depth = 5
+        depth = self.args.max_depth
         if self.tree_mode == "greedy":
             mcts = Greedy(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
         elif self.tree_mode == "random":

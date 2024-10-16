@@ -274,7 +274,7 @@ class MCTS:
     # data_path
     root_node: Node = None
     children: dict = {}
-    max_depth: int = 5
+    max_depth: int = None
     c_explore: float = 1.4
     c_unvisited: float = 0.8
     node_order: list = []

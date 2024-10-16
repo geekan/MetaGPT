@@ -44,6 +44,7 @@ def get_mcts_args(parser):
     parser.set_defaults(external_eval=True)
     parser.add_argument("--eval_func", type=str, default="sela", choices=["sela", "mlebench"])
     parser.add_argument("--custom_dataset_dir", type=str, default=None)
+    parser.add_argument("--max_depth", type=int, default=4)
 
 
 def get_aug_exp_args(parser):
