@@ -163,10 +163,10 @@ class Evaluator:
             return graph_class(name="DROP", llm_config=llm_config, dataset=dataset)
         
         if test:
-            data_path = "examples/aflow/data/drop_test.json"
+            data_path = "examples/aflow/data/drop_test.jsonl"
             va_list = None
         else:
-            data_path = "examples/aflow/data/drop_validate.json"
+            data_path = "examples/aflow/data/drop_validate.jsonl"
             va_list = None # Replace with the filtered index list
 
         graph = await load_graph()
