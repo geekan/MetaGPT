@@ -20,7 +20,11 @@ from metagpt.utils.common import read_json_file
 
 def initialize_di_root_node(state, reflection: bool = True):
     role = ResearchAssistant(
-        node_id="0", start_task_id=state["start_task_id"], use_reflection=reflection, role_dir=state["node_dir"]
+        node_id="0",
+        start_task_id=state["start_task_id"],
+        use_reflection=reflection,
+        role_dir=state["node_dir"],
+        role_timeout=state["role_timeout"],
     )
     return role, Node(parent=None, state=state, action=None, value=0)
 

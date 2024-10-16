@@ -9,7 +9,7 @@ from expo.experimenter.experimenter import Experimenter
 from expo.experimenter.mcts import MCTSExperimenter
 
 
-def get_args():
+def get_args(cmd=True):
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
     parser.add_argument(
@@ -22,7 +22,10 @@ def get_args():
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
-    return parser.parse_args()
+    if cmd:
+        return parser.parse_args()
+    else:
+        return parser.parse_args("")
 
 
 def get_mcts_args(parser):
