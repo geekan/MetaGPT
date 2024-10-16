@@ -8,7 +8,7 @@ from metagpt.configs.models_config import ModelsConfig
 from typing import Literal
 
 # DatasetType, QuestionType, and OptimizerType definitions
-DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQa", "DROP"]
+DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 QuestionType = Literal["math", "code", "quiz"]
 OptimizerType = Literal["Graph", "Test"]
 
