@@ -29,6 +29,7 @@ from metagpt.prompts.di.role_zero import (
     QUICK_THINK_EXAMPLES,
     QUICK_THINK_PROMPT,
     QUICK_THINK_SYSTEM_PROMPT,
+    QUICK_THINK_TAG,
     REGENERATE_PROMPT,
     REPORT_TO_HUMAN_PROMPT,
     ROLE_INSTRUCTION,
@@ -93,6 +94,7 @@ class RoleZero(Role):
     experience_retriever: Annotated[ExpRetriever, Field(exclude=True)] = DummyExpRetriever()
 
     # Others
+    observe_all_msg_from_buffer: bool = True
     command_rsp: str = ""  # the raw string containing the commands
     commands: list[dict] = []  # commands to be executed
     memory_k: int = 200  # number of memories (messages) to use as historical context
@@ -396,12 +398,12 @@ class RoleZero(Role):
             answer = await SearchEnhancedQA().run(query)
 
         if answer:
-            self.rc.memory.add(AIMessage(content=answer, cause_by=RunCommand))
+            self.rc.memory.add(AIMessage(content=answer, cause_by=QUICK_THINK_TAG))
             await self.reply_to_human(content=answer)
             rsp_msg = AIMessage(
-                content="Complete run",
+                content=answer,
                 sent_from=self.name,
-                cause_by=RunCommand,
+                cause_by=QUICK_THINK_TAG,
             )
 
         return rsp_msg, intent_result

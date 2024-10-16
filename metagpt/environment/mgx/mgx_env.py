@@ -1,30 +1,24 @@
 from __future__ import annotations
 
-from metagpt.actions import (
-    UserRequirement,
-    WriteDesign,
-    WritePRD,
-    WriteTasks,
-    WriteTest,
-)
-from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import AGENT, IMAGES, TEAMLEADER_NAME
+from metagpt.const import AGENT, IMAGES, MESSAGE_ROUTE_TO_ALL, TEAMLEADER_NAME
 from metagpt.environment.base_env import Environment
 from metagpt.logs import get_human_input
-from metagpt.roles import Architect, ProductManager, ProjectManager, Role
+from metagpt.roles import Role
 from metagpt.schema import Message, SerializationMixin
-from metagpt.utils.common import any_to_str, any_to_str_set, extract_and_encode_images
+from metagpt.utils.common import extract_and_encode_images
 
 
 class MGXEnv(Environment, SerializationMixin):
     """MGX Environment"""
 
-    # If True, fixed software sop bypassing TL is allowed, otherwise, TL will fully take over the routing
-    allow_bypass_team_leader: bool = False
-
     direct_chat_roles: set[str] = set()  # record direct chat: @role_name
 
+    is_public_chat: bool = True
+
     def _publish_message(self, message: Message, peekable: bool = True) -> bool:
+        if self.is_public_chat:
+            message.send_to.add(MESSAGE_ROUTE_TO_ALL)
+        message = self.move_message_info_to_content(message)
         return super().publish_message(message, peekable)
 
     def publish_message(self, message: Message, user_defined_recipient: str = "", publicer: str = "") -> bool:
@@ -46,31 +40,10 @@ class MGXEnv(Environment, SerializationMixin):
             # tl.rc.memory.add(self.move_message_info_to_content(message))
 
         elif message.sent_from in self.direct_chat_roles:
-            # direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
+            # if chat is not public, direct chat response from a certain role to human user, team leader and other roles in the env should not be involved, no need to publish
             self.direct_chat_roles.remove(message.sent_from)
-
-        elif (
-            self.allow_bypass_team_leader
-            and self.message_within_software_sop(message)
-            and not self.has_user_requirement()
-        ):
-            # Quick routing for messages within software SOP, bypassing TL.
-            # Use rules to check for user intervention and to finish task.
-            # NOTE: This escapes TL's supervision and has pitfalls such as routing obsolete messages even if TL has acquired a new user requirement.
-            #       In addition, we should not determine the status of a task based on message cause_by.
-            #       Consider replacing this in the future.
-            self._publish_message(message)
-            if self.is_software_task_finished(message):
-                tl.rc.memory.add(self.move_message_info_to_content(message))
-                from metagpt.utils.report import CURRENT_ROLE
-
-                role = CURRENT_ROLE.get(None)
-                if role:
-                    CURRENT_ROLE.set(tl)
-                    tl.finish_current_task()
-                    CURRENT_ROLE.set(role)
-                else:
-                    tl.finish_current_task()
+            if self.is_public_chat:
+                self._publish_message(message)
 
         elif publicer == tl.profile:
             if message.send_to == {"no one"}:
@@ -81,9 +54,8 @@ class MGXEnv(Environment, SerializationMixin):
 
         else:
             # every regular message goes through team leader
-            message = self.move_message_info_to_content(message)
             message.send_to.add(tl.name)
-            tl.put_message(message)
+            self._publish_message(message)
 
         self.history.add(message)
 
@@ -98,21 +70,6 @@ class MGXEnv(Environment, SerializationMixin):
         # NOTE: Can be overwritten in remote setting
         return "SUCCESS, human has received your reply. Refrain from resending duplicate messages.  If you no longer need to take action, use the command ‘end’ to stop."
 
-    def message_within_software_sop(self, message: Message) -> bool:
-        # Engineer, QaEngineer can be end of the SOP. Their msg requires routing outside.
-        members_concerned = [ProductManager, Architect, ProjectManager]
-        return message.sent_from in any_to_str_set(members_concerned)
-
-    def has_user_requirement(self, k=1) -> bool:
-        """A heuristics to check if there is a recent user intervention"""
-        return any_to_str(UserRequirement) in [msg.cause_by for msg in self.history.get(k)]
-
-    def is_software_task_finished(self, message: Message) -> bool:
-        """Use a hard-coded rule to check if one software task is finished"""
-        return message.cause_by in any_to_str_set([WritePRD, WriteDesign, WriteTasks, SummarizeCode]) or (
-            message.cause_by == any_to_str(WriteTest) and "Exceeding" in message.content
-        )
-
     def move_message_info_to_content(self, message: Message) -> Message:
         """Two things here:
         1. Convert role, since role field must be reserved for LLM API, and is limited to, for example, one of ["user", "assistant", "system"]
@@ -122,9 +79,13 @@ class MGXEnv(Environment, SerializationMixin):
         if converted_msg.role not in ["system", "user", "assistant"]:
             converted_msg.role = "assistant"
         sent_from = converted_msg.metadata[AGENT] if AGENT in converted_msg.metadata else converted_msg.sent_from
-        converted_msg.content = (
-            f"[Message] from {sent_from or 'User'} to {converted_msg.send_to}: {converted_msg.content}"
-        )
+        # When displaying send_to, change it to those who need to react and exclude those who only need to be aware, e.g.:
+        # send_to={<all>} -> Mike; send_to={Alice} -> Alice; send_to={Alice, <all>} -> Alice.
+        if converted_msg.send_to == {MESSAGE_ROUTE_TO_ALL}:
+            send_to = TEAMLEADER_NAME
+        else:
+            send_to = ", ".join({role for role in converted_msg.send_to if role != MESSAGE_ROUTE_TO_ALL})
+        converted_msg.content = f"[Message] from {sent_from or 'User'} to {send_to}: {converted_msg.content}"
         return converted_msg
 
     def attach_images(self, message: Message) -> Message:

@@ -154,6 +154,7 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
+    observe_all_msg_from_buffer: bool = False  # whether to save all msgs from buffer to memory for role's awareness
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
@@ -171,7 +172,9 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
-        self._watch(kwargs.pop("watch", [UserRequirement]))
+        # if observe_all_msg_from_buffer, we should not use cause_by to select messages but observe all
+        if not self.observe_all_msg_from_buffer:
+            self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
@@ -396,7 +399,12 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
         self.rc.news = [
             n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
         ]
-        self.rc.memory.add_batch(self.rc.news)  # only save messages of interest into memory
+        if self.observe_all_msg_from_buffer:
+            # save all new messages from the buffer into memory, the role may not react to them but can be aware of them
+            self.rc.memory.add_batch(news)
+        else:
+            # only save messages of interest into memory
+            self.rc.memory.add_batch(self.rc.news)
         self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
 
         # Design Rules:

@@ -18,7 +18,7 @@ async def main(requirement="", enable_human_input=False, use_fixed_sop=False, al
     else:
         engineer = Engineer2()
 
-    env = MGXEnv(allow_bypass_team_leader=use_fixed_sop)
+    env = MGXEnv()
     env.add_roles(
         [
             TeamLeader(),

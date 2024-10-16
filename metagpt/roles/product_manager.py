@@ -42,8 +42,8 @@ class ProductManager(RoleZero):
         # NOTE: The following init setting will only be effective when self.use_fixed_sop is changed to True
         self.enable_memory = False
         self.set_actions([PrepareDocuments(send_to=any_to_str(self)), WritePRD])
-        self._watch([UserRequirement, PrepareDocuments])
         if self.use_fixed_sop:
+            self._watch([UserRequirement, PrepareDocuments])
             self.rc.react_mode = RoleReactMode.BY_ORDER
 
     def _update_tool_execution(self):
