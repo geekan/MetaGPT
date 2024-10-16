@@ -18,7 +18,7 @@ from examples.aflow.scripts.optimizer_utils.experience_utils import ExperienceUt
 from examples.aflow.scripts.optimizer_utils.evaluation_utils import EvaluationUtils
 from examples.aflow.scripts.optimizer_utils.convergence_utils import ConvergenceUtils
 
-DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQa", "DROP"]
+DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 QuestionType = Literal["math", "code", "quiz"]
 OptimizerType = Literal["Graph", "Test"]
 
