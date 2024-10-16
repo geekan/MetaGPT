@@ -1,6 +1,0 @@
-{"datatype": "GSM8K", "description": "A dataset of 8.5K high quality linguistically diverse grade school math word problems created by human problem writers."}
-{"datatype": "HumanEval", "description": "A dataset consists of 164 hand-crafted programming challenges comparable to simple software interview questions."}
-{"datatype": "HotpotQA", "description": "A question answering dataset featuring natural, multi-hop questions, with strong supervision for supporting facts to enable more explainable question answering systems."}
-{"datatype": "MBPP", "description": "A dataset consists of around 1,000 crowd-sourced Python programming problems, designed to be solvable by entry-level programmers, covering programming fundamentals, standard library functionality, and so on."}
-{"datatype": "MATH", "description": "A dataset of mathematical question and answer pairs, from a range of question types at roughly school-level difficulty."}
-{"datatype": "DROP", "description": "A crowdsourced, adversarially-created, 96k-question benchmark, in which a system must resolve references in a question, perhaps to multiple input positions, and perform discrete operations over them (such as addition, counting, or sorting)."}
