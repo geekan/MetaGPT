@@ -135,46 +135,15 @@ python -u evaluation.py --path "deepseek-coder_True_1" --task $TASK --device 0  
 git clone https://github.com/WecoAI/aideml.git
 ```
 
-修改 `aideml/aide/utils/config.yaml` 内容如下
+修改 `aideml/aide/utils/config.yaml` 其中的 `step` `k_fold_validation` `code model` `feedback model` 参数如下
 
 ```yaml
-# path to the task data directory
-data_dir: null
-
-# either provide a path to a plaintext file describing the task
-desc_file: null
-# or provide the task goal (and optionally evaluation information) as arguments
-goal: null
-eval: null
-
-log_dir: logs
-workspace_dir: workspaces
-
-# whether to unzip any archives in the data directory
-preprocess_data: True
-# whether to copy the data to the workspace directory (otherwise it will be symlinked)
-# copying is recommended to prevent the agent from accidentally modifying the original data
-copy_data: True
-
-exp_name: null # a random experiment name will be generated if not provided
-
-# settings for code execution
-exec:
-  timeout: 3600
-  agent_file_name: runfile.py
-  format_tb_ipython: False
-
 # agent hyperparams
 agent:
   # how many improvement iterations to run
   steps: 10
   # whether to instruct the agent to use CV (set to 1 to disable)
   k_fold_validation: 1
-  # whether to instruct the agent to generate a prediction function
-  expose_prediction: False
-  # whether to provide the agent with a preview of the data
-  data_preview: True
-
   # LLM settings for coding
   code:
     model: deepseek-coder
@@ -184,12 +153,6 @@ agent:
   feedback:
     model: deepseek-coder
     temp: 0.5
-
-  # hyperparameters for the tree search
-  search:
-    max_debug_depth: 3
-    debug_prob: 0.5
-    num_drafts: 5
 ```
 
 由于 deepseek 完全兼容 OpenAI 的 API，修改`base_url`为`自己的url`，`api_key`为`自己的key`即可
