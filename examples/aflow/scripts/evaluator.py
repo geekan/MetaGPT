@@ -56,7 +56,7 @@ class Evaluator:
             va_list = None
         else:
             data_path = "examples/aflow/data/gsm8k_validate.jsonl"  # Replace with your JSONL file path
-            va_list = [1] # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         
@@ -78,7 +78,7 @@ class Evaluator:
             va_list = None
         else:
             data_path = "examples/aflow/data/math_validate.jsonl"
-            va_list = None # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         
@@ -100,7 +100,7 @@ class Evaluator:
             va_list = None
         else:
             data_path = "examples/aflow/data/human-eval_validate.jsonl"  # Replace with your JSONL file path
-            va_list = None # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         
@@ -119,10 +119,10 @@ class Evaluator:
         
         if test:
             data_path = "examples/aflow/data/mbpp_test.jsonl"
-            va_list = None
+            va_list = None 
         else:
             data_path = "examples/aflow/data/mbpp_validate.jsonl"
-            va_list = None # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         
@@ -144,7 +144,7 @@ class Evaluator:
             va_list = None
         else:
             data_path = "examples/aflow/data/hotpotqa_validate.jsonl"
-            va_list = None # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         
@@ -167,7 +167,7 @@ class Evaluator:
             va_list = None
         else:
             data_path = "examples/aflow/data/drop_validate.jsonl"
-            va_list = None # Replace with the filtered index list
+            va_list = [1,2,3] # Replace with the filtered index list
 
         graph = await load_graph()
         

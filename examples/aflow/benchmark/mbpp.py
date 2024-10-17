@@ -61,7 +61,6 @@ def run_with_timeout(func, timeout):
 def check_solution(solution, test, entry_point):
 
     solution = sanitize(code=solution, entrypoint=entry_point)
-    print(test)
     try:
         # 定义一个包含所有必要模块的全局字典
         global_dict = {
@@ -111,6 +110,7 @@ async def evaluate_problem(data: dict, graph: Callable, path) -> Tuple[str, str,
     retries = 0
 
     expected_output = "\nCorrect Solution:\ndef " + data["code"]
+
     while retries < max_retries:
         try:
             prediction = await graph(data["prompt"], data["entry_point"]) if graph else "None"

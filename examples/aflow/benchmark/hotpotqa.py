@@ -172,7 +172,7 @@ async def evaluate_problem_optimize(problem: dict, graph: Callable, log_path: st
             output, cost = await graph(inputs) if graph else "None"
             uni_score, extracted_output = calculate_score(expected_output, output)
 
-            if uni_score == 0:
+            if uni_score < 0.3:
                 log_mismatch(input_text, expected_output, output, extracted_output, log_path)
             else:
                 ensure_log_file_exists(log_path)

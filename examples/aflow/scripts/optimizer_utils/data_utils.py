@@ -92,7 +92,7 @@ class DataUtils:
         # 检查文件是否存在
         if not os.path.exists(log_dir):
             return ""  # 如果文件不存在，返回空字符串
-
+        print(log_dir)
         with open(log_dir, 'r', encoding='utf-8') as f:
             data = json.load(f)
 

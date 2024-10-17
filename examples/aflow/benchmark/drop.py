@@ -158,7 +158,9 @@ async def evaluate_problem(annotation: dict, graph: Callable, log_path) -> Tuple
 
             uni_score = max_score
 
-            if uni_score == 0:
+            print("uni_score", uni_score)
+
+            if uni_score < 0.3:
                 log_mismatch(inputs, expected_output, output, output, log_path)
             else:
                 ensure_log_file_exists(log_path)
