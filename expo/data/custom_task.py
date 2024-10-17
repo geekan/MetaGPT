@@ -35,6 +35,15 @@ def get_mle_task_id(dataset_dir):
     return dataset_dir.split("/")[-3]
 
 
+def get_mle_is_lower_better(task):
+    from mlebench.data import get_leaderboard
+    from mlebench.registry import registry
+
+    competition = registry.get_competition(task)
+    competition_leaderboard = get_leaderboard(competition)
+    return competition.grader.is_lower_better(competition_leaderboard)
+
+
 def get_mle_bench_requirements(dataset_dir, data_config, special_instruction, obfuscated=False):
     work_dir = data_config["work_dir"]
     task = get_mle_task_id(dataset_dir)

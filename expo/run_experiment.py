@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 
-from expo.data.custom_task import get_mle_task_id
+from expo.data.custom_task import get_mle_is_lower_better, get_mle_task_id
 from expo.experimenter.aug import AugExperimenter
 from expo.experimenter.autogluon import GluonExperimenter
 from expo.experimenter.autosklearn import AutoSklearnExperimenter
@@ -33,6 +33,8 @@ def get_args(cmd=True):
         args.eval_func = "mlebench"
         args.from_scratch = True
         args.task = get_mle_task_id(args.custom_dataset_dir)
+        args.low_is_better = get_mle_is_lower_better(args.task)
+        print("low_is_better:", args.low_is_better)
     return args
 
 
