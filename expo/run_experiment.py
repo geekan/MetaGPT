@@ -24,9 +24,16 @@ def get_args(cmd=True):
     get_mcts_args(parser)
     get_aug_exp_args(parser)
     if cmd:
-        return parser.parse_args()
+        args = parser.parse_args()
     else:
-        return parser.parse_args("")
+        args = parser.parse_args("")
+
+    if args.custom_dataset_dir:
+        args.external_eval = False
+        args.eval_func = "mlebench"
+        args.from_scratch = True
+        args.task = get_mle_task_id(args.custom_dataset_dir)
+    return args
 
 
 def get_mcts_args(parser):
@@ -65,12 +72,6 @@ def get_di_args(parser):
 
 
 async def main(args):
-    if args.custom_dataset_dir:
-        args.external_eval = False
-        args.eval_func = "mlebench"
-        args.from_scratch = True
-        args.task = get_mle_task_id(args.custom_dataset_dir)
-
     if args.exp_mode == "mcts":
         experimenter = MCTSExperimenter(args)
     elif args.exp_mode == "greedy":

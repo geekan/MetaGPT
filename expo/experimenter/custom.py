@@ -21,9 +21,7 @@ class CustomExperimenter(Experimenter):
             self.task,
             start_task_id=1,
             data_config=self.data_config,
-            low_is_better=self.low_is_better,
-            name=self.name,
-            special_instruction=self.args.special_instruction,
+            args=self.args,
         )
 
     def run_experiment(self):

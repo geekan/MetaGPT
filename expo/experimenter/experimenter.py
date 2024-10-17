@@ -24,9 +24,6 @@ class Experimenter:
             self.args.task,
             start_task_id=self.start_task_id,
             data_config=self.data_config,
-            low_is_better=self.args.low_is_better,
-            name=self.args.name,
-            special_instruction=self.args.special_instruction,
             args=self.args,
         )
 

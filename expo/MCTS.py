@@ -29,16 +29,14 @@ def initialize_di_root_node(state, reflection: bool = True):
     return role, Node(parent=None, state=state, action=None, value=0)
 
 
-def create_initial_state(
-    task, start_task_id, data_config, low_is_better: bool, name: str, special_instruction: str, args
-):
+def create_initial_state(task, start_task_id, data_config, args):
     external_eval = args.external_eval
 
     if args.custom_dataset_dir:
         dataset_config = None
         datasets_dir = args.custom_dataset_dir
         requirement = get_mle_bench_requirements(
-            args.custom_dataset_dir, data_config, special_instruction=special_instruction
+            args.custom_dataset_dir, data_config, special_instruction=args.special_instruction
         )
         exp_pool_path = None
         # external_eval = False # make sure external eval is false if custom dataset is used
@@ -46,20 +44,22 @@ def create_initial_state(
     else:
         dataset_config = data_config["datasets"][task]
         datasets_dir = get_split_dataset_path(task, data_config)
-        requirement = generate_task_requirement(task, data_config, is_di=True, special_instruction=special_instruction)
+        requirement = generate_task_requirement(
+            task, data_config, is_di=True, special_instruction=args.special_instruction
+        )
         exp_pool_path = get_exp_pool_path(task, data_config, pool_name="ds_analysis_pool")
 
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
-        "node_dir": os.path.join(data_config["work_dir"], data_config["role_dir"], f"{task}{name}"),
+        "node_dir": os.path.join(data_config["work_dir"], data_config["role_dir"], f"{task}{args.name}"),
         "dataset_config": dataset_config,
         "datasets_dir": datasets_dir,  # won't be used if external eval is used
         "exp_pool_path": exp_pool_path,
         "requirement": requirement,
         "has_run": False,
         "start_task_id": start_task_id,
-        "low_is_better": low_is_better,
+        "low_is_better": args.low_is_better,
         "role_timeout": args.role_timeout,
         "external_eval": external_eval,
         "custom_dataset_dir": args.custom_dataset_dir,
