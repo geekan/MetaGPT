@@ -34,7 +34,6 @@ def get_args(cmd=True):
         args.from_scratch = True
         args.task = get_mle_task_id(args.custom_dataset_dir)
         args.low_is_better = get_mle_is_lower_better(args.task)
-        print("low_is_better:", args.low_is_better)
     return args
 
 

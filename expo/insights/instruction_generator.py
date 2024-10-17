@@ -41,7 +41,9 @@ class InstructionGenerator:
             with open(f"{state['custom_dataset_dir']}/description.md", "r", encoding="utf-8") as file:
                 self.dataset_info = file.read()
         else:
-            dataset_info_path = f"{self.data_config['datasets_dir']}/{state['task']}/dataset_info.json"
+            dataset_info_path = (
+                f"{self.data_config['datasets_dir']}/{state['dataset_config']['dataset']}/dataset_info.json"
+            )
             with open(dataset_info_path, "r") as file:
                 self.dataset_info = json.load(file)
         self.use_fixed_insights = use_fixed_insights
