@@ -1,0 +1,56 @@
+# -*- coding: utf-8 -*-
+# @Date    : 8/23/2024 20:00 PM
+# @Author  : didi
+# @Desc    : Entrance of AFlow.
+
+from examples.aflow.scripts.optimizer import Optimizer
+from metagpt.configs.models_config import ModelsConfig
+from typing import Literal
+
+# DatasetType, QuestionType, and OptimizerType definitions
+DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
+QuestionType = Literal["math", "code", "quiz"]
+OptimizerType = Literal["Graph", "Test"]
+
+# Crucial Parameters
+dataset: DatasetType = "HotpotQA"  # Ensure the type is consistent with DatasetType
+sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
+question_type: QuestionType = "quiz"  # Ensure the type is consistent with QuestionType
+optimized_path: str = "examples/aflow/scripts/optimized"  # Optimized Result Save Path
+initial_round: int = 1  # Corrected the case from Initial_round to initial_round
+max_rounds: int = 20
+check_convergence: bool = True
+
+# Config llm model, you can modify `config/config2.yaml` to use more llms.
+mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
+claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
+
+# Config operators.
+operators = [
+    "Custom",                   # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
+    # "CustomCodeGenerate",     # It's for code
+    # "Test",                   # It's for code
+    "ScEnsemble",               # It's for code, math and QA
+    # "Programmer",               # It's for math 
+    "AnswerGenerate"            # It's for QA
+]
+
+# Create an optimizer instance
+optimizer = Optimizer(
+    dataset=dataset,                        # Config dataset   
+    question_type=question_type,            # Config Question Type
+    opt_llm_config=claude_llm_config,       # Config Optimizer LLM
+    exec_llm_config=mini_llm_config,        # Config Execution LLM
+    check_convergence=check_convergence,    # Whether Early Stop 
+    operators=operators,                    # Config Operators you want to use
+    optimized_path=optimized_path,          # Config Optimized workflow's file path
+    sample=sample,                          # Only Top(sample) rounds will be selected. 
+    initial_round=initial_round,            # Optimize from initial round
+    max_rounds=max_rounds                   # The max iteration of AFLOW.
+)
+
+if __name__ == "__main__":
+    # Optimize workflow via setting the optimizer's mode to 'Graph'
+    optimizer.optimize("Graph")
+    # Test workflow via setting the optimizer's mode to 'Test'
+    # optimizer.optimize("Test")
