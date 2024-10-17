@@ -6,7 +6,7 @@ from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
 from metagpt.config2 import Config
-from metagpt.const import SWE_SETUP_PATH
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
@@ -37,7 +37,13 @@ class Terminal:
     async def _start_process(self):
         # Start a persistent shell process
         self.process = await asyncio.create_subprocess_exec(
-            *self.shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, executable="bash", env=os.environ.copy()
+            *self.shell_command,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=STDOUT,
+            executable="bash",
+            env=os.environ.copy(),
+            cwd=DEFAULT_WORKSPACE_ROOT.absolute(),
         )
         await self._check_state()
 

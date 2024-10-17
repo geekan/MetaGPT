@@ -46,7 +46,7 @@ Note:
 23. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
 24. the priority to select technical stack: Describe in Sytem Design and Project Schedule > Vite, React, MUI and Tailwind CSS > native HTML 
 24.1. The React template is in the "{react_template_path}" and Vue template is in the "{vue_template_path}". 
-25. If no programmming language is specified, use Vue/React project. Do the following steps:
+25. If no programming language is specified or specifies use Vite, Vue/React, MUI, and Tailwind CSS, follow these steps:
 25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
 25.2. Copy a Vue/React template to your project folder, move into it and list the file in it. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f". This must be a single response without other commands.
 25.3. User Editor.read to read the content of files in the src and read the index.html in the project root before making a plan.
