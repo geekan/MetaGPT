@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 
+from expo.data.custom_task import get_mle_task_id
 from expo.experimenter.aug import AugExperimenter
 from expo.experimenter.autogluon import GluonExperimenter
 from expo.experimenter.autosklearn import AutoSklearnExperimenter
@@ -68,6 +69,7 @@ async def main(args):
         args.external_eval = False
         args.eval_func = "mlebench"
         args.from_scratch = True
+        args.task = get_mle_task_id(args.custom_dataset_dir)
 
     if args.exp_mode == "mcts":
         experimenter = MCTSExperimenter(args)
