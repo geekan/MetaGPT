@@ -19,5 +19,5 @@ if __name__ == "__main__":
     mcts.load_tree()
     root = mcts.root_node
     G = nx.DiGraph()
-    tree = build_tree_recursive(G, "0", root)
-    visualize_tree(tree, save_path="results/tree.png")
+    build_tree_recursive(G, "0", root)
+    visualize_tree(G, save_path="results/tree.png")
