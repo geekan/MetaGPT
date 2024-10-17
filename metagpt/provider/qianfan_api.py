@@ -50,6 +50,9 @@ class QianFanLLM(BaseLLM):
         else:
             raise ValueError("Set the `access_key`&`secret_key` or `api_key`&`secret_key` first")
 
+        if self.config.base_url:
+            os.environ.setdefault("QIANFAN_BASE_URL", self.config.base_url)
+
         support_system_pairs = [
             ("ERNIE-Bot-4", "completions_pro"),  # (model, corresponding-endpoint)
             ("ERNIE-Bot-8k", "ernie_bot_8k"),
@@ -103,13 +106,13 @@ class QianFanLLM(BaseLLM):
     def get_choice_text(self, resp: JsonBody) -> str:
         return resp.get("result", "")
 
-    def completion(self, messages: list[dict]) -> JsonBody:
-        resp = self.aclient.do(**self._const_kwargs(messages=messages, stream=False))
+    def completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
+        resp = self.aclient.do(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout)
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
     async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
-        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False))
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout)
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
@@ -117,7 +120,7 @@ class QianFanLLM(BaseLLM):
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
-        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True))
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True), request_timeout=timeout)
         collected_content = []
         usage = {}
         async for chunk in resp:

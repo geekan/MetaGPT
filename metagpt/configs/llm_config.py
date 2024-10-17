@@ -33,7 +33,7 @@ class LLMType(Enum):
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
-    ARK = "ark"
+    ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
 
     def __missing__(self, key):
         return self.OPENAI
@@ -89,6 +89,9 @@ class LLMConfig(YamlModel):
 
     # Cost Control
     calc_usage: bool = True
+
+    # For Messages Control
+    use_system_prompt: bool = True
 
     @field_validator("api_key")
     @classmethod

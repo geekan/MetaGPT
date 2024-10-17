@@ -58,7 +58,9 @@ class Researcher(Role):
             )
         elif isinstance(todo, WebBrowseAndSummarize):
             links = instruct_content.links
-            todos = (todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items())
+            todos = (
+                todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items() if url
+            )
             if self.enable_concurrency:
                 summaries = await asyncio.gather(*todos)
             else:

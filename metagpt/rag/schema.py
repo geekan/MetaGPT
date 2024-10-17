@@ -1,14 +1,14 @@
 """RAG schemas."""
-
+from enum import Enum
 from pathlib import Path
-from typing import Any, ClassVar, Literal, Optional, Union
+from typing import Any, ClassVar, List, Literal, Optional, Union
 
 from chromadb.api.types import CollectionMetadata
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator, validator
 
 from metagpt.config2 import config
 from metagpt.configs.embedding_config import EmbeddingType
@@ -60,6 +60,36 @@ class BM25RetrieverConfig(IndexRetrieverConfig):
     """Config for BM25-based retrievers."""
 
     _no_embedding: bool = PrivateAttr(default=True)
+
+
+class MilvusRetrieverConfig(IndexRetrieverConfig):
+    """Config for Milvus-based retrievers."""
+
+    uri: str = Field(default="./milvus_local.db", description="The directory to save data.")
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    token: str = Field(default=None, description="The token for Milvus")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+    dimensions: int = Field(default=0, description="Dimensionality of the vectors for Milvus index construction.")
+
+    _embedding_type_to_dimensions: ClassVar[dict[EmbeddingType, int]] = {
+        EmbeddingType.GEMINI: 768,
+        EmbeddingType.OLLAMA: 4096,
+    }
+
+    @model_validator(mode="after")
+    def check_dimensions(self):
+        if self.dimensions == 0:
+            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.embedding.api_type, 1536
+            )
+            if not config.embedding.dimensions and config.embedding.api_type not in self._embedding_type_to_dimensions:
+                logger.warning(
+                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
+                )
+
+        return self
 
 
 class ChromaRetrieverConfig(IndexRetrieverConfig):
@@ -169,6 +199,16 @@ class ChromaIndexConfig(VectorIndexConfig):
         default=None, description="Optional metadata to associate with the collection"
     )
 
+class MilvusIndexConfig(VectorIndexConfig):
+    """Config for milvus-based index."""
+
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    uri: str = Field(default="./milvus_local.db", description="The uri of the index.")
+    token: Optional[str] = Field(default=None, description="The token of the index.")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+
 
 class BM25IndexConfig(BaseIndexConfig):
     """Config for bm25-based index."""
@@ -214,3 +254,51 @@ class ObjectNode(TextNode):
         )
 
         return metadata.model_dump()
+
+
+class OmniParseType(str, Enum):
+    """OmniParseType"""
+
+    PDF = "PDF"
+    DOCUMENT = "DOCUMENT"
+
+
+class ParseResultType(str, Enum):
+    """The result type for the parser."""
+
+    TXT = "text"
+    MD = "markdown"
+    JSON = "json"
+
+
+class OmniParseOptions(BaseModel):
+    """OmniParse Options config"""
+
+    result_type: ParseResultType = Field(default=ParseResultType.MD, description="OmniParse result_type")
+    parse_type: OmniParseType = Field(default=OmniParseType.DOCUMENT, description="OmniParse parse_type")
+    max_timeout: Optional[int] = Field(default=120, description="Maximum timeout for OmniParse service requests")
+    num_workers: int = Field(
+        default=5,
+        gt=0,
+        lt=10,
+        description="Number of concurrent requests for multiple files",
+    )
+
+
+class OminParseImage(BaseModel):
+    image: str = Field(default="", description="image str bytes")
+    image_name: str = Field(default="", description="image name")
+    image_info: Optional[dict] = Field(default={}, description="image info")
+
+
+class OmniParsedResult(BaseModel):
+    markdown: str = Field(default="", description="markdown text")
+    text: str = Field(default="", description="plain text")
+    images: Optional[List[OminParseImage]] = Field(default=[], description="images")
+    metadata: Optional[dict] = Field(default={}, description="metadata")
+
+    @model_validator(mode="before")
+    def set_markdown(cls, values):
+        if not values.get("markdown"):
+            values["markdown"] = values.get("text")
+        return values
