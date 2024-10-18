@@ -188,3 +188,7 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
+*.csv
+/examples/aflow/data/baselines/general
+/examples/aflow/scripts/optimized/HumanEval/graphs
+/examples/aflow/scripts/optimized/HumanEval/graphs_test
