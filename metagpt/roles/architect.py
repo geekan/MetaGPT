@@ -7,7 +7,7 @@
 """
 from pydantic import Field
 
-from metagpt.prompts.di.architect import ARCHITECT_INSTRUCTION
+from metagpt.prompts.di.architect import ARCHITECT_EXAMPLE, ARCHITECT_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.terminal import Terminal
 
@@ -43,6 +43,9 @@ class Architect(RoleZero):
 
         # NOTE: The following init setting will only be effective when self.use_fixed_sop is changed to True
         self.enable_memory = False
+
+    def _retrieve_experience(self) -> str:
+        return ARCHITECT_EXAMPLE
 
     def _update_tool_execution(self):
         self.tool_execution_map.update({"Terminal.run_command": self.terminal.run_command})

@@ -8,10 +8,11 @@ We will ...
 
 ## File list
 
-- a.js
-- b.py
-- c.css
-- d.html
+- a.jsx
+- b.jx
+- c.py
+- d.css
+- e.html
 
 ## Data structures and interfaces:
 
@@ -60,24 +61,53 @@ You are an architect. Your task is to design a software system that meets the re
 
 Note:
 1. If Product Requirement Document is provided, read the document and use it as the requirement.
-2. When the requirement use Vite, React/Vue, MUI, and Tailwind CSS to build a web application, list the files in the template before writing system design. Use "cd /{{template_path}} && tree -f". This must be a single response without other commands.
-3. React template is in {react_template_path} and Vue template is in {vue_template_path}.
+2. If no programming language is specified, use Vite, React, MUI and Tailwind CSS as the programming language.
+3. When use Vite, React, MUI and Tailwind CSS, view the default project structure before start to design. Execute "mkdir -p {{project_name}} && tree /path/of/the/template". This must be a single response WITHOUT other commands. React template is in {react_template_path} and Vue template is in {vue_template_path}. 
 4. The system design must adhere to the following rules:
 4.1 Chapter in the system design should include: 
-Required Python packages: Provide required Python packages in requirements.txt format. The response language should correspond to the context and requirements.
-Required Other language third-party packages: List down the required packages for languages other than Python.
-Logic Analysis: Provide a list of files with the classes/methods/functions to be implemented, including dependency analysis and imports.Ensure consistency between System Design and Logic Analysis; the files must match exactly.
-Task list: Break down the tasks into a list of filenames, prioritized by dependency order.
-Full API spec : escribe all APIs using OpenAPI 3.0 spec that may be used by both frontend and backend. If front-end and back-end communication is not required, leave it blank.
-Shared Knowledge: Detail any shared knowledge, like common utility functions or configuration variables.
-Anything UNCLEA: Mention any unclear aspects in the project management context and try to clarify them.
-
+Implementation approach: Analyze the difficult points of the requirements, select the appropriate open-source framework.
+File list: Only need relative paths. If using template, index.html and the file in src folder must be included.
+Data structures and interfaces: Use mermaid classDiagram code syntax, including classes, method(__init__ etc.) and functions with type annotations, CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design.
+Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
+Anything UNCLEAR: Mention unclear project aspects, then try to clarify it.
 4.2 System Design Format example:
 {system_design_example}
-
-5. Use Editor.write to write the system design in markdown format. The path must be "/absolute/path/to/{{project_name}}/docs/system_design.md". Use command_name "end" when the system design is finished.
+5. Use Editor.write to write the system design in markdown format. The file path must be "{{project}}/docs/system_design.md". Use command_name "end" when the system design is finished.
 """.format(
     system_design_example=SYSTEM_DESIGN_EXAMPLE,
     vue_template_path=VUE_TEMPLATE_PATH.absolute(),
     react_template_path=REACT_TEMPLATE_PATH.absolute(),
 )
+
+ARCHITECT_EXAMPLE = """
+## example 1
+Requirement: Create a system design for 2048 game.
+Explanation: User requires create a system design. I have read the product requirement document and no programming language is specified. I will use Vite, React, MUI and Tailwind CSS.
+I will use Terminal to execute "mkdir -p {{project_name}} && tree /path/of/the/template" to get the default project structure before I start to design. I will execute the command and wait for the result before writing the system design.
+```json
+[
+    {
+        "command_name": "Terminal.run_command",
+        "args": {
+            "cmd": "mkdir -p {{project_name}} && tree /path/of/the/template"
+        }
+    }
+]
+```
+I will wait for the result.
+
+## example 2
+Requirement: Create a system design for a chatbot. 
+Explanation: User requires create a system design. And I have viewed the default project structure, now I will use Editor.write to finish the system design.
+```json
+[
+    {
+        "command_name": "Editor.write"",
+        "args": {
+            "path": "/absolute/path/to/{{project}}/docs/system_design.md",
+            "content": "(The system design content)"
+        }
+    }
+]
+```
+""".strip()

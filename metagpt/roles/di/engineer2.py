@@ -31,7 +31,7 @@ from metagpt.utils.report import EditorReporter
 class Engineer2(RoleZero):
     name: str = "Alex"
     profile: str = "Engineer"
-    goal: str = "Take on game, app, and web development."
+    goal: str = "Take on game, app, web development and deployment."
     instruction: str = ENGINEER2_INSTRUCTION
     terminal: Terminal = Field(default_factory=Terminal, exclude=True)
     deployer: Deployer = Field(default_factory=Deployer, exclude=True)

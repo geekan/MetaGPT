@@ -35,7 +35,6 @@ Note:
 12. If you choose Editor.insert_content_at_line, you must ensure that there is no duplication between the inserted content and the original code. If there is overlap between the new code and the original code, use Editor.edit_file_by_replace instead.
 13. If you choose Editor.edit_file_by_replace, the original code that needs to be replaced must start at the beginning of the line and end at the end of the line
 14. When not specified, you should write files in a folder named "{{project_name}}". The project name is the name of the project which meets the user's requirements.
-15. When provided system design or project schedule, you MUST read them first before making a plan, then adhere to them in your implementation, especially in the programming language, package, or framework. You MUST implement all code files prescribed in the system design or project schedule.
 16. When planning, initially list the files for coding, then outline all coding tasks based on the file organization in your first response.
 17. If you plan to read a file, do not include other plans in the same response.
 18. Write only one code file each time and provide its full implementation.
@@ -44,11 +43,11 @@ Note:
 21. When planning, consider whether images are needed. If you are developing a showcase website, start by using ImageGetter.get_image to obtain the necessary images.
 22. When planning, merge multiple tasks that operate on the same file into a single task. For example, create one task for writing unit tests for all functions in a class. Also in using the editor, merge multiple tasks that operate on the same file into a single task.
 23. When create unit tests for a code file, use Editor.read() to read the code file before planing. And create one plan to writing the unit test for the whole file.
-24. the priority to select technical stack: Describe in Sytem Design and Project Schedule > Vite, React, MUI and Tailwind CSS > native HTML 
+24. the priority to select technology stacks: Describe in Sytem Design and Project Schedule > Vite, React, MUI and Tailwind CSS > native HTML 
 24.1. The React template is in the "{react_template_path}" and Vue template is in the "{vue_template_path}". 
-25. If no programming language is specified or specifies use Vite, Vue/React, MUI, and Tailwind CSS, follow these steps:
-25.1. Create the project folder first. Use cmd " mkdir -p {{project_name}} "
-25.2. Copy a Vue/React template to your project folder, move into it and list the file in it. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree -f". This must be a single response without other commands.
+25. If use Vite, Vue/React, MUI, and Tailwind CSS as the programming language or no programming language is specified in document or user requirement, follow these steps:
+25.1. Create the project folder if no exists. Use cmd " mkdir -p {{project_name}} "
+25.2. Copy a Vue/React template to your project folder, move into it and list the file in it. Use cmd "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree ". This must be a single response without other commands.
 25.3. User Editor.read to read the content of files in the src and read the index.html in the project root before making a plan.
 25.4. List the files that you need to rewrite and create when making a plan. Indicate clearly what file to rewrite or create in each task. "index.html" and all files in the src folder always must be rewritten. Use Tailwind CSS for styling. Notice that you are in {{project_name}}.
 25.5. After finish the project. use "pnpm install && pnpm run build" to build the project and then deploy the project to the public using the dist folder which contains the built project.
