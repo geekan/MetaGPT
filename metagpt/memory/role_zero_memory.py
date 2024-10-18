@@ -31,6 +31,8 @@ class RoleZeroLongTermMemory(Memory):
     persist_path: str = Field(default=".role_memory_data", description="The directory to save data.")
     collection_name: str = Field(default="role_zero", description="The name of the collection, such as the role name.")
     memory_k: int = Field(default=200, description="The capacity of short-term memory.")
+    similarity_top_k: int = Field(default=5, description="The number of long-term memories to retrieve.")
+    use_llm_ranker: bool = Field(default=False, description="Whether to use LLM Reranker to get better result.")
 
     _rag_engine: Any = None
 
@@ -49,14 +51,18 @@ class RoleZeroLongTermMemory(Memory):
 
         try:
             from metagpt.rag.engines import SimpleEngine
-            from metagpt.rag.schema import ChromaRetrieverConfig
+            from metagpt.rag.schema import ChromaRetrieverConfig, LLMRankerConfig
         except ImportError:
             raise ImportError("To use the RoleZeroMemory, you need to install the rag module.")
 
         retriever_configs = [
-            ChromaRetrieverConfig(persist_path=self.persist_path, collection_name=self.collection_name)
+            ChromaRetrieverConfig(
+                persist_path=self.persist_path,
+                collection_name=self.collection_name,
+                similarity_top_k=self.similarity_top_k,
+            )
         ]
-        ranker_configs = []
+        ranker_configs = [LLMRankerConfig()] if self.use_llm_ranker else []
 
         rag_engine = SimpleEngine.from_objs(retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
