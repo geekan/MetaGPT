@@ -1,0 +1,6 @@
+# expo
+openml==0.14.2
+# ml module to run in DI
+xgboost
+catboost
+lightgbm

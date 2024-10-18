@@ -29,6 +29,7 @@ share/python-wheels/
 MANIFEST
 metagpt/tools/schemas/
 examples/data/search_kb/*.json
+expo/AutogluonModels
 
 # PyInstaller
 #  Usually these files are written by a python scripts from a template
@@ -188,3 +189,4 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
+expo/results/*

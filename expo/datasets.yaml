@@ -1,0 +1,225 @@
+datasets:
+  titanic:
+    dataset: 04_titanic
+    metric: f1
+    target_col: Survived
+    user_requirement: "This is a 04_titanic dataset. Your goal is to predict the target\
+      \ column `Survived`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  house-prices:
+    dataset: 05_house-prices-advanced-regression-techniques
+    metric: rmse
+    target_col: SalePrice
+    user_requirement: "This is a 05_house-prices-advanced-regression-techniques dataset.\
+      \ Your goal is to predict the target column `SalePrice`.\nPerform data analysis,\
+      \ data preprocessing, feature engineering, and modeling to predict the target.\
+      \ \nReport rmse on the eval data. Do not plot or make any visualizations.\n"
+  santander-customer:
+    dataset: 06_santander-customer-transaction-prediction
+    metric: f1
+    target_col: target
+    user_requirement: "This is a 06_santander-customer-transaction-prediction dataset.\
+      \ Your goal is to predict the target column `target`.\nPerform data analysis,\
+      \ data preprocessing, feature engineering, and modeling to predict the target.\
+      \ \nReport f1 on the eval data. Do not plot or make any visualizations.\n"
+  icr:
+    dataset: 07_icr-identify-age-related-conditions
+    metric: f1
+    target_col: Class
+    user_requirement: "This is a 07_icr-identify-age-related-conditions dataset. Your\
+      \ goal is to predict the target column `Class`.\nPerform data analysis, data\
+      \ preprocessing, feature engineering, and modeling to predict the target. \n\
+      Report f1 on the eval data. Do not plot or make any visualizations.\n"
+  Click_prediction_small:
+    dataset: Click_prediction_small
+    metric: f1
+    target_col: click
+    user_requirement: "This is a Click_prediction_small dataset. Your goal is to predict\
+      \ the target column `click`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  GesturePhaseSegmentationProcessed:
+    dataset: GesturePhaseSegmentationProcessed
+    metric: f1 weighted
+    target_col: Phase
+    user_requirement: "This is a GesturePhaseSegmentationProcessed dataset. Your goal\
+      \ is to predict the target column `Phase`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport f1 weighted\
+      \ on the eval data. Do not plot or make any visualizations.\n"
+  Moneyball:
+    dataset: Moneyball
+    metric: rmse
+    target_col: RS
+    user_requirement: "This is a Moneyball dataset. Your goal is to predict the target\
+      \ column `RS`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
+      \ plot or make any visualizations.\n"
+  SAT11-HAND-runtime-regression:
+    dataset: SAT11-HAND-runtime-regression
+    metric: rmse
+    target_col: runtime
+    user_requirement: "This is a SAT11-HAND-runtime-regression dataset. Your goal\
+      \ is to predict the target column `runtime`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport rmse on\
+      \ the eval data. Do not plot or make any visualizations.\n"
+  boston:
+    dataset: boston
+    metric: rmse
+    target_col: MEDV
+    user_requirement: "This is a boston dataset. Your goal is to predict the target\
+      \ column `MEDV`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
+      \ plot or make any visualizations.\n"
+  colleges:
+    dataset: colleges
+    metric: rmse
+    target_col: percent_pell_grant
+    user_requirement: "This is a colleges dataset. Your goal is to predict the target\
+      \ column `percent_pell_grant`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport rmse on the eval\
+      \ data. Do not plot or make any visualizations.\n"
+  concrete-strength:
+    dataset: concrete-strength
+    metric: rmse
+    target_col: Strength
+    user_requirement: "This is a concrete-strength dataset. Your goal is to predict\
+      \ the target column `Strength`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport rmse on\
+      \ the eval data. Do not plot or make any visualizations.\n"
+  credit-g:
+    dataset: credit-g
+    metric: f1
+    target_col: class
+    user_requirement: "This is a credit-g dataset. Your goal is to predict the target\
+      \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  diamonds:
+    dataset: diamonds
+    metric: rmse
+    target_col: price
+    user_requirement: "This is a diamonds dataset. Your goal is to predict the target\
+      \ column `price`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport rmse on the eval data. Do not\
+      \ plot or make any visualizations.\n"
+  jasmine:
+    dataset: jasmine
+    metric: f1
+    target_col: class
+    user_requirement: "This is a jasmine dataset. Your goal is to predict the target\
+      \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  kc1:
+    dataset: kc1
+    metric: f1
+    target_col: defects
+    user_requirement: "This is a kc1 dataset. Your goal is to predict the target column\
+      \ `defects`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  kick:
+    dataset: kick
+    metric: f1
+    target_col: IsBadBuy
+    user_requirement: "This is a kick dataset. Your goal is to predict the target\
+      \ column `IsBadBuy`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  mfeat-factors:
+    dataset: mfeat-factors
+    metric: f1 weighted
+    target_col: class
+    user_requirement: "This is a mfeat-factors dataset. Your goal is to predict the\
+      \ target column `class`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  segment:
+    dataset: segment
+    metric: f1 weighted
+    target_col: class
+    user_requirement: "This is a segment dataset. Your goal is to predict the target\
+      \ column `class`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  smoker-status:
+    dataset: smoker-status
+    metric: f1
+    target_col: smoking
+    user_requirement: "This is a smoker-status dataset. Your goal is to predict the\
+      \ target column `smoking`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  software-defects:
+    dataset: software-defects
+    metric: f1
+    target_col: defects
+    user_requirement: "This is a software-defects dataset. Your goal is to predict\
+      \ the target column `defects`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  steel-plates-fault:
+    dataset: steel-plates-fault
+    metric: f1 weighted
+    target_col: target
+    user_requirement: "This is a steel-plates-fault dataset. Your goal is to predict\
+      \ the target column `target`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  wine-quality-white:
+    dataset: wine-quality-white
+    metric: f1 weighted
+    target_col: Class
+    user_requirement: "This is a wine-quality-white dataset. Your goal is to predict\
+      \ the target column `Class`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  banking77:
+    dataset: banking77
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a banking77 dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  fashion_mnist:
+    dataset: fashion_mnist
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a fashion_mnist dataset. Your goal is to predict the\
+      \ target column `label`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  gnad10:
+    dataset: gnad10
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a gnad10 dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 weighted on the eval data.\
+      \ Do not plot or make any visualizations.\n"
+  oxford-iiit-pet:
+    dataset: oxford-iiit-pet
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a oxford-iiit-pet dataset. Your goal is to predict\
+      \ the target column `label`.\nPerform data analysis, data preprocessing,\
+      \ feature engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
+  sms_spam:
+    dataset: sms_spam
+    metric: f1
+    target_col: label
+    user_requirement: "This is a sms_spam dataset. Your goal is to predict the target\
+      \ column `label`.\nPerform data analysis, data preprocessing, feature engineering,\
+      \ and modeling to predict the target. \nReport f1 on the eval data. Do not plot\
+      \ or make any visualizations.\n"
+  stanford_cars:
+    dataset: stanford_cars
+    metric: f1 weighted
+    target_col: label
+    user_requirement: "This is a stanford_cars dataset. Your goal is to predict the\
+      \ target column `label`.\nPerform data analysis, data preprocessing, feature\
+      \ engineering, and modeling to predict the target. \nReport f1 weighted on the\
+      \ eval data. Do not plot or make any visualizations.\n"
