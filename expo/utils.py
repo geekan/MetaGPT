@@ -51,6 +51,8 @@ def get_exp_pool_path(task_name, data_config, pool_name="analysis_pool"):
             f"Dataset {task_name} not found in config file. Available datasets: {data_config['datasets'].keys()}"
         )
     exp_pool_path = os.path.join(data_path, f"{pool_name}.json")
+    if not os.path.exists(exp_pool_path):
+        return None
     return exp_pool_path
 
 
@@ -109,7 +111,7 @@ async def load_execute_notebook(role):
     codes = [task.code for task in tasks if task.code]
     executor = role.execute_code
     executor.nb = nbformat.v4.new_notebook()
-    executor.nb_client = NotebookClient(executor.nb, timeout=executor.timeout)
+    executor.nb_client = NotebookClient(executor.nb, timeout=role.role_timeout)
     # await executor.build()
     for code in codes:
         outputs, success = await executor.run(code)

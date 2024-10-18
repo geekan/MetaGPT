@@ -1,5 +1,9 @@
 import shutil
 
+from expo.evaluation.evaluation import (
+    node_evaluate_score_mlebench,
+    node_evaluate_score_sela,
+)
 from expo.evaluation.visualize_mcts import get_tree_text
 from expo.experimenter.experimenter import Experimenter
 from expo.Greedy import Greedy, Random
@@ -14,30 +18,35 @@ class MCTSExperimenter(Experimenter):
             self.start_task_id = 1  # start from datapreprocessing if it is image task
         else:
             self.start_task_id = args.start_task_id
+
+        if args.eval_func == "sela":
+            self.eval_func = node_evaluate_score_sela
+        elif args.eval_func == "mlebench":
+            self.eval_func = node_evaluate_score_mlebench
+
         super().__init__(args, **kwargs)
         self.tree_mode = tree_mode
 
     async def run_experiment(self):
+        use_fixed_insights = self.args.use_fixed_insights
+        depth = self.args.max_depth
         if self.tree_mode == "greedy":
-            mcts = Greedy(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
+            mcts = Greedy(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
         elif self.tree_mode == "random":
-            mcts = Random(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
+            mcts = Random(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
         else:
-            mcts = MCTS(root_node=None, max_depth=5, use_fixed_insights=self.args.use_fixed_insights)
-        best_nodes = await mcts.search(
-            state=self.state,
-            reflection=self.args.reflection,
-            rollouts=self.args.rollouts,
-            load_tree=self.args.load_tree,
-        )
+            mcts = MCTS(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
+        best_nodes = await mcts.search(state=self.state, args=self.args)
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
         score_dict = best_nodes["scores"]
+        additional_scores = {"grader": self.eval_func(dev_best_node)}
 
         text, num_generated_codes = get_tree_text(mcts.root_node)
         text += f"Generated {num_generated_codes} unique codes.\n"
         text += f"Best node: {best_node.id}, score: {best_node.raw_reward}\n"
         text += f"Dev best node: {dev_best_node.id}, score: {dev_best_node.raw_reward}\n"
+        text += f"Grader score: {additional_scores['grader']}\n"
         print(text)
         results = [
             {
@@ -50,6 +59,7 @@ class MCTSExperimenter(Experimenter):
                 "tree_text": text,
                 "args": vars(self.args),
                 "scores": score_dict,
+                "additional_scores": additional_scores,
             }
         ]
         self.save_result(results)

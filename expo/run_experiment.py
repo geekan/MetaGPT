@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 
+from expo.data.custom_task import get_mle_is_lower_better, get_mle_task_id
 from expo.experimenter.aug import AugExperimenter
 from expo.experimenter.autogluon import GluonExperimenter
 from expo.experimenter.autosklearn import AutoSklearnExperimenter
@@ -9,7 +10,7 @@ from expo.experimenter.experimenter import Experimenter
 from expo.experimenter.mcts import MCTSExperimenter
 
 
-def get_args():
+def get_args(cmd=True):
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="")
     parser.add_argument(
@@ -22,7 +23,18 @@ def get_args():
     get_di_args(parser)
     get_mcts_args(parser)
     get_aug_exp_args(parser)
-    return parser.parse_args()
+    if cmd:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args("")
+
+    if args.custom_dataset_dir:
+        args.external_eval = False
+        args.eval_func = "mlebench"
+        args.from_scratch = True
+        args.task = get_mle_task_id(args.custom_dataset_dir)
+        args.low_is_better = get_mle_is_lower_better(args.task)
+    return args
 
 
 def get_mcts_args(parser):
@@ -31,7 +43,17 @@ def get_mcts_args(parser):
     parser.set_defaults(load_tree=False)
     parser.add_argument("--rollouts", type=int, default=5)
     parser.add_argument("--use_fixed_insights", dest="use_fixed_insights", action="store_true")
+    parser.set_defaults(use_fixed_insights=False)
     parser.add_argument("--start_task_id", type=int, default=2)
+    parser.add_argument(
+        "--from_scratch", dest="from_scratch", action="store_true", help="Generate solutions from scratch"
+    )
+    parser.set_defaults(from_scratch=False)
+    parser.add_argument("--no_external_eval", dest="external_eval", action="store_false")
+    parser.set_defaults(external_eval=True)
+    parser.add_argument("--eval_func", type=str, default="sela", choices=["sela", "mlebench"])
+    parser.add_argument("--custom_dataset_dir", type=str, default=None)
+    parser.add_argument("--max_depth", type=int, default=4)
 
 
 def get_aug_exp_args(parser):

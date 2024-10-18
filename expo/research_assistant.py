@@ -13,15 +13,19 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.utils.common import CodeParser, write_json_file
 
-EXTRACT_SCORE_PROMPT = """
-# Code:
+CODE_BLOCK_RESULT = """
+## Code:
 {code}
 
-# Execution Result:
+## Execution Result:
 {result}
+"""
 
+EXTRACT_SCORE_PROMPT = """
+# Code Blocks
+{code_block}
 # Instruction:
-Based on the code and execution result, please extract the scores and return it as a dictionary.
+Based on the code and execution result, please extract the **final scores** and return it as a dictionary.
 If you cannot find the scores, please still return a dictionary with the keys 'train_score', 'dev_score', and 'test_score', and set the values to -1.
 
 # Format:
@@ -109,9 +113,17 @@ class ResearchAssistant(DataInterpreter):
         return score_dict
 
     async def llm_extract_score(self):
-        result_text = self.planner.plan.task_map[str(len(self.planner.plan.task_map))].result
-        code_text = self.planner.plan.task_map[str(len(self.planner.plan.task_map))].code
-        rsp = await self.llm.aask(EXTRACT_SCORE_PROMPT.format(code=code_text, result=result_text, role="user"))
+        # result_text = self.planner.plan.task_map[str(len(self.planner.plan.task_map))].result
+        # code_text = self.planner.plan.task_map[str(len(self.planner.plan.task_map))].code
+        num_tasks = len(self.planner.plan.task_map)
+        task_map = self.planner.plan.task_map
+        code_block = "\n".join(
+            [
+                CODE_BLOCK_RESULT.format(code=task_map[str(i + 1)].code, result=task_map[str(i + 1)].result)
+                for i in range(num_tasks)
+            ]
+        )
+        rsp = await self.llm.aask(EXTRACT_SCORE_PROMPT.format(code_block=code_block, role="user"))
         json_block = CodeParser.parse_code(block=None, text=rsp)
         score_dict = json.loads(json_block)
         return score_dict
@@ -139,6 +151,11 @@ class ResearchAssistant(DataInterpreter):
             save_notebook(role=self, save_dir=self.role_dir, name=self.get_node_name())
         return task_result
 
+    def get_solution(self):
+        codes = [task.code for task in self.planner.plan.tasks]
+        results = [task.result for task in self.planner.plan.tasks]
+        return {"codes": codes, "results": results}
+
     def save_state(self, static_save=False):
         """
         attribute:
@@ -156,7 +173,7 @@ class ResearchAssistant(DataInterpreter):
         stg_path = self.role_dir
         name = self.get_node_name()
         role_path = os.path.join(stg_path, f"{name}.json")
-        # 将状态保存为 JSON 文件
+        # save state as json file
         write_json_file(role_path, self.model_dump())
 
     def remap_tasks(self):
