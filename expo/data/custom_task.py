@@ -21,7 +21,7 @@ COMPETITION INSTRUCTIONS
 {task_description}
 
 ## More Instructions
-- You should split the training data into train and dev set.
+- You should split the training data into train and dev set with a seed of 42.
 - You should use the dev set to improve your model. Print the final dev set score after training.
 - output_dir: {output_dir}
 - Besides `submission.csv`, you should also save your `test_predictions.csv` and `dev_predictions.csv` in the output directory.
