@@ -309,26 +309,26 @@ class Programmer(Operator):
     async def exec_code(code, timeout=180):
         def run_code():
             try:
-                # 创建一个新的全局命名空间
+                # Create a new global namespace
                 global_namespace = {}
                 
-                # 使用exec执行代码
+                # Use exec to execute the code
                 exec(code, global_namespace)
                 
-                # 假设代码中定义了一个名为'solve'的函数
+                # Assume the code defines a function named 'solve'
                 if 'solve' in global_namespace:
                     result = global_namespace['solve']()
                     return "Success", str(result)
                 else:
-                    return "Error", "未找到'solve'函数"
+                    return "Error", "Function 'solve' not found"
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                return "Error", f"执行错误: {str(e)}\n{''.join(tb_str)}"
+                return "Error", f"Execution error: {str(e)}\n{''.join(tb_str)}"
 
-        # 创建一个事件来标记任务完成
+        # Create an event to mark task completion
         done_event = threading.Event()
-        result = ["Error", "执行无结果，子进程异常"]
+        result = ["Error", "Execution resulted in no output, subprocess exception"]
 
         def wrapper():
             nonlocal result
@@ -338,15 +338,15 @@ class Programmer(Operator):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(wrapper)
             try:
-                # 等待任务完成或超时
+                # Wait for task completion or timeout
                 if done_event.wait(timeout=timeout):
                     return result
                 else:
-                    # 超时，尝试取消任务
+                    # Timeout, attempt to cancel the task
                     future.cancel()
-                    return "Error", "代码执行超时"
+                    return "Error", "Code execution timed out"
             finally:
-                # 确保线程池被正确关闭
+                # Ensure the thread pool is properly shut down
                 executor.shutdown(wait=False)
 
     async def code_generate(self, problem, analysis, feedback, mode):
@@ -369,6 +369,6 @@ class Programmer(Operator):
             if status == "Success":
                 return {"code": code, "output": output}
             else:
-                print(f"第{i + 1}次执行错误，错误信息：{output}")
+                print(f"Execution error in attempt {i + 1}, error message: {output}")
                 feedback = f"\nThe result of the error from the code you wrote in the previous round:\nCode:{code}\n\nStatus:{status},{output}"
         return {"code": code, "output": "error"}

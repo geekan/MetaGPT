@@ -57,7 +57,7 @@ def extract_test_cases_from_jsonl(
 ):
     if dataset == "HumanEval":
         file_path = "examples/aflow/data/humaneval_public_test.jsonl"
-    # 保留原有的硬编码测试用例
+    # Retain the original hardcoded test cases
         hardcoded_cases = {
         "find_zero": "",
         "decode_cyclic": "",
@@ -82,11 +82,11 @@ def extract_test_cases_from_jsonl(
             "sort_sublists": "",
             "unique_sublists": ""
         }
-    # 检查是否有硬编码的测试用例
+    # Check if there are hardcoded test cases
     if entry_point in hardcoded_cases:
         return hardcoded_cases[entry_point]
 
-    # 如果没有硬编码的测试用例，从文件中读取
+    # If there are no hardcoded test cases, read from the file
     with open(file_path, "r") as file:
         for line in file:
             data = json.loads(line)
@@ -97,7 +97,7 @@ def extract_test_cases_from_jsonl(
 
 
 def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
-    # 使用正则表达式匹配测试用例，现在捕获函数名和任意输出
+    # Use regular expressions to match test cases, now capturing function names and any output
     pattern = r">>> (\w+)\((.*?)\)\n\s*(.*?)(?=\n|$)"
     matches = re.findall(pattern, docstring, re.DOTALL)
 
@@ -105,23 +105,23 @@ def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
     for match in matches:
         func_name, input_str, expected_output = match
 
-        # 处理输入
+        # Process input
         input_list = []
         for item in input_str.split(","):
             item = item.strip()
             try:
-                # 尝试将输入转换为数值类型
+                # Try to convert input to numeric type
                 if "." in item:
                     input_list.append(float(item))
                 else:
                     input_list.append(int(item))
             except ValueError:
-                # 如果无法转换为数值，则保留为字符串
+                # If unable to convert to numeric, keep as string
                 input_list.append(item.strip("'\""))
 
-        # 处理输出
+        # Process output
         try:
-            # 尝试将输出转换为数值或布尔值
+            # Try to convert output to numeric or boolean value
             if expected_output.lower() == "true":
                 expected_output = True
             elif expected_output.lower() == "false":
@@ -131,7 +131,7 @@ def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:
             else:
                 expected_output = int(expected_output)
         except ValueError:
-            # 如果无法转换，则保留为字符串
+            # If unable to convert, keep as string
             expected_output = expected_output.strip("'\"")
 
         test_cases.append([func_name, input_list, expected_output])

@@ -9,7 +9,7 @@ from typing import Literal
 
 # DatasetType, QuestionType, and OptimizerType definitions
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
-QuestionType = Literal["math", "code", "quiz"]
+QuestionType = Literal["math", "code", "qa"]
 OptimizerType = Literal["Graph", "Test"]
 
 # Crucial Parameters
@@ -27,12 +27,12 @@ claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
 
 # Config operators.
 operators = [
-    "Custom",                   # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
-    # "CustomCodeGenerate",     # It's for code
-    # "Test",                   # It's for code
-    "ScEnsemble",               # It's for code, math and QA
-    # "Programmer",               # It's for math 
-    "AnswerGenerate"            # It's for QA
+    "Custom",                       # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
+    # "AnswerGenerate"              # It's for qa
+    # "CustomCodeGenerate",         # It's for code
+    # "ScEnsemble",                 # It's for code, math and qa
+    # "Test",                       # It's for code
+    # "Programmer",                 # It's for math 
 ]
 
 # Create an optimizer instance
@@ -53,4 +53,4 @@ if __name__ == "__main__":
     # Optimize workflow via setting the optimizer's mode to 'Graph'
     optimizer.optimize("Graph")
     # Test workflow via setting the optimizer's mode to 'Test'
-    # optimizer.optimize("Test")
+    optimizer.optimize("Test")

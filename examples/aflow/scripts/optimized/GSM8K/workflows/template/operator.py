@@ -9,8 +9,8 @@ from typing import List
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from examples.aflow.scripts.optimized.MATH.workflows.template.operator_an import *
-from examples.aflow.scripts.optimized.MATH.workflows.template.op_prompt import *
+from examples.aflow.scripts.optimized.GSM8K.workflows.template.operator_an import *
+from examples.aflow.scripts.optimized.GSM8K.workflows.template.op_prompt import *
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 import asyncio

@@ -19,7 +19,7 @@ from examples.aflow.scripts.optimizer_utils.evaluation_utils import EvaluationUt
 from examples.aflow.scripts.optimizer_utils.convergence_utils import ConvergenceUtils
 
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
-QuestionType = Literal["math", "code", "quiz"]
+QuestionType = Literal["math", "code", "qa"]
 OptimizerType = Literal["Graph", "Test"]
 
 
@@ -82,25 +82,23 @@ class Optimizer:
             retry_count = 0
             max_retries = 1
 
-            score = loop.run_until_complete(self._optimize_graph())
+            while retry_count < max_retries:
+                try:
+                    score = loop.run_until_complete(self._optimize_graph())
+                    break
+                except Exception as e:
+                    retry_count += 1
+                    print(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
+                    if retry_count == max_retries:
+                        print("Max retries reached. Moving to next round.")
+                        score = None
 
-            # while retry_count < max_retries:
-            #     try:
-            #         score = loop.run_until_complete(self._optimize_graph())
-            #         break
-            #     except Exception as e:
-            #         retry_count += 1
-            #         print(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
-            #         if retry_count == max_retries:
-            #             print("Max retries reached. Moving to next round.")
-            #             score = None
+                    wait_time = 5 * retry_count
+                    time.sleep(wait_time)
 
-            #         wait_time = 5 * retry_count
-            #         time.sleep(wait_time)
-
-            #     if retry_count < max_retries:
-            #         loop = asyncio.new_event_loop()
-            #         asyncio.set_event_loop(loop)
+                if retry_count < max_retries:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
             self.round += 1
             print(f"Score for round {self.round}: {score}")
 
