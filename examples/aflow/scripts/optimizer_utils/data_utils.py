@@ -4,6 +4,7 @@ import random
 import datetime
 import numpy as np
 import pandas as pd
+from metagpt.logs import logger
 
 
 class DataUtils:
@@ -49,10 +50,10 @@ class DataUtils:
         scores = [item["score"] * 100 for item in sorted_items]
 
         probabilities = self._compute_probabilities(scores)
-        print("\nMixed probability distribution: ", probabilities)
+        logger.info("\nMixed probability distribution: ", probabilities)
 
         selected_index = np.random.choice(len(sorted_items), p=probabilities)
-        print(f"\nSelected index: {selected_index}, Selected item: {sorted_items[selected_index]}")
+        logger.info(f"\nSelected index: {selected_index}, Selected item: {sorted_items[selected_index]}")
 
         return sorted_items[selected_index]
 
@@ -92,7 +93,7 @@ class DataUtils:
         # 检查文件是否存在
         if not os.path.exists(log_dir):
             return ""  # 如果文件不存在，返回空字符串
-        print(log_dir)
+        logger.info(log_dir)
         with open(log_dir, 'r', encoding='utf-8') as f:
             data = json.load(f)
 

@@ -1,7 +1,7 @@
 import json
 import os
 from collections import defaultdict
-
+from metagpt.logs import logger
 
 class ExperienceUtils:
     def __init__(self, root_path: str):
@@ -40,7 +40,7 @@ class ExperienceUtils:
                                     "score": data["after"]
                                 }
                 except Exception as e:
-                    print(f"Error processing {round_dir}: {str(e)}")
+                    logger.info(f"Error processing {round_dir}: {str(e)}")
 
         experience_data = dict(experience_data)
 
@@ -48,7 +48,7 @@ class ExperienceUtils:
         with open(output_path, "w", encoding="utf-8") as outfile:
             json.dump(experience_data, outfile, indent=4, ensure_ascii=False)
 
-        print(f"Processed experience data saved to {output_path}")
+        logger.info(f"Processed experience data saved to {output_path}")
         return experience_data
 
     def format_experience(self, processed_experience, sample_round):

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.provider.llm_provider_registry import create_llm_instance
-
+from metagpt.logs import logger
 from examples.aflow.scripts.optimizer_utils.graph_utils import GraphUtils
 from examples.aflow.scripts.optimizer_utils.data_utils import DataUtils
 from examples.aflow.scripts.optimizer_utils.experience_utils import ExperienceUtils
@@ -88,9 +88,9 @@ class Optimizer:
                     break
                 except Exception as e:
                     retry_count += 1
-                    print(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
+                    logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
                     if retry_count == max_retries:
-                        print("Max retries reached. Moving to next round.")
+                        logger.info("Max retries reached. Moving to next round.")
                         score = None
 
                     wait_time = 5 * retry_count
@@ -100,13 +100,13 @@ class Optimizer:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
             self.round += 1
-            print(f"Score for round {self.round}: {score}")
+            logger.info(f"Score for round {self.round}: {score}")
 
             converged, convergence_round, final_round = self.convergence_utils.check_convergence(top_k=3)
 
             if converged and self.check_convergence:
 
-                print(f"Convergence detected, occurred in round {convergence_round}, final round is {final_round}")
+                logger.info(f"Convergence detected, occurred in round {convergence_round}, final round is {final_round}")
                 # Print average scores and standard deviations for each round
                 self.convergence_utils.print_results()
                 break
@@ -165,7 +165,7 @@ class Optimizer:
 
         self.graph = self.graph_utils.load_graph(self.round + 1, graph_path)
 
-        print(directory)
+        logger.info(directory)
 
         avg_score = await self.evaluation_utils.evaluate_graph(self, directory, validation_n, data, initial=False)
 

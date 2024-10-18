@@ -4,6 +4,7 @@ import json
 from typing import List
 import traceback
 import time
+from metagpt.logs import logger
 
 from examples.aflow.scripts.prompts.optimize_prompt import (
     WORKFLOW_CUSTOM_USE,
@@ -31,7 +32,7 @@ class GraphUtils:
             graph_class = getattr(graph_module, "Workflow")
             return graph_class
         except ImportError as e:
-            print(f"Error loading graph for round {round_number}: {e}")
+            logger.info(f"Error loading graph for round {round_number}: {e}")
             raise
 
     def read_graph_files(self, round_number: int, workflows_path: str):
@@ -44,10 +45,10 @@ class GraphUtils:
             with open(graph_file_path, "r", encoding="utf-8") as file:
                 graph_content = file.read()
         except FileNotFoundError as e:
-            print(f"Error: File not found for round {round_number}: {e}")
+            logger.info(f"Error: File not found for round {round_number}: {e}")
             raise
         except Exception as e:
-            print(f"Error loading prompt for round {round_number}: {e}")
+            logger.info(f"Error loading prompt for round {round_number}: {e}")
             raise
         return prompt_content, graph_content
 
@@ -90,9 +91,9 @@ class GraphUtils:
                 return response
             except Exception as e:
                 retries += 1
-                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
+                logger.info(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
                 if retries == max_retries:
-                    print("Maximum retries reached. Skipping this sample.")
+                    logger.info("Maximum retries reached. Skipping this sample.")
                     break
                 traceback.print_exc()
                 time.sleep(5)

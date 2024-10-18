@@ -6,6 +6,7 @@
 import numpy as np
 import json
 import os
+from metagpt.logs import logger
 
 class ConvergenceUtils:
     def __init__(self, root_path):
@@ -106,7 +107,7 @@ class ConvergenceUtils:
         """
         self.avg_scores, self.stds = self.calculate_avg_and_std()
         for i, (avg_score, std) in enumerate(zip(self.avg_scores, self.stds), 1):
-            print(f"轮次 {i}: 平均分 = {avg_score:.4f}, 标准差 = {std:.4f}")
+            logger.info(f"轮次 {i}: 平均分 = {avg_score:.4f}, 标准差 = {std:.4f}")
 
 if __name__ == "__main__":
 
@@ -115,9 +116,9 @@ if __name__ == "__main__":
     converged, convergence_round, final_round = checker.check_convergence()
 
     if converged:
-        print(f"检测到收敛，发生在第 {convergence_round} 轮，最终轮次为 {final_round} 轮")
+        logger.info(f"检测到收敛，发生在第 {convergence_round} 轮，最终轮次为 {final_round} 轮")
     else:
-        print("在所有轮次内未检测到收敛")
+        logger.info("在所有轮次内未检测到收敛")
 
     # 打印每轮的平均分和标准差
     checker.print_results()

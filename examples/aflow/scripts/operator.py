@@ -27,7 +27,7 @@ from examples.aflow.scripts.prompt import (
     CONTEXTUAL_GENERATE_PROMPT,
     FORMAT_PROMPT,
     GENERATE_CODEBLOCK_PROMPT,
-    GENERATE_PROMPT,
+    GENERATE_PROMPT, # TODO
     MD_ENSEMBLE_PROMPT,
     PYTHON_CODE_VERIFIER_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
@@ -167,7 +167,7 @@ class MdEnsemble(Operator):
         return shuffled_solutions, answer_mapping
 
     async def __call__(self, solutions: List[str], problem: str, mode: str = None):
-        print(f"solution count: {len(solutions)}")
+        logger.info(f"solution count: {len(solutions)}")
         all_responses = []
 
         for _ in range(self.vote_count):
@@ -369,6 +369,6 @@ class Programmer(Operator):
             if status == "Success":
                 return {"code": code, "output": output}
             else:
-                print(f"Execution error in attempt {i + 1}, error message: {output}")
+                logger.info(f"Execution error in attempt {i + 1}, error message: {output}")
                 feedback = f"\nThe result of the error from the code you wrote in the previous round:\nCode:{code}\n\nStatus:{status},{output}"
         return {"code": code, "output": "error"}
