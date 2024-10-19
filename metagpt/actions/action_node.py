@@ -39,9 +39,10 @@ class ReviseMode(Enum):
 
 
 TAG = "CONTENT"
-MODE_CODE_FILL = "code_fill"
-CONTEXT_FILL = "context_fill"
-SINGLE_FILL = "single_fill"
+class FillMode(Enum):
+    CODE_FILL = "code_fill"
+    CONTEXT_FILL = "context_fill"
+    SINGLE_FILL = "single_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
@@ -621,12 +622,12 @@ class ActionNode:
         if self.schema:
             schema = self.schema
 
-        if mode == MODE_CODE_FILL:
+        if mode == FillMode.CODE_FILL:
             result = await self.code_fill(context, function_name, timeout)
             self.instruct_content = self.create_class()(**result)
             return self
 
-        elif mode == CONTEXT_FILL:
+        elif mode == FillMode.CONTEXT_FILL:
             """
             使用xml_compile，但是这个版本没有办法实现system message 跟 temperature
             """
@@ -635,7 +636,7 @@ class ActionNode:
             self.instruct_content = self.create_class()(**result)
             return self
 
-        elif mode == SINGLE_FILL:
+        elif mode == FillMode.SINGLE_FILL:
             result = await self.single_fill(context)
             self.instruct_content = self.create_class()(**result)
             return self
