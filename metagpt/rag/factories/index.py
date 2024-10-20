@@ -30,7 +30,7 @@ class RAGIndexFactory(ConfigBasedFactory):
             BM25IndexConfig: self._create_bm25,
             ElasticsearchIndexConfig: self._create_es,
             ElasticsearchKeywordIndexConfig: self._create_es,
-            MilvusIndexConfig: self._create_milvus
+            MilvusIndexConfig: self._create_milvus,
         }
         super().__init__(creators)
 
