@@ -69,19 +69,9 @@ class CohereProvider(BaseBedrockProvider):
 
     def messages_to_prompt(self, messages: list[dict]) -> str:
         if "command-r" in self.model_name:
-            role_map = {
-                "user": "USER",
-                "assistant": "CHATBOT",
-                "system": "USER"
-            }
+            role_map = {"user": "USER", "assistant": "CHATBOT", "system": "USER"}
             messages = list(
-                map(
-                    lambda message: {
-                        "role": role_map[message["role"]],
-                        "message": message["content"]
-                    },
-                    messages
-                )
+                map(lambda message: {"role": role_map[message["role"]], "message": message["content"]}, messages)
             )
             return messages
         else:
@@ -92,17 +82,9 @@ class CohereProvider(BaseBedrockProvider):
         prompt = self.messages_to_prompt(messages)
         if "command-r" in self.model_name:
             chat_history, message = prompt[:-1], prompt[-1]["message"]
-            body = json.dumps({
-                "message": message,
-                "chat_history": chat_history,
-                **generate_kwargs
-            })
+            body = json.dumps({"message": message, "chat_history": chat_history, **generate_kwargs})
         else:
-            body = json.dumps({
-                "prompt": prompt,
-                "stream": kwargs.get("stream", False),
-                **generate_kwargs
-            })
+            body = json.dumps({"prompt": prompt, "stream": kwargs.get("stream", False), **generate_kwargs})
         return body
 
     def get_choice_text_from_stream(self, event) -> str:

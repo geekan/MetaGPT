@@ -91,7 +91,7 @@ SUPPORT_STREAM_MODELS = {
     # Mistral Large (24.02)
     "mistral.mistral-large-2402-v1:0": 8192,
     # Mistral Large 2 (24.07)
-    "mistral.mistral-large-2407-v1:0": 8192
+    "mistral.mistral-large-2407-v1:0": 8192,
 }
 
 # TODO:use a more general function for constructing chat templates.
