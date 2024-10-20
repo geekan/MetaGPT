@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : llm_config.py
 """
+
 from enum import Enum
 from typing import Optional
 
@@ -77,6 +78,7 @@ class LLMConfig(YamlModel):
     best_of: Optional[int] = None
     n: Optional[int] = None
     stream: bool = True
+    seed: Optional[int] = None
     # https://cookbook.openai.com/examples/using_logprobs
     logprobs: Optional[bool] = None
     top_logprobs: Optional[int] = None
