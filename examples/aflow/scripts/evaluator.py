@@ -3,15 +3,16 @@
 # @Author  : all
 # @Desc    : Evaluation for different datasets
 
-from typing import Literal, Tuple, Optional
+from typing import Literal, Tuple, Optional, Dict
 import asyncio
 
-from examples.aflow.benchmark.gsm8k import optimize_gsm8k_evaluation
-from examples.aflow.benchmark.math import optimize_math_evaluation
-from examples.aflow.benchmark.humaneval import optimize_humaneval_evaluation
-from examples.aflow.benchmark.hotpotqa import optimize_hotpotqa_evaluation
-from examples.aflow.benchmark.mbpp import optimize_mbpp_evaluation
-from examples.aflow.benchmark.drop import optimize_drop_evaluation
+from examples.aflow.benchmark.benchmark import BaseBenchmark
+from examples.aflow.benchmark.gsm8k import GSM8KBenchmark
+from examples.aflow.benchmark.math import MATHBenchmark
+from examples.aflow.benchmark.humaneval import HumanEvalBenchmark
+from examples.aflow.benchmark.hotpotqa import HotpotQABenchmark
+from examples.aflow.benchmark.mbpp import MBPPBenchmark
+from examples.aflow.benchmark.drop import DROPBenchmark
 
 # If you want to customize tasks, add task types here and provide evaluation functions, just like the ones given above
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
@@ -23,51 +24,40 @@ class Evaluator:
 
     def __init__(self, eval_path: str):
         self.eval_path = eval_path
-        self.dataset_configs = {
-            "GSM8K": {"name": "GSM8K", "eval_func": optimize_gsm8k_evaluation},
-            "MATH": {"name": "MATH", "eval_func": optimize_math_evaluation},
-            "HumanEval": {"name": "HumanEval", "eval_func": optimize_humaneval_evaluation},
-            "HotpotQA": {"name": "HotpotQA", "eval_func": optimize_hotpotqa_evaluation},
-            "MBPP": {"name": "MBPP", "eval_func": optimize_mbpp_evaluation},
-            "DROP": {"name": "DROP", "eval_func": optimize_drop_evaluation},
+        self.dataset_configs: Dict[DatasetType, BaseBenchmark] = {
+            "GSM8K": GSM8KBenchmark,
+            "MATH": MATHBenchmark,
+            "HumanEval": HumanEvalBenchmark,
+            "HotpotQA": HotpotQABenchmark,
+            "MBPP": MBPPBenchmark,
+            "DROP": DROPBenchmark,
         }
 
-    def graph_evaluate(self, dataset: DatasetType, graph, params: dict, path, is_test=False):
-        """
-        Evaluates on validation dataset.
-        """
-        if dataset in self.dataset_configs:
-            return self._generic_eval(dataset, graph, params, path, is_test)
-        else:
-            return None
+    async def graph_evaluate(self, dataset: DatasetType, graph, params: dict, path: str, is_test: bool = False) -> Tuple[float, float, float]:
+        if dataset not in self.dataset_configs:
+            raise ValueError(f"Unsupported dataset: {dataset}")
 
-    async def _generic_eval(self, dataset: DatasetType, graph_class, params: dict, path: str, test: bool = False) -> Tuple[float, float, float]:
-        """
-        Generic evaluation function for all datasets.
-        """
-        async def load_graph():
-            dataset_config = params["dataset"]
-            llm_config = params["llm_config"]
-            return graph_class(name=self.dataset_configs[dataset]["name"], llm_config=llm_config, dataset=dataset_config)
+        data_path = self._get_data_path(dataset, is_test)
+        benchmark_class = self.dataset_configs[dataset]
+        benchmark = benchmark_class(dataset, data_path, path)
 
-        data_path, va_list = self._get_data_path_and_va_list(dataset, test)
-        graph = await load_graph()
-        
-        eval_func = self.dataset_configs[dataset]["eval_func"]
-        avg_score, avg_cost, total_cost = await eval_func(graph, data_path, path, va_list)
-        
-        return avg_score, avg_cost, total_cost
+        # Use params to configure the graph and benchmark
+        configured_graph = await self._configure_graph(graph, params)
 
-    def _get_data_path_and_va_list(self, dataset: DatasetType, test: bool) -> Tuple[str, Optional[list]]:
-        """
-        Get data path and validation list based on dataset and test flag.
-        """
+        va_list = [1,2,3]  # Use va_list from params, or use default value if not provided
+        return await benchmark.run_evaluation(configured_graph, va_list)
+
+    async def _configure_graph(self, graph, params: dict):
+        # Here you can configure the graph based on params
+        # For example: set LLM configuration, dataset configuration, etc.
+        dataset_config = params.get("dataset", {})
+        llm_config = params.get("llm_config", {})
+        return graph(name=self.dataset_configs[dataset]["name"], llm_config=llm_config, dataset=dataset_config)
+
+    def _get_data_path(self, dataset: DatasetType, test: bool) -> str:
         base_path = f"examples/aflow/data/{dataset.lower()}"
-        if test:
-            return f"{base_path}_test.jsonl", None
-        else:
-            return f"{base_path}_validate.jsonl", [1, 2, 3]  # Replace with the actual filtered index list
+        return f"{base_path}_test.jsonl" if test else f"{base_path}_validate.jsonl"
 
 # Alias methods for backward compatibility
 for dataset in ["gsm8k", "math", "humaneval", "mbpp", "hotpotqa", "drop"]:
-    setattr(Evaluator, f"_{dataset}_eval", lambda self, *args, dataset=dataset.upper(), **kwargs: self._generic_eval(dataset, *args, **kwargs))
+    setattr(Evaluator, f"_{dataset}_eval", lambda self, *args, dataset=dataset.upper(), **kwargs: self.graph_evaluate(dataset, *args, **kwargs))
