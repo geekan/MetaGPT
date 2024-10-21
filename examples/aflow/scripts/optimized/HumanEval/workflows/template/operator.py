@@ -19,33 +19,40 @@ import re
 
 
 class Operator:
-    def __init__(self, name, llm: LLM):
+    def __init__(self, llm: LLM, name: str):
         self.name = name
         self.llm = llm
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
+    async def _fill_node(self, op_class, prompt, mode=None, **extra_kwargs):
+        fill_kwargs = {"context": prompt, "llm": self.llm}
+        if mode:
+            fill_kwargs["mode"] = mode
+        fill_kwargs.update(extra_kwargs)
+        node = await ActionNode.from_pydantic(op_class).fill(**fill_kwargs)
+        return node.instruct_content.model_dump()
+
 
 class Custom(Operator):
     def __init__(self, llm: LLM, name: str = "Custom"):
-        super().__init__(name, llm)
+        super().__init__(llm, name)
 
     async def __call__(self, input, instruction):
         prompt = instruction + input
-        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm, mode="single_fill")
-        response = node.instruct_content.model_dump()
+        response = await self._fill_node(GenerateOp, prompt, mode="single_fill")
         return response
     
 class CustomCodeGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "CustomCodeGenerate"):
-        super().__init__(name, llm)
+        super().__init__(llm, name)
 
     async def __call__(self, problem, entry_point, instruction):
         prompt = instruction + problem
-        node = await ActionNode.from_pydantic(GenerateOp).fill(context=prompt, llm=self.llm, function_name=entry_point, mode="code_fill")
-        response = node.instruct_content.model_dump()
+        response = await self._fill_node(GenerateOp, prompt, mode="code_fill", function_name=entry_point)
         return response
+
 
 class ScEnsemble(Operator):
     """
@@ -55,19 +62,18 @@ class ScEnsemble(Operator):
     Link: https://arxiv.org/abs/2311.17311
     """
 
-    def __init__(self,llm: LLM , name: str = "ScEnsemble"):
-        super().__init__(name, llm)
+    def __init__(self, llm: LLM, name: str = "ScEnsemble"):
+        super().__init__(llm, name)
 
-    async def __call__(self, solutions: List[str], problem: str):
+    async def __call__(self, solutions: List[str]):
         answer_mapping = {}
         solution_text = ""
         for index, solution in enumerate(solutions):
             answer_mapping[chr(65 + index)] = index
             solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
-        prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text, question=problem)
-        node = await ActionNode.from_pydantic(ScEnsembleOp).fill(context=prompt, llm=self.llm)
-        response = node.instruct_content.model_dump()
+        prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text)
+        response = await self._fill_node(ScEnsembleOp, prompt, mode="context_fill")
 
         answer = response.get("solution_letter", "")
         answer = answer.strip().upper()
@@ -75,8 +81,8 @@ class ScEnsemble(Operator):
         return {"response": solutions[answer_mapping[answer]]}
 
 class Test(Operator):
-    def __init__(self, llm, name: str = "Test"):
-        super().__init__(name, llm)
+    def __init__(self, llm: LLM, name: str = "Test"):
+        super().__init__(llm, name)
 
     def exec_code(self, solution, entry_point):
 
@@ -131,8 +137,7 @@ class Test(Operator):
                     exec_pass=f"executed unsuccessfully, error: \n {result}",
                     test_fail="executed unsucessfully",
                 )
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm, mode="code_fill")
-                response = node.instruct_content.model_dump()
+                response = await self._fill_node(ReflectionTestOp, prompt, mode="code_fill")
                 solution = response["reflection_and_solution"]
             else:
                 prompt = REFLECTION_ON_PUBLIC_TEST_PROMPT.format(
@@ -141,8 +146,7 @@ class Test(Operator):
                     exec_pass="executed successfully",
                     test_fail=result,
                 )
-                node = await ActionNode.from_pydantic(ReflectionTestOp).fill(context=prompt, llm=self.llm, mode="code_fill")
-                response = node.instruct_content.model_dump()
+                response = await self._fill_node(ReflectionTestOp, prompt, mode="code_fill")
                 solution = response["reflection_and_solution"]
         
         result = self.exec_code(solution, entry_point)
