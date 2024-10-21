@@ -61,8 +61,6 @@ extras_require["test"] = [
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=12.4.0",
     "gradio==3.0.0",
-    "grpcio-status==1.48.2",
-    "grpcio-tools==1.48.2",
     "google-api-core==2.17.1",
     "protobuf==3.19.6",
     "pylint==3.0.3",
