@@ -537,7 +537,7 @@ class RoleZero(Role):
             command_output = await self._end()
         elif cmd["command_name"] == "RoleZero.ask_human":
             human_response = await self.ask_human(**cmd["args"])
-            if human_response[len("Human response:") :].strip().lower() in ["<stop>", "stop"]:
+            if human_response.strip().lower().endswith(("stop", "<stop>")):
                 human_response += "The user has asked me to stop because I have encountered a problem."
                 self.rc.memory.add(UserMessage(content=human_response, cause_by=RunCommand))
                 end_output = "\nCommand end executed:"
