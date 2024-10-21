@@ -58,7 +58,6 @@ class HunYuanLLM(BaseLLM):
     def _make_request(
         self,
         messages: list[dict],
-        timeout=USE_CONFIG_TIMEOUT,
         stream=True,
     ):
         """构造请求参数对象"""

@@ -85,10 +85,12 @@ TOKEN_COSTS = {
 腾讯混元大模型价格说明：https://cloud.tencent.com/document/product/1729/97731
 """
 HUNYUAN_MODEL_TOKEN_COSTS = {
+    "hunyuan-turbo": {"prompt": 0.00211, "completion": 0.00703},
     "hunyuan-pro": {"prompt": 0.0042, "completion": 0.014},
     "hunyuan-standard": {"prompt": 0.00063, "completion": 0.0007},
     "hunyuan-standard-256k": {"prompt": 0.0021, "completion": 0.0084},
     "hunyuan-lite": {"prompt": 0.0, "completion": 0.0},
+    "hunyuan-code": {"prompt": 0.00056, "completion": 0.00113},
 }
 
 """
