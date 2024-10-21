@@ -82,26 +82,23 @@ class Optimizer:
             retry_count = 0
             max_retries = 1
 
-            
-            score = loop.run_until_complete(self._optimize_graph())
+            while retry_count < max_retries:
+                try:
+                    score = loop.run_until_complete(self._optimize_graph())
+                    break
+                except Exception as e:
+                    retry_count += 1
+                    logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
+                    if retry_count == max_retries:
+                        logger.info("Max retries reached. Moving to next round.")
+                        score = None
 
-            # while retry_count < max_retries:
-            #     try:
-            #         score = loop.run_until_complete(self._optimize_graph())
-            #         break
-            #     except Exception as e:
-            #         retry_count += 1
-            #         logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
-            #         if retry_count == max_retries:
-            #             logger.info("Max retries reached. Moving to next round.")
-            #             score = None
+                    wait_time = 5 * retry_count
+                    time.sleep(wait_time)
 
-            #         wait_time = 5 * retry_count
-            #         time.sleep(wait_time)
-
-            #     if retry_count < max_retries:
-            #         loop = asyncio.new_event_loop()
-            #         asyncio.set_event_loop(loop)
+                if retry_count < max_retries:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
             
             self.round += 1
             logger.info(f"Score for round {self.round}: {score}")
