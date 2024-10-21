@@ -76,8 +76,8 @@ Anything UNCLEAR: Mention unclear project aspects, then try to clarify it.
 6. If not memtioned, always use Editor.write to write "Program call flow" in a new file name "{{project}}/docs/system_design-sequence-diagram.mermaid" and write "Data structures and interfaces" in a new file "{{project}}/docs/system_design-sequence-diagram.mermaid-class-diagram". Mermaid code only. Do not add "```mermaid".
 """.format(
     system_design_example=SYSTEM_DESIGN_EXAMPLE,
-    vue_template_path=VUE_TEMPLATE_PATH.absolute(),
-    react_template_path=REACT_TEMPLATE_PATH.absolute(),
+    vue_template_path=VUE_TEMPLATE_PATH.resolve().absolute(),
+    react_template_path=REACT_TEMPLATE_PATH.resolve().absolute(),
 )
 
 ARCHITECT_EXAMPLE = """
