@@ -43,6 +43,7 @@ extras_require = {
         "llama-index-postprocessor-cohere-rerank==0.1.4",
         "llama-index-postprocessor-colbert-rerank==0.1.1",
         "llama-index-postprocessor-flag-embedding-reranker==0.1.2",
+        # "llama-index-vector-stores-milvus==0.1.23",
         "docx2txt==0.8",
     ],
 }
@@ -60,8 +61,6 @@ extras_require["test"] = [
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=12.4.0",
     "gradio==3.0.0",
-    "grpcio-status==1.48.2",
-    "grpcio-tools==1.48.2",
     "google-api-core==2.17.1",
     "protobuf==3.19.6",
     "pylint==3.0.3",

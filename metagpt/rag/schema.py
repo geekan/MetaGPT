@@ -62,6 +62,36 @@ class BM25RetrieverConfig(IndexRetrieverConfig):
     _no_embedding: bool = PrivateAttr(default=True)
 
 
+class MilvusRetrieverConfig(IndexRetrieverConfig):
+    """Config for Milvus-based retrievers."""
+
+    uri: str = Field(default="./milvus_local.db", description="The directory to save data.")
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    token: str = Field(default=None, description="The token for Milvus")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+    dimensions: int = Field(default=0, description="Dimensionality of the vectors for Milvus index construction.")
+
+    _embedding_type_to_dimensions: ClassVar[dict[EmbeddingType, int]] = {
+        EmbeddingType.GEMINI: 768,
+        EmbeddingType.OLLAMA: 4096,
+    }
+
+    @model_validator(mode="after")
+    def check_dimensions(self):
+        if self.dimensions == 0:
+            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.embedding.api_type, 1536
+            )
+            if not config.embedding.dimensions and config.embedding.api_type not in self._embedding_type_to_dimensions:
+                logger.warning(
+                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
+                )
+
+        return self
+
+
 class ChromaRetrieverConfig(IndexRetrieverConfig):
     """Config for Chroma-based retrievers."""
 
@@ -165,6 +195,17 @@ class ChromaIndexConfig(VectorIndexConfig):
     """Config for chroma-based index."""
 
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    metadata: Optional[CollectionMetadata] = Field(
+        default=None, description="Optional metadata to associate with the collection"
+    )
+
+
+class MilvusIndexConfig(VectorIndexConfig):
+    """Config for milvus-based index."""
+
+    collection_name: str = Field(default="metagpt", description="The name of the collection.")
+    uri: str = Field(default="./milvus_local.db", description="The uri of the index.")
+    token: Optional[str] = Field(default=None, description="The token of the index.")
     metadata: Optional[CollectionMetadata] = Field(
         default=None, description="Optional metadata to associate with the collection"
     )

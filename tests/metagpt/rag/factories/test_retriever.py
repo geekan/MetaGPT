@@ -5,6 +5,7 @@ from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.schema import TextNode
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
+from llama_index.vector_stores.milvus import MilvusVectorStore
 
 from metagpt.rag.factories.retriever import RetrieverFactory
 from metagpt.rag.retrievers.bm25_retriever import DynamicBM25Retriever
@@ -12,12 +13,14 @@ from metagpt.rag.retrievers.chroma_retriever import ChromaRetriever
 from metagpt.rag.retrievers.es_retriever import ElasticsearchRetriever
 from metagpt.rag.retrievers.faiss_retriever import FAISSRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
+from metagpt.rag.retrievers.milvus_retriever import MilvusRetriever
 from metagpt.rag.schema import (
     BM25RetrieverConfig,
     ChromaRetrieverConfig,
     ElasticsearchRetrieverConfig,
     ElasticsearchStoreConfig,
     FAISSRetrieverConfig,
+    MilvusRetrieverConfig,
 )
 
 
@@ -40,6 +43,10 @@ class TestRetrieverFactory:
     @pytest.fixture
     def mock_chroma_vector_store(self, mocker):
         return mocker.MagicMock(spec=ChromaVectorStore)
+
+    @pytest.fixture
+    def mock_milvus_vector_store(self, mocker):
+        return mocker.MagicMock(spec=MilvusVectorStore)
 
     @pytest.fixture
     def mock_es_vector_store(self, mocker):
@@ -90,6 +97,14 @@ class TestRetrieverFactory:
         retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
 
         assert isinstance(retriever, ChromaRetriever)
+
+    def test_get_retriever_with_milvus_config(self, mocker, mock_milvus_vector_store, mock_embedding):
+        mock_config = MilvusRetrieverConfig(uri="/path/to/milvus.db", collection_name="test_collection")
+        mocker.patch("metagpt.rag.factories.retriever.MilvusVectorStore", return_value=mock_milvus_vector_store)
+
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
+
+        assert isinstance(retriever, MilvusRetriever)
 
     def test_get_retriever_with_es_config(self, mocker, mock_es_vector_store, mock_embedding):
         mock_config = ElasticsearchRetrieverConfig(store_config=ElasticsearchStoreConfig())

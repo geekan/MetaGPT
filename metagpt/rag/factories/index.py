@@ -8,6 +8,7 @@ from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.milvus import MilvusVectorStore
 
 from metagpt.rag.factories.base import ConfigBasedFactory
 from metagpt.rag.schema import (
@@ -17,6 +18,7 @@ from metagpt.rag.schema import (
     ElasticsearchIndexConfig,
     ElasticsearchKeywordIndexConfig,
     FAISSIndexConfig,
+    MilvusIndexConfig,
 )
 
 
@@ -28,6 +30,7 @@ class RAGIndexFactory(ConfigBasedFactory):
             BM25IndexConfig: self._create_bm25,
             ElasticsearchIndexConfig: self._create_es,
             ElasticsearchKeywordIndexConfig: self._create_es,
+            MilvusIndexConfig: self._create_milvus,
         }
         super().__init__(creators)
 
@@ -45,6 +48,11 @@ class RAGIndexFactory(ConfigBasedFactory):
         storage_context = StorageContext.from_defaults(persist_dir=config.persist_path)
 
         return self._index_from_storage(storage_context=storage_context, config=config, **kwargs)
+
+    def _create_milvus(self, config: MilvusIndexConfig, **kwargs) -> VectorStoreIndex:
+        vector_store = MilvusVectorStore(collection_name=config.collection_name, uri=config.uri, token=config.token)
+
+        return self._index_from_vector_store(vector_store=vector_store, config=config, **kwargs)
 
     def _create_chroma(self, config: ChromaIndexConfig, **kwargs) -> VectorStoreIndex:
         db = chromadb.PersistentClient(str(config.persist_path))
