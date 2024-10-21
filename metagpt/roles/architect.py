@@ -7,6 +7,8 @@
 """
 from pydantic import Field
 
+from metagpt.actions.design_api import WriteDesign
+from metagpt.actions.write_prd import WritePRD
 from metagpt.prompts.di.architect import ARCHITECT_EXAMPLE, ARCHITECT_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.tools.libs.terminal import Terminal
@@ -43,6 +45,11 @@ class Architect(RoleZero):
 
         # NOTE: The following init setting will only be effective when self.use_fixed_sop is changed to True
         self.enable_memory = False
+        # Initialize actions specific to the Architect role
+        self.set_actions([WriteDesign])
+
+        # Set events or actions the Architect should watch or be aware of
+        self._watch({WritePRD})
 
     def _retrieve_experience(self) -> str:
         return ARCHITECT_EXAMPLE
