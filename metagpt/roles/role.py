@@ -170,7 +170,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
-        self._watch(kwargs.pop("watch", [UserRequirement]))
+        if not self.rc.watch:
+            self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
@@ -421,8 +422,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
-        if self.recovered:
-            news = [self.latest_observed_msg] if self.latest_observed_msg else []
+        if self.recovered and self.latest_observed_msg:
+            news = self.rc.memory.find_news(observed=[self.latest_observed_msg], k=10)
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.

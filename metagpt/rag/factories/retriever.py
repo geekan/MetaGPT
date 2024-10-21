@@ -12,6 +12,7 @@ from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.milvus import MilvusVectorStore
 
 from metagpt.rag.factories.base import ConfigBasedFactory
 from metagpt.rag.retrievers.base import RAGRetriever
@@ -20,6 +21,7 @@ from metagpt.rag.retrievers.chroma_retriever import ChromaRetriever
 from metagpt.rag.retrievers.es_retriever import ElasticsearchRetriever
 from metagpt.rag.retrievers.faiss_retriever import FAISSRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
+from metagpt.rag.retrievers.milvus_retriever import MilvusRetriever
 from metagpt.rag.schema import (
     BaseRetrieverConfig,
     BM25RetrieverConfig,
@@ -27,6 +29,7 @@ from metagpt.rag.schema import (
     ElasticsearchKeywordRetrieverConfig,
     ElasticsearchRetrieverConfig,
     FAISSRetrieverConfig,
+    MilvusRetrieverConfig,
 )
 
 
@@ -56,6 +59,7 @@ class RetrieverFactory(ConfigBasedFactory):
             ChromaRetrieverConfig: self._create_chroma_retriever,
             ElasticsearchRetrieverConfig: self._create_es_retriever,
             ElasticsearchKeywordRetrieverConfig: self._create_es_retriever,
+            MilvusRetrieverConfig: self._create_milvus_retriever,
         }
         super().__init__(creators)
 
@@ -75,6 +79,11 @@ class RetrieverFactory(ConfigBasedFactory):
         index = self._extract_index(None, **kwargs) or self._build_default_index(**kwargs)
 
         return index.as_retriever()
+
+    def _create_milvus_retriever(self, config: MilvusRetrieverConfig, **kwargs) -> MilvusRetriever:
+        config.index = self._build_milvus_index(config, **kwargs)
+
+        return MilvusRetriever(**config.model_dump())
 
     def _create_faiss_retriever(self, config: FAISSRetrieverConfig, **kwargs) -> FAISSRetriever:
         config.index = self._build_faiss_index(config, **kwargs)
@@ -125,6 +134,14 @@ class RetrieverFactory(ConfigBasedFactory):
         db = chromadb.PersistentClient(path=str(config.persist_path))
         chroma_collection = db.get_or_create_collection(config.collection_name, metadata=config.metadata)
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+        return self._build_index_from_vector_store(config, vector_store, **kwargs)
+
+    @get_or_build_index
+    def _build_milvus_index(self, config: MilvusRetrieverConfig, **kwargs) -> VectorStoreIndex:
+        vector_store = MilvusVectorStore(
+            uri=config.uri, collection_name=config.collection_name, token=config.token, dim=config.dimensions
+        )
 
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 

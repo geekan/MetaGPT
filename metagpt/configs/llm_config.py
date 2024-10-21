@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : llm_config.py
 """
+
 from enum import Enum
 from typing import Optional
 
@@ -33,7 +34,7 @@ class LLMType(Enum):
     YI = "yi"  # lingyiwanwu
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
-    ARK = "ark"
+    ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
     HUNYUAN = "hunyuan"  # Tencent Hunyuan
 
     def __missing__(self, key):
@@ -58,6 +59,7 @@ class LLMConfig(YamlModel):
     # For Cloud Service Provider like Baidu/ Alibaba
     access_key: Optional[str] = None
     secret_key: Optional[str] = None
+    session_token: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
     # For Tencent Hunyuan
     secret_id: Optional[str] = None
@@ -79,6 +81,7 @@ class LLMConfig(YamlModel):
     best_of: Optional[int] = None
     n: Optional[int] = None
     stream: bool = True
+    seed: Optional[int] = None
     # https://cookbook.openai.com/examples/using_logprobs
     logprobs: Optional[bool] = None
     top_logprobs: Optional[int] = None
@@ -92,6 +95,9 @@ class LLMConfig(YamlModel):
 
     # Cost Control
     calc_usage: bool = True
+
+    # For Messages Control
+    use_system_prompt: bool = True
 
     @field_validator("api_key")
     @classmethod

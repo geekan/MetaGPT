@@ -60,6 +60,10 @@ iflytek_api_secret: "YOUR_API_SECRET"
 
 metagpt_tti_url: "YOUR_MODEL_URL"
 
+omniparse:
+    api_key: "YOUR_API_KEY"
+    base_url: "YOUR_BASE_URL"
+
 models:
 #  "YOUR_MODEL_NAME_1 or YOUR_API_TYPE_1": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
 #    api_type: "openai"  # or azure / ollama / groq etc.
