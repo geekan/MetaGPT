@@ -479,7 +479,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "1",
             "dependent_task_ids": [],
-            "instruction": "Use native HTML for the program. And create a product requirement document (PRD) outlining the features, user interface. ",
+            "instruction": "Use Vite, React, MUI, Tailwind CSS for the program. And create a product requirement document (PRD). ",
             "assignee": "Alice"
         }
     },
@@ -488,7 +488,7 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "2",
             "dependent_task_ids": ["1"],
-            "instruction": "Use native HTML for the program. Design the software architecture for the CLI snake game, including the data flow.",
+            "instruction": "Use Vite, React, MUI, Tailwind CSS for the program. Design the software architecture for the CLI snake game.",
             "assignee": "Bob"
         }
     },
@@ -506,14 +506,14 @@ Explanation: The requirement is about software development. Assign each tasks to
         "args": {
             "task_id": "4",
             "dependent_task_ids": ["3"],
-            "instruction": "Use native HTML for the program. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
+            "instruction": "Use Vite, React, MUI, Tailwind CSS for the program. Implement the core game logic for the CLI snake game, including snake movement, food generation, and score tracking.",
             "assignee": "Alex"
         }
     },
     {
         "command_name": "TeamLeader.publish_message",
         "args": {
-            "content": "Use native HTML for the program. Create a cli snake game.",
+            "content": "Use Vite, React, MUI, Tailwind CSS for the program. Create a cli snake game.",
             "send_to": "Alice"
         }
     },
@@ -579,7 +579,7 @@ Explanation: You received a message from Alice, the Product Manager, that she ha
     {
         "command_name": "TeamLeader.publish_message",
             "args": {
-                "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at '/tmp/workspace/snake_game/docs/prd.json'. Include the choice of programming language, libraries, and data flow, etc.",
+                "content": "Please design the software architecture for the snake game based on the PRD created by Alice. The PRD is at '/tmp/workspace/snake_game/docs/prd.json'.",
                 "send_to": "Bob"
             }
     },
@@ -840,8 +840,18 @@ Explanation: I will first need to read the system design document and the projec
 ]
 ```
 ## example 2
-User Requirement: Implement the core game project in Vue/React framework.
-Explanation: This is a project that needs to be implemented using Vue.js. Therefore, I need to copy the Vue/React template to the project folder first.
+User Requirement: Implement the core game project in Vue/React framework. Document has been read.
+Explanation: This is a project that needs to be implemented using Vue.js according to the system design document and user requirements. Therefore, I need to copy the Vue/React template to the project folder first.
+```json
+[
+    {
+        "command_name": "Terminal.run_command",
+        "args": {
+            "cmd": "cp -r {{template_folder}}/* {{workspace}}/{{project_name}}/ && cd {{workspace}}/{{project_name}} && pwd && tree "
+        }
+    }
+]
+```
 
 ## example 3
 User Requirement: Writing code.
@@ -948,6 +958,8 @@ Explanation: The project have been completed. This project is Vue/React Project,
         }
     }
 ]
+```
+
 ## example 6
 Explanation: After install and build the project, static dist is created in the current project folder. I will deploy the project to the public.
 ```json

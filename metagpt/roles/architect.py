@@ -5,18 +5,13 @@
 @Author  : alexanderwu
 @File    : architect.py
 """
-from metagpt.actions import WritePRD
+from pydantic import Field
+
 from metagpt.actions.design_api import WriteDesign
+from metagpt.actions.write_prd import WritePRD
+from metagpt.prompts.di.architect import ARCHITECT_EXAMPLE, ARCHITECT_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.utils.common import tool2name
-
-ARCHITECT_INSTRUCTION = """
-Use WriteDesign tool to write a system design document if a system design is required;
-
-Note:
-1. When you think, just analyze which tool you should use, and then provide your answer. And your output should contain firstly, secondly, ...
-2. The automated tools at your disposal will generate a document that perfectly meets your requirements. There is no need to do it manually.
-"""
+from metagpt.tools.libs.terminal import Terminal
 
 
 class Architect(RoleZero):
@@ -37,13 +32,12 @@ class Architect(RoleZero):
         "make sure the architecture is simple enough and use  appropriate open source "
         "libraries. Use same language as user requirement"
     )
-
+    terminal: Terminal = Field(default_factory=Terminal, exclude=True)
     instruction: str = ARCHITECT_INSTRUCTION
-    max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
     tools: list[str] = [
-        "Editor:write,read,write_content,similarity_search",
+        "Editor:write,read,similarity_search",
         "RoleZero",
-        "WriteDesign",
+        "Terminal:run_command",
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -57,11 +51,8 @@ class Architect(RoleZero):
         # Set events or actions the Architect should watch or be aware of
         self._watch({WritePRD})
 
+    def _retrieve_experience(self) -> str:
+        return ARCHITECT_EXAMPLE
+
     def _update_tool_execution(self):
-        write_design = WriteDesign()
-        self.tool_execution_map.update(tool2name(WriteDesign, ["run"], write_design.run))
-        self.tool_execution_map.update(
-            {
-                "run": write_design.run,  # alias
-            }
-        )
+        self.tool_execution_map.update({"Terminal.run_command": self.terminal.run_command})
