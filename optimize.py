@@ -4,6 +4,7 @@
 # @Desc    : Entrance of AFlow.
 
 from examples.aflow.scripts.optimizer import Optimizer
+from examples.aflow.data.download_data import download
 from metagpt.configs.models_config import ModelsConfig
 from typing import Literal
 
@@ -12,10 +13,13 @@ DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 QuestionType = Literal["math", "code", "qa"]
 OptimizerType = Literal["Graph", "Test"]
 
+# When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
+# download(["datasets", "results", "initial_rounds"])
+
 # Crucial Parameters
-dataset: DatasetType = "HotpotQA"  # Ensure the type is consistent with DatasetType
+dataset: DatasetType = "GSM8K"  # Ensure the type is consistent with DatasetType
 sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
-question_type: QuestionType = "quiz"  # Ensure the type is consistent with QuestionType
+question_type: QuestionType = "code"  # Ensure the type is consistent with QuestionType
 optimized_path: str = "examples/aflow/scripts/optimized"  # Optimized Result Save Path
 initial_round: int = 1  # Corrected the case from Initial_round to initial_round
 max_rounds: int = 20
@@ -30,9 +34,9 @@ operators = [
     "Custom",                       # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
     # "AnswerGenerate"              # It's for qa
     # "CustomCodeGenerate",         # It's for code
-    # "ScEnsemble",                 # It's for code, math and qa
+    "ScEnsemble",                 # It's for code, math and qa
     # "Test",                       # It's for code
-    # "Programmer",                 # It's for math 
+    "Programmer",                 # It's for math 
 ]
 
 # Create an optimizer instance
@@ -53,4 +57,4 @@ if __name__ == "__main__":
     # Optimize workflow via setting the optimizer's mode to 'Graph'
     optimizer.optimize("Graph")
     # Test workflow via setting the optimizer's mode to 'Test'
-    optimizer.optimize("Test")
+    # optimizer.optimize("Test")

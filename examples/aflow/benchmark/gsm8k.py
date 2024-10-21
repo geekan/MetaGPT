@@ -40,7 +40,7 @@ class GSM8KBenchmark(BaseBenchmark):
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, float, float, float]:
         max_retries = 5
         retries = 0
-
+    
         while retries < max_retries:
             try:
                 prediction, cost = await graph(problem["question"])

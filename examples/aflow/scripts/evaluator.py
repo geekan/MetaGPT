@@ -39,25 +39,21 @@ class Evaluator:
 
         data_path = self._get_data_path(dataset, is_test)
         benchmark_class = self.dataset_configs[dataset]
-        benchmark = benchmark_class(dataset, data_path, path)
+        benchmark = benchmark_class(name=dataset, file_path=data_path, log_path=path)
 
         # Use params to configure the graph and benchmark
-        configured_graph = await self._configure_graph(graph, params)
+        configured_graph = await self._configure_graph(dataset, graph, params)
 
         va_list = [1,2,3]  # Use va_list from params, or use default value if not provided
         return await benchmark.run_evaluation(configured_graph, va_list)
 
-    async def _configure_graph(self, graph, params: dict):
+    async def _configure_graph(self, dataset, graph, params: dict):
         # Here you can configure the graph based on params
         # For example: set LLM configuration, dataset configuration, etc.
         dataset_config = params.get("dataset", {})
         llm_config = params.get("llm_config", {})
-        return graph(name=self.dataset_configs[dataset]["name"], llm_config=llm_config, dataset=dataset_config)
+        return graph(name=dataset, llm_config=llm_config, dataset=dataset_config)
 
     def _get_data_path(self, dataset: DatasetType, test: bool) -> str:
         base_path = f"examples/aflow/data/{dataset.lower()}"
         return f"{base_path}_test.jsonl" if test else f"{base_path}_validate.jsonl"
-
-# Alias methods for backward compatibility
-for dataset in ["gsm8k", "math", "humaneval", "mbpp", "hotpotqa", "drop"]:
-    setattr(Evaluator, f"_{dataset}_eval", lambda self, *args, dataset=dataset.upper(), **kwargs: self.graph_evaluate(dataset, *args, **kwargs))

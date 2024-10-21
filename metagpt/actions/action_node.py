@@ -622,21 +622,19 @@ class ActionNode:
         if self.schema:
             schema = self.schema
 
-        if mode == FillMode.CODE_FILL:
+
+        if mode == FillMode.CODE_FILL.value:
             result = await self.code_fill(context, function_name, timeout)
             self.instruct_content = self.create_class()(**result)
             return self
 
-        elif mode == FillMode.CONTEXT_FILL:
-            """
-            使用xml_compile，但是这个版本没有办法实现system message 跟 temperature
-            """
+        elif mode == FillMode.CONTEXT_FILL.value:
             context = self.xml_compile(context=self.context)
             result = await self.context_fill(context)
             self.instruct_content = self.create_class()(**result)
             return self
 
-        elif mode == FillMode.SINGLE_FILL:
+        elif mode == FillMode.SINGLE_FILL.value:
             result = await self.single_fill(context)
             self.instruct_content = self.create_class()(**result)
             return self

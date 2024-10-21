@@ -82,23 +82,27 @@ class Optimizer:
             retry_count = 0
             max_retries = 1
 
-            while retry_count < max_retries:
-                try:
-                    score = loop.run_until_complete(self._optimize_graph())
-                    break
-                except Exception as e:
-                    retry_count += 1
-                    logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
-                    if retry_count == max_retries:
-                        logger.info("Max retries reached. Moving to next round.")
-                        score = None
+            
+            score = loop.run_until_complete(self._optimize_graph())
 
-                    wait_time = 5 * retry_count
-                    time.sleep(wait_time)
+            # while retry_count < max_retries:
+            #     try:
+            #         score = loop.run_until_complete(self._optimize_graph())
+            #         break
+            #     except Exception as e:
+            #         retry_count += 1
+            #         logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
+            #         if retry_count == max_retries:
+            #             logger.info("Max retries reached. Moving to next round.")
+            #             score = None
 
-                if retry_count < max_retries:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
+            #         wait_time = 5 * retry_count
+            #         time.sleep(wait_time)
+
+            #     if retry_count < max_retries:
+            #         loop = asyncio.new_event_loop()
+            #         asyncio.set_event_loop(loop)
+            
             self.round += 1
             logger.info(f"Score for round {self.round}: {score}")
 
@@ -114,7 +118,7 @@ class Optimizer:
             time.sleep(5)
 
     async def _optimize_graph(self):
-        validation_n = 5                                    # validation datasets's execution number
+        validation_n = 2                                   # validation datasets's execution number
         graph_path = f"{self.root_path}/workflows"
         data = self.data_utils.load_results(graph_path)
 
