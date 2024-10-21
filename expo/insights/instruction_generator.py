@@ -8,7 +8,7 @@ from expo.utils import clean_json_from_rsp, load_data_config, mcts_logger
 from metagpt.llm import LLM
 from metagpt.schema import Message
 
-REFLECTION_SYSTEM_MSG = "As a Kaggle grandmaster participating in a competition, you need to analyze your experience and propose evolutionary points that are more likely to improve the performance of baseline code."
+REFLECTION_SYSTEM_MSG = "As a Kaggle Grandmaster competing in a challenge, your task is to suggest potential evolutionary improvements that could enhance the performance of the baseline code."
 
 CHANGE_INSTRUCTION = """
 # Original instruction
@@ -17,7 +17,9 @@ CHANGE_INSTRUCTION = """
 # Insights
 {insights}
 
-Rewrite the original instruction according to the insights
+Rewrite the original instruction according to the insights 
+(If the original instruction involves splitting the data, ensure that your insights are integrated with the data split instructions, 
+rather than replacing them.)
 
 # Expected Output Hard Format
 ```json

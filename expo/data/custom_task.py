@@ -21,11 +21,11 @@ COMPETITION INSTRUCTIONS
 {task_description}
 
 ## More Instructions
-- output_dir: {output_dir}
-- Besides `submission.csv`, you should also save your output in the output directory.
-- You should split the training data into train and dev set.
+- You should split the training data into train and dev set with a seed of 42.
 - You should use the dev set to improve your model. Print the final dev set score after training.
-- Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. They should be in the same format as the `submission.csv`.
+- output_dir: {output_dir}
+- Besides `submission.csv`, you should also save your `test_predictions.csv` and `dev_predictions.csv` in the output directory.
+- Note that `test_predictions.csv` should be identical to `submission.csv`.
 - Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. {special_instruction}
 **Do not make any plots or visualizations.**
 """
