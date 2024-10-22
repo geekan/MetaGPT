@@ -6,7 +6,7 @@ from typing import Callable, List, Tuple
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
-
+from metagpt.logs import logger
 
 class DROPBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -75,7 +75,7 @@ class DROPBenchmark(BaseBenchmark):
             return input_text, output, expected_output, uni_score, cost
 
         except Exception as e:
-            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            logger.info(f"Maximum retries reached. Skipping this sample. Error: {e}")
             return input_text, str(e), expected_output, 0.0, 0.0
 
     def get_result_columns(self) -> List[str]:

@@ -49,7 +49,7 @@ class GSM8KBenchmark(BaseBenchmark):
             return input_text, output, expected_output, score, cost
 
         except Exception as e:
-            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            logger.info(f"Maximum retries reached. Skipping this sample. Error: {e}")
             return input_text, str(e), expected_output, 0.0, 0.0
 
     def get_result_columns(self) -> List[str]:

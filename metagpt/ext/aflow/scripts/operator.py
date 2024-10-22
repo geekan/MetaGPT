@@ -207,7 +207,7 @@ class Programmer(Operator):
             if status == "Success":
                 return {"code": code, "output": output}
             else:
-                print(f"Execution error on attempt {i + 1}, error message: {output}")
+                logger.info(f"Execution error on attempt {i + 1}, error message: {output}")
                 feedback = (
                     f"\nThe result of the error from the code you wrote in the previous round:\n"
                     f"Code: {code}\n\nStatus: {status}, {output}"
@@ -336,7 +336,7 @@ class MdEnsemble(Operator):
         return shuffled_solutions, answer_mapping
 
     async def __call__(self, solutions: List[str], problem: str, mode: str = None):
-        print(f"solution count: {len(solutions)}")
+        logger.info(f"solution count: {len(solutions)}")
         all_responses = []
 
         for _ in range(self.vote_count):
