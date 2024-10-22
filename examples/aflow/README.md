@@ -4,7 +4,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
-![Performance of AFlow](examples/aflow/img/performance_of_AFlow.png)
+![Performance of AFlow](img/performance_of_AFlow.png)
 
 ## Framework Components
 
