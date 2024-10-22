@@ -146,7 +146,7 @@ class Optimizer:
             )
 
             graph_optimize_node = await ActionNode.from_pydantic(GraphOptimize).fill(
-                context=graph_optimize_prompt, mode="context_fill", llm=self.optimize_llm
+                context=graph_optimize_prompt, mode="xml_fill", llm=self.optimize_llm
             )
 
             response = await self.graph_utils.get_graph_optimize_response(graph_optimize_node)

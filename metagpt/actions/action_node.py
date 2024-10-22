@@ -41,7 +41,7 @@ class ReviseMode(Enum):
 TAG = "CONTENT"
 class FillMode(Enum):
     CODE_FILL = "code_fill"
-    CONTEXT_FILL = "context_fill"
+    XML_FILL = "xml_fill"
     SINGLE_FILL = "single_fill"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
@@ -542,7 +542,7 @@ class ActionNode:
         result = {field_name: content}
         return result
 
-    async def context_fill(self, context):
+    async def xml_fill(self, context):
         """
         使用XML标签填充上下文并根据字段类型进行转换，包括字符串、整数、布尔值、列表和字典类型
         """
@@ -628,9 +628,9 @@ class ActionNode:
             self.instruct_content = self.create_class()(**result)
             return self
 
-        elif mode == FillMode.CONTEXT_FILL.value:
+        elif mode == FillMode.XML_FILL.value:
             context = self.xml_compile(context=self.context)
-            result = await self.context_fill(context)
+            result = await self.xml_fill(context)
             self.instruct_content = self.create_class()(**result)
             return self
 

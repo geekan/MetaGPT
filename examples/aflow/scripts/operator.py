@@ -25,7 +25,7 @@ from examples.aflow.scripts.operator_an import (
     ReviseOp,
 
 )
-from examples.aflow.scripts.prompt import (
+from examples.aflow.scripts.prompts.prompt import (
     FORMAT_PROMPT,
     ANSWER_GENERATION_PROMPT,
     SC_ENSEMBLE_PROMPT,
@@ -73,7 +73,7 @@ class AnswerGenerate(Operator):
 
     async def __call__(self, input: str, mode: str = None) -> Tuple[str, str]:
         prompt = ANSWER_GENERATION_PROMPT.format(input=input)
-        response = await self._fill_node(AnswerGenerateOp, prompt, mode="context_fill")
+        response = await self._fill_node(AnswerGenerateOp, prompt, mode="xml_fill")
         return response
 
 class CustomCodeGenerate(Operator):
@@ -105,7 +105,7 @@ class ScEnsemble(Operator):
             solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
         prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text)
-        response = await self._fill_node(ScEnsembleOp, prompt, mode="context_fill")
+        response = await self._fill_node(ScEnsembleOp, prompt, mode="xml_fill")
 
         answer = response.get("solution_letter", "")
         answer = answer.strip().upper()
@@ -295,7 +295,7 @@ class Review(Operator):
 
     async def __call__(self, problem, solution, mode: str = None):
         prompt = REVIEW_PROMPT.format(problem=problem, solution=solution)
-        response = await self._fill_node(ReviewOp, prompt, mode="context_fill")
+        response = await self._fill_node(ReviewOp, prompt, mode="xml_fill")
         return response
 
 class Revise(Operator):
@@ -304,7 +304,7 @@ class Revise(Operator):
 
     async def __call__(self, problem, solution, feedback, mode: str = None):
         prompt = REVISE_PROMPT.format(problem=problem, solution=solution, feedback=feedback)
-        response = await self._fill_node(ReviseOp, prompt, mode="context_fill")
+        response = await self._fill_node(ReviseOp, prompt, mode="xml_fill")
         return response  
 
 
@@ -337,7 +337,7 @@ class MdEnsemble(Operator):
                 solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
             prompt = MD_ENSEMBLE_PROMPT.format(solutions=solution_text, question=problem)
-            response = await self._fill_node(MdEnsembleOp, prompt, mode="context_fill")
+            response = await self._fill_node(MdEnsembleOp, prompt, mode="xml_fill")
 
             answer = response.get("solution_letter", "A")
             answer = answer.strip().upper()

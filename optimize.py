@@ -4,14 +4,15 @@
 # @Desc    : Entrance of AFlow.
 
 from examples.aflow.scripts.optimizer import Optimizer
+from examples.aflow.scripts.evaluator import DatasetType, QuestionType, OptimizerType
 from examples.aflow.data.download_data import download
 from metagpt.configs.models_config import ModelsConfig
 from typing import Literal
 
 # DatasetType, QuestionType, and OptimizerType definitions
-DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
-QuestionType = Literal["math", "code", "qa"]
-OptimizerType = Literal["Graph", "Test"]
+# DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
+# QuestionType = Literal["math", "code", "qa"]
+# OptimizerType = Literal["Graph", "Test"]
 
 # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
 # download(["datasets", "results", "initial_rounds"])

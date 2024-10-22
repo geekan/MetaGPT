@@ -51,7 +51,7 @@ class AnswerGenerate(Operator):
 
     async def __call__(self, input: str, mode: str = None) -> Tuple[str, str]:
         prompt = ANSWER_GENERATION_PROMPT.format(input=input)
-        response = await self._fill_node(AnswerGenerateOp, prompt, mode="context_fill")
+        response = await self._fill_node(AnswerGenerateOp, prompt, mode="xml_fill")
         return response
 
 class ScEnsemble(Operator):
@@ -73,7 +73,7 @@ class ScEnsemble(Operator):
             solution_text += f"{chr(65 + index)}: \n{str(solution)}\n\n\n"
 
         prompt = SC_ENSEMBLE_PROMPT.format(solutions=solution_text)
-        response = await self._fill_node(ScEnsembleOp, prompt, mode="context_fill")
+        response = await self._fill_node(ScEnsembleOp, prompt, mode="xml_fill")
 
         answer = response.get("solution_letter", "")
         answer = answer.strip().upper()
