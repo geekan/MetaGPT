@@ -11,6 +11,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
 from metagpt.logs import logger
 
+
 class MATHBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
         super().__init__(name, file_path, log_path)

@@ -5,8 +5,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.actions.code_sanitize import sanitize
-from metagpt.logs import logger
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+from metagpt.logs import logger
 
 
 class MBPPBenchmark(BaseBenchmark):

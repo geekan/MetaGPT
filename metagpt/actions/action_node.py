@@ -18,8 +18,8 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
-from metagpt.ext.aflow.benchmark.utils import sanitize
 from metagpt.const import USE_CONFIG_TIMEOUT
+from metagpt.ext.aflow.scripts.utils import sanitize
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess

@@ -13,7 +13,6 @@ from typing import Dict, List, Tuple
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 from metagpt.ext.aflow.scripts.operator_an import (
     AnswerGenerateOp,
     CodeGenerateOp,
