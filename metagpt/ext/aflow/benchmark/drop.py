@@ -1,18 +1,12 @@
-import os
 import re
-import json
-import asyncio
 import string
 from collections import Counter
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Callable, List, Tuple
 
-import aiofiles
-import pandas as pd
-from tqdm.asyncio import tqdm_asyncio
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+
 
 class DROPBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -53,12 +47,7 @@ class DROPBenchmark(BaseBenchmark):
         f1 = (2 * precision * recall) / (precision + recall)
         return f1, prediction
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(1),
-        retry=retry_if_exception_type(Exception),
-        reraise=True
-    )
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), retry=retry_if_exception_type(Exception), reraise=True)
     async def _generate_output(self, graph, input_text):
         return await graph(input_text)
 

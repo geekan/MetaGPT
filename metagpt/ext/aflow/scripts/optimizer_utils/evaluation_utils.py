@@ -12,9 +12,11 @@ class EvaluationUtils:
 
         for i in range(validation_n):
             score, avg_cost, total_cost = await evaluator.graph_evaluate(
-                optimizer.dataset, optimizer.graph,
+                optimizer.dataset,
+                optimizer.graph,
                 {"dataset": optimizer.dataset, "llm_config": optimizer.execute_llm_config},
-                directory, is_test=False
+                directory,
+                is_test=False,
             )
 
             new_data = optimizer.data_utils.create_result_data(optimizer.round, score, avg_cost, total_cost)
@@ -31,9 +33,11 @@ class EvaluationUtils:
 
         for i in range(validation_n):
             score, avg_cost, total_cost = await evaluator.graph_evaluate(
-                optimizer.dataset, optimizer.graph,
+                optimizer.dataset,
+                optimizer.graph,
                 {"dataset": optimizer.dataset, "llm_config": optimizer.execute_llm_config},
-                directory, is_test=False
+                directory,
+                is_test=False,
             )
 
             cur_round = optimizer.round + 1 if initial is False else optimizer.round
@@ -51,7 +55,9 @@ class EvaluationUtils:
     async def evaluate_graph_test(self, optimizer, directory, is_test=True):
         evaluator = Evaluator(eval_path=directory)
         return await evaluator.graph_evaluate(
-            optimizer.dataset, optimizer.graph,
+            optimizer.dataset,
+            optimizer.graph,
             {"dataset": optimizer.dataset, "llm_config": optimizer.execute_llm_config},
-            directory, is_test=is_test
+            directory,
+            is_test=is_test,
         )

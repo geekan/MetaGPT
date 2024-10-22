@@ -10,13 +10,13 @@ from typing import List, Literal
 from pydantic import BaseModel, Field
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.logs import logger
-from metagpt.ext.aflow.scripts.optimizer_utils.graph_utils import GraphUtils
-from metagpt.ext.aflow.scripts.optimizer_utils.data_utils import DataUtils
-from metagpt.ext.aflow.scripts.optimizer_utils.experience_utils import ExperienceUtils
-from metagpt.ext.aflow.scripts.optimizer_utils.evaluation_utils import EvaluationUtils
 from metagpt.ext.aflow.scripts.optimizer_utils.convergence_utils import ConvergenceUtils
+from metagpt.ext.aflow.scripts.optimizer_utils.data_utils import DataUtils
+from metagpt.ext.aflow.scripts.optimizer_utils.evaluation_utils import EvaluationUtils
+from metagpt.ext.aflow.scripts.optimizer_utils.experience_utils import ExperienceUtils
+from metagpt.ext.aflow.scripts.optimizer_utils.graph_utils import GraphUtils
+from metagpt.logs import logger
+from metagpt.provider.llm_provider_registry import create_llm_instance
 
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 QuestionType = Literal["math", "code", "qa"]
@@ -31,17 +31,17 @@ class GraphOptimize(BaseModel):
 
 class Optimizer:
     def __init__(
-            self,
-            dataset: DatasetType,
-            question_type: QuestionType,
-            opt_llm_config,
-            exec_llm_config,
-            operators: List,
-            sample: int,
-            check_convergence: bool = False,
-            optimized_path: str = None,
-            initial_round: int = 1,
-            max_rounds: int = 20
+        self,
+        dataset: DatasetType,
+        question_type: QuestionType,
+        opt_llm_config,
+        exec_llm_config,
+        operators: List,
+        sample: int,
+        check_convergence: bool = False,
+        optimized_path: str = None,
+        initial_round: int = 1,
+        max_rounds: int = 20,
     ) -> None:
         self.optimize_llm_config = opt_llm_config
         self.optimize_llm = create_llm_instance(self.optimize_llm_config)
@@ -68,8 +68,8 @@ class Optimizer:
 
     def optimize(self, mode: OptimizerType = "Graph"):
         if mode == "Test":
-            test_n = 3               # validation datasets's execution number
-            for i in range(test_n): 
+            test_n = 3  # validation datasets's execution number
+            for i in range(test_n):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 score = loop.run_until_complete(self.test())
@@ -99,15 +99,16 @@ class Optimizer:
                 if retry_count < max_retries:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-            
+
             self.round += 1
             logger.info(f"Score for round {self.round}: {score}")
 
             converged, convergence_round, final_round = self.convergence_utils.check_convergence(top_k=3)
 
             if converged and self.check_convergence:
-
-                logger.info(f"Convergence detected, occurred in round {convergence_round}, final round is {final_round}")
+                logger.info(
+                    f"Convergence detected, occurred in round {convergence_round}, final round is {final_round}"
+                )
                 # Print average scores and standard deviations for each round
                 self.convergence_utils.print_results()
                 break
@@ -115,7 +116,7 @@ class Optimizer:
             time.sleep(5)
 
     async def _optimize_graph(self):
-        validation_n = 2                                   # validation datasets's execution number
+        validation_n = 2  # validation datasets's execution number
         graph_path = f"{self.root_path}/workflows"
         data = self.data_utils.load_results(graph_path)
 
@@ -152,8 +153,9 @@ class Optimizer:
             response = await self.graph_utils.get_graph_optimize_response(graph_optimize_node)
 
             # Check if the modification meets the conditions
-            check = self.experience_utils.check_modification(processed_experience, response["modification"],
-                                                             sample["round"])
+            check = self.experience_utils.check_modification(
+                processed_experience, response["modification"], sample["round"]
+            )
 
             # If `check` is True, break the loop; otherwise, regenerate the graph
             if check:
@@ -175,7 +177,7 @@ class Optimizer:
         return avg_score
 
     async def test(self):
-        rounds = [5]    # You can choose the rounds you want to test here.
+        rounds = [5]  # You can choose the rounds you want to test here.
         data = []
 
         graph_path = f"{self.root_path}/workflows_test"
@@ -187,9 +189,7 @@ class Optimizer:
             directory = self.graph_utils.create_round_directory(graph_path, round)
             self.graph = self.graph_utils.load_graph(round, graph_path)
 
-            score, avg_cost, total_cost = await self.evaluation_utils.evaluate_graph_test(
-                self, directory, is_test=True
-            )
+            score, avg_cost, total_cost = await self.evaluation_utils.evaluate_graph_test(self, directory, is_test=True)
 
             new_data = self.data_utils.create_result_data(round, score, avg_cost, total_cost)
             data.append(new_data)

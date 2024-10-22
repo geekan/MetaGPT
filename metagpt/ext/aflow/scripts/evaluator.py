@@ -3,19 +3,19 @@
 # @Author  : all
 # @Desc    : Evaluation for different datasets
 
-from typing import Literal, Tuple, Optional, Dict
-import asyncio
+from typing import Dict, Literal, Tuple
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
-from metagpt.ext.aflow.benchmark.gsm8k import GSM8KBenchmark
-from metagpt.ext.aflow.benchmark.math import MATHBenchmark
-from metagpt.ext.aflow.benchmark.humaneval import HumanEvalBenchmark
-from metagpt.ext.aflow.benchmark.hotpotqa import HotpotQABenchmark
-from metagpt.ext.aflow.benchmark.mbpp import MBPPBenchmark
 from metagpt.ext.aflow.benchmark.drop import DROPBenchmark
+from metagpt.ext.aflow.benchmark.gsm8k import GSM8KBenchmark
+from metagpt.ext.aflow.benchmark.hotpotqa import HotpotQABenchmark
+from metagpt.ext.aflow.benchmark.humaneval import HumanEvalBenchmark
+from metagpt.ext.aflow.benchmark.math import MATHBenchmark
+from metagpt.ext.aflow.benchmark.mbpp import MBPPBenchmark
 
 # If you want to customize tasks, add task types here and provide evaluation functions, just like the ones given above
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
+
 
 class Evaluator:
     """
@@ -33,7 +33,9 @@ class Evaluator:
             "DROP": DROPBenchmark,
         }
 
-    async def graph_evaluate(self, dataset: DatasetType, graph, params: dict, path: str, is_test: bool = False) -> Tuple[float, float, float]:
+    async def graph_evaluate(
+        self, dataset: DatasetType, graph, params: dict, path: str, is_test: bool = False
+    ) -> Tuple[float, float, float]:
         if dataset not in self.dataset_configs:
             raise ValueError(f"Unsupported dataset: {dataset}")
 
@@ -44,7 +46,7 @@ class Evaluator:
         # Use params to configure the graph and benchmark
         configured_graph = await self._configure_graph(dataset, graph, params)
 
-        va_list = [1,2,3]  # Use va_list from params, or use default value if not provided
+        va_list = [1, 2, 3]  # Use va_list from params, or use default value if not provided
         return await benchmark.run_evaluation(configured_graph, va_list)
 
     async def _configure_graph(self, dataset, graph, params: dict):

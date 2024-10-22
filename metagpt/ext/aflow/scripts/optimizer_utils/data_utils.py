@@ -1,9 +1,11 @@
+import datetime
 import json
 import os
 import random
-import datetime
+
 import numpy as np
 import pandas as pd
+
 from metagpt.logs import logger
 
 
@@ -15,7 +17,7 @@ class DataUtils:
     def load_results(self, path: str) -> list:
         result_path = os.path.join(path, "results.json")
         if os.path.exists(result_path):
-            with open(result_path, 'r') as json_file:
+            with open(result_path, "r") as json_file:
                 try:
                     return json.load(json_file)
                 except json.JSONDecodeError:
@@ -94,7 +96,7 @@ class DataUtils:
         if not os.path.exists(log_dir):
             return ""  # 如果文件不存在，返回空字符串
         logger.info(log_dir)
-        with open(log_dir, 'r', encoding='utf-8') as f:
+        with open(log_dir, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         if isinstance(data, dict):
@@ -119,16 +121,10 @@ class DataUtils:
 
     def create_result_data(self, round: int, score: float, avg_cost: float, total_cost: float) -> dict:
         now = datetime.datetime.now()
-        return {
-            "round": round,
-            "score": score,
-            "avg_cost": avg_cost,
-            "total_cost": total_cost,
-            "time": now
-        }
+        return {"round": round, "score": score, "avg_cost": avg_cost, "total_cost": total_cost, "time": now}
 
     def save_results(self, json_file_path: str, data: list):
-        with open(json_file_path, 'w') as json_file:
+        with open(json_file_path, "w") as json_file:
             json.dump(data, json_file, default=str, indent=4)
 
     def _load_scores(self, path=None, mode="Graph"):
@@ -140,17 +136,14 @@ class DataUtils:
         result_file = os.path.join(rounds_dir, "results.json")
         self.top_scores = []
 
-        with open(result_file, 'r', encoding='utf-8') as file:
+        with open(result_file, "r", encoding="utf-8") as file:
             data = json.load(file)
         df = pd.DataFrame(data)
 
-        scores_per_round = df.groupby('round')['score'].mean().to_dict()
+        scores_per_round = df.groupby("round")["score"].mean().to_dict()
 
         for round_number, average_score in scores_per_round.items():
-            self.top_scores.append({
-                "round": round_number,
-                "score": average_score
-            })
+            self.top_scores.append({"round": round_number, "score": average_score})
 
         self.top_scores.sort(key=lambda x: x["score"], reverse=True)
 

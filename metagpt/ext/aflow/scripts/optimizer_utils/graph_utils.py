@@ -1,17 +1,17 @@
+import json
 import os
 import re
-import json
-from typing import List
-import traceback
 import time
-from metagpt.logs import logger
+import traceback
+from typing import List
 
 from metagpt.ext.aflow.scripts.prompts.optimize_prompt import (
     WORKFLOW_CUSTOM_USE,
     WORKFLOW_INPUT,
     WORKFLOW_OPTIMIZE_PROMPT,
-    WORKFLOW_TEMPLATE
+    WORKFLOW_TEMPLATE,
 )
+from metagpt.logs import logger
 
 
 class GraphUtils:
@@ -72,11 +72,24 @@ class GraphUtils:
             interface = matched_data["interface"]
             return f"{id}. {operator_name}: {desc}, with interface {interface})."
 
-    def create_graph_optimize_prompt(self, experience: str, score: float, graph: str, prompt: str,
-                                     operator_description: str, type: str, log_data: str) -> str:
+    def create_graph_optimize_prompt(
+        self,
+        experience: str,
+        score: float,
+        graph: str,
+        prompt: str,
+        operator_description: str,
+        type: str,
+        log_data: str,
+    ) -> str:
         graph_input = WORKFLOW_INPUT.format(
-            experience=experience, score=score, graph=graph, prompt=prompt, operator_description=operator_description,
-            type=type, log=log_data
+            experience=experience,
+            score=score,
+            graph=graph,
+            prompt=prompt,
+            operator_description=operator_description,
+            type=type,
+            log=log_data,
         )
         graph_system = WORKFLOW_OPTIMIZE_PROMPT.format(type=type)
         return graph_input + WORKFLOW_CUSTOM_USE + graph_system

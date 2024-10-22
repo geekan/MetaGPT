@@ -3,21 +3,12 @@
 # @Author  : all
 # @Desc    : test on gsm8k
 import re
-import json
-import asyncio
-import aiofiles
-import pandas as pd
-from typing import Optional, List, Tuple, Callable, Any
+from typing import Callable, List, Optional, Tuple
 
-from pandas import Series
-from tqdm.asyncio import tqdm_asyncio
-import os
-import time
-from datetime import datetime
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
-
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+
 
 class GSM8KBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -38,13 +29,8 @@ class GSM8KBenchmark(BaseBenchmark):
         if prediction is None:
             return 0.0, prediction
         return 1.0 if abs(expected_output - prediction) <= 1e-6 else 0.0, prediction
-    
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(1),
-        retry=retry_if_exception_type(Exception),
-        reraise=True
-    )
+
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), retry=retry_if_exception_type(Exception), reraise=True)
     async def _generate_output(self, graph, input_text):
         return await graph(input_text)
 

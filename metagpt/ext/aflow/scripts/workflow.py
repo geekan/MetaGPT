@@ -5,11 +5,11 @@
 
 from typing import Literal
 
-from metagpt.ext.aflow.scripts.operator import Generate
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
 
 DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
+
 
 class Workflow:
     def __init__(
@@ -28,5 +28,3 @@ class Workflow:
         Implementation of the workflow
         """
         raise NotImplementedError("This method should be implemented by the subclass")
-
-    

@@ -1,15 +1,15 @@
 import re
+from math import isclose
+from typing import Any, Callable, List, Tuple
+
 import regex
 from sympy import N, simplify
 from sympy.parsing.latex import parse_latex
 from sympy.parsing.sympy_parser import parse_expr
-from math import isclose
-import multiprocessing
-from typing import Any, Callable, Tuple, List
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
-
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+
 
 class MATHBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -21,7 +21,7 @@ class MATHBenchmark(BaseBenchmark):
         if boxed_matches:
             return boxed_matches[-1].strip()
 
-        sentence_end_pattern = r'(?<!\d)[.!?]\s+'
+        sentence_end_pattern = r"(?<!\d)[.!?]\s+"
         sentences = re.split(sentence_end_pattern, text)
         sentences = [s.strip() for s in sentences if s.strip()]
         return sentences[-1] if sentences else ""
@@ -97,16 +97,9 @@ class MATHBenchmark(BaseBenchmark):
             pass
         return False
 
-
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(1),
-        retry=retry_if_exception_type(Exception),
-        reraise=True
-    )
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), retry=retry_if_exception_type(Exception), reraise=True)
     async def _generate_output(self, graph, input_text):
         return await graph(input_text)
-
 
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, str, int, float]:
         input_text = problem["problem"]
@@ -124,7 +117,6 @@ class MATHBenchmark(BaseBenchmark):
         except Exception as e:
             print(f"Maximum retries reached. Skipping this sample. Error: {e}")
             return input_text, str(e), expected_output, 0.0, 0.0
-
 
     def get_result_columns(self) -> List[str]:
         return ["question", "prediction", "expected_output", "score", "cost"]

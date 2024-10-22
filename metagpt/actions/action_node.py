@@ -39,10 +39,13 @@ class ReviseMode(Enum):
 
 
 TAG = "CONTENT"
+
+
 class FillMode(Enum):
     CODE_FILL = "code_fill"
     XML_FILL = "xml_fill"
     SINGLE_FILL = "single_fill"
+
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
@@ -558,7 +561,7 @@ class ActionNode:
             if match:
                 raw_value = match.group(1).strip()
                 field_type = field_types.get(field_name)
-                
+
                 if field_type == str:
                     extracted_data[field_name] = raw_value
                 elif field_type == int:
@@ -567,7 +570,7 @@ class ActionNode:
                     except ValueError:
                         extracted_data[field_name] = 0  # 或者其他默认值
                 elif field_type == bool:
-                    extracted_data[field_name] = raw_value.lower() in ('true', 'yes', '1', 'on', 'True')
+                    extracted_data[field_name] = raw_value.lower() in ("true", "yes", "1", "on", "True")
                 elif field_type == list:
                     try:
                         extracted_data[field_name] = eval(raw_value)
@@ -621,7 +624,6 @@ class ActionNode:
         self.set_context(context)
         if self.schema:
             schema = self.schema
-
 
         if mode == FillMode.CODE_FILL.value:
             result = await self.code_fill(context, function_name, timeout)

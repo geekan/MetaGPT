@@ -8,6 +8,7 @@ import json
 import re
 from typing import Any, List, Tuple
 
+
 def extract_task_id(task_id: str) -> int:
     """Extract the numeric part of the task_id."""
     match = re.search(r"/(\d+)", task_id)
@@ -52,23 +53,21 @@ def parse_python_literal(s):
         return s
 
 
-def extract_test_cases_from_jsonl(
-    entry_point: str, dataset: str = "HumanEval"
-):
+def extract_test_cases_from_jsonl(entry_point: str, dataset: str = "HumanEval"):
     if dataset == "HumanEval":
         file_path = "metagpt/ext/aflow/data/humaneval_public_test.jsonl"
-    # Retain the original hardcoded test cases
+        # Retain the original hardcoded test cases
         hardcoded_cases = {
-        "find_zero": "",
-        "decode_cyclic": "",
-        "decode_shift": "",
-        "by_length":"",
-        "add":"",
-        "triangle_area":"",
-        "correct_bracketing":"",
-        "solve":"",
-        "sum_squares":"",
-        "starts_one_ends":""
+            "find_zero": "",
+            "decode_cyclic": "",
+            "decode_shift": "",
+            "by_length": "",
+            "add": "",
+            "triangle_area": "",
+            "correct_bracketing": "",
+            "solve": "",
+            "sum_squares": "",
+            "starts_one_ends": "",
         }
     elif dataset == "MBPP":
         file_path = "metagpt/ext/aflow/data/mbpp_public_test.jsonl"
@@ -80,7 +79,7 @@ def extract_test_cases_from_jsonl(
             "swap_List": "",
             "square_Sum": "",
             "sort_sublists": "",
-            "unique_sublists": ""
+            "unique_sublists": "",
         }
     # Check if there are hardcoded test cases
     if entry_point in hardcoded_cases:
@@ -93,7 +92,7 @@ def extract_test_cases_from_jsonl(
             if data.get("entry_point") == entry_point:
                 return data.get("test")
 
-    return None  
+    return None
 
 
 def extract_test_cases(docstring: str) -> List[Tuple[str, List[Any], Any]]:

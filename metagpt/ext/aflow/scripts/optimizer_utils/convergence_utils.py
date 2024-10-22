@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Date    : 9/23/2024 10:00 AM
 # @Author  : Issac
-# @Desc    : 
+# @Desc    :
 
-import numpy as np
 import json
 import os
+
+import numpy as np
+
 from metagpt.logs import logger
+
 
 class ConvergenceUtils:
     def __init__(self, root_path):
@@ -27,11 +30,11 @@ class ConvergenceUtils:
 
         # If file doesn't exist, create a new one with an empty list
         if not os.path.exists(result_file):
-            with open(result_file, 'w') as file:
+            with open(result_file, "w") as file:
                 json.dump([], file)
 
         # Read file and return data
-        with open(result_file, 'r') as file:
+        with open(result_file, "r") as file:
             return json.load(file)
 
     def process_rounds(self):
@@ -41,8 +44,8 @@ class ConvergenceUtils:
         self.data = self.load_data(root_path=self.root_path)
         rounds = {}
         for entry in self.data:
-            round_number = entry['round']
-            score = entry['score']
+            round_number = entry["round"]
+            score = entry["score"]
             if round_number not in rounds:
                 rounds[round_number] = []
             rounds[round_number].append(score)
@@ -77,19 +80,23 @@ class ConvergenceUtils:
         sigma_Y_previous = None  # Standard error of Y value from previous round
         for i in range(len(self.avg_scores)):
             # Dynamically select top_k from current round and all previous rounds
-            top_k_indices = np.argsort(self.avg_scores[:i + 1])[::-1][:top_k]  # Select top k indices by descending average score
+            top_k_indices = np.argsort(self.avg_scores[: i + 1])[::-1][
+                :top_k
+            ]  # Select top k indices by descending average score
             top_k_scores = [self.avg_scores[j] for j in top_k_indices]  # Get list of top k scores
-            top_k_stds = [self.stds[j] for j in top_k_indices]  # Get list of standard deviations corresponding to top k scores
+            top_k_stds = [
+                self.stds[j] for j in top_k_indices
+            ]  # Get list of standard deviations corresponding to top k scores
             # Calculate mean of top k scores for current round, i.e., Y_current
             Y_current = np.mean(top_k_scores)
             # Calculate standard error of Y_current (sigma_Y_current), representing score dispersion
-            sigma_Y_current = np.sqrt(np.sum([s ** 2 for s in top_k_stds]) / (top_k ** 2))
+            sigma_Y_current = np.sqrt(np.sum([s**2 for s in top_k_stds]) / (top_k**2))
             # If not the first round, calculate change in Y (Delta_Y) and corresponding standard error
             if previous_Y is not None:
                 # Calculate Y difference between current round and previous round
                 Delta_Y = Y_current - previous_Y
                 # Calculate standard error of Y difference (sigma_Delta_Y)
-                sigma_Delta_Y = np.sqrt(sigma_Y_current ** 2 + sigma_Y_previous ** 2)
+                sigma_Delta_Y = np.sqrt(sigma_Y_current**2 + sigma_Y_previous**2)
                 # Check if Y change is within acceptable confidence interval, i.e., convergence condition
                 if abs(Delta_Y) <= z * sigma_Delta_Y:
                     convergence_count += 1
@@ -105,7 +112,6 @@ class ConvergenceUtils:
         # If convergence condition not met, return not converged
         return False, None, None
 
-
     def print_results(self):
         """
         Print average score and standard deviation for all rounds.
@@ -114,8 +120,8 @@ class ConvergenceUtils:
         for i, (avg_score, std) in enumerate(zip(self.avg_scores, self.stds), 1):
             logger.info(f"Round {i}: Average Score = {avg_score:.4f}, Standard Deviation = {std:.4f}")
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # Use this class and specify top_k
     checker = ConvergenceUtils("path")  # For example, set top_k=5
     converged, convergence_round, final_round = checker.check_convergence()

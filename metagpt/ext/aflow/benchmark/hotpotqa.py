@@ -1,15 +1,12 @@
-import json
-import asyncio
-import aiofiles
-import pandas as pd
-from typing import List, Tuple, Callable, Any
-import string
 import re
-import os
+import string
 from collections import Counter
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from typing import Callable, List, Tuple
+
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+
 
 class HotpotQABenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -43,12 +40,7 @@ class HotpotQABenchmark(BaseBenchmark):
         f1 = (2 * precision * recall) / (precision + recall)
         return f1, prediction
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(1),
-        retry=retry_if_exception_type(Exception),
-        reraise=True
-    )
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), retry=retry_if_exception_type(Exception), reraise=True)
     async def _generate_output(self, graph, input_text):
         return await graph(input_text)
 
@@ -63,7 +55,9 @@ class HotpotQABenchmark(BaseBenchmark):
             output, cost = await self._generate_output(graph, inputs)
             score, extracted_output = self.calculate_score(expected_output, output)
 
-            if score < 0.3:  # We set the threshold for collecting incorrect questions to 0.3, as F1 Score cannot be simply judged using 0-1
+            if (
+                score < 0.3
+            ):  # We set the threshold for collecting incorrect questions to 0.3, as F1 Score cannot be simply judged using 0-1
                 self.log_mismatch(input_text, expected_output, output, extracted_output)
 
             return input_text, context_str, output, expected_output, score, cost

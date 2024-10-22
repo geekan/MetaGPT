@@ -3,11 +3,10 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
-from metagpt.ext.aflow.scripts.optimizer import Optimizer
-from metagpt.ext.aflow.scripts.optimizer import DatasetType, QuestionType, OptimizerType
-from metagpt.ext.aflow.data.download_data import download
+
 from metagpt.configs.models_config import ModelsConfig
-from typing import Literal
+from metagpt.ext.aflow.data.download_data import download
+from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType
 
 # DatasetType, QuestionType, and OptimizerType definitions
 # DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
@@ -32,26 +31,26 @@ claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
 
 # Config operators.
 operators = [
-    "Custom",                       # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
+    "Custom",  # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
     # "AnswerGenerate"              # It's for qa
     # "CustomCodeGenerate",         # It's for code
-    "ScEnsemble",                 # It's for code, math and qa
+    "ScEnsemble",  # It's for code, math and qa
     # "Test",                       # It's for code
-    "Programmer",                 # It's for math 
+    "Programmer",  # It's for math
 ]
 
 # Create an optimizer instance
 optimizer = Optimizer(
-    dataset=dataset,                        # Config dataset   
-    question_type=question_type,            # Config Question Type
-    opt_llm_config=claude_llm_config,       # Config Optimizer LLM
-    exec_llm_config=mini_llm_config,        # Config Execution LLM
-    check_convergence=check_convergence,    # Whether Early Stop 
-    operators=operators,                    # Config Operators you want to use
-    optimized_path=optimized_path,          # Config Optimized workflow's file path
-    sample=sample,                          # Only Top(sample) rounds will be selected. 
-    initial_round=initial_round,            # Optimize from initial round
-    max_rounds=max_rounds                   # The max iteration of AFLOW.
+    dataset=dataset,  # Config dataset
+    question_type=question_type,  # Config Question Type
+    opt_llm_config=claude_llm_config,  # Config Optimizer LLM
+    exec_llm_config=mini_llm_config,  # Config Execution LLM
+    check_convergence=check_convergence,  # Whether Early Stop
+    operators=operators,  # Config Operators you want to use
+    optimized_path=optimized_path,  # Config Optimized workflow's file path
+    sample=sample,  # Only Top(sample) rounds will be selected.
+    initial_round=initial_round,  # Optimize from initial round
+    max_rounds=max_rounds,  # The max iteration of AFLOW.
 )
 
 if __name__ == "__main__":

@@ -2,41 +2,42 @@
 # @Date    : 6/27/2024 17:36 PM
 # @Author  : didi
 # @Desc    : operator demo of aflow
+import asyncio
+import concurrent.futures
 import random
 import sys
-import asyncio
 import traceback
 from collections import Counter
 from typing import Dict, List, Tuple
 
-import concurrent.futures
 from tenacity import retry, stop_after_attempt, wait_fixed
-from metagpt.ext.aflow.scripts.utils import extract_test_cases_from_jsonl
 
+from metagpt.actions.action_node import ActionNode
 from metagpt.ext.aflow.scripts.operator_an import (
+    AnswerGenerateOp,
+    CodeGenerateOp,
     FormatOp,
     GenerateOp,
-    CodeGenerateOp,
-    AnswerGenerateOp,
-    ScEnsembleOp,
-    ReflectionTestOp,
     MdEnsembleOp,
+    ReflectionTestOp,
     ReviewOp,
     ReviseOp,
-
+    ScEnsembleOp,
 )
 from metagpt.ext.aflow.scripts.prompts.prompt import (
-    FORMAT_PROMPT,
     ANSWER_GENERATION_PROMPT,
-    SC_ENSEMBLE_PROMPT,
+    FORMAT_PROMPT,
+    MD_ENSEMBLE_PROMPT,
     PYTHON_CODE_VERIFIER_PROMPT,
     REFLECTION_ON_PUBLIC_TEST_PROMPT,
-    MD_ENSEMBLE_PROMPT,
     REVIEW_PROMPT,
     REVISE_PROMPT,
+    SC_ENSEMBLE_PROMPT,
 )
-from metagpt.ext.aflow.scripts.utils import test_case_2_test_function
-from metagpt.actions.action_node import ActionNode
+from metagpt.ext.aflow.scripts.utils import (
+    extract_test_cases_from_jsonl,
+    test_case_2_test_function,
+)
 from metagpt.llm import LLM
 from metagpt.logs import logger
 
@@ -66,7 +67,8 @@ class Custom(Operator):
         prompt = instruction + input
         response = await self._fill_node(GenerateOp, prompt, mode="single_fill")
         return response
-    
+
+
 class AnswerGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "AnswerGenerate"):
         super().__init__(llm, name)
@@ -75,6 +77,7 @@ class AnswerGenerate(Operator):
         prompt = ANSWER_GENERATION_PROMPT.format(input=input)
         response = await self._fill_node(AnswerGenerateOp, prompt, mode="xml_fill")
         return response
+
 
 class CustomCodeGenerate(Operator):
     def __init__(self, llm: LLM, name: str = "CustomCodeGenerate"):
@@ -112,15 +115,27 @@ class ScEnsemble(Operator):
 
         return {"response": solutions[answer_mapping[answer]]}
 
+
 def run_code(code):
     try:
         # Create a new global namespace
         global_namespace = {}
 
         disallowed_imports = [
-            "os", "sys", "subprocess", "multiprocessing",
-            "matplotlib", "seaborn", "plotly", "bokeh", "ggplot",
-            "pylab", "tkinter", "PyQt5", "wx", "pyglet"
+            "os",
+            "sys",
+            "subprocess",
+            "multiprocessing",
+            "matplotlib",
+            "seaborn",
+            "plotly",
+            "bokeh",
+            "ggplot",
+            "pylab",
+            "tkinter",
+            "PyQt5",
+            "wx",
+            "pyglet",
         ]
 
         # Check for prohibited imports
@@ -132,8 +147,8 @@ def run_code(code):
         # Use exec to execute the code
         exec(code, global_namespace)
         # Assume the code defines a function named 'solve'
-        if 'solve' in global_namespace and callable(global_namespace['solve']):
-            result = global_namespace['solve']()
+        if "solve" in global_namespace and callable(global_namespace["solve"]):
+            result = global_namespace["solve"]()
             return "Success", str(result)
         else:
             return "Error", "Function 'solve' not found"
@@ -141,7 +156,7 @@ def run_code(code):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
         return "Error", f"Execution error: {str(e)}\n{''.join(tb_str)}"
-    
+
 
 class Programmer(Operator):
     def __init__(self, llm: LLM, name: str = "Programmer"):
@@ -170,11 +185,7 @@ class Programmer(Operator):
         """
         Asynchronous method to generate code.
         """
-        prompt = PYTHON_CODE_VERIFIER_PROMPT.format(
-            problem=problem,
-            analysis=analysis,
-            feedback=feedback
-        )
+        prompt = PYTHON_CODE_VERIFIER_PROMPT.format(problem=problem, analysis=analysis, feedback=feedback)
         response = await self._fill_node(CodeGenerateOp, prompt, mode, function_name="solve")
         return response
 
@@ -208,9 +219,8 @@ class Test(Operator):
         super().__init__(llm, name)
 
     def exec_code(self, solution, entry_point):
-
         test_cases = extract_test_cases_from_jsonl(entry_point)
-                
+
         fail_cases = []
         for test_case in test_cases:
             test_code = test_case_2_test_function(solution, test_case, entry_point)
@@ -239,9 +249,7 @@ class Test(Operator):
         else:
             return "no error"
 
-    async def __call__(
-        self, problem, solution, entry_point, test_loop: int = 3
-    ):
+    async def __call__(self, problem, solution, entry_point, test_loop: int = 3):
         """
         "Test": {
         "description": "Test the solution with test cases, if the solution is correct, return 'no error', if the solution is incorrect, return reflect on the soluion and the error information",
@@ -271,13 +279,13 @@ class Test(Operator):
                 )
                 response = await self._fill_node(ReflectionTestOp, prompt, mode="code_fill")
                 solution = response["reflection_and_solution"]
-        
+
         result = self.exec_code(solution, entry_point)
         if result == "no error":
             return {"result": True, "solution": solution}
         else:
             return {"result": False, "solution": solution}
-    
+
 
 class Format(Operator):
     def __init__(self, llm: LLM, name: str = "Format"):
@@ -286,7 +294,7 @@ class Format(Operator):
     async def __call__(self, problem, solution, mode: str = None):
         prompt = FORMAT_PROMPT.format(problem_description=problem, solution=solution)
         response = await self._fill_node(FormatOp, prompt, mode)
-        return response 
+        return response
 
 
 class Review(Operator):
@@ -298,6 +306,7 @@ class Review(Operator):
         response = await self._fill_node(ReviewOp, prompt, mode="xml_fill")
         return response
 
+
 class Revise(Operator):
     def __init__(self, llm: LLM, name: str = "Revise"):
         super().__init__(llm, name)
@@ -305,7 +314,7 @@ class Revise(Operator):
     async def __call__(self, problem, solution, feedback, mode: str = None):
         prompt = REVISE_PROMPT.format(problem=problem, solution=solution, feedback=feedback)
         response = await self._fill_node(ReviseOp, prompt, mode="xml_fill")
-        return response  
+        return response
 
 
 class MdEnsemble(Operator):
@@ -348,4 +357,4 @@ class MdEnsemble(Operator):
 
         most_frequent_index = Counter(all_responses).most_common(1)[0][0]
         final_answer = solutions[most_frequent_index]
-        return {"solution": final_answer}  
+        return {"solution": final_answer}

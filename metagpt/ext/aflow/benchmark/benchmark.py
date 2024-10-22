@@ -1,13 +1,14 @@
 import asyncio
 import json
 import os
-from typing import List, Tuple, Callable, Any
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Any, Callable, List, Tuple
 
 import aiofiles
 import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
+
 
 class BaseBenchmark(ABC):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -17,7 +18,7 @@ class BaseBenchmark(ABC):
 
     async def load_data(self, specific_indices: List[int] = None) -> List[dict]:
         data = []
-        async with aiofiles.open(self.file_path, mode="r", encoding='utf-8') as file:
+        async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
             async for line in file:
                 data.append(json.loads(line))
 
@@ -47,13 +48,13 @@ class BaseBenchmark(ABC):
             "question": problem,
             "right_answer": expected_output,
             "model_output": prediction,
-            "extracted_output": extracted_output
+            "extracted_output": extracted_output,
         }
 
-        log_file = os.path.join(self.log_path, 'log.json')
+        log_file = os.path.join(self.log_path, "log.json")
 
         if os.path.exists(log_file):
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.JSONDecodeError:
@@ -63,7 +64,7 @@ class BaseBenchmark(ABC):
 
         data.append(log_data)
 
-        with open(log_file, 'w', encoding='utf-8') as f:
+        with open(log_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
     @abstractmethod
@@ -97,5 +98,3 @@ class BaseBenchmark(ABC):
         print(f"Average score on {self.name} dataset: {average_score:.5f}")
         print(f"Total Cost: {total_cost:.5f}")
         return average_score, average_cost, total_cost
-
-

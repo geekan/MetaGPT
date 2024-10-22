@@ -1,7 +1,9 @@
 import json
 import os
 from collections import defaultdict
+
 from metagpt.logs import logger
+
 
 class ExperienceUtils:
     def __init__(self, root_path: str):
@@ -32,12 +34,12 @@ class ExperienceUtils:
                             if data["succeed"]:
                                 experience_data[father_node]["success"][round_number] = {
                                     "modification": data["modification"],
-                                    "score": data["after"]
+                                    "score": data["after"],
                                 }
                             else:
                                 experience_data[father_node]["failure"][round_number] = {
                                     "modification": data["modification"],
-                                    "score": data["after"]
+                                    "score": data["after"],
                                 }
                 except Exception as e:
                     logger.info(f"Error processing {round_dir}: {str(e)}")
@@ -69,10 +71,10 @@ class ExperienceUtils:
         experience_data = processed_experience.get(sample_round)
         if experience_data:
             for key, value in experience_data["failure"].items():
-                if value['modification'] == modification:
+                if value["modification"] == modification:
                     return False
             for key, value in experience_data["success"].items():
-                if value['modification'] == modification:
+                if value["modification"] == modification:
                     return False
             return True
         else:
