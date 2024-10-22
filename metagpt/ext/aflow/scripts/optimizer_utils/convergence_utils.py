@@ -17,26 +17,26 @@ class ConvergenceUtils:
 
     def load_data(self, root_path):
         """
-        读取 JSON 文件，如果不存在则创建一个新文件，然后返回数据。
+        Read JSON file, create a new file if it doesn't exist, then return the data.
         """
         rounds_dir = os.path.join(root_path, "workflows")
         result_file = os.path.join(rounds_dir, "results.json")
 
-        # 确保目录存在
+        # Ensure directory exists
         os.makedirs(rounds_dir, exist_ok=True)
 
-        # 如果文件不存在，创建一个包含空列表的新文件
+        # If file doesn't exist, create a new one with an empty list
         if not os.path.exists(result_file):
             with open(result_file, 'w') as file:
                 json.dump([], file)
 
-        # 读取文件并返回数据
+        # Read file and return data
         with open(result_file, 'r') as file:
             return json.load(file)
 
     def process_rounds(self):
         """
-        以 round 为单位组织数据，返回按轮次的分数字典。
+        Organize data by round, return a dictionary of scores by round.
         """
         self.data = self.load_data(root_path=self.root_path)
         rounds = {}
@@ -50,7 +50,7 @@ class ConvergenceUtils:
 
     def calculate_avg_and_std(self):
         """
-        计算每轮的平均分和标准差，返回两个列表：平均分和标准差。
+        Calculate average score and standard deviation for each round, return two lists: average scores and standard deviations.
         """
         self.rounds = self.process_rounds()
 
@@ -64,61 +64,66 @@ class ConvergenceUtils:
 
     def check_convergence(self, top_k=3, z=0, consecutive_rounds=5):
         """
-        检查收敛的函数。z 为置信水平对应的 z 分数 。
-        consecutive_rounds 为连续轮次内满足停止条件的次数。
+        Check for convergence. z is the z-score corresponding to the confidence level.
+        consecutive_rounds is the number of consecutive rounds that must meet the stop condition.
         """
+        # Calculate average score and standard deviation for each round
         self.avg_scores, self.stds = self.calculate_avg_and_std()
-
+        # If total rounds are not enough to calculate top_k+1 rounds, return not converged
         if len(self.avg_scores) < top_k + 1:
             return False, None, None
-
-        convergence_count = 0
-        previous_Y = None
-        sigma_Y_previous = None
-
+        convergence_count = 0  # Convergence counter
+        previous_Y = None  # Y value of the previous round (average of top_k scores)
+        sigma_Y_previous = None  # Standard error of Y value from previous round
         for i in range(len(self.avg_scores)):
-            # 动态选择当前轮次及之前所有轮次的 top_k
-            top_k_indices = np.argsort(self.avg_scores[:i + 1])[::-1][:top_k]
-            top_k_scores = [self.avg_scores[j] for j in top_k_indices]
-            top_k_stds = [self.stds[j] for j in top_k_indices]
-
+            # Dynamically select top_k from current round and all previous rounds
+            top_k_indices = np.argsort(self.avg_scores[:i + 1])[::-1][:top_k]  # Select top k indices by descending average score
+            top_k_scores = [self.avg_scores[j] for j in top_k_indices]  # Get list of top k scores
+            top_k_stds = [self.stds[j] for j in top_k_indices]  # Get list of standard deviations corresponding to top k scores
+            # Calculate mean of top k scores for current round, i.e., Y_current
             Y_current = np.mean(top_k_scores)
+            # Calculate standard error of Y_current (sigma_Y_current), representing score dispersion
             sigma_Y_current = np.sqrt(np.sum([s ** 2 for s in top_k_stds]) / (top_k ** 2))
-
+            # If not the first round, calculate change in Y (Delta_Y) and corresponding standard error
             if previous_Y is not None:
+                # Calculate Y difference between current round and previous round
                 Delta_Y = Y_current - previous_Y
+                # Calculate standard error of Y difference (sigma_Delta_Y)
                 sigma_Delta_Y = np.sqrt(sigma_Y_current ** 2 + sigma_Y_previous ** 2)
-
+                # Check if Y change is within acceptable confidence interval, i.e., convergence condition
                 if abs(Delta_Y) <= z * sigma_Delta_Y:
                     convergence_count += 1
+                    # If consecutive converged rounds reach set value, return convergence information
                     if convergence_count >= consecutive_rounds:
                         return True, i - consecutive_rounds + 1, i
                 else:
+                    # If change is large, reset convergence counter
                     convergence_count = 0
-
+            # Update Y value and standard error for previous round
             previous_Y = Y_current
             sigma_Y_previous = sigma_Y_current
-
+        # If convergence condition not met, return not converged
         return False, None, None
+
 
     def print_results(self):
         """
-        打印所有轮次的平均分和标准差。
+        Print average score and standard deviation for all rounds.
         """
         self.avg_scores, self.stds = self.calculate_avg_and_std()
         for i, (avg_score, std) in enumerate(zip(self.avg_scores, self.stds), 1):
-            logger.info(f"轮次 {i}: 平均分 = {avg_score:.4f}, 标准差 = {std:.4f}")
+            logger.info(f"Round {i}: Average Score = {avg_score:.4f}, Standard Deviation = {std:.4f}")
 
 if __name__ == "__main__":
 
-    # 使用该类，并指定 top_k
-    checker = ConvergenceUtils("path")  # 例如设置 top_k=5
+    # Use this class and specify top_k
+    checker = ConvergenceUtils("path")  # For example, set top_k=5
     converged, convergence_round, final_round = checker.check_convergence()
 
     if converged:
-        logger.info(f"检测到收敛，发生在第 {convergence_round} 轮，最终轮次为 {final_round} 轮")
+        logger.info(f"Convergence detected, occurred at round {convergence_round}, final round is {final_round}")
     else:
-        logger.info("在所有轮次内未检测到收敛")
+        logger.info("No convergence detected within all rounds")
 
-    # 打印每轮的平均分和标准差
+    # Print average score and standard deviation for each round
     checker.print_results()
