@@ -1,6 +1,6 @@
 import json
 
-from expo.utils import clean_json_from_rsp, load_data_config
+from sela.utils import clean_json_from_rsp, load_data_config
 from metagpt.llm import LLM
 
 DATA_CONFIG = load_data_config()

@@ -5,10 +5,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from expo.evaluation.evaluation import evaluate_score
-from expo.MCTS import create_initial_state
-from expo.research_assistant import ResearchAssistant
-from expo.utils import DATA_CONFIG, save_notebook
+from sela.evaluation.evaluation import evaluate_score
+from sela.MCTS import create_initial_state
+from sela.research_assistant import ResearchAssistant
+from sela.utils import DATA_CONFIG, save_notebook
 
 
 class Experimenter:

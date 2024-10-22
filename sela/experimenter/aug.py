@@ -1,7 +1,7 @@
-from expo.experimenter.experimenter import Experimenter
-from expo.insights.instruction_generator import InstructionGenerator
-from expo.research_assistant import ResearchAssistant
-from expo.utils import get_exp_pool_path
+from sela.experimenter.experimenter import Experimenter
+from sela.insights.instruction_generator import InstructionGenerator
+from sela.research_assistant import ResearchAssistant
+from sela.utils import get_exp_pool_path
 
 EXPS_PROMPT = """
 When doing the tasks, you can refer to the insights below:

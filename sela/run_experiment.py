@@ -1,13 +1,13 @@
 import argparse
 import asyncio
 
-from expo.data.custom_task import get_mle_is_lower_better, get_mle_task_id
-from expo.experimenter.aug import AugExperimenter
-from expo.experimenter.autogluon import GluonExperimenter
-from expo.experimenter.autosklearn import AutoSklearnExperimenter
-from expo.experimenter.custom import CustomExperimenter
-from expo.experimenter.experimenter import Experimenter
-from expo.experimenter.mcts import MCTSExperimenter
+from sela.data.custom_task import get_mle_is_lower_better, get_mle_task_id
+from sela.experimenter.aug import AugExperimenter
+from sela.experimenter.autogluon import GluonExperimenter
+from sela.experimenter.autosklearn import AutoSklearnExperimenter
+from sela.experimenter.custom import CustomExperimenter
+from sela.experimenter.experimenter import Experimenter
+from sela.experimenter.mcts import MCTSExperimenter
 
 
 def get_args(cmd=True):

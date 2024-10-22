@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-from expo.evaluation.evaluation import evaluate_score
-from expo.experimenter.experimenter import Experimenter
-from expo.MCTS import create_initial_state
+from sela.evaluation.evaluation import evaluate_score
+from sela.experimenter.experimenter import Experimenter
+from sela.MCTS import create_initial_state
 
 
 class CustomExperimenter(Experimenter):

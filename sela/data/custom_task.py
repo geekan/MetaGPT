@@ -1,7 +1,7 @@
 import os
 
-from expo.data.dataset import SPECIAL_INSTRUCTIONS
-from expo.experimenter.mle_bench.instructions import (
+from sela.data.dataset import SPECIAL_INSTRUCTIONS
+from sela.experimenter.mle_bench.instructions import (
     ADDITIONAL_NOTES,
     INSTRUCTIONS,
     INSTRUCTIONS_OBFUSCATED,

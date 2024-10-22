@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
-from expo.experimenter.custom import CustomExperimenter
-from expo.evaluation.evaluation import evaluate_score
+from sela.experimenter.custom import CustomExperimenter
+from sela.evaluation.evaluation import evaluate_score
 from functools import partial
 
 
