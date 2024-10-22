@@ -4,8 +4,6 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
-![Performance of AFlow](img/performance_of_AFlow.png)
-
 ## Framework Components
 
 - **Node**: Basic unit of LLM invocation. See `metagpt/actions/action_node.py` for a flexible interface to control LLM, temperature, format, and prompt.
