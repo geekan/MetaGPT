@@ -55,5 +55,5 @@ class Evaluator:
         return graph(name=dataset, llm_config=llm_config, dataset=dataset_config)
 
     def _get_data_path(self, dataset: DatasetType, test: bool) -> str:
-        base_path = f"examples/aflow/data/{dataset.lower()}"
+        base_path = f"metagpt/ext/aflow/data/{dataset.lower()}"
         return f"{base_path}_test.jsonl" if test else f"{base_path}_validate.jsonl"

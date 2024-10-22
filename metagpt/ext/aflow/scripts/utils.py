@@ -56,7 +56,7 @@ def extract_test_cases_from_jsonl(
     entry_point: str, dataset: str = "HumanEval"
 ):
     if dataset == "HumanEval":
-        file_path = "examples/aflow/data/humaneval_public_test.jsonl"
+        file_path = "metagpt/ext/aflow/data/humaneval_public_test.jsonl"
     # Retain the original hardcoded test cases
         hardcoded_cases = {
         "find_zero": "",
@@ -71,7 +71,7 @@ def extract_test_cases_from_jsonl(
         "starts_one_ends":""
         }
     elif dataset == "MBPP":
-        file_path = "examples/aflow/data/mbpp_public_test.jsonl"
+        file_path = "metagpt/ext/aflow/data/mbpp_public_test.jsonl"
         hardcoded_cases = {
             "remove_odd": "",
             "replace_spaces": "",

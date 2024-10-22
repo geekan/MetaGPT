@@ -25,7 +25,7 @@ For custom tasks, [brief instructions or link to documentation].
 ## Quick Start
 
 1. Configure your search in `optimize.py`:
-   - Open `examples/aflow/scripts/optimize.py`
+   - Open `metagpt/ext/aflow/scripts/optimize.py`
    - Set the following parameters:
      ```python
      dataset = "HumanEval"  # Choose from: "HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP" or your custom dataset name
@@ -37,19 +37,19 @@ For custom tasks, [brief instructions or link to documentation].
      max_rounds = 20  # Maximum number of optimization rounds
      ```
    - Adjust these parameters according to your specific requirements and dataset
-2. Set up parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
+2. Set up parameters in `config/config2.yaml` (see `metagpt/ext/aflow/config2.example.yaml` for reference)
 3. Set the operator you want to use in `optimize.py` and in `xxxx`
 4. Download the init round of six datasets and put them in `xxxxxx`
 5. Add your custom dataset and corresponding evaluation function:
 
-- Create a new Python file in the `examples/aflow/benchmark/` directory, named `{custom_dataset_name}.py`
+- Create a new Python file in the `metagpt/ext/aflow/benchmark/` directory, named `{custom_dataset_name}.py`
 - Implement the following key functions in this new file:
   - `load_data`: for loading the dataset
   - `evaluate_problem`: for evaluating a single problem solution
   - `evaluate_all_problems`: for evaluating all problems
   - `save_results_to_csv`: for saving evaluation results
   - `optimize_{custom_dataset_name}_evaluation`: main evaluation function that integrates the above functionalities
-- Add your custom dataset name and config val_list in `examples/aflow/scripts/evaluator.py`
+- Add your custom dataset name and config val_list in `metagpt/ext/aflow/scripts/evaluator.py`
 
 
 ## License

@@ -42,26 +42,23 @@ def process_dataset(url: str, filename: str, extract_path: str) -> None:
 
 # Define the datasets to be downloaded
 # Users can modify this list to choose which datasets to download
-datasets_to_download: List[Dict[str, str]] = [
-    {
-        "name": "datasets",
-        "url": "https://drive.google.com/uc?export=download&id=1tXp5cLw89egeKRwDuood2TPqoEWd8_C0",
+datasets_to_download: Dict[str, Dict[str, str]] = {
+    "datasets": {
+        "url": "https://drive.google.com/uc?export=download&id=1DNoegtZiUhWtvkd2xoIuElmIi4ah7k8e",
         "filename": "aflow_data.tar.gz",
-        "extract_path": "examples/aflow/data"
+        "extract_path": "metagpt/ext/aflow/data"
     },
-    {
-        "name": "results",
-        "url": "",  # Please fill in the correct URL
+    "results": {
+        "url": "",  # 请填入正确的URL
         "filename": "result.tar.gz",
-        "extract_path": "examples/aflow/data/results"
+        "extract_path": "metagpt/ext/aflow/data/results"
     },
-    {
-        "name": "initial_rounds",
-        "url": "",  # Please fill in the correct URL
-        "filename": "first_round.tar.gz",
-        "extract_path": "examples/aflow/scripts/optimized"
+    "initial_rounds": {
+        "url": "https://drive.google.com/uc?export=download&id=1UBoW4WBWjX2gs4I_jq3ALdXeLdwDJMdP",
+        "filename": "initial_rounds.tar.gz",
+        "extract_path": "metagpt/ext/aflow/scripts/optimized"
     }
-]
+}
 
 def download(datasets):
     """Main function to process all selected datasets."""

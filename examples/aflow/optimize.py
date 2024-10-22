@@ -4,7 +4,7 @@
 # @Desc    : Entrance of AFlow.
 
 from metagpt.ext.aflow.scripts.optimizer import Optimizer
-from metagpt.ext.aflow.scripts.evaluator import DatasetType, QuestionType, OptimizerType
+from metagpt.ext.aflow.scripts.optimizer import DatasetType, QuestionType, OptimizerType
 from metagpt.ext.aflow.data.download_data import download
 from metagpt.configs.models_config import ModelsConfig
 from typing import Literal
@@ -15,13 +15,13 @@ from typing import Literal
 # OptimizerType = Literal["Graph", "Test"]
 
 # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-# download(["datasets", "results", "initial_rounds"])
+download(["datasets", "initial_rounds"])
 
 # Crucial Parameters
 dataset: DatasetType = "GSM8K"  # Ensure the type is consistent with DatasetType
 sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
 question_type: QuestionType = "code"  # Ensure the type is consistent with QuestionType
-optimized_path: str = "examples/aflow/scripts/optimized"  # Optimized Result Save Path
+optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
 initial_round: int = 1  # Corrected the case from Initial_round to initial_round
 max_rounds: int = 20
 check_convergence: bool = True
