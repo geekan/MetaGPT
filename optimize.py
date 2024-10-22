@@ -3,9 +3,9 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
-from examples.aflow.scripts.optimizer import Optimizer
-from examples.aflow.scripts.evaluator import DatasetType, QuestionType, OptimizerType
-from examples.aflow.data.download_data import download
+from metagpt.ext.aflow.scripts.optimizer import Optimizer
+from metagpt.ext.aflow.scripts.evaluator import DatasetType, QuestionType, OptimizerType
+from metagpt.ext.aflow.data.download_data import download
 from metagpt.configs.models_config import ModelsConfig
 from typing import Literal
 

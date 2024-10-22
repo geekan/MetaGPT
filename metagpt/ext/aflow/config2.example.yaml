@@ -1,0 +1,12 @@
+models:
+ "<model_name>": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
+   api_type: "openai"  # or azure / ollama / groq etc.
+   base_url: "<your base url>" 
+   api_key: "<your api key>"
+   temperature: 0
+ "<model_name>":  
+   api_type: "openai"  
+   base_url: "<your base url>"
+   api_key: "<your api key>"
+   temperature: 0
+CALC_USAGE: True 
