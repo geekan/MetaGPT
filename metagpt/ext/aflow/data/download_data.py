@@ -10,6 +10,7 @@ from typing import Dict
 import requests
 from tqdm import tqdm
 
+from metagpt.logs import logger
 
 def download_file(url: str, filename: str) -> None:
     """Download a file from the given URL and show progress."""
@@ -33,16 +34,16 @@ def extract_tar_gz(filename: str, extract_path: str) -> None:
 
 def process_dataset(url: str, filename: str, extract_path: str) -> None:
     """Download, extract, and clean up a dataset."""
-    print(f"Downloading {filename}...")
+    logger.info(f"Downloading {filename}...")
     download_file(url, filename)
 
-    print(f"Extracting {filename}...")
+    logger.info(f"Extracting {filename}...")
     extract_tar_gz(filename, extract_path)
 
-    print(f"{filename} download and extraction completed.")
+    logger.info(f"{filename} download and extraction completed.")
 
     os.remove(filename)
-    print(f"Removed {filename}")
+    logger.info(f"Removed {filename}")
 
 
 # Define the datasets to be downloaded

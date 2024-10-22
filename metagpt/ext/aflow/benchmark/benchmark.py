@@ -9,6 +9,8 @@ import aiofiles
 import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
 
+from metagpt.logs import logger
+
 
 class BaseBenchmark(ABC):
     def __init__(self, name: str, file_path: str, log_path: str):
@@ -39,7 +41,7 @@ class BaseBenchmark(ABC):
         output_file = os.path.join(self.log_path, filename)
 
         df.to_csv(output_file, index=False)
-        print(f"Results saved to {output_file}")
+        logger.info(f"Results saved to {output_file}")
 
         return avg_score, a_cost, t_cost
 
@@ -95,6 +97,6 @@ class BaseBenchmark(ABC):
         results = await self.evaluate_all_problems(data, graph, max_concurrent_tasks)
         columns = self.get_result_columns()
         average_score, average_cost, total_cost = self.save_results_to_csv(results, columns)
-        print(f"Average score on {self.name} dataset: {average_score:.5f}")
-        print(f"Total Cost: {total_cost:.5f}")
+        logger.info(f"Average score on {self.name} dataset: {average_score:.5f}")
+        logger.info(f"Total Cost: {total_cost:.5f}")
         return average_score, average_cost, total_cost

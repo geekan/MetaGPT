@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.actions.code_sanitize import sanitize
+from metagpt.logs import logger
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
 
 
@@ -138,11 +139,11 @@ class HumanEvalBenchmark(BaseBenchmark):
             return input_text, prediction, expected_output, score, cost
 
         except asyncio.TimeoutError:
-            print("Timeout error. Skipping this sample.")
+            logger.info("Timeout error. Skipping this sample.")
             return input_text, "Timeout", expected_output, 0.0, 0.0
 
         except Exception as e:
-            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            logger.info(f"Maximum retries reached. Skipping this sample. Error: {e}")
             return input_text, str(e), expected_output, 0.0, 0.0
 
     def calculate_score(self, expected_output: str, prediction: str) -> Tuple[float, str]:

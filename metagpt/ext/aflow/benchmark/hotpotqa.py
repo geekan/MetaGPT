@@ -6,7 +6,7 @@ from typing import Callable, List, Tuple
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
-
+from metagpt.logs import logger
 
 class HotpotQABenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
