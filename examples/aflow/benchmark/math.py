@@ -6,6 +6,8 @@ from sympy.parsing.sympy_parser import parse_expr
 from math import isclose
 import multiprocessing
 from typing import Any, Callable, Tuple, List
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+
 
 from examples.aflow.benchmark.benchmark import BaseBenchmark
 
@@ -95,22 +97,34 @@ class MATHBenchmark(BaseBenchmark):
             pass
         return False
 
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type(Exception),
+        reraise=True
+    )
+    async def _generate_output(self, graph, input_text):
+        return await graph(input_text)
+
+
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, str, int, float]:
         input_text = problem["problem"]
         expected_output = problem["solution"]
-        max_retries = 2
-        retries = 0
 
-        prediction = await graph(input_text)
-        cost = prediction[1]
-        output = prediction[0]
+        try:
+            output, cost = await self._generate_output(graph, input_text)
+            uni_score, extracted_output = self.calculate_score(expected_output, output)
 
-        uni_score, extracted_output = self.calculate_score(expected_output, output)
+            if uni_score == 0:
+                self.log_mismatch(input_text, expected_output, output, extracted_output)
 
-        if uni_score == 0:
-            self.log_mismatch(input_text, expected_output, output, extracted_output)
+            return input_text, output, expected_output, uni_score, cost
 
-        return input_text, output, expected_output, uni_score, cost
+        except Exception as e:
+            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            return input_text, str(e), expected_output, 0.0, 0.0
+
 
     def get_result_columns(self) -> List[str]:
         return ["question", "prediction", "expected_output", "score", "cost"]

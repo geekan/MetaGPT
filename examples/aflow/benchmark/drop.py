@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Tuple
 import aiofiles
 import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
 from examples.aflow.benchmark.benchmark import BaseBenchmark
 
@@ -52,40 +53,41 @@ class DROPBenchmark(BaseBenchmark):
         f1 = (2 * precision * recall) / (precision + recall)
         return f1, prediction
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type(Exception),
+        reraise=True
+    )
+    async def _generate_output(self, graph, input_text):
+        return await graph(input_text)
+
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, str, float, float]:
         input_text = problem["context"]
         expected_output = problem["ref_text"]
         answers = expected_output.split("|")
 
-        max_retries = 5
-        retries = 0
+        try:
+            output, cost = await self._generate_output(graph, input_text)
+            f1_scores = []
 
-        while retries < max_retries:
-            try:
-                output, cost = await graph(input_text)
-                f1_scores = []
+            for answer in answers:
+                if answer.strip() != "":
+                    output_parts = output.split("|")
+                    for output_part in output_parts:
+                        f1_score, _ = self.calculate_score(answer, output_part)
+                        f1_scores.append(f1_score)
 
-                for answer in answers:
-                    if answer.strip() != "":
-                        output_parts = output.split("|")
-                        for output_part in output_parts:
-                            f1_score, _ = self.calculate_score(answer, output_part)
-                            f1_scores.append(f1_score)
+            uni_score = max(f1_scores)
 
-                uni_score = max(f1_scores)
+            if uni_score < 0.3:
+                self.log_mismatch(input_text, expected_output, output, output)
 
-                if uni_score < 0.3:
-                    self.log_mismatch(input_text, expected_output, output, output)
+            return input_text, output, expected_output, uni_score, cost
 
-                return input_text, output, expected_output, uni_score, cost
-
-            except Exception as e:
-                retries += 1
-                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
-
-                if retries == max_retries:
-                    print("Maximum retries reached. Skipping this sample.")
-                    return input_text, str(e), expected_output, 0.0, 0.0
+        except Exception as e:
+            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            return input_text, str(e), expected_output, 0.0, 0.0
 
     def get_result_columns(self) -> List[str]:
         return ["inputs", "prediction", "expected_output", "score", "cost"]

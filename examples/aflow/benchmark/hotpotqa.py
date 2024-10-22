@@ -7,6 +7,7 @@ import string
 import re
 import os
 from collections import Counter
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
 from examples.aflow.benchmark.benchmark import BaseBenchmark
 
@@ -42,6 +43,15 @@ class HotpotQABenchmark(BaseBenchmark):
         f1 = (2 * precision * recall) / (precision + recall)
         return f1, prediction
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type(Exception),
+        reraise=True
+    )
+    async def _generate_output(self, graph, input_text):
+        return await graph(input_text)
+
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, str, str, float, float]:
         input_text = problem["question"]
         expected_output = problem["answer"]
@@ -49,26 +59,18 @@ class HotpotQABenchmark(BaseBenchmark):
         context_str = "\n".join(" ".join(paragraph) for paragraph in paragraphs)
         inputs = f"Context: {context_str}\n\nQuestion: {input_text}\n\nAnswer:"
 
-        max_retries = 5
-        retries = 0
+        try:
+            output, cost = await self._generate_output(graph, inputs)
+            score, extracted_output = self.calculate_score(expected_output, output)
 
-        while retries < max_retries:
-            try:
-                output, cost = await graph(inputs)
-                score, _ = self.calculate_score(expected_output, output)
+            if score < 0.3:  # We set the threshold for collecting incorrect questions to 0.3, as F1 Score cannot be simply judged using 0-1
+                self.log_mismatch(input_text, expected_output, output, extracted_output)
 
-                if score < 0.3:
-                    self.log_mismatch(input_text, expected_output, output, output)
+            return input_text, context_str, output, expected_output, score, cost
 
-                return input_text, context_str, output, expected_output, score, cost
-
-            except Exception as e:
-                retries += 1
-                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
-
-                if retries == max_retries:
-                    print("Maximum retries reached. Skipping this sample.")
-                    return input_text, context_str, str(e), expected_output, 0.0, 0.0
+        except Exception as e:
+            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            return input_text, context_str, str(e), expected_output, 0.0, 0.0
 
     def get_result_columns(self) -> List[str]:
         return ["question", "context", "prediction", "expected_output", "score", "cost"]

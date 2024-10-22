@@ -14,6 +14,8 @@ from tqdm.asyncio import tqdm_asyncio
 import os
 import time
 from datetime import datetime
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+
 
 from examples.aflow.benchmark.benchmark import BaseBenchmark
 
@@ -36,31 +38,33 @@ class GSM8KBenchmark(BaseBenchmark):
         if prediction is None:
             return 0.0, prediction
         return 1.0 if abs(expected_output - prediction) <= 1e-6 else 0.0, prediction
+    
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type(Exception),
+        reraise=True
+    )
+    async def _generate_output(self, graph, input_text):
+        return await graph(input_text)
 
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[str, str, float, float, float]:
-        max_retries = 5
-        retries = 0
-    
-        while retries < max_retries:
-            try:
-                prediction, cost = await graph(problem["question"])
-                predicted_number = self.extract_number(prediction)
-                expected_output = self.extract_number(problem["answer"])
+        input_text = problem["question"]
+        expected_output = self.extract_number(problem["answer"])
 
-                score, _ = self.calculate_score(expected_output, predicted_number)
+        try:
+            output, cost = await self._generate_output(graph, input_text)
+            predicted_number = self.extract_number(output)
+            score, extracted_output = self.calculate_score(expected_output, predicted_number)
 
-                if score == 0:
-                    self.log_mismatch(problem["question"], expected_output, prediction, predicted_number)
+            if score == 0:
+                self.log_mismatch(input_text, expected_output, output, extracted_output)
 
-                return problem["question"], prediction, expected_output, score, cost
+            return input_text, output, expected_output, score, cost
 
-            except Exception as e:
-                retries += 1
-                print(f"Error generating prediction: {e}. Retrying... ({retries}/{max_retries})")
-
-                if retries == max_retries:
-                    print("Maximum retries reached. Skipping this sample.")
-                    return problem["question"], str(e), self.extract_number(problem["answer"]), 0.0, 0.0
+        except Exception as e:
+            print(f"Maximum retries reached. Skipping this sample. Error: {e}")
+            return input_text, str(e), expected_output, 0.0, 0.0
 
     def get_result_columns(self) -> List[str]:
         return ["question", "prediction", "expected_output", "score", "cost"]

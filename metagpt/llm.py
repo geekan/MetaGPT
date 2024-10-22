@@ -10,12 +10,6 @@ from typing import Optional
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.context import Context
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.utils.cost_manager import CostManager
-
-global cost_manager
-
-if not globals().get("cost_manager"):
-    cost_manager = CostManager()
 
 
 def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> BaseLLM:
@@ -23,6 +17,4 @@ def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> Base
     ctx = context or Context()
     if llm_config is not None:
         return ctx.llm_with_cost_manager_from_llm_config(llm_config)
-    llm = ctx.llm()
-    llm.cost_manager = cost_manager
-    return llm
+    return ctx.llm()
