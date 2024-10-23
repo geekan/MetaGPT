@@ -184,4 +184,10 @@ To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) or [Data Interpret
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }
+@article{zhang2024aflow,
+  title={AFlow: Automating Agentic Workflow Generation},
+  author={Zhang, Jiayi and Xiang, Jinyu and Yu, Zhaoyang and Teng, Fengwei and Chen, Xionghui and Chen, Jiaqi and Zhuge, Mingchen and Cheng, Xin and Hong, Sirui and Wang, Jinlin and others},
+  journal={arXiv preprint arXiv:2410.10762},
+  year={2024}
+}
 ```

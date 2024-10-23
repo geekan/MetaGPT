@@ -33,13 +33,21 @@ For custom tasks, you can reference the code in the metagpt/ext/aflow/benchmark 
      optimized_path = "path/to/optimized/workflows"  # Path to save optimized workflows, defaults to metagpt/ext/aflow/scripts/optimized
      initial_round = 1  # Starting round number
      max_rounds = 20  # Maximum number of optimization rounds
+     validation_rounds = 5  # The validation rounds of AFLOW.
      ```
    - Adjust these parameters according to your specific requirements and dataset
 2. Set up parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
 3. Set the operator you want to use in `optimize.py` and in `optimized_path/template/operator.py`, `optimized_path/template/operator.json`. You can reference our implementation to add operators for specific datasets
 4. When you first run, you can download the datasets and initial rounds by setting `download(["datasets", "initial_rounds"])` in `examples/aflow/optimize.py`
 5. (Optional) Add your custom dataset and corresponding evaluation function following the [Custom Datasets](#custom-datasets) section
+6. (Optional) If you want to use a portion of the validation data, you can set `va_list` in `examples/aflow/evaluator.py`
 6. Run `python examples/aflow/optimize.py` to start the optimization process!
+
+
+## Reproduce the Results in the Paper
+1. We provide the raw data obtained from our experiments (link), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
+2. You can directly reproduce our experimental results by running the scripts in `examples/aflow/experiments`.
+
 
 ## Citation
 

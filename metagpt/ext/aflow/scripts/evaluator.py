@@ -45,8 +45,10 @@ class Evaluator:
 
         # Use params to configure the graph and benchmark
         configured_graph = await self._configure_graph(dataset, graph, params)
-
-        va_list = [1, 2, 3]  # Use va_list from params, or use default value if not provided
+        if is_test:
+            va_list = None  # For test data, generally use None to test all
+        else:
+            va_list = None  # Use None to test all Validation data, or set va_list (e.g., [1, 2, 3]) to use partial data
         return await benchmark.run_evaluation(configured_graph, va_list)
 
     async def _configure_graph(self, dataset, graph, params: dict):
