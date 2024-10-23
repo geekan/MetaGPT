@@ -165,9 +165,9 @@ class ResourceReporter(BaseModel):
             self._llm_task = asyncio.create_task(self._llm_stream_report(queue))
         return self
 
-    async def __aexit__(self, *args, **kwargs):
+    async def __aexit__(self, exc_type, exc_value, exc_tb):
         """Exit the asynchronous streaming callback context."""
-        if self.enable_llm_stream:
+        if self.enable_llm_stream and exc_type != asyncio.CancelledError:
             await get_llm_stream_queue().put(None)
             await self._llm_task
             self._llm_task = None
