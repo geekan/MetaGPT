@@ -1,9 +1,9 @@
-import json
-
 import fire
 from DABench import DABench
 
+from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.utils.recovery_util import save_history
 
 
 async def main(id=0):
@@ -11,8 +11,9 @@ async def main(id=0):
     requirement = DA.get_prompt(id)
     di = DataInterpreter()
     result = await di.run(requirement)
-    prediction = json.loads(str(result).split("Current Plan")[1].split("## Current Task")[0])[-1]["result"]
-    is_correct = DA.eval(id, prediction)
+    logger.info(result)
+    save_history(role=di)
+    _, is_correct = DA.eval(id, str(result))
     print(f"Prediction is {'correct' if is_correct else 'incorrect'}.")
 
 
