@@ -14,7 +14,7 @@ from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, Question
 # OptimizerType = Literal["Graph", "Test"]
 
 # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-download(["datasets", "initial_rounds"])
+# download(["datasets", "initial_rounds"])
 
 # Crucial Parameters
 dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType

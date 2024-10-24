@@ -4,6 +4,10 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
+<p align="center">
+<a href=""><img src="../../docs/resources/AFLOW-performance.png" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>"></a>
+</p>
+
 ## Framework Components
 
 - **Node**: Basic unit of LLM invocation. See `metagpt/actions/action_node.py` for a flexible interface to control LLM, temperature, format, and prompt.
@@ -12,10 +16,18 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 - **Optimizer**: Uses LLMs within a Monte Carlo Tree Search variant to explore and refine workflows. Iteratively selects, expands, evaluates, and updates workflows based on performance. See `metagpt/ext/aflow/scripts/optimizer.py` for details.
 - **Evaluator**: Assesses workflow performance on given tasks. Provides feedback to guide the optimization process towards more effective workflows. See `metagpt/ext/aflow/scripts/evaluator.py` for details.
 
+<p align="center">
+<a href=""><img src="../../docs/resources/AFLOW-method.png" alt="Performance Of AFLOW" title="Framework of AFlow<sub>1</sub>"></a>
+</p>
+
 ## Datasets
 
 ### Experimental Datasets
 We conducted experiments on six datasets (HumanEval, MBPP, GSM8K, MATH, HotpotQA, DROP) and provide their evaluation code. The data can be found in this [datasets](https://drive.google.com/uc?export=download&id=1DNoegtZiUhWtvkd2xoIuElmIi4ah7k8e) link, or you can download them using `metagpt/ext/aflow/data/download_data.py`
+
+<p align="center">
+<a href=""><img src="../../docs/resources/AFLOW-experiment.png" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>"></a>
+</p>
 
 ### Custom Datasets
 For custom tasks, you can reference the code in the metagpt/ext/aflow/benchmark folder. Inherit the `BaseBenchmark` class and implement `evaluate_problem`, `calculate_score`, and `get_result_columns` to add your custom dataset benchmark. Then, add your benchmark name in `metagpt/ext/aflow/scripts/evaluator.py` and `metagpt/ext/aflow/scripts/optimizer.py` to find effective workflows for your custom dataset.

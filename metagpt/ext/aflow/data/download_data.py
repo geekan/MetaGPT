@@ -55,7 +55,11 @@ datasets_to_download: Dict[str, Dict[str, str]] = {
         "filename": "aflow_data.tar.gz",
         "extract_path": "metagpt/ext/aflow/data",
     },
-    "results": {"url": "", "filename": "result.tar.gz", "extract_path": "metagpt/ext/aflow/data/results"},  # 请填入正确的URL
+    "results": {
+        "url": "", 
+        "filename": "result.tar.gz", 
+        "extract_path": "metagpt/ext/aflow/data/results"
+    },  
     "initial_rounds": {
         "url": "https://drive.google.com/uc?export=download&id=1UBoW4WBWjX2gs4I_jq3ALdXeLdwDJMdP",
         "filename": "initial_rounds.tar.gz",

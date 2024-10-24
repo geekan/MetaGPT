@@ -52,7 +52,8 @@ class DataUtils:
         scores = [item["score"] * 100 for item in sorted_items]
 
         probabilities = self._compute_probabilities(scores)
-        logger.info("\nMixed probability distribution: ", probabilities)
+        logger.info(f"\nMixed probability distribution: {probabilities}")
+        logger.info(f"\nSorted rounds: {sorted_items}")
 
         selected_index = np.random.choice(len(sorted_items), p=probabilities)
         logger.info(f"\nSelected index: {selected_index}, Selected item: {sorted_items[selected_index]}")

@@ -14,10 +14,10 @@ from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, Question
 # OptimizerType = Literal["Graph", "Test"]
 
 # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-download(["datasets", "initial_rounds"])
+# download(["datasets", "initial_rounds"])
 
 # Crucial Parameters
-dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType
+dataset: DatasetType = "GSM8K"  # Ensure the type is consistent with DatasetType
 sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
 question_type: QuestionType = "math"  # Ensure the type is consistent with QuestionType
 optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
