@@ -7,7 +7,8 @@ from metagpt.rag.schema import (
     ChromaIndexConfig,
     ElasticsearchIndexConfig,
     ElasticsearchStoreConfig,
-    FAISSIndexConfig, MilvusIndexConfig,
+    FAISSIndexConfig,
+    MilvusIndexConfig,
 )
 
 
