@@ -581,6 +581,30 @@ def write_json_file(json_file: str, data: list, encoding: str = None, indent: in
         json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
 
 
+def read_jsonl_file(jsonl_file: str, encoding="utf-8") -> list[dict]:
+    if not Path(jsonl_file).exists():
+        raise FileNotFoundError(f"json_file: {jsonl_file} not exist, return []")
+    datas = []
+    with open(jsonl_file, "r", encoding=encoding) as fin:
+        try:
+            for line in fin:
+                data = json.loads(line)
+                datas.append(data)
+        except Exception:
+            raise ValueError(f"read jsonl file: {jsonl_file} failed")
+    return datas
+
+
+def add_jsonl_file(jsonl_file: str, data: list[dict], encoding: str = None):
+    folder_path = Path(jsonl_file).parent
+    if not folder_path.exists():
+        folder_path.mkdir(parents=True, exist_ok=True)
+
+    with open(jsonl_file, "a", encoding=encoding) as fout:
+        for json_item in data:
+            fout.write(json.dumps(json_item) + "\n")
+
+
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
     """
     Reads in a csv file to a list of list. If header is True, it returns a
