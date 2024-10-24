@@ -5,7 +5,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-performance.png" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>"></a>
+<a href=""><img src="../../docs/resources/AFLOW-performance.j p g" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>"></a>
 </p>
 
 ## Framework Components
@@ -17,7 +17,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 - **Evaluator**: Assesses workflow performance on given tasks. Provides feedback to guide the optimization process towards more effective workflows. See `metagpt/ext/aflow/scripts/evaluator.py` for details.
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-method.png" alt="Performance Of AFLOW" title="Framework of AFlow<sub>1</sub>"></a>
+<a href=""><img src="../../docs/resources/AFLOW-method.jpg" alt="Performance Of AFLOW" title="Framework of AFlow<sub>1</sub>"></a>
 </p>
 
 ## Datasets
@@ -26,7 +26,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 We conducted experiments on six datasets (HumanEval, MBPP, GSM8K, MATH, HotpotQA, DROP) and provide their evaluation code. The data can be found in this [datasets](https://drive.google.com/uc?export=download&id=1DNoegtZiUhWtvkd2xoIuElmIi4ah7k8e) link, or you can download them using `metagpt/ext/aflow/data/download_data.py`
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-experiment.png" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>"></a>
+<a href=""><img src="../../docs/resources/AFLOW-experiment.jpg" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>"></a>
 </p>
 
 ### Custom Datasets
