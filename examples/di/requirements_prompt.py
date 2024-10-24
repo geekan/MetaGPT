@@ -1,3 +1,5 @@
+# InfiAgent-DABench requirements
+DABENCH = "You are required to {question} from a CSV file named {file_name}. **Constraints**: Ensure that {constraints}, which must be strictly followed throughout the task.  The output format should be {format}. This task is categorized as {level}."
 # ML-Benchmark requirements
 IRIS_REQ = "Run data analysis on sklearn Iris dataset, include a plot"
 WINES_RECOGNITION_REQ = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class with 20% as test set, and show prediction accuracy"
