@@ -5,7 +5,6 @@
 
 
 from metagpt.configs.models_config import ModelsConfig
-from metagpt.ext.aflow.data.download_data import download
 from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType
 
 # DatasetType, QuestionType, and OptimizerType definitions
@@ -24,7 +23,7 @@ optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result 
 initial_round: int = 1  # Corrected the case from Initial_round to initial_round
 max_rounds: int = 20  # The max iteration of AFLOW.
 check_convergence: bool = True  # Whether Early Stop
-validation_rounds: int = 5 # The validation rounds of AFLOW.
+validation_rounds: int = 5  # The validation rounds of AFLOW.
 
 # Config llm model, you can modify `config/config2.yaml` to use more llms.
 mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
@@ -34,9 +33,9 @@ claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
 operators = [
     "Custom",  # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
     # "AnswerGenerate",              # It's for qa
-    "CustomCodeGenerate",         # It's for code
+    "CustomCodeGenerate",  # It's for code
     "ScEnsemble",  # It's for code, math and qa
-    "Test",                       # It's for code
+    "Test",  # It's for code
     # "Programmer",  # It's for math
 ]
 

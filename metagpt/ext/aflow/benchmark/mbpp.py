@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from metagpt.ext.aflow.scripts.utils import sanitize
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
+from metagpt.ext.aflow.scripts.utils import sanitize
 from metagpt.logs import logger
 
 

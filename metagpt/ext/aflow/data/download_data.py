@@ -55,11 +55,7 @@ datasets_to_download: Dict[str, Dict[str, str]] = {
         "filename": "aflow_data.tar.gz",
         "extract_path": "metagpt/ext/aflow/data",
     },
-    "results": {
-        "url": "", 
-        "filename": "result.tar.gz", 
-        "extract_path": "metagpt/ext/aflow/data/results"
-    },  
+    "results": {"url": "", "filename": "result.tar.gz", "extract_path": "metagpt/ext/aflow/data/results"},
     "initial_rounds": {
         "url": "https://drive.google.com/uc?export=download&id=1UBoW4WBWjX2gs4I_jq3ALdXeLdwDJMdP",
         "filename": "initial_rounds.tar.gz",
@@ -72,14 +68,17 @@ def is_directory_empty(path: str) -> bool:
     """Check if the directory is empty"""
     return len(os.listdir(path)) == 0
 
+
 def download(datasets):
     """Main function to process all selected datasets"""
     for dataset_name in datasets:
         dataset = datasets_to_download[dataset_name]
         extract_path = dataset["extract_path"]
-        
+
         if os.path.exists(extract_path) and not is_directory_empty(extract_path):
-            logger.info(f"Target folder {extract_path} for {dataset_name} is not empty, skipping download and extraction.")
+            logger.info(
+                f"Target folder {extract_path} for {dataset_name} is not empty, skipping download and extraction."
+            )
             continue
-        
+
         process_dataset(dataset["url"], dataset["filename"], extract_path)

@@ -24,7 +24,7 @@ optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result 
 initial_round: int = 1  # Corrected the case from Initial_round to initial_round
 max_rounds: int = 20  # The max iteration of AFLOW.
 check_convergence: bool = True  # Whether Early Stop
-validation_rounds: int = 5 # The validation rounds of AFLOW.
+validation_rounds: int = 5  # The validation rounds of AFLOW.
 
 # Config llm model, you can modify `config/config2.yaml` to use more llms.
 mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
