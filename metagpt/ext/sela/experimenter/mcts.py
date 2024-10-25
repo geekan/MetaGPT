@@ -6,8 +6,7 @@ from metagpt.ext.sela.evaluation.evaluation import (
 )
 from metagpt.ext.sela.evaluation.visualize_mcts import get_tree_text
 from metagpt.ext.sela.experimenter.experimenter import Experimenter
-from metagpt.ext.sela.Greedy import Greedy, Random
-from metagpt.ext.sela.MCTS import MCTS
+from metagpt.ext.sela.search.search_algorithm import Greedy, Random, MCTS
 
 
 class MCTSExperimenter(Experimenter):
