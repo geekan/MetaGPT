@@ -16,7 +16,7 @@ Triggered by software/product requests or feature enhancements, ending with the 
 ### Required Fields
 1. Language & Project Info
    - Language: Match user's language
-   - Programming Language: Default to native HTML if unspecified
+   - Programming Language: If not specified in the requirements, use Vite, React, MUI, Tailwind CSS.
    - Project Name: Use snake_case format
    - Restate the original requirements
 
