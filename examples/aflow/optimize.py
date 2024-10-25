@@ -3,19 +3,6 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
-import os
-import sys
-
-
-def setup_environment():
-    current_path = os.path.abspath(__file__)
-    root_path = os.path.dirname(os.path.dirname(os.path.dirname(current_path)))
-    sys.path.insert(0, root_path)
-    os.chdir(root_path)
-
-
-setup_environment()
-
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.ext.aflow.data.download_data import download
 from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType

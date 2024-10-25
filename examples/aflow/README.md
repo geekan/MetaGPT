@@ -54,7 +54,7 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
 4. When you first run, you can download the datasets and initial rounds by setting `download(["datasets", "initial_rounds"])` in `examples/aflow/optimize.py`
 5. (Optional) Add your custom dataset and corresponding evaluation function following the [Custom Datasets](#custom-datasets) section
 6. (Optional) If you want to use a portion of the validation data, you can set `va_list` in `examples/aflow/evaluator.py`
-6. Run `python examples/aflow/optimize.py` to start the optimization process!
+6. Run `python -m examples.aflow.optimize` to start the optimization process!
 
 
 ## Reproduce the Results in the Paper
