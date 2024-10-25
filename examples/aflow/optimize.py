@@ -3,6 +3,18 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
+import os
+import sys
+
+
+def setup_environment():
+    current_path = os.path.abspath(__file__)
+    root_path = os.path.dirname(os.path.dirname(os.path.dirname(current_path)))
+    sys.path.insert(0, root_path)
+    os.chdir(root_path)
+
+
+setup_environment()
 
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.ext.aflow.data.download_data import download
@@ -13,9 +25,6 @@ from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, Question
 # QuestionType = Literal["math", "code", "qa"]
 # OptimizerType = Literal["Graph", "Test"]
 
-# When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-download(["datasets", "initial_rounds"])
-
 # Crucial Parameters
 dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType
 sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
@@ -25,6 +34,7 @@ initial_round: int = 1  # Corrected the case from Initial_round to initial_round
 max_rounds: int = 20  # The max iteration of AFLOW.
 check_convergence: bool = True  # Whether Early Stop
 validation_rounds: int = 5  # The validation rounds of AFLOW.
+if_fisrt_optimize = True  # You should change it to False after the first optimize.
 
 # Config llm model, you can modify `config/config2.yaml` to use more llms.
 mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
@@ -56,6 +66,8 @@ optimizer = Optimizer(
 )
 
 if __name__ == "__main__":
+    # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
+    download(["datasets", "initial_rounds"], if_first_download=if_fisrt_optimize)
     # Optimize workflow via setting the optimizer's mode to 'Graph'
     optimizer.optimize("Graph")
     # Test workflow via setting the optimizer's mode to 'Test'

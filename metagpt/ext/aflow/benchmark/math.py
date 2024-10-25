@@ -1,3 +1,4 @@
+import inspect
 import re
 from math import isclose
 from typing import Any, Callable, List, Tuple
@@ -98,6 +99,13 @@ class MATHBenchmark(BaseBenchmark):
             pass
         return False
 
+    def get_function_code(self, func):
+        try:
+            source_code = inspect.getsource(func)
+            return source_code
+        except OSError:
+            return "no code"
+
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), retry=retry_if_exception_type(Exception), reraise=True)
     async def _generate_output(self, graph, input_text):
         return await graph(input_text)
@@ -111,7 +119,13 @@ class MATHBenchmark(BaseBenchmark):
             uni_score, extracted_output = self.calculate_score(expected_output, output)
 
             if uni_score == 0:
-                self.log_mismatch(input_text, expected_output, output, extracted_output)
+                self.log_mismatch(
+                    input_text,
+                    expected_output,
+                    output,
+                    extracted_output,
+                    extract_answer_code=self.get_function_code(self.extract_model_answer),
+                )
 
             return input_text, output, expected_output, uni_score, cost
 

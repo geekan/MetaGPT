@@ -68,21 +68,12 @@ datasets_to_download: Dict[str, Dict[str, str]] = {
 }
 
 
-def is_directory_empty(path: str) -> bool:
-    """Check if the directory is empty"""
-    return len(os.listdir(path)) == 0
-
-
-def download(datasets):
+def download(required_datasets, if_first_download: bool = True):
     """Main function to process all selected datasets"""
-    for dataset_name in datasets:
-        dataset = datasets_to_download[dataset_name]
-        extract_path = dataset["extract_path"]
-
-        if os.path.exists(extract_path) and not is_directory_empty(extract_path):
-            logger.info(
-                f"Target folder {extract_path} for {dataset_name} is not empty, skipping download and extraction."
-            )
-            continue
-
-        process_dataset(dataset["url"], dataset["filename"], extract_path)
+    if if_first_download:
+        for dataset_name in required_datasets:
+            dataset = datasets_to_download[dataset_name]
+            extract_path = dataset["extract_path"]
+            process_dataset(dataset["url"], dataset["filename"], extract_path)
+    else:
+        logger.info("Skip downloading datasets")

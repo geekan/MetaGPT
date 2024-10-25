@@ -38,14 +38,15 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
    - Open `examples/aflow/optimize.py`
    - Set the following parameters:
      ```python
-     dataset = "HumanEval"  # Choose from: "HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP" or your custom dataset name
-     question_type = "code"  # Choose from: "math", "code", "qa"
-     sample = 4  # Number of samples to use for optimization
-     check_convergence = True  # Whether to check for convergence
-     optimized_path = "path/to/optimized/workflows"  # Path to save optimized workflows, defaults to metagpt/ext/aflow/scripts/optimized
-     initial_round = 1  # Starting round number
-     max_rounds = 20  # Maximum number of optimization rounds
-     validation_rounds = 5  # The validation rounds of AFLOW.
+     dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType
+     sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
+     question_type: QuestionType = "math"  # Ensure the type is consistent with QuestionType
+     optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
+     initial_round: int = 1  # Corrected the case from Initial_round to initial_round
+     max_rounds: int = 20  # The max iteration of AFLOW.
+     check_convergence: bool = True  # Whether Early Stop
+     validation_rounds: int = 5  # The validation rounds of AFLOW.
+     if_fisrt_optimize = True  # You should change it to False after the first optimize.
      ```
    - Adjust these parameters according to your specific requirements and dataset
 2. Set up parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
@@ -66,10 +67,13 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
 If you use AFlow in your research, please cite our paper:
 
 ```
-@article{zhang2024aflow,
-  title={AFlow: Automating Agentic Workflow Generation},
-  author={Zhang, Jiayi and Xiang, Jinyu and Yu, Zhaoyang and Teng, Fengwei and Chen, Xionghui and Chen, Jiaqi and Zhuge, Mingchen and Cheng, Xin and Hong, Sirui and Wang, Jinlin and others},
-  journal={arXiv preprint arXiv:2410.10762},
-  year={2024}
+@misc{zhang2024aflow,
+      title={AFlow: Automating Agentic Workflow Generation}, 
+      author={Jiayi Zhang and Jinyu Xiang and Zhaoyang Yu and Fengwei Teng and Xionghui Chen and Jiaqi Chen and Mingchen Zhuge and Xin Cheng and Sirui Hong and Jinlin Wang and Bingnan Zheng and Bang Liu and Yuyu Luo and Chenglin Wu},
+      year={2024},
+      eprint={2410.10762},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2410.10762}, 
 }
 ```

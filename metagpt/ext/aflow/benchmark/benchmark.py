@@ -23,11 +23,9 @@ class BaseBenchmark(ABC):
         async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
             async for line in file:
                 data.append(json.loads(line))
-
         if specific_indices is not None:
             filtered_data = [data[i] for i in specific_indices if i < len(data)]
             return filtered_data
-
         return data
 
     def save_results_to_csv(self, results: List[Tuple[Any, ...]], columns: List[str]):
@@ -35,26 +33,29 @@ class BaseBenchmark(ABC):
         avg_score = df["score"].mean()
         t_cost = df["cost"].max()
         a_cost = t_cost / len(df) if len(df) > 0 else 0
-
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{avg_score:.5f}_{current_time}.csv"
         output_file = os.path.join(self.log_path, filename)
-
         df.to_csv(output_file, index=False)
         logger.info(f"Results saved to {output_file}")
-
         return avg_score, a_cost, t_cost
 
-    def log_mismatch(self, problem: str, expected_output: Any, prediction: str, extracted_output: Any):
+    def log_mismatch(
+        self,
+        problem: str,
+        expected_output: Any,
+        prediction: str,
+        extracted_output: Any,
+        extract_answer_code: str = "None",
+    ):
         log_data = {
             "question": problem,
             "right_answer": expected_output,
             "model_output": prediction,
             "extracted_output": extracted_output,
+            "extract_answer_code": extract_answer_code,
         }
-
         log_file = os.path.join(self.log_path, "log.json")
-
         if os.path.exists(log_file):
             with open(log_file, "r", encoding="utf-8") as f:
                 try:
@@ -63,9 +64,7 @@ class BaseBenchmark(ABC):
                     data = []
         else:
             data = []
-
         data.append(log_data)
-
         with open(log_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
@@ -89,7 +88,6 @@ class BaseBenchmark(ABC):
                 return await self.evaluate_problem(problem, graph)
 
         tasks = [sem_evaluate(problem) for problem in data]
-
         return await tqdm_asyncio.gather(*tasks, desc=f"Evaluating {self.name} problems", total=len(data))
 
     async def run_evaluation(self, graph: Callable, va_list: List[int], max_concurrent_tasks: int = 50):
