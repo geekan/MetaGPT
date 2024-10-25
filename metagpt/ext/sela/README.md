@@ -77,10 +77,10 @@ In addition to the generated insights, include the fixed insights saved in `expo
 **DI RandomSearch**
 
 - Single insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode single`
+`python run_experiment.py --exp_mode rs --task titanic --rs_mode single`
 
 - Set insight
-`python run_experiment.py --exp_mode aug --task titanic --aug_mode set`
+`python run_experiment.py --exp_mode rs --task titanic --rs_mode set`
 
 
 ## 4. Evaluation

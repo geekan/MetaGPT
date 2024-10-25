@@ -10,8 +10,8 @@ When doing the tasks, you can refer to the insights below:
 """
 
 
-class AugExperimenter(Experimenter):
-    result_path: str = "results/aug"
+class RandomSearchExperimenter(Experimenter):
+    result_path: str = "results/random_search"
 
     async def run_experiment(self):
         # state = create_initial_state(self.args.task, start_task_id=1, data_config=self.data_config, low_is_better=self.args.low_is_better, name="")
@@ -20,17 +20,17 @@ class AugExperimenter(Experimenter):
         exp_pool = InstructionGenerator.load_analysis_pool(
             exp_pool_path, use_fixed_insights=self.args.use_fixed_insights
         )
-        if self.args.aug_mode == "single":
+        if self.args.rs_mode == "single":
             exps = InstructionGenerator._random_sample(exp_pool, self.args.num_experiments)
             exps = [exp["Analysis"] for exp in exps]
-        elif self.args.aug_mode == "set":
+        elif self.args.rs_mode == "set":
             exps = []
             for i in range(self.args.num_experiments):
                 exp_set = InstructionGenerator.sample_instruction_set(exp_pool)
                 exp_set_text = "\n".join([f"{exp['task_id']}: {exp['Analysis']}" for exp in exp_set])
                 exps.append(exp_set_text)
         else:
-            raise ValueError(f"Invalid mode: {self.args.aug_mode}")
+            raise ValueError(f"Invalid mode: {self.args.rs_mode}")
 
         results = []
         for i in range(self.args.num_experiments):
@@ -45,7 +45,7 @@ class AugExperimenter(Experimenter):
                 {
                     "idx": i,
                     "score_dict": score_dict,
-                    "aug_mode": self.args.aug_mode,
+                    "rs_mode": self.args.rs_mode,
                     "insights": exps[i],
                     "user_requirement": requirement,
                     "args": vars(self.args),

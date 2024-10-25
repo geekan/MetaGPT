@@ -2,7 +2,7 @@ import argparse
 import asyncio
 
 from metagpt.ext.sela.data.custom_task import get_mle_is_lower_better, get_mle_task_id
-from metagpt.ext.sela.experimenter.aug import AugExperimenter
+from metagpt.ext.sela.experimenter.random_search import RandomSearchExperimenter
 from metagpt.ext.sela.experimenter.autogluon import GluonExperimenter
 from metagpt.ext.sela.experimenter.autosklearn import AutoSklearnExperimenter
 from metagpt.ext.sela.experimenter.custom import CustomExperimenter
@@ -17,12 +17,12 @@ def get_args(cmd=True):
         "--exp_mode",
         type=str,
         default="mcts",
-        choices=["mcts", "aug", "base", "custom", "greedy", "autogluon", "random", "autosklearn"],
+        choices=["mcts", "rs", "base", "custom", "greedy", "autogluon", "random", "autosklearn"],
     )
     parser.add_argument("--role_timeout", type=int, default=1000)
     get_di_args(parser)
     get_mcts_args(parser)
-    get_aug_exp_args(parser)
+    get_rs_exp_args(parser)
     if cmd:
         args = parser.parse_args()
     else:
@@ -56,8 +56,8 @@ def get_mcts_args(parser):
     parser.add_argument("--max_depth", type=int, default=4)
 
 
-def get_aug_exp_args(parser):
-    parser.add_argument("--aug_mode", type=str, default="single", choices=["single", "set"])
+def get_rs_exp_args(parser):
+    parser.add_argument("--rs_mode", type=str, default="single", choices=["single", "set"])
     parser.add_argument("--is_multimodal", action="store_true", help="Specify if the model is multi-modal")
 
 
@@ -79,8 +79,8 @@ async def main(args):
         experimenter = MCTSExperimenter(args, tree_mode="greedy")
     elif args.exp_mode == "random":
         experimenter = MCTSExperimenter(args, tree_mode="random")
-    elif args.exp_mode == "aug":
-        experimenter = AugExperimenter(args)
+    elif args.exp_mode == "rs":
+        experimenter = RandomSearchExperimenter(args)
     elif args.exp_mode == "base":
         experimenter = Experimenter(args)
     elif args.exp_mode == "autogluon":
