@@ -6,7 +6,7 @@ import os
 
 from pydantic import model_validator
 
-from sela.utils import mcts_logger, save_notebook
+from metagpt.ext.sela.utils import mcts_logger, save_notebook
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.di.data_interpreter import DataInterpreter

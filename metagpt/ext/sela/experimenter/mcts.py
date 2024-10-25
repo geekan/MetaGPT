@@ -1,13 +1,13 @@
 import shutil
 
-from sela.evaluation.evaluation import (
+from metagpt.ext.sela.evaluation.evaluation import (
     node_evaluate_score_mlebench,
     node_evaluate_score_sela,
 )
-from sela.evaluation.visualize_mcts import get_tree_text
-from sela.experimenter.experimenter import Experimenter
-from sela.Greedy import Greedy, Random
-from sela.MCTS import MCTS
+from metagpt.ext.sela.evaluation.visualize_mcts import get_tree_text
+from metagpt.ext.sela.experimenter.experimenter import Experimenter
+from metagpt.ext.sela.Greedy import Greedy, Random
+from metagpt.ext.sela.MCTS import MCTS
 
 
 class MCTSExperimenter(Experimenter):

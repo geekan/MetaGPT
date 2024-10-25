@@ -1,6 +1,6 @@
 import random
 
-from sela.MCTS import MCTS
+from metagpt.ext.sela.MCTS import MCTS
 
 
 class Greedy(MCTS):

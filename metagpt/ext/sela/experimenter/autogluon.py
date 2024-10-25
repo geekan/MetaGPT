@@ -1,5 +1,5 @@
 from datetime import datetime
-from sela.experimenter.custom import CustomExperimenter
+from metagpt.ext.sela.experimenter.custom import CustomExperimenter
 import os
 import pandas as pd
 

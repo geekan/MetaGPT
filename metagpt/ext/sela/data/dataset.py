@@ -9,8 +9,8 @@ import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
 
-from sela.insights.solution_designer import SolutionDesigner
-from sela.utils import DATA_CONFIG
+from metagpt.ext.sela.insights.solution_designer import SolutionDesigner
+from metagpt.ext.sela.utils import DATA_CONFIG
 
 BASE_USER_REQUIREMENT = """
 This is a {datasetname} dataset. Your goal is to predict the target column `{target_col}`.

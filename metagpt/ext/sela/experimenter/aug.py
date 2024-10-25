@@ -1,7 +1,7 @@
-from sela.experimenter.experimenter import Experimenter
-from sela.insights.instruction_generator import InstructionGenerator
-from sela.research_assistant import ResearchAssistant
-from sela.utils import get_exp_pool_path
+from metagpt.ext.sela.experimenter.experimenter import Experimenter
+from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
+from metagpt.ext.sela.research_assistant import ResearchAssistant
+from metagpt.ext.sela.utils import get_exp_pool_path
 
 EXPS_PROMPT = """
 When doing the tasks, you can refer to the insights below:

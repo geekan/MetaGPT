@@ -7,14 +7,14 @@ import pandas as pd
 from datasets import load_dataset
 from PIL import Image
 
-from sela.data.dataset import (
+from metagpt.ext.sela.data.dataset import (
     ExpDataset,
     parse_args,
     process_dataset,
     save_datasets_dict_to_yaml,
 )
-from sela.insights.solution_designer import SolutionDesigner
-from sela.utils import DATA_CONFIG
+from metagpt.ext.sela.insights.solution_designer import SolutionDesigner
+from metagpt.ext.sela.utils import DATA_CONFIG
 
 HFDATSETS = [
     {"name": "sms_spam", "dataset_name": "ucirvine/sms_spam", "target_col": "label", "modality": "text"},

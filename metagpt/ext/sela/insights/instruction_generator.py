@@ -3,8 +3,8 @@ import os
 import random
 from difflib import SequenceMatcher
 
-from sela.insights.solution_designer import SolutionDesigner
-from sela.utils import clean_json_from_rsp, load_data_config, mcts_logger
+from metagpt.ext.sela.insights.solution_designer import SolutionDesigner
+from metagpt.ext.sela.utils import clean_json_from_rsp, load_data_config, mcts_logger
 from metagpt.llm import LLM
 from metagpt.schema import Message
 

@@ -8,12 +8,12 @@ import shutil
 import numpy as np
 import pandas as pd
 
-from sela.data.custom_task import get_mle_bench_requirements, get_mle_task_id
-from sela.data.dataset import generate_task_requirement, get_split_dataset_path
-from sela.evaluation.evaluation import evaluate_score
-from sela.insights.instruction_generator import InstructionGenerator
-from sela.research_assistant import ResearchAssistant, TimeoutException
-from sela.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
+from metagpt.ext.sela.data.custom_task import get_mle_bench_requirements, get_mle_task_id
+from metagpt.ext.sela.data.dataset import generate_task_requirement, get_split_dataset_path
+from metagpt.ext.sela.evaluation.evaluation import evaluate_score
+from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
+from metagpt.ext.sela.research_assistant import ResearchAssistant, TimeoutException
+from metagpt.ext.sela.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
 from metagpt.tools.tool_recommend import ToolRecommender
 from metagpt.utils.common import read_json_file
 

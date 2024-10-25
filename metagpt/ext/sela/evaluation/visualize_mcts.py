@@ -3,7 +3,7 @@ import textwrap
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from sela.MCTS import Node
+from metagpt.ext.sela.MCTS import Node
 
 NODE_TEMPLATE = """\
 [Node {id}]

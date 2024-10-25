@@ -1,7 +1,7 @@
 import os
 
-from sela.data.dataset import SPECIAL_INSTRUCTIONS
-from sela.experimenter.mle_bench.instructions import (
+from metagpt.ext.sela.data.dataset import SPECIAL_INSTRUCTIONS
+from metagpt.ext.sela.experimenter.mle_bench.instructions import (
     ADDITIONAL_NOTES,
     INSTRUCTIONS,
     INSTRUCTIONS_OBFUSCATED,
