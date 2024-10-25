@@ -2,16 +2,15 @@
 
 
 
-
 ## 1. Data Preparation
 
 - Download Datasets：https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink
 - Download and prepare datasets from scratch:
-  ```
-  cd expo/data
-  python dataset.py --save_analysis_pool
-  python hf_data.py --save_analysis_pool
-  ```
+```
+cd expo/data
+python dataset.py --save_analysis_pool
+python hf_data.py --save_analysis_pool
+```
 
 ## 2. Configs
 
@@ -28,7 +27,7 @@
 llm:
   api_type: 'openai'
   model: deepseek-coder
-  base_url: "https://oneapi.deepwisdom.ai/v1"
+  base_url: "https://your_base_url"
   api_key: sk-xxx
   temperature: 0.5
 ```
@@ -109,45 +108,6 @@ python run_experiment.py --exp_mode mcts --custom_dataset_dir <dataset-dir-save-
 
 
 ## 5. Baselines
-### DS Agent
-```
-git clone https://github.com/guosyjlu/DS-Agent.git
-```
-
-Modify the following lines in deployment/generate.py (lines 46-48) as shown below (the purpose is to use deepseek instead of OpenAI's API):
-```python
-messages = [{"role": "user", "content": prompt}]
-
-if 'gpt' in llm:
-    response = openai.ChatCompletion.create(**{"messages": messages,**raw_request})
-    raw_completion = response["choices"][0]["message"]["content"]
-    
-elif llm == 'deepseek-coder':
-    from openai import OpenAI
-    client = OpenAI(
-        api_key="yours", 
-        base_url="https://oneapi.deepwisdom.ai/v1"
-    )
-    response = client.chat.completions.create(
-        model="deepseek-coder",
-        messages=[
-            # {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=temperature,
-        stream=False
-    )
-    raw_completion = response.choices[0].message.content
-
-completion = raw_completion.split("```python")[1].split("```")[0]
-```
-
-After making the changes, create a new `deployment/test.sh` and run the following two lines separately, where `$TASK` is the name of the task you want to test
-```
-python -u generate.py --llm deepseek-coder --task $TASK --shot 1 --retrieval > "$TASK".txt 2>&1 
-
-python -u evaluation.py --path "deepseek-coder_True_1" --task $TASK --device 0  > "$TASK"_eval.txt 2>&1 
-```
 
 ### AIDE
 
@@ -155,6 +115,7 @@ python -u evaluation.py --path "deepseek-coder_True_1" --task $TASK --device 0  
 
 ```
 git clone https://github.com/WecoAI/aideml.git
+git checkout 77953247ea0a5dc1bd502dd10939dd6d7fdcc5cc
 ```
 
 Modify `aideml/aide/utils/config.yaml` - change `k_fold_validation`, `code model`, and `feedback model` as follows:
@@ -240,8 +201,7 @@ python experimenter/aide.py
 ```
 pip install -U pip
 pip install -U setuptools wheel
-pip install autogluon
-
+pip install autogluon==1.1.1
 ```
 
 For Tabular data:
@@ -273,7 +233,7 @@ For an explanation of missing Microsoft Windows and macOS support please check t
 
 #### Setup
 ```
-pip install auto-sklearn
+pip install auto-sklearn==0.15.0
 ```
 
 #### Run
