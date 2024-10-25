@@ -4,16 +4,14 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : product_manager.py
-@Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
+@Modified By: liushaojie, 2024/10/17.
 """
-
-from metagpt.actions import UserRequirement, WritePRD
-from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.actions.requirement_analysis.requirement.pic2txt import Pic2Txt
+from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.prompts.product_manager import PRODUCT_MANAGER_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.roles.role import RoleReactMode
-from metagpt.utils.common import any_to_name, any_to_str, tool2name
-from metagpt.utils.git_repository import GitRepository
+from metagpt.tools.libs.browser import Browser
+from metagpt.tools.libs.editor import Editor
+from metagpt.utils.common import tool2name
 
 
 class ProductManager(RoleZero):
@@ -29,38 +27,18 @@ class ProductManager(RoleZero):
 
     name: str = "Alice"
     profile: str = "Product Manager"
-    goal: str = "efficiently create a successful product that meets market demands and user expectations. Create a Product Requirement Document."
+    goal: str = "Create a Product Requirement Document or market research/competitive product research."
     constraints: str = "utilize the same language as the user requirements for seamless communication"
-    todo_action: str = any_to_name(WritePRD)
-
-    instruction: str = """Use WritePRD tool to write PRD if a PRD is required, users may asks for a software without mentioning PRD, but you should output the PRD of that software; Use `Pic2Txt` tool to write out an intact textual user requirements if an intact textual user requiremnt is required given some images alongside the contextual textual descriptions"""
-    max_react_loop: int = 1  # FIXME: Read and edit files requires more steps, consider later
-    tools: list[str] = ["RoleZero", "WritePRD", Pic2Txt.__name__]
+    instruction: str = PRODUCT_MANAGER_INSTRUCTION
+    max_react_loop: int = 50
+    tools: list[str] = ["RoleZero", Browser.__name__, Editor.__name__, SearchEnhancedQA.__name__]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        # NOTE: The following init setting will only be effective when self.use_fixed_sop is changed to True
         self.enable_memory = False
-        self.set_actions([PrepareDocuments(send_to=any_to_str(self)), WritePRD])
-        if self.use_fixed_sop:
-            self._watch([UserRequirement, PrepareDocuments])
-            self.rc.react_mode = RoleReactMode.BY_ORDER
 
     def _update_tool_execution(self):
-        wp = WritePRD()
-        self.tool_execution_map.update(tool2name(WritePRD, ["run"], wp.run))
-        pic2txt = Pic2Txt()
-        self.tool_execution_map.update(tool2name(Pic2Txt, ["run"], pic2txt.run))
-
-    async def _think(self) -> bool:
-        """Decide what to do"""
-        if not self.use_fixed_sop:
-            return await super()._think()
-
-        if GitRepository.is_git_dir(self.config.project_path) and not self.config.git_reinit:
-            self._set_state(1)
-        else:
-            self._set_state(0)
-            self.config.git_reinit = False
-            self.todo_action = any_to_name(WritePRD)
-        return bool(self.rc.todo)
+        se_qa = SearchEnhancedQA()
+        self.tool_execution_map.update(
+            tool2name(SearchEnhancedQA, ["collect_relevant_links"], se_qa.collect_relevant_links)
+        )

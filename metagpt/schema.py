@@ -685,7 +685,17 @@ class Plan(BaseModel):
     def append_task(
         self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""
     ):
-        """Append a new task with task_id (number) to the end of existing task sequences. If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list. Note that the assignee should be the 'name' of the role."""
+        """
+        Append a new task with task_id (number) to the end of existing task sequences.
+        If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list.
+        Note that the assignee should be the 'name' of the role.
+        Args:
+            task_id (str): The task id to be appended to the existing task sequence
+            dependent_task_ids (list[str]): The task ids that the new task depends on
+            instruction (str): The instruction of the new task
+            assignee (str): The assignee of the new task
+            task_type (str): The type of the new task, default is empty string
+        """
         new_task = Task(
             task_id=task_id,
             dependent_task_ids=dependent_task_ids,
