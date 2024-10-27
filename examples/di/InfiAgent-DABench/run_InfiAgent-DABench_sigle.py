@@ -7,8 +7,9 @@ from metagpt.utils.recovery_util import save_history
 
 
 async def main(id=0):
+    """Evaluate one task"""
     DA = DABench()
-    requirement = DA.get_prompt(id)
+    requirement = DA.generate_formatted_prompt(id)
     di = DataInterpreter()
     result = await di.run(requirement)
     logger.info(result)

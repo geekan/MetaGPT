@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-import argparse
 import asyncio
 import json
 
@@ -8,62 +6,70 @@ from DABench import DABench
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
-def init_agent(*args, **kwargs):
-    return
+async def get_prediction(agent, requirement):
+    """Helper function to obtain a prediction from a new instance of the agent.
 
+    This function runs the agent with the provided requirement and extracts the prediction
+    from the result. If an error occurs during processing, it logs the error and returns None.
 
-async def get_prediction(agent_class, requirement):
-    """Helper function to get prediction from a new instance of the agent"""
+    Args:
+        agent: The agent instance used to generate predictions.
+        requirement: The input requirement for which the prediction is to be made.
+
+    Returns:
+        The predicted result if successful, otherwise None.
+    """
     try:
-        agent = agent_class  # Instantiate the agent inside this function to avoid memory conflicts
+        # Run the agent with the given requirement and await the result
         result = await agent.run(requirement)
+
+        # Parse the result to extract the prediction from the JSON response
         prediction_json = json.loads(str(result).split("Current Plan")[1].split("## Current Task")[0])
-        prediction = prediction_json[-1]["result"]
-        return prediction
+        prediction = prediction_json[-1]["result"]  # Extract the last result from the parsed JSON
+
+        return prediction  # Return the extracted prediction
     except Exception as e:
+        # Log an error message if an exception occurs during processing
         print(f"Error processing requirement: {requirement}. Error: {e}")
-        return None
+        return None  # Return None in case of an error
 
 
-async def evaluate_all(agent_class):
-    """Evaluate all tasks in DABench using the specified baseline agent"""
-    DA = DABench()
-    id_list, predictions = [], []
-    tasks = []
+async def evaluate_all(agent, k):
+    """Evaluate all tasks in DABench using the specified baseline agent.
+
+    Tasks are divided into groups of size k and processed in parallel.
+
+    Args:
+        agent: The baseline agent used for making predictions.
+        k (int): The number of tasks to process in each group concurrently.
+    """
+    DA = DABench()  # Create an instance of DABench to access its methods and data
+    id_list, predictions = [], []  # Initialize lists to store IDs and predictions
+    tasks = []  # Initialize a list to hold the tasks
+
+    # Iterate over the answers in DABench to generate tasks
     for key, value in DA.answers.items():
-        requirement = DA.get_prompt(key)
-        tasks.append(get_prediction(agent_class, requirement))
-        id_list.append(key)
-    # Run all tasks concurrently
-    predictions = await asyncio.gather(*tasks)
-    # Filter out any None values in predictions
-    predictions = [pred for pred in predictions if pred is not None]
+        requirement = DA.generate_formatted_prompt(key)  # Generate a formatted prompt for the current key
+        tasks.append(get_prediction(agent, requirement))  # Append the prediction task to the tasks list
+        id_list.append(key)  # Append the current key to the ID list
+
+    # Process tasks in groups of size k and execute them concurrently
+    for i in range(0, len(tasks), k):
+        # Get the current group of tasks
+        current_group = tasks[i : i + k]
+        # Execute the current group of tasks in parallel
+        group_predictions = await asyncio.gather(*current_group)
+        # Filter out any None values from the predictions and extend the predictions list
+        predictions.extend(pred for pred in group_predictions if pred is not None)
+
+    # Evaluate the results using all valid predictions and print the evaluation
     print(DA.eval_all(id_list, predictions))
 
 
-def main():
-    # Set up argparse to handle command-line arguments
-    parser = argparse.ArgumentParser(description="Run evaluation with different baselines.")
-    # Define the command-line argument for the agent name
-    parser.add_argument(
-        "--agent_name",
-        type=str,
-        default="DataInterpreter",
-        help="Specify the baseline agent class to use for evaluation.",
-    )
-    # Parse the arguments
-    args = parser.parse_args()
-    # Manually match the agent name to the class
-    if args.agent_name == "DataInterpreter":
-        agent_class = DataInterpreter()
-    # Add more agents as needed
-    # elif args.agent_name == "OtherAgent":
-    #     agent_class = OtherAgent
-    else:
-        print(f"Agent {args.agent_name} not recognized.")
-        return
-    # Run the evaluation with the specified agent class
-    asyncio.run(evaluate_all(agent_class))
+def main(k=5):
+    """Main function to run the evaluation process."""
+    agent = DataInterpreter()  # Create an instance of the DataInterpreter agent
+    asyncio.run(evaluate_all(agent, k))  # Run the evaluate_all function asynchronously
 
 
 if __name__ == "__main__":
