@@ -15,7 +15,7 @@ async def main(id=0):
     logger.info(result)
     save_history(role=di)
     _, is_correct = DA.eval(id, str(result))
-    print(f"Prediction is {'correct' if is_correct else 'incorrect'}.")
+    logger.info(f"Prediction is {'correct' if is_correct else 'incorrect'}.")
 
 
 if __name__ == "__main__":

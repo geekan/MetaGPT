@@ -28,7 +28,7 @@ async def main():
             predictions.append(str(""))
     df = pd.DataFrame({"Label": labels, "Prediction": predictions, "T/F": is_true})
     df.to_excel("DABench_output.xlsx", index=False)
-    print(DA.eval_all(id_list, predictions))
+    logger.info(DA.eval_all(id_list, predictions))
 
 
 if __name__ == "__main__":
