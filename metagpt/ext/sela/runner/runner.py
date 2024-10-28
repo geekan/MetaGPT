@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.research_assistant import ResearchAssistant
+from metagpt.ext.sela.experimenter import ResearchAssistant
 from metagpt.ext.sela.search.tree_search import create_initial_state
 from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
 
 
-class Experimenter:
+class Runner:
     result_path: str = "results/base"
     data_config = DATA_CONFIG
     start_task_id = 1

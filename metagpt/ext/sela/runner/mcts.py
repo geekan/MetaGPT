@@ -5,11 +5,11 @@ from metagpt.ext.sela.evaluation.evaluation import (
     node_evaluate_score_sela,
 )
 from metagpt.ext.sela.evaluation.visualize_mcts import get_tree_text
-from metagpt.ext.sela.experimenter.experimenter import Experimenter
+from metagpt.ext.sela.runner.runner import Runner
 from metagpt.ext.sela.search.search_algorithm import MCTS, Greedy, Random
 
 
-class MCTSExperimenter(Experimenter):
+class MCTSRunner(Runner):
     result_path: str = "results/mcts"
 
     def __init__(self, args, tree_mode=None, **kwargs):

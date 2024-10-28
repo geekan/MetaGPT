@@ -15,8 +15,8 @@ from metagpt.ext.sela.data.dataset import (
     get_split_dataset_path,
 )
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
+from metagpt.ext.sela.experimenter import ResearchAssistant, TimeoutException
 from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
-from metagpt.ext.sela.research_assistant import ResearchAssistant, TimeoutException
 from metagpt.ext.sela.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
 from metagpt.tools.tool_recommend import ToolRecommender
 from metagpt.utils.common import read_json_file

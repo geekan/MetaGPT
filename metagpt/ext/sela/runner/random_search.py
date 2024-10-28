@@ -1,6 +1,6 @@
-from metagpt.ext.sela.experimenter.experimenter import Experimenter
+from metagpt.ext.sela.experimenter import ResearchAssistant
 from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
-from metagpt.ext.sela.research_assistant import ResearchAssistant
+from metagpt.ext.sela.runner.runner import Runner
 from metagpt.ext.sela.utils import get_exp_pool_path
 
 EXPS_PROMPT = """
@@ -10,7 +10,7 @@ When doing the tasks, you can refer to the insights below:
 """
 
 
-class RandomSearchExperimenter(Experimenter):
+class RandomSearchRunner(Runner):
     result_path: str = "results/random_search"
 
     async def run_experiment(self):
