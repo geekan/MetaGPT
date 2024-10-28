@@ -2,12 +2,12 @@ import argparse
 import asyncio
 
 from metagpt.ext.sela.data.custom_task import get_mle_is_lower_better, get_mle_task_id
-from metagpt.ext.sela.experimenter.random_search import RandomSearchExperimenter
 from metagpt.ext.sela.experimenter.autogluon import GluonExperimenter
 from metagpt.ext.sela.experimenter.autosklearn import AutoSklearnExperimenter
 from metagpt.ext.sela.experimenter.custom import CustomExperimenter
 from metagpt.ext.sela.experimenter.experimenter import Experimenter
 from metagpt.ext.sela.experimenter.mcts import MCTSExperimenter
+from metagpt.ext.sela.experimenter.random_search import RandomSearchExperimenter
 
 
 def get_args(cmd=True):

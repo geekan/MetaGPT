@@ -6,8 +6,14 @@ import shutil
 import numpy as np
 import pandas as pd
 
-from metagpt.ext.sela.data.custom_task import get_mle_bench_requirements, get_mle_task_id
-from metagpt.ext.sela.data.dataset import generate_task_requirement, get_split_dataset_path
+from metagpt.ext.sela.data.custom_task import (
+    get_mle_bench_requirements,
+    get_mle_task_id,
+)
+from metagpt.ext.sela.data.dataset import (
+    generate_task_requirement,
+    get_split_dataset_path,
+)
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
 from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
 from metagpt.ext.sela.research_assistant import ResearchAssistant, TimeoutException
@@ -57,9 +63,9 @@ def create_initial_state(task: str, start_task_id: int, data_config: dict, args)
     Args:
         task (str): The task to be performed.
         start_task_id (int): The ID of the starting task.
-        data_config (dict): The configuration of the data. 
+        data_config (dict): The configuration of the data.
             Expected keys: 'datasets', 'work_dir', 'role_dir'.
-        args (Namespace): The arguments passed to the program. 
+        args (Namespace): The arguments passed to the program.
             Expected attributes: 'external_eval', 'custom_dataset_dir', 'special_instruction', 'name', 'low_is_better', 'role_timeout'.
 
     Returns:
@@ -104,6 +110,7 @@ def create_initial_state(task: str, start_task_id: int, data_config: dict, args)
     os.makedirs(initial_state["node_dir"], exist_ok=True)
     return initial_state
 
+
 class Node:
     state: dict = {}
     action: str = None
@@ -113,7 +120,9 @@ class Node:
     normalized_reward: dict = {"train_score": 0, "dev_score": 0, "test_score": 0}
     parent = None
 
-    def __init__(self, parent=None, state: dict = None, action: str = None, value: float = 0, max_depth: int = 4, **kwargs):
+    def __init__(
+        self, parent=None, state: dict = None, action: str = None, value: float = 0, max_depth: int = 4, **kwargs
+    ):
         self.state = state
         self.action = action
         self.value = value
@@ -304,8 +313,6 @@ class Node:
         self.normalized_reward = score_dict
         result_dict = role.get_solution()
         return score_dict, result_dict
-
-
 
 
 class BaseTreeSearch:

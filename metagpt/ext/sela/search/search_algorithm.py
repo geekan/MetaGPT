@@ -1,4 +1,5 @@
 import numpy as np
+
 from metagpt.ext.sela.search.tree_search import BaseTreeSearch, Node
 
 
