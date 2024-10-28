@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.MCTS import create_initial_state
+from metagpt.ext.sela.search.tree_search import create_initial_state
 from metagpt.ext.sela.research_assistant import ResearchAssistant
 from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
 

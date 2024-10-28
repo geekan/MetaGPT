@@ -113,7 +113,7 @@ class Node:
     normalized_reward: dict = {"train_score": 0, "dev_score": 0, "test_score": 0}
     parent = None
 
-    def __init__(self, parent=None, state=None, action=None, value=0, max_depth=4, **kwargs):
+    def __init__(self, parent=None, state: dict = None, action: str = None, value: float = 0, max_depth: int = 4, **kwargs):
         self.state = state
         self.action = action
         self.value = value
