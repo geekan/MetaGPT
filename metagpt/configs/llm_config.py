@@ -83,6 +83,7 @@ class LLMConfig(YamlModel):
     logprobs: Optional[bool] = None
     top_logprobs: Optional[int] = None
     timeout: int = 600
+    context_length: Optional[int] = None  # Max input tokens
 
     # For Amazon Bedrock
     region_name: str = None
