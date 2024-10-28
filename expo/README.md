@@ -28,7 +28,7 @@
 llm:
   api_type: 'openai'
   model: deepseek-coder
-  base_url: "https://oneapi.deepwisdom.ai/v1"
+  base_url: "your_base_url"
   api_key: sk-xxx
   temperature: 0.5
 ```
@@ -154,7 +154,7 @@ python -u evaluation.py --path "deepseek-coder_True_1" --task $TASK --device 0  
 #### Setup
 
 ```
-git clone https://github.com/WecoAI/aideml.git
+git -b 77953247ea0a5dc1bd502dd10939dd6d7fdcc5cc clone https://github.com/WecoAI/aideml.git
 ```
 
 Modify `aideml/aide/utils/config.yaml` - change `k_fold_validation`, `code model`, and `feedback model` as follows:
@@ -194,29 +194,18 @@ Modify `aideml/aide/backend/__init__.py`'s line 30 and below:
 
 ```python
 model_kwargs = model_kwargs | {
-        "model": model,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-    }
-    if "claude-" in model:
-        query_func = backend_anthropic.query
-    else:
-        query_func = backend_openai.query
+    "model": model, "temperature": temperature, "max_tokens": max_tokens, }
+if "claude-" in model:
+    query_func = backend_anthropic.query
+else:
+    query_func = backend_openai.query
 ```
 
 Since deepseekV2.5 no longer supports system message using function call, modify `aideml/aide/agent.py`'s line 312:
 
 ```python
-response = cast(
-            dict,
-            query(
-                system_message=None,
-                user_message=prompt,
-                func_spec=review_func_spec,
-                model=self.acfg.feedback.model,
-                temperature=self.acfg.feedback.temp,
-            ),
-        )
+response = cast(dict, query(system_message=None, user_message=prompt, func_spec=review_func_spec,
+    model=self.acfg.feedback.model, temperature=self.acfg.feedback.temp,))
 ```
 
 Modify and install:
@@ -240,7 +229,7 @@ python experimenter/aide.py
 ```
 pip install -U pip
 pip install -U setuptools wheel
-pip install autogluon
+pip install autogluon==1.1.1
 
 ```
 
@@ -273,7 +262,7 @@ For an explanation of missing Microsoft Windows and macOS support please check t
 
 #### Setup
 ```
-pip install auto-sklearn
+pip install auto-sklearn==0.15.0
 ```
 
 #### Run
