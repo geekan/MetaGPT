@@ -325,49 +325,6 @@ class APIRequestor:
         self,
         method,
         url,
-        params,
-        headers,
-        files,
-        stream: Literal[True],
-        request_id: Optional[str] = ...,
-        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
-        pass
-
-    @overload
-    async def arequest(
-        self,
-        method,
-        url,
-        params=...,
-        headers=...,
-        files=...,
-        *,
-        stream: Literal[True],
-        request_id: Optional[str] = ...,
-        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
-        pass
-
-    @overload
-    async def arequest(
-        self,
-        method,
-        url,
-        params=...,
-        headers=...,
-        files=...,
-        stream: Literal[False] = ...,
-        request_id: Optional[str] = ...,
-        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[OpenAIResponse, bool, str]:
-        pass
-
-    @overload
-    async def arequest(
-        self,
-        method,
-        url,
         params=...,
         headers=...,
         files=...,
