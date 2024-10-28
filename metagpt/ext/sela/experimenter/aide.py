@@ -1,11 +1,15 @@
-import aide
 import os
 import time
 
+import aide
+
 os.environ["OPENAI_API_KEY"] = "sk-xxx"
 os.environ["OPENAI_BASE_URL"] = "your url"
+
 start_time = time.time()
+
 data_dir = "xxx/data/titanic"
+
 goal = f"""
 # User requirement
 ({data_dir}, 'This is a 04_titanic dataset. Your goal is to predict the target column `Survived`.\nPerform data analysis, data preprocessing, feature engineering, and modeling to predict the target. \nReport f1 on the eval data. Do not plot or make any visualizations.\n')

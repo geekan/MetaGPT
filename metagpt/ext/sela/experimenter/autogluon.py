@@ -1,7 +1,9 @@
-from datetime import datetime
-from metagpt.ext.sela.experimenter.custom import CustomExperimenter
 import os
+from datetime import datetime
+
 import pandas as pd
+
+from metagpt.ext.sela.experimenter.custom import CustomExperimenter
 
 
 class AGRunner:
@@ -11,6 +13,7 @@ class AGRunner:
 
     def run(self):
         from autogluon.tabular import TabularDataset, TabularPredictor
+
         train_path = self.datasets["train"]
         dev_path = self.datasets["dev"]
         dev_wo_target_path = self.datasets["dev_wo_target"]
@@ -32,6 +35,7 @@ class AGRunner:
 
     def run_multimodal(self):
         from autogluon.multimodal import MultiModalPredictor
+
         target_col = self.state["dataset_config"]["target_col"]
         train_path = self.datasets["train"]
         dev_path = self.datasets["dev"]
@@ -56,10 +60,7 @@ class AGRunner:
         test_preds = predictor.predict(test_data)
 
         # Return predictions for dev and test datasets
-        return {
-            "dev_preds": dev_preds,
-            "test_preds": test_preds
-        }
+        return {"dev_preds": dev_preds, "test_preds": test_preds}
 
     def load_split_dataset(self, train_path, dev_path, dev_wo_target_path, test_wo_target_path):
         """
@@ -94,7 +95,8 @@ class AGRunner:
         train_data[image_column] = train_data[image_column].apply(lambda x: os.path.join(root_folder, x))
         dev_data[image_column] = dev_data[image_column].apply(lambda x: os.path.join(root_folder, x))
         dev_wo_target_data[image_column] = dev_wo_target_data[image_column].apply(
-            lambda x: os.path.join(root_folder, x))
+            lambda x: os.path.join(root_folder, x)
+        )
         test_data[image_column] = test_data[image_column].apply(lambda x: os.path.join(root_folder, x))
 
         return train_data, dev_data, dev_wo_target_data, test_data
@@ -106,7 +108,7 @@ class GluonExperimenter(CustomExperimenter):
     def __init__(self, args, **kwargs):
         super().__init__(args, **kwargs)
         self.framework = AGRunner(self.state)
-        self.is_multimodal = args.is_multimodal if hasattr(args, 'is_multimodal') else False
+        self.is_multimodal = args.is_multimodal if hasattr(args, "is_multimodal") else False
 
     async def run_experiment(self):
         if not self.is_multimodal:
