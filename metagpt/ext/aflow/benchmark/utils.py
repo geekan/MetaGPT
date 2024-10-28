@@ -4,13 +4,14 @@
 @Time    : 2024/7/24 16:37
 @Author  : didi
 @File    : utils.py
-@Acknowledgement https://github.com/evalplus/evalplus/blob/master/evalplus/sanitize.py
 """
 
 import json
 import os
 
 import numpy as np
+
+from metagpt.utils.common import write_json_file
 
 
 def generate_random_indices(n, n_samples, test=False):
@@ -41,13 +42,6 @@ def split_data_set(file_path, samples, test=False):
     return data
 
 
-# save data into a jsonl file
-def save_data(data, file_path):
-    with open(file_path, "w") as file:
-        for d in data:
-            file.write(json.dumps(d) + "\n")
-
-
 def log_mismatch(problem, expected_output, prediction, predicted_number, path):
     log_data = {
         "question": problem,
@@ -74,5 +68,4 @@ def log_mismatch(problem, expected_output, prediction, predicted_number, path):
     data.append(log_data)
 
     # 将数据写回到log.json文件
-    with open(log_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    write_json_file(log_file, data, encoding="utf-8", indent=4)

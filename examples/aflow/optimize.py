@@ -3,25 +3,33 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
+import argparse
+
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.ext.aflow.data.download_data import download
-from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType
+from metagpt.ext.aflow.scripts.optimizer import Optimizer
 
 # DatasetType, QuestionType, and OptimizerType definitions
 # DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 # QuestionType = Literal["math", "code", "qa"]
 # OptimizerType = Literal["Graph", "Test"]
 
-# Crucial Parameters
-dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType
-sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
-question_type: QuestionType = "math"  # Ensure the type is consistent with QuestionType
-optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
-initial_round: int = 1  # Corrected the case from Initial_round to initial_round
-max_rounds: int = 20  # The max iteration of AFLOW.
-check_convergence: bool = True  # Whether Early Stop
-validation_rounds: int = 5  # The validation rounds of AFLOW.
-if_fisrt_optimize = True  # You should change it to False after the first optimize.
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="AFlow Optimizer")
+    parser.add_argument("--dataset", type=str, default="MATH", help="Dataset type")
+    parser.add_argument("--sample", type=int, default=4, help="Sample count")
+    parser.add_argument("--question_type", type=str, default="math", help="Question type")
+    parser.add_argument(
+        "--optimized_path", type=str, default="metagpt/ext/aflow/scripts/optimized", help="Optimized result save path"
+    )
+    parser.add_argument("--initial_round", type=int, default=1, help="Initial round")
+    parser.add_argument("--max_rounds", type=int, default=20, help="Max iteration rounds")
+    parser.add_argument("--check_convergence", type=bool, default=True, help="Whether to enable early stop")
+    parser.add_argument("--validation_rounds", type=int, default=5, help="Validation rounds")
+    parser.add_argument("--if_first_optimize", type=bool, default=True, help="Whether this is first optimization")
+    return parser.parse_args()
+
 
 # Config llm model, you can modify `config/config2.yaml` to use more llms.
 mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
@@ -37,24 +45,26 @@ operators = [
     "Programmer",  # It's for math
 ]
 
-# Create an optimizer instance
-optimizer = Optimizer(
-    dataset=dataset,  # Config dataset
-    question_type=question_type,  # Config Question Type
-    opt_llm_config=claude_llm_config,  # Config Optimizer LLM
-    exec_llm_config=mini_llm_config,  # Config Execution LLM
-    check_convergence=check_convergence,  # Whether Early Stop
-    operators=operators,  # Config Operators you want to use
-    optimized_path=optimized_path,  # Config Optimized workflow's file path
-    sample=sample,  # Only Top(sample) rounds will be selected.
-    initial_round=initial_round,  # Optimize from initial round
-    max_rounds=max_rounds,  # The max iteration of AFLOW.
-    validation_rounds=validation_rounds,  # The validation rounds of AFLOW.
-)
-
 if __name__ == "__main__":
+    args = parse_args()
+
+    # Create an optimizer instance
+    optimizer = Optimizer(
+        dataset=args.dataset,  # Config dataset
+        question_type=args.question_type,  # Config Question Type
+        opt_llm_config=claude_llm_config,  # Config Optimizer LLM
+        exec_llm_config=mini_llm_config,  # Config Execution LLM
+        check_convergence=args.check_convergence,  # Whether Early Stop
+        operators=operators,  # Config Operators you want to use
+        optimized_path=args.optimized_path,  # Config Optimized workflow's file path
+        sample=args.sample,  # Only Top(sample) rounds will be selected.
+        initial_round=args.initial_round,  # Optimize from initial round
+        max_rounds=args.max_rounds,  # The max iteration of AFLOW.
+        validation_rounds=args.validation_rounds,  # The validation rounds of AFLOW.
+    )
+
     # When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-    download(["datasets", "initial_rounds"], if_first_download=if_fisrt_optimize)
+    download(["datasets", "initial_rounds"], if_first_download=args.if_first_optimize)
     # Optimize workflow via setting the optimizer's mode to 'Graph'
     optimizer.optimize("Graph")
     # Test workflow via setting the optimizer's mode to 'Test'

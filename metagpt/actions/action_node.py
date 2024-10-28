@@ -19,12 +19,12 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_outcls_registry import register_action_outcls
 from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.ext.aflow.scripts.utils import sanitize
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
 from metagpt.utils.common import OutputParser, general_after_log
 from metagpt.utils.human_interaction import HumanInteraction
+from metagpt.utils.sanitize import sanitize
 
 
 class ReviewMode(Enum):
@@ -527,7 +527,9 @@ class ActionNode:
 """
         return context
 
-    async def code_fill(self, context, function_name=None, timeout=USE_CONFIG_TIMEOUT):
+    async def code_fill(
+        self, context: str, function_name: Optional[str] = None, timeout: int = USE_CONFIG_TIMEOUT
+    ) -> Dict[str, str]:
         """
         Fill CodeBlock Using ``` ```
         """
@@ -538,21 +540,21 @@ class ActionNode:
         result = {field_name: extracted_code}
         return result
 
-    async def single_fill(self, context):
+    async def single_fill(self, context: str) -> Dict[str, str]:
         field_name = self.get_field_name()
         prompt = context
         content = await self.llm.aask(prompt)
         result = {field_name: content}
         return result
 
-    async def xml_fill(self, context):
+    async def xml_fill(self, context: str) -> Dict[str, Any]:
         """
-        使用XML标签填充上下文并根据字段类型进行转换，包括字符串、整数、布尔值、列表和字典类型
+        Fill context with XML tags and convert according to field types, including string, integer, boolean, list and dict types
         """
         field_names = self.get_field_names()
         field_types = self.get_field_types()
 
-        extracted_data = {}
+        extracted_data: Dict[str, Any] = {}
         content = await self.llm.aask(context)
 
         for field_name in field_names:

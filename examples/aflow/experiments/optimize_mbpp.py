@@ -6,14 +6,6 @@
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType
 
-# DatasetType, QuestionType, and OptimizerType definitions
-# DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
-# QuestionType = Literal["math", "code", "qa"]
-# OptimizerType = Literal["Graph", "Test"]
-
-# When you fisrt use, please download the datasets and initial rounds; If you want to get a look of the results, please download the results.
-# download(["datasets", "initial_rounds"])
-
 # Crucial Parameters
 dataset: DatasetType = "MBPP"  # Ensure the type is consistent with DatasetType
 sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows

@@ -5,7 +5,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-performance.jpg" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-performance.jpg" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>" width="80%"></a>
 </p>
 
 ## Framework Components
@@ -17,7 +17,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 - **Evaluator**: Assesses workflow performance on given tasks. Provides feedback to guide the optimization process towards more effective workflows. See `metagpt/ext/aflow/scripts/evaluator.py` for details.
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-method.jpg" alt="Performance Of AFLOW" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-method.jpg" alt="Performance Of AFLOW" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
 </p>
 
 ## Datasets
@@ -26,7 +26,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 We conducted experiments on six datasets (HumanEval, MBPP, GSM8K, MATH, HotpotQA, DROP) and provide their evaluation code. The data can be found in this [datasets](https://drive.google.com/uc?export=download&id=1DNoegtZiUhWtvkd2xoIuElmIi4ah7k8e) link, or you can download them using `metagpt/ext/aflow/data/download_data.py`
 
 <p align="center">
-<a href=""><img src="../../docs/resources/AFLOW-experiment.jpg" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-experiment.jpg" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>" width="80%"></a>
 </p>
 
 ### Custom Datasets
@@ -34,31 +34,41 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
 
 ## Quick Start
 
-1. Configure your search in `optimize.py`:
-   - Open `examples/aflow/optimize.py`
-   - Set the following parameters:
+1. Configure optimization parameters:
+   - Use command line arguments or modify default parameters in `examples/aflow/optimize.py`:
      ```python
-     dataset: DatasetType = "MATH"  # Ensure the type is consistent with DatasetType
-     sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
-     question_type: QuestionType = "math"  # Ensure the type is consistent with QuestionType
-     optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
-     initial_round: int = 1  # Corrected the case from Initial_round to initial_round
-     max_rounds: int = 20  # The max iteration of AFLOW.
-     check_convergence: bool = True  # Whether Early Stop
-     validation_rounds: int = 5  # The validation rounds of AFLOW.
-     if_fisrt_optimize = True  # You should change it to False after the first optimize.
+     --dataset MATH          # Dataset type (HumanEval/MBPP/GSM8K/MATH/HotpotQA/DROP)
+     --sample 4             # Sample count - number of workflows to be resampled
+     --question_type math   # Question type (math/code/qa)
+     --optimized_path PATH  # Optimized result save path
+     --initial_round 1      # Initial round
+     --max_rounds 20        # Max iteration rounds for AFLOW
+     --check_convergence    # Whether to enable early stop
+     --validation_rounds 5  # Validation rounds for AFLOW
+     --if_first_optimize   # Set True for first optimization, False afterwards
      ```
-   - Adjust these parameters according to your specific requirements and dataset
-2. Set up parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
-3. Set the operator you want to use in `optimize.py` and in `optimized_path/template/operator.py`, `optimized_path/template/operator.json`. You can reference our implementation to add operators for specific datasets
-4. When you first run, you can download the datasets and initial rounds by setting `download(["datasets", "initial_rounds"])` in `examples/aflow/optimize.py`
-5. (Optional) Add your custom dataset and corresponding evaluation function following the [Custom Datasets](#custom-datasets) section
-6. (Optional) If you want to use a portion of the validation data, you can set `va_list` in `examples/aflow/evaluator.py`
-6. Run `python -m examples.aflow.optimize` to start the optimization process!
 
+2. Configure LLM parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
+
+3. Set up operators in `optimize.py` and in `optimized_path/template/operator.py`, `optimized_path/template/operator.json`. You can reference our implementation to add operators for specific datasets
+
+4. For first-time use, download datasets and initial rounds by setting `download(["datasets", "initial_rounds"])` in `examples/aflow/optimize.py`
+
+5. (Optional) Add your custom dataset and corresponding evaluation function following the [Custom Datasets](#custom-datasets) section
+
+6. (Optional) If you want to use a portion of the validation data, you can set `va_list` in `examples/aflow/evaluator.py`
+
+7. Run the optimization:
+   ```bash
+   # Using default parameters
+   python -m examples.aflow.optimize
+   
+   # Or with custom parameters
+   python -m examples.aflow.optimize --dataset MATH --sample 4 --question_type math
+   ```
 
 ## Reproduce the Results in the Paper
-1. We provide the raw data obtained from our experiments (link), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
+1. We provide the raw data obtained from our experiments ([download link](https://drive.google.com/uc?export=download&id=1Sr5wjgKf3bN8OC7G6cO3ynzJqD4w6_Dv)), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
 2. You can directly reproduce our experimental results by running the scripts in `examples/aflow/experiments`.
 
 

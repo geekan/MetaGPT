@@ -6,16 +6,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from metagpt.ext.aflow.benchmark.benchmark import BaseBenchmark
-from metagpt.ext.aflow.scripts.utils import sanitize
 from metagpt.logs import logger
+from metagpt.utils.sanitize import sanitize
 
 
 class HumanEvalBenchmark(BaseBenchmark):
     def __init__(self, name: str, file_path: str, log_path: str):
         super().__init__(name, file_path, log_path)
-
-    PASS = "PASS"
-    FAIL = "FAIL"
 
     class TimeoutError(Exception):
         pass

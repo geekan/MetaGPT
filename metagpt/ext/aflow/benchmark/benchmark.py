@@ -3,6 +3,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Callable, List, Tuple
 
 import aiofiles
@@ -10,6 +11,7 @@ import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
 
 from metagpt.logs import logger
+from metagpt.utils.common import write_json_file
 
 
 class BaseBenchmark(ABC):
@@ -17,6 +19,9 @@ class BaseBenchmark(ABC):
         self.name = name
         self.file_path = file_path
         self.log_path = log_path
+
+    PASS = "PASS"
+    FAIL = "FAIL"
 
     async def load_data(self, specific_indices: List[int] = None) -> List[dict]:
         data = []
@@ -55,9 +60,9 @@ class BaseBenchmark(ABC):
             "extracted_output": extracted_output,
             "extract_answer_code": extract_answer_code,
         }
-        log_file = os.path.join(self.log_path, "log.json")
-        if os.path.exists(log_file):
-            with open(log_file, "r", encoding="utf-8") as f:
+        log_file = Path(self.log_path) / "log.json"
+        if log_file.exists():
+            with log_file.open("r", encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.JSONDecodeError:
@@ -65,8 +70,7 @@ class BaseBenchmark(ABC):
         else:
             data = []
         data.append(log_data)
-        with open(log_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        write_json_file(log_file, data, encoding="utf-8", indent=4)
 
     @abstractmethod
     async def evaluate_problem(self, problem: dict, graph: Callable) -> Tuple[Any, ...]:
