@@ -6,9 +6,9 @@ import os
 
 from pydantic import model_validator
 
-from expo.utils import mcts_logger, save_notebook
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.const import SERDESER_PATH
+from metagpt.ext.sela.utils import mcts_logger, save_notebook
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.utils.common import CodeParser, write_json_file
@@ -71,7 +71,7 @@ class ResearchAssistant(DataInterpreter):
         return f"Node-{self.node_id}"
 
     def get_next_instruction(self):
-        return self.planner.plan.tasks[self.start_task_id]
+        return self.planner.plan.tasks[self.start_task_id].instruction
 
     def change_next_instruction(self, new_instruction):
         if new_instruction is not None:

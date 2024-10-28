@@ -1,8 +1,10 @@
 from datetime import datetime
-import pandas as pd
-from expo.experimenter.custom import CustomExperimenter
-from expo.evaluation.evaluation import evaluate_score
 from functools import partial
+
+import pandas as pd
+
+from metagpt.ext.sela.evaluation.evaluation import evaluate_score
+from metagpt.ext.sela.experimenter.custom import CustomExperimenter
 
 
 def custom_scorer(y_true, y_pred, metric_name):
@@ -19,9 +21,7 @@ class ASRunner:
     def create_autosklearn_scorer(self, metric_name):
         from autosklearn.metrics import make_scorer
 
-        return make_scorer(
-            name=metric_name, score_func=partial(custom_scorer, metric_name=metric_name)
-        )
+        return make_scorer(name=metric_name, score_func=partial(custom_scorer, metric_name=metric_name))
 
     def run(self):
         import autosklearn.classification

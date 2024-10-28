@@ -1,9 +1,12 @@
 import networkx as nx
 
-from expo.evaluation.visualize_mcts import build_tree_recursive, visualize_tree
-from expo.MCTS import MCTS, create_initial_state, initialize_di_root_node
-from expo.run_experiment import get_args
-from expo.utils import DATA_CONFIG
+from metagpt.ext.sela.evaluation.visualize_mcts import (
+    build_tree_recursive,
+    visualize_tree,
+)
+from metagpt.ext.sela.MCTS import MCTS, create_initial_state, initialize_di_root_node
+from metagpt.ext.sela.run_experiment import get_args
+from metagpt.ext.sela.utils import DATA_CONFIG
 
 if __name__ == "__main__":
     args = get_args()

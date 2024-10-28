@@ -3,7 +3,7 @@ import textwrap
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from expo.MCTS import Node
+from metagpt.ext.sela.search.tree_search import Node
 
 NODE_TEMPLATE = """\
 [Node {id}]
