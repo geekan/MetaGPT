@@ -179,25 +179,25 @@ model_kwargs = model_kwargs | {
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
-    if "claude-" in model:
-        query_func = backend_anthropic.query
-    else:
-        query_func = backend_openai.query
+if "claude-" in model:
+  query_func = backend_anthropic.query
+else:
+  query_func = backend_openai.query
 ```
 
 Since deepseekV2.5 no longer supports system message using function call, modify `aideml/aide/agent.py`'s line 312:
 
 ```python
 response = cast(
-            dict,
-            query(
-                system_message=None,
-                user_message=prompt,
-                func_spec=review_func_spec,
-                model=self.acfg.feedback.model,
-                temperature=self.acfg.feedback.temp,
-            ),
-        )
+    dict,
+    query(
+        system_message=None,
+        user_message=prompt,
+        func_spec=review_func_spec,
+        model=self.acfg.feedback.model,
+        temperature=self.acfg.feedback.temp,
+    ),
+)
 ```
 
 Modify and install:
