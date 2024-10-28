@@ -8,6 +8,7 @@ import nest_asyncio
 
 from examples.di.requirements_prompt import DABENCH
 from metagpt.const import DABENCH_PATH
+from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -473,14 +474,14 @@ class DABench:
 
 
 if __name__ == "__main__":
-    DA = DABench()
+    bench = DABench()
     id = 0
     prediction = "@mean_fare[34.65]"
-    print(DA.eval(id, prediction))
+    logger.info(bench.eval(id, prediction))
     ids = [0, 5, 6]
     predictions = [
         "@mean_fare[34.89]",
         "@correlation_coefficient[0.21]",
         "@mean_fare_child[31.09], @mean_fare_teenager[31.98], @mean_fare_adult[35.17], @mean_fare_elderly[43.47]",
     ]
-    print(DA.eval_all(ids, predictions))
+    logger.info(bench.eval_all(ids, predictions))

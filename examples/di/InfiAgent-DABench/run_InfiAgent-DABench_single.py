@@ -8,13 +8,13 @@ from metagpt.utils.recovery_util import save_history
 
 async def main(id=0):
     """Evaluate one task"""
-    DA = DABench()
-    requirement = DA.generate_formatted_prompt(id)
+    bench = DABench()
+    requirement = bench.generate_formatted_prompt(id)
     di = DataInterpreter()
     result = await di.run(requirement)
     logger.info(result)
     save_history(role=di)
-    _, is_correct = DA.eval(id, str(result))
+    _, is_correct = bench.eval(id, str(result))
     logger.info(f"Prediction is {'correct' if is_correct else 'incorrect'}.")
 
 

@@ -3,6 +3,7 @@ import json
 
 from DABench import DABench
 
+from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
@@ -30,7 +31,7 @@ async def get_prediction(agent, requirement):
         return prediction  # Return the extracted prediction
     except Exception as e:
         # Log an error message if an exception occurs during processing
-        print(f"Error processing requirement: {requirement}. Error: {e}")
+        logger.info(f"Error processing requirement: {requirement}. Error: {e}")
         return None  # Return None in case of an error
 
 
@@ -43,13 +44,13 @@ async def evaluate_all(agent, k):
         agent: The baseline agent used for making predictions.
         k (int): The number of tasks to process in each group concurrently.
     """
-    DA = DABench()  # Create an instance of DABench to access its methods and data
+    bench = DABench()  # Create an instance of DABench to access its methods and data
     id_list, predictions = [], []  # Initialize lists to store IDs and predictions
     tasks = []  # Initialize a list to hold the tasks
 
     # Iterate over the answers in DABench to generate tasks
-    for key, value in DA.answers.items():
-        requirement = DA.generate_formatted_prompt(key)  # Generate a formatted prompt for the current key
+    for key, value in bench.answers.items():
+        requirement = bench.generate_formatted_prompt(key)  # Generate a formatted prompt for the current key
         tasks.append(get_prediction(agent, requirement))  # Append the prediction task to the tasks list
         id_list.append(key)  # Append the current key to the ID list
 
@@ -62,8 +63,8 @@ async def evaluate_all(agent, k):
         # Filter out any None values from the predictions and extend the predictions list
         predictions.extend(pred for pred in group_predictions if pred is not None)
 
-    # Evaluate the results using all valid predictions and print the evaluation
-    print(DA.eval_all(id_list, predictions))
+    # Evaluate the results using all valid predictions and logger.info the evaluation
+    logger.info(bench.eval_all(id_list, predictions))
 
 
 def main(k=5):

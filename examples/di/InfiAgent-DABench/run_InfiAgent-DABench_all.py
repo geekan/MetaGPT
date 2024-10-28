@@ -9,26 +9,26 @@ from metagpt.utils.recovery_util import save_history
 
 async def main():
     """Evaluate all"""
-    DA = DABench()
+    bench = DABench()
     id_list, predictions, labels, is_true = [], [], [], []
-    for key, value in DA.answers.items():
+    for key, value in bench.answers.items():
         id_list.append(key)
-        labels.append(str(DA.get_answer(key)))
+        labels.append(str(bench.get_answer(key)))
         try:
-            requirement = DA.generate_formatted_prompt(key)
+            requirement = bench.generate_formatted_prompt(key)
             di = DataInterpreter()
             result = await di.run(requirement)
             logger.info(result)
             save_history(role=di)
-            temp_prediction, temp_istrue = DA.eval(key, str(result))
+            temp_prediction, temp_istrue = bench.eval(key, str(result))
             is_true.append(str(temp_istrue))
             predictions.append(str(temp_prediction))
         except:
-            is_true.append(str(DA.eval(key, "")))
+            is_true.append(str(bench.eval(key, "")))
             predictions.append(str(""))
     df = pd.DataFrame({"Label": labels, "Prediction": predictions, "T/F": is_true})
     df.to_excel("DABench_output.xlsx", index=False)
-    logger.info(DA.eval_all(id_list, predictions))
+    logger.info(bench.eval_all(id_list, predictions))
 
 
 if __name__ == "__main__":
