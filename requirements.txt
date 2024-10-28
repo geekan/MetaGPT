@@ -12,9 +12,9 @@ typer==0.9.0
 lancedb==0.4.0
 loguru==0.6.0
 meilisearch==0.21.0
-numpy>=1.24.3
-openai>=1.6.1
-openpyxl
+numpy~=1.26.4
+openai~=1.39.0
+openpyxl~=3.1.5
 beautifulsoup4==4.12.3
 pandas==2.1.1
 pydantic>=2.5.3
@@ -35,6 +35,9 @@ anthropic==0.18.1
 typing-inspect==0.8.0
 libcst==1.0.1
 qdrant-client==1.7.0
+grpcio~=1.67.0
+grpcio-tools~=1.62.3
+grpcio-status~=1.62.3
 # pytest-mock==3.11.1  # test extras require
 # open-interpreter==0.1.7; python_version>"3.9" # Conflict with openai 1.x
 ta==0.10.2
@@ -72,7 +75,7 @@ qianfan~=0.4.4
 dashscope~=1.19.3
 rank-bm25==0.2.2  # for tool recommendation
 jieba==0.42.1  # for tool recommendation
-volcengine-python-sdk[ark]~=1.0.94
+volcengine-python-sdk[ark]~=1.0.94 # Solution for installation error in Windows: https://github.com/volcengine/volcengine-python-sdk/issues/5
 # llama-index-vector-stores-elasticsearch~=0.2.5 # Used by `metagpt/memory/longterm_memory.py`
 # llama-index-vector-stores-chroma~=0.1.10 # Used by `metagpt/memory/longterm_memory.py`
 gymnasium==0.29.1

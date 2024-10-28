@@ -8,7 +8,7 @@ from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator, validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from metagpt.config2 import config
 from metagpt.configs.embedding_config import EmbeddingType
@@ -198,6 +198,7 @@ class ChromaIndexConfig(VectorIndexConfig):
     metadata: Optional[CollectionMetadata] = Field(
         default=None, description="Optional metadata to associate with the collection"
     )
+
 
 class MilvusIndexConfig(VectorIndexConfig):
     """Config for milvus-based index."""
