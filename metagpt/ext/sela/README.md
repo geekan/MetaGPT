@@ -7,7 +7,7 @@
 - Download Datasets：https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink
 - Download and prepare datasets from scratch:
 ```
-cd expo/data
+cd data
 python dataset.py --save_analysis_pool
 python hf_data.py --save_analysis_pool
 ```
@@ -60,16 +60,36 @@ pip install -r requirements.txt
 
 #### Run
 
-- `python run_experiment.py --exp_mode mcts --task titanic --rollouts 10`
+- Examples
+  ```
+  python run_experiment.py --exp_mode mcts --task titanic --rollouts 10
+  python run_experiment.py --exp_mode mcts --task house-prices --rollouts 10 --low_is_better
+  ```
 
-If the dataset has reg metric, remember to use `--low_is_better`:
 
-- `python run_experiment.py --exp_mode mcts --task house-prices --rollouts 10 --low_is_better`
+- `--rollouts` - The number of rollouts
 
-
-In addition to the generated insights, include the fixed insights saved in `expo/insights/fixed_insights.json`
-- `--use_fixed_insights`
+- `--use_fixed_insights` - In addition to the generated insights, include the fixed insights saved in `expo/insights/fixed_insights.json`
   
+- `--low_is_better` - If the dataset has reg metric, remember to use `--low_is_better`
+
+- `--from_scratch` - Do not use pre-processed insight pool, generate new insight pool based on dataset before running MCTS, facilitating subsequent tuning to propose search space prompts
+
+- `--role_timeout` - The timeout for the role
+  - This feature limits the duration of a single simulation, making the experiment duration more controllable (for example, if you do ten rollouts and set role_timeout to 1,000, the experiment will stop at the latest after 10,000s)
+
+
+- `--max_depth` - The maximum depth of MCTS, default is 4 (nodes at this depth directly return the previous simulation result without further expansion)
+
+- `--load_tree` - If MCTS was interrupted due to certain reasons but had already run multiple rollouts, you can use `--load_tree`.
+  - For example:
+    ```
+    python run_experiment.py --exp_mode mcts --task titanic --rollouts 10
+    ```
+  - If this was interrupted after running three rollouts, you can use `--load_tree`:
+    ```
+    python run_experiment.py --exp_mode mcts --task titanic --rollouts 7 --load_tree
+    ```
 
 
 #### Ablation Study
@@ -112,7 +132,7 @@ python run_experiment.py --exp_mode mcts --custom_dataset_dir <dataset-dir-save-
 ### AIDE
 
 #### Setup
-
+The version of AIDE we use is dated September 30, 2024
 ```
 git clone https://github.com/WecoAI/aideml.git
 git checkout 77953247ea0a5dc1bd502dd10939dd6d7fdcc5cc
