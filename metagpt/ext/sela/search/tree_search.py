@@ -15,7 +15,7 @@ from metagpt.ext.sela.data.dataset import (
     get_split_dataset_path,
 )
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.experimenter import ResearchAssistant, TimeoutException
+from metagpt.ext.sela.experimenter import Experimenter, TimeoutException
 from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
 from metagpt.ext.sela.utils import get_exp_pool_path, load_execute_notebook, mcts_logger
 from metagpt.tools.tool_recommend import ToolRecommender
@@ -44,9 +44,9 @@ def initialize_di_root_node(state: dict, reflection: bool = True):
         reflection (bool, optional): Whether to use reflection. Defaults to True.
 
     Returns:
-        tuple: A tuple containing the ResearchAssistant role and the root Node.
+        tuple: A tuple containing the Experimenter role and the root Node.
     """
-    role = ResearchAssistant(
+    role = Experimenter(
         node_id="0",
         start_task_id=state["start_task_id"],
         use_reflection=reflection,
@@ -204,14 +204,14 @@ class Node:
             role_dict["tool_recommender"] = ToolRecommender()
         elif isinstance(role_dict.get("tool_recommender", {}).get("tools"), dict):
             role_dict["tool_recommender"]["tools"] = list(role_dict["tool_recommender"]["tools"].keys())
-        role = ResearchAssistant(**role_dict)
+        role = Experimenter(**role_dict)
         if self.parent is not None:  # TODO: Check this
             parent_role = self.parent.load_role()
             role.update_til_start_task(parent_role, backward=False)
         role.remap_tasks()
         return role
 
-    def save_new_role(self, role: ResearchAssistant):
+    def save_new_role(self, role: Experimenter):
         role.node_id = self.id
         role.start_task_id = self.state["start_task_id"]
         role.state_saved = False
@@ -268,7 +268,7 @@ class Node:
             self.get_and_move_predictions("test")
         return score_dict
 
-    async def run_node(self, role: ResearchAssistant = None):
+    async def run_node(self, role: Experimenter = None):
         if self.is_terminal() and role is not None:
             if role.state_saved:
                 return self.raw_reward
