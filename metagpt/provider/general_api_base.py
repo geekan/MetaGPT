@@ -396,8 +396,8 @@ class APIRequestor:
             "X-LLM-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
         }
-
-        headers.update(api_key_to_header(self.api_type, self.api_key))
+        if self.api_key:
+            headers.update(api_key_to_header(self.api_type, self.api_key))
 
         if self.organization:
             headers["LLM-Organization"] = self.organization
