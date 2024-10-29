@@ -48,7 +48,7 @@ class OllamaMessageBase:
             if tpe == "text":
                 return msg["text"], None
             elif tpe == "image_url":
-                return None, msg["image_url"]["url"][self._image_b64_rms :]
+                return None, msg["image_url"]["url"][self._image_b64_rms:]
             else:
                 raise ValueError
         else:
@@ -291,3 +291,6 @@ class OllamaEmbeddings(OllamaLLM):
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+
+    def get_choice_text(self, rsp):
+        return rsp
