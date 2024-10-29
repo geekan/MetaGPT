@@ -27,6 +27,8 @@
 </p>
 
 ## News
+🚀 Oct. 29, 2024: We introduce three papers: [AFLOW: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762), [FACT: Examining the Effectiveness of Iterative Context Rewriting for Multi-fact Retrieval](https://arxiv.org/abs/2410.21012), and [SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning](https://arxiv.org/abs/2410.17238), along with code implementations available in the `examples` directory. Welcome your usage and feedback!
+
 🚀 Mar. 29, 2024: [v0.8.0](https://github.com/geekan/MetaGPT/releases/tag/v0.8.0) released. Now you can use Data Interpreter ([arxiv](https://arxiv.org/abs/2402.18679), [example](https://docs.deepwisdom.ai/main/en/DataInterpreter/), [code](https://github.com/geekan/MetaGPT/tree/main/examples/di)) via pypi package import. Meanwhile, we integrated the RAG module and supported multiple new LLMs.
 
 🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Data Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/di/README.md), a powerful agent capable of solving a wide range of real-world problems.

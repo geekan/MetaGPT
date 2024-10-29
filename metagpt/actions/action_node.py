@@ -497,21 +497,21 @@ class ActionNode:
 
     def get_field_names(self):
         """
-        获取与此ActionNode关联的Pydantic模型的字段名称。
+        Get the field names associated with this ActionNode's Pydantic model.
         """
         model_class = self.create_class()
         return model_class.model_fields.keys()
 
     def get_field_types(self):
         """
-        获取与此ActionNode关联的Pydantic模型的字段类型。
+        Get the field types associated with this ActionNode's Pydantic model.
         """
         model_class = self.create_class()
         return {field_name: field.annotation for field_name, field in model_class.model_fields.items()}
 
     def xml_compile(self, context):
         """
-        Compile the prompt to make it easier for the model to understand the format.
+        Compile the prompt to make it easier for the model to understand the xml format.
         """
         field_names = self.get_field_names()
         # Construct the example using the field names
