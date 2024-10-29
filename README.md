@@ -27,7 +27,7 @@
 </p>
 
 ## News
-🚀 Oct. 29, 2024: We introduce three papers: [AFLOW](https://arxiv.org/abs/2410.10762), [FACT](https://arxiv.org/abs/2410.21012), and [SELA](https://arxiv.org/abs/2410.17238), along with code implementations available in the `examples` directory. Welcome your usage and feedback!
+🚀 Oct. 29, 2024: We introduced three papers: [AFLOW](https://arxiv.org/abs/2410.10762), [FACT](https://arxiv.org/abs/2410.21012), and [SELA](https://arxiv.org/abs/2410.17238), check the [code](examples)!
 
 🚀 Mar. 29, 2024: [v0.8.0](https://github.com/geekan/MetaGPT/releases/tag/v0.8.0) released. Now you can use Data Interpreter ([arxiv](https://arxiv.org/abs/2402.18679), [example](https://docs.deepwisdom.ai/main/en/DataInterpreter/), [code](https://github.com/geekan/MetaGPT/tree/main/examples/di)) via pypi package import. Meanwhile, we integrated the RAG module and supported multiple new LLMs.
 
