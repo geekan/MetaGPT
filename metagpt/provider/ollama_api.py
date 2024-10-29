@@ -48,7 +48,7 @@ class OllamaMessageBase:
             if tpe == "text":
                 return msg["text"], None
             elif tpe == "image_url":
-                return None, msg["image_url"]["url"][self._image_b64_rms:]
+                return None, msg["image_url"]["url"][self._image_b64_rms :]
             else:
                 raise ValueError
         else:
