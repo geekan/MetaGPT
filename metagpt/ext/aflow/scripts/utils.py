@@ -6,11 +6,17 @@
 
 import json
 import re
+from enum import Enum
 from typing import Any, List, Tuple
 
 
-def extract_test_cases_from_jsonl(entry_point: str, dataset: str = "HumanEval"):
-    if dataset == "HumanEval":
+class CodeDataset(Enum):
+    HUMAN_EVAL = "HumanEval"
+    MBPP = "MBPP"
+
+
+def extract_test_cases_from_jsonl(entry_point: str, dataset: CodeDataset = CodeDataset.HUMAN_EVAL):
+    if dataset == CodeDataset.HUMAN_EVAL:
         file_path = "metagpt/ext/aflow/data/humaneval_public_test.jsonl"
         # Retain the original hardcoded test cases
         hardcoded_cases = {
@@ -25,7 +31,7 @@ def extract_test_cases_from_jsonl(entry_point: str, dataset: str = "HumanEval"):
             "sum_squares": "",
             "starts_one_ends": "",
         }
-    elif dataset == "MBPP":
+    elif dataset == CodeDataset.MBPP:
         file_path = "metagpt/ext/aflow/data/mbpp_public_test.jsonl"
         hardcoded_cases = {
             "remove_odd": "",

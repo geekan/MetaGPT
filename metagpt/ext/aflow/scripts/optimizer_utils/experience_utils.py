@@ -3,6 +3,7 @@ import os
 from collections import defaultdict
 
 from metagpt.logs import logger
+from metagpt.utils.common import read_json_file, write_json_file
 
 
 class ExperienceUtils:
@@ -24,23 +25,22 @@ class ExperienceUtils:
                     round_number = int(round_dir.split("_")[1])
                     json_file_path = os.path.join(round_path, "experience.json")
                     if os.path.exists(json_file_path):
-                        with open(json_file_path, "r", encoding="utf-8") as json_file:
-                            data = json.load(json_file)
-                            father_node = data["father node"]
+                        data = read_json_file(json_file_path, encoding="utf-8")
+                        father_node = data["father node"]
 
-                            if experience_data[father_node]["score"] is None:
-                                experience_data[father_node]["score"] = data["before"]
+                        if experience_data[father_node]["score"] is None:
+                            experience_data[father_node]["score"] = data["before"]
 
-                            if data["succeed"]:
-                                experience_data[father_node]["success"][round_number] = {
-                                    "modification": data["modification"],
-                                    "score": data["after"],
-                                }
-                            else:
-                                experience_data[father_node]["failure"][round_number] = {
-                                    "modification": data["modification"],
-                                    "score": data["after"],
-                                }
+                        if data["succeed"]:
+                            experience_data[father_node]["success"][round_number] = {
+                                "modification": data["modification"],
+                                "score": data["after"],
+                            }
+                        else:
+                            experience_data[father_node]["failure"][round_number] = {
+                                "modification": data["modification"],
+                                "score": data["after"],
+                            }
                 except Exception as e:
                     logger.info(f"Error processing {round_dir}: {str(e)}")
 
@@ -93,5 +93,4 @@ class ExperienceUtils:
         experience["after"] = avg_score
         experience["succeed"] = bool(avg_score > experience["before"])
 
-        with open(os.path.join(directory, "experience.json"), "w", encoding="utf-8") as file:
-            json.dump(experience, file, ensure_ascii=False, indent=4)
+        write_json_file(os.path.join(directory, "experience.json"), experience, encoding="utf-8", indent=4)

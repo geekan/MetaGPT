@@ -3,50 +3,52 @@
 # @Author  : didi
 # @Desc    : Entrance of AFlow.
 
+import argparse
+
 from metagpt.configs.models_config import ModelsConfig
-from metagpt.ext.aflow.scripts.optimizer import DatasetType, Optimizer, QuestionType
+from metagpt.ext.aflow.scripts.evaluator import Optimizer
 
-# Crucial Parameters
-dataset: DatasetType = "MBPP"  # Ensure the type is consistent with DatasetType
-sample: int = 4  # Sample Count, which means how many workflows will be resampled from generated workflows
-question_type: QuestionType = "code"  # Ensure the type is consistent with QuestionType
-optimized_path: str = "metagpt/ext/aflow/scripts/optimized"  # Optimized Result Save Path
-initial_round: int = 1  # Corrected the case from Initial_round to initial_round
-max_rounds: int = 20  # The max iteration of AFLOW.
-check_convergence: bool = True  # Whether Early Stop
-validation_rounds: int = 5  # The validation rounds of AFLOW.
 
-# Config llm model, you can modify `config/config2.yaml` to use more llms.
-mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
-claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
+def parse_args():
+    parser = argparse.ArgumentParser(description="AFlow Optimizer for MBPP")
+    parser.add_argument("--dataset", type=str, default="MBPP", help="Dataset type")
+    parser.add_argument("--sample", type=int, default=4, help="Sample count")
+    parser.add_argument("--question_type", type=str, default="code", help="Question type")
+    parser.add_argument(
+        "--optimized_path", type=str, default="metagpt/ext/aflow/scripts/optimized", help="Optimized result save path"
+    )
+    parser.add_argument("--initial_round", type=int, default=1, help="Initial round")
+    parser.add_argument("--max_rounds", type=int, default=20, help="Max iteration rounds")
+    parser.add_argument("--check_convergence", type=bool, default=True, help="Whether to enable early stop")
+    parser.add_argument("--validation_rounds", type=int, default=5, help="Validation rounds")
+    return parser.parse_args()
 
-# Config operators.
-operators = [
-    "Custom",  # It's basic unit of a fixed node. optimizer can modify its prompt to get vairous nodes.
-    # "AnswerGenerate",              # It's for qa
-    "CustomCodeGenerate",  # It's for code
-    "ScEnsemble",  # It's for code, math and qa
-    "Test",  # It's for code
-    # "Programmer",  # It's for math
-]
-
-# Create an optimizer instance
-optimizer = Optimizer(
-    dataset=dataset,  # Config dataset
-    question_type=question_type,  # Config Question Type
-    opt_llm_config=claude_llm_config,  # Config Optimizer LLM
-    exec_llm_config=mini_llm_config,  # Config Execution LLM
-    check_convergence=check_convergence,  # Whether Early Stop
-    operators=operators,  # Config Operators you want to use
-    optimized_path=optimized_path,  # Config Optimized workflow's file path
-    sample=sample,  # Only Top(sample) rounds will be selected.
-    initial_round=initial_round,  # Optimize from initial round
-    max_rounds=max_rounds,  # The max iteration of AFLOW.
-    validation_rounds=validation_rounds,  # The validation rounds of AFLOW.
-)
 
 if __name__ == "__main__":
-    # Optimize workflow via setting the optimizer's mode to 'Graph'
+    args = parse_args()
+
+    mini_llm_config = ModelsConfig.default().get("gpt-4o-mini")
+    claude_llm_config = ModelsConfig.default().get("claude-3-5-sonnet-20240620")
+
+    operators = [
+        "Custom",
+        "CustomCodeGenerate",
+        "ScEnsemble",
+        "Test",
+    ]
+
+    optimizer = Optimizer(
+        dataset=args.dataset,
+        question_type=args.question_type,
+        opt_llm_config=claude_llm_config,
+        exec_llm_config=mini_llm_config,
+        check_convergence=args.check_convergence,
+        operators=operators,
+        optimized_path=args.optimized_path,
+        sample=args.sample,
+        initial_round=args.initial_round,
+        max_rounds=args.max_rounds,
+        validation_rounds=args.validation_rounds,
+    )
+
     optimizer.optimize("Graph")
-    # Test workflow via setting the optimizer's mode to 'Test'
-    # optimizer.optimize("Test")

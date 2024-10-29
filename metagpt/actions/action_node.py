@@ -510,8 +510,9 @@ class ActionNode:
         return {field_name: field.annotation for field_name, field in model_class.model_fields.items()}
 
     def xml_compile(self, context):
-        # TODO 再来一版
-
+        """
+        Compile the prompt to make it easier for the model to understand the format.
+        """
         field_names = self.get_field_names()
         # Construct the example using the field names
         examples = []

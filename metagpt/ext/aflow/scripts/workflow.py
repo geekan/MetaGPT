@@ -3,12 +3,10 @@
 # @Author  : didi
 # @Desc    : Basic Graph Class
 
-from typing import Literal
 
+from metagpt.ext.aflow.scripts.evaluator import DatasetType
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
-
-DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 
 
 class Workflow:

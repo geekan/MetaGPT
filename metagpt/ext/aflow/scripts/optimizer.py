@@ -10,6 +10,7 @@ from typing import List, Literal
 from pydantic import BaseModel, Field
 
 from metagpt.actions.action_node import ActionNode
+from metagpt.ext.aflow.scripts.evaluator import DatasetType
 from metagpt.ext.aflow.scripts.optimizer_utils.convergence_utils import ConvergenceUtils
 from metagpt.ext.aflow.scripts.optimizer_utils.data_utils import DataUtils
 from metagpt.ext.aflow.scripts.optimizer_utils.evaluation_utils import EvaluationUtils
@@ -18,7 +19,6 @@ from metagpt.ext.aflow.scripts.optimizer_utils.graph_utils import GraphUtils
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import create_llm_instance
 
-DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
 QuestionType = Literal["math", "code", "qa"]
 OptimizerType = Literal["Graph", "Test"]
 

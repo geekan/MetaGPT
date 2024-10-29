@@ -11,12 +11,12 @@ import os
 
 import numpy as np
 
-from metagpt.utils.common import write_json_file
+from metagpt.utils.common import read_json_file, write_json_file
 
 
 def generate_random_indices(n, n_samples, test=False):
     """
-    生成随机索引
+    Generate random indices
     """
 
     def _set_seed(seed=42):
@@ -52,20 +52,16 @@ def log_mismatch(problem, expected_output, prediction, predicted_number, path):
 
     log_file = os.path.join(path, "log.json")
 
-    # 检查log文件是否已经存在
+    # Check if the log file already exists
     if os.path.exists(log_file):
-        # 如果存在，加载现有的日志数据
-        with open(log_file, "r", encoding="utf-8") as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                data = []
+        # If it exists, load the existing log data
+        data = read_json_file(log_file)
     else:
-        # 如果不存在，创建一个新的日志列表
+        # If it does not exist, create a new log list
         data = []
 
-    # 添加新的日志记录
+    # Add the new log entry
     data.append(log_data)
 
-    # 将数据写回到log.json文件
+    # Write the data back to log.json file
     write_json_file(log_file, data, encoding="utf-8", indent=4)

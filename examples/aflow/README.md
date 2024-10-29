@@ -5,7 +5,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 [Read our paper on arXiv](https://arxiv.org/abs/2410.10762)
 
 <p align="center">
-<a href=""><img src="../../docs/resources/aflow/AFLOW-performance.jpg" alt="Performance Of AFLOW" title="Performance of AFlow<sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-performance.jpg" alt="Performance Of AFlow" title="Performance of AFlow<sub>1</sub>" width="80%"></a>
 </p>
 
 ## Framework Components
@@ -17,7 +17,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 - **Evaluator**: Assesses workflow performance on given tasks. Provides feedback to guide the optimization process towards more effective workflows. See `metagpt/ext/aflow/scripts/evaluator.py` for details.
 
 <p align="center">
-<a href=""><img src="../../docs/resources/aflow/AFLOW-method.jpg" alt="Performance Of AFLOW" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-method.jpg" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
 </p>
 
 ## Datasets
@@ -26,7 +26,7 @@ AFlow is a framework for automatically generating and optimizing Agentic Workflo
 We conducted experiments on six datasets (HumanEval, MBPP, GSM8K, MATH, HotpotQA, DROP) and provide their evaluation code. The data can be found in this [datasets](https://drive.google.com/uc?export=download&id=1DNoegtZiUhWtvkd2xoIuElmIi4ah7k8e) link, or you can download them using `metagpt/ext/aflow/data/download_data.py`
 
 <p align="center">
-<a href=""><img src="../../docs/resources/aflow/AFLOW-experiment.jpg" alt="Performance Of AFLOW" title="Comparison bewteen AFlow and other methods <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/aflow/AFLOW-experiment.jpg" alt="Performance Of AFlow" title="Performance Of AFlow <sub>1</sub>" width="80%"></a>
 </p>
 
 ### Custom Datasets
@@ -68,7 +68,7 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
    ```
 
 ## Reproduce the Results in the Paper
-1. We provide the raw data obtained from our experiments ([download link](https://drive.google.com/uc?export=download&id=1Sr5wjgKf3bN8OC7G6cO3ynzJqD4w6_Dv)), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
+1. We provide the raw data obtained from our experiments in this [link](https://drive.google.com/uc?export=download&id=1Sr5wjgKf3bN8OC7G6cO3ynzJqD4w6_Dv), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
 2. You can directly reproduce our experimental results by running the scripts in `examples/aflow/experiments`.
 
 

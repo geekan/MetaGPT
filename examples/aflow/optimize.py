@@ -9,17 +9,17 @@ from metagpt.configs.models_config import ModelsConfig
 from metagpt.ext.aflow.data.download_data import download
 from metagpt.ext.aflow.scripts.optimizer import Optimizer
 
-# DatasetType, QuestionType, and OptimizerType definitions
-# DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP"]
-# QuestionType = Literal["math", "code", "qa"]
-# OptimizerType = Literal["Graph", "Test"]
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="AFlow Optimizer")
-    parser.add_argument("--dataset", type=str, default="MATH", help="Dataset type")
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="MATH",
+        help="Dataset type, including HumanEval, MBPP, GSM8K, MATH, HotpotQA, DROP",
+    )
     parser.add_argument("--sample", type=int, default=4, help="Sample count")
-    parser.add_argument("--question_type", type=str, default="math", help="Question type")
+    parser.add_argument("--question_type", type=str, default="math", help="Question type, including math, code, qa")
     parser.add_argument(
         "--optimized_path", type=str, default="metagpt/ext/aflow/scripts/optimized", help="Optimized result save path"
     )

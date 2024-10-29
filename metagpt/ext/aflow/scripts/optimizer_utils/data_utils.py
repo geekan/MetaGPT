@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from metagpt.logs import logger
+from metagpt.utils.common import read_json_file, write_json_file
 
 
 class DataUtils:
@@ -17,11 +18,7 @@ class DataUtils:
     def load_results(self, path: str) -> list:
         result_path = os.path.join(path, "results.json")
         if os.path.exists(result_path):
-            with open(result_path, "r") as json_file:
-                try:
-                    return json.load(json_file)
-                except json.JSONDecodeError:
-                    return []
+            return read_json_file(result_path, encoding="utf-8")
         return []
 
     def get_top_rounds(self, sample: int, path=None, mode="Graph"):
@@ -97,8 +94,7 @@ class DataUtils:
         if not os.path.exists(log_dir):
             return ""  # 如果文件不存在，返回空字符串
         logger.info(log_dir)
-        with open(log_dir, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = read_json_file(log_dir, encoding="utf-8")
 
         if isinstance(data, dict):
             data = [data]
@@ -125,8 +121,7 @@ class DataUtils:
         return {"round": round, "score": score, "avg_cost": avg_cost, "total_cost": total_cost, "time": now}
 
     def save_results(self, json_file_path: str, data: list):
-        with open(json_file_path, "w") as json_file:
-            json.dump(data, json_file, default=str, indent=4)
+        write_json_file(json_file_path, data, encoding="utf-8", indent=4)
 
     def _load_scores(self, path=None, mode="Graph"):
         if mode == "Graph":
@@ -137,8 +132,7 @@ class DataUtils:
         result_file = os.path.join(rounds_dir, "results.json")
         self.top_scores = []
 
-        with open(result_file, "r", encoding="utf-8") as file:
-            data = json.load(file)
+        data = read_json_file(result_file, encoding="utf-8")
         df = pd.DataFrame(data)
 
         scores_per_round = df.groupby("round")["score"].mean().to_dict()
