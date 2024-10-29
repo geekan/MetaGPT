@@ -34,7 +34,6 @@ class ProductManager(RoleZero):
     goal: str = "Create a Product Requirement Document or market research/competitive product research."
     constraints: str = "utilize the same language as the user requirements for seamless communication"
     instruction: str = PRODUCT_MANAGER_INSTRUCTION
-    max_react_loop: int = 50
     tools: list[str] = ["RoleZero", Browser.__name__, Editor.__name__, SearchEnhancedQA.__name__]
 
     todo_action: str = any_to_name(WritePRD)
