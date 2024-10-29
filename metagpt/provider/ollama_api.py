@@ -63,15 +63,9 @@ class OllamaMessageMeta(type):
         for base in bases:
             if issubclass(base, OllamaMessageBase):
                 api_type = attrs["api_type"]
-                if isinstance(api_type, list):
-                    for tpe in api_type:
-                        assert tpe not in OllamaMessageMeta.registed_message, "api_type already exist"
-                        assert isinstance(tpe, OllamaMessageAPI), "api_type not support"
-                        OllamaMessageMeta.registed_message[tpe] = cls
-                else:
-                    assert api_type not in OllamaMessageMeta.registed_message, "api_type already exist"
-                    assert isinstance(api_type, OllamaMessageAPI), "api_type not support"
-                    OllamaMessageMeta.registed_message[api_type] = cls
+                assert api_type not in OllamaMessageMeta.registed_message, "api_type already exist"
+                assert isinstance(api_type, OllamaMessageAPI), "api_type not support"
+                OllamaMessageMeta.registed_message[api_type] = cls
 
     @classmethod
     def get_message(cls, input_type: OllamaMessageAPI) -> type[OllamaMessageBase]:
@@ -101,9 +95,9 @@ class OllamaMessageChat(OllamaMessageBase, metaclass=OllamaMessageMeta):
         messes = []
         for prompt in prompts:
             if len(images) > 0:
-                messes.append({"role": "user", "content": "\n".join(prompts), "images": images})
+                messes.append({"role": "user", "content": prompt, "images": images})
             else:
-                messes.append({"role": "user", "content": "\n".join(prompts)})
+                messes.append({"role": "user", "content": prompt})
         sends = {"model": self.model, "messages": messes}
         sends.update(self.additional_kwargs)
         return sends
