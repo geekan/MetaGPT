@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from metagpt.ext.sela.experimenter.custom import CustomExperimenter
+from metagpt.ext.sela.runner.custom import CustomRunner
 
 
 class AGRunner:
@@ -102,7 +102,7 @@ class AGRunner:
         return train_data, dev_data, dev_wo_target_data, test_data
 
 
-class GluonExperimenter(CustomExperimenter):
+class GluonRunner(CustomRunner):
     result_path: str = "results/autogluon"
 
     def __init__(self, args, **kwargs):

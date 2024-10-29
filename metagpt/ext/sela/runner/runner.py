@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.research_assistant import ResearchAssistant
+from metagpt.ext.sela.experimenter import Experimenter
 from metagpt.ext.sela.search.tree_search import create_initial_state
 from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
 
 
-class Experimenter:
+class Runner:
     result_path: str = "results/base"
     data_config = DATA_CONFIG
     start_task_id = 1
@@ -83,9 +83,7 @@ class Experimenter:
         results = []
 
         for i in range(self.args.num_experiments):
-            di = ResearchAssistant(
-                node_id="0", use_reflection=self.args.reflection, role_timeout=self.args.role_timeout
-            )
+            di = Experimenter(node_id="0", use_reflection=self.args.reflection, role_timeout=self.args.role_timeout)
             score_dict = await self.run_di(di, user_requirement, run_idx=i)
             results.append(
                 {"idx": i, "score_dict": score_dict, "user_requirement": user_requirement, "args": vars(self.args)}

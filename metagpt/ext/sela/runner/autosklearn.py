@@ -4,7 +4,7 @@ from functools import partial
 import pandas as pd
 
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.experimenter.custom import CustomExperimenter
+from metagpt.ext.sela.runner.custom import CustomRunner
 
 
 def custom_scorer(y_true, y_pred, metric_name):
@@ -69,7 +69,7 @@ class ASRunner:
         return {"test_preds": test_preds, "dev_preds": dev_preds}
 
 
-class AutoSklearnExperimenter(CustomExperimenter):
+class AutoSklearnRunner(CustomRunner):
     result_path: str = "results/autosklearn"
 
     def __init__(self, args, **kwargs):

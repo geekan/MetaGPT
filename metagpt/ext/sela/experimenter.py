@@ -60,7 +60,7 @@ def async_timeout():
     return decorator
 
 
-class ResearchAssistant(DataInterpreter):
+class Experimenter(DataInterpreter):
     node_id: str = "0"
     start_task_id: int = 1
     state_saved: bool = False
@@ -78,7 +78,7 @@ class ResearchAssistant(DataInterpreter):
             self.planner.plan.task_map[str(self.start_task_id)].instruction = new_instruction
             self.remap_tasks()
 
-    def update_til_start_task(self, role: ResearchAssistant, backward: bool = True):
+    def update_til_start_task(self, role: Experimenter, backward: bool = True):
         if backward:
             # make sure the previous task instructions are matched
             assert (

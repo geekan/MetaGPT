@@ -2,12 +2,12 @@ import argparse
 import asyncio
 
 from metagpt.ext.sela.data.custom_task import get_mle_is_lower_better, get_mle_task_id
-from metagpt.ext.sela.experimenter.autogluon import GluonExperimenter
-from metagpt.ext.sela.experimenter.autosklearn import AutoSklearnExperimenter
-from metagpt.ext.sela.experimenter.custom import CustomExperimenter
-from metagpt.ext.sela.experimenter.experimenter import Experimenter
-from metagpt.ext.sela.experimenter.mcts import MCTSExperimenter
-from metagpt.ext.sela.experimenter.random_search import RandomSearchExperimenter
+from metagpt.ext.sela.runner.autogluon import GluonRunner
+from metagpt.ext.sela.runner.autosklearn import AutoSklearnRunner
+from metagpt.ext.sela.runner.custom import CustomRunner
+from metagpt.ext.sela.runner.mcts import MCTSRunner
+from metagpt.ext.sela.runner.random_search import RandomSearchRunner
+from metagpt.ext.sela.runner.runner import Runner
 
 
 def get_args(cmd=True):
@@ -74,24 +74,24 @@ def get_di_args(parser):
 
 async def main(args):
     if args.exp_mode == "mcts":
-        experimenter = MCTSExperimenter(args)
+        runner = MCTSRunner(args)
     elif args.exp_mode == "greedy":
-        experimenter = MCTSExperimenter(args, tree_mode="greedy")
+        runner = MCTSRunner(args, tree_mode="greedy")
     elif args.exp_mode == "random":
-        experimenter = MCTSExperimenter(args, tree_mode="random")
+        runner = MCTSRunner(args, tree_mode="random")
     elif args.exp_mode == "rs":
-        experimenter = RandomSearchExperimenter(args)
+        runner = RandomSearchRunner(args)
     elif args.exp_mode == "base":
-        experimenter = Experimenter(args)
+        runner = Runner(args)
     elif args.exp_mode == "autogluon":
-        experimenter = GluonExperimenter(args)
+        runner = GluonRunner(args)
     elif args.exp_mode == "custom":
-        experimenter = CustomExperimenter(args)
+        runner = CustomRunner(args)
     elif args.exp_mode == "autosklearn":
-        experimenter = AutoSklearnExperimenter(args)
+        runner = AutoSklearnRunner(args)
     else:
         raise ValueError(f"Invalid exp_mode: {args.exp_mode}")
-    await experimenter.run_experiment()
+    await runner.run_experiment()
 
 
 if __name__ == "__main__":

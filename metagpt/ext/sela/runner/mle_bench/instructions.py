@@ -8,7 +8,7 @@ You will be given a machine learning task. You must solve the task by training a
 
 BENCHMARK INSTRUCTIONS
 ------
-First, please read the instructions below which are specific to our benchmark setup. Note, these instructions can be found again in `experimenter/mle_bench/instructions.py`.
+First, please read the instructions below which are specific to our benchmark setup. Note, these instructions can be found again in `runner/mle_bench/instructions.py`.
 
 - **Competition-specific instructions**: The instructions for the competition are available in `{dataset_dir}/description.md`. Read this file to understand the problem setup for the competition you are currently solving.
 - **Dataset**: The dataset files for the competition are available in `{dataset_dir}`.
@@ -28,7 +28,7 @@ You will be given a machine learning task. You must solve the task by training a
 
 BENCHMARK INSTRUCTIONS
 ------
-First, please read the instructions below which are specific to our benchmark setup. Note, these instructions can be found again in `experimenter/mle_bench/instructions.py`.
+First, please read the instructions below which are specific to our benchmark setup. Note, these instructions can be found again in `runner/mle_bench/instructions.py`.
 
 - **Task-specific instructions**: The instructions for the task are available in `{dataset_dir}/description.md`. Read this file to understand the problem setup for the task you are currently solving.
 - **Dataset**: The dataset files for the task are available in `{dataset_dir}/`.

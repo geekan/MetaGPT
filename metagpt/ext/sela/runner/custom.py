@@ -3,11 +3,11 @@ import os
 import pandas as pd
 
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
-from metagpt.ext.sela.experimenter.experimenter import Experimenter
+from metagpt.ext.sela.runner.runner import Runner
 from metagpt.ext.sela.search.tree_search import create_initial_state
 
 
-class CustomExperimenter(Experimenter):
+class CustomRunner(Runner):
     result_path: str = "results/custom"
 
     def __init__(self, args, **kwargs):
