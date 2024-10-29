@@ -209,7 +209,7 @@ class SearchEnhancedQA(Action):
             list[str]: Summaries of relevant web content.
         """
 
-        relevant_urls = await self.collect_relevant_links(query)
+        relevant_urls = await self._collect_relevant_links(query)
         await self._reporter.async_report({"type": "search", "stage": "searching", "urls": relevant_urls})
         if not relevant_urls:
             logger.warning(f"No relevant URLs found for query: {query}")
@@ -226,7 +226,7 @@ class SearchEnhancedQA(Action):
 
         return citations
 
-    async def collect_relevant_links(self, query: str) -> list[str]:
+    async def _collect_relevant_links(self, query: str) -> list[str]:
         """Search and rank URLs relevant to the query.
 
         Args:

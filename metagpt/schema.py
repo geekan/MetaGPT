@@ -694,7 +694,7 @@ class Plan(BaseModel):
             dependent_task_ids (list[str]): The task ids that the new task depends on
             instruction (str): The instruction of the new task
             assignee (str): The assignee of the new task
-            task_type (str): The type of the new task, default is empty string
+            task_type (str, optional): The type of the new task, default is empty string
         """
         new_task = Task(
             task_id=task_id,

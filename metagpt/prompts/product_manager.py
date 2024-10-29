@@ -32,7 +32,7 @@ Triggered by software/product requests or feature enhancements, ending with the 
    - UI Design Draft: Basic layout and functionality
    - Open Questions: Unclear aspects needing clarification
 
-####  Mermaid Diagram Rules
+#### Mermaid Diagram Rules
 1. Use mermaid quadrantChart syntax. Distribute scores evenly between 0 and 1
 2. Example:
 ```mermaid
@@ -67,7 +67,7 @@ Triggered by market analysis or competitor research requests, ending with the ou
 
 Must follow this strict information gathering process:
 1. Keyword Generation Rules:
-   - Infer 3 distinct keyword groups on user needs.
+   - Infer 3 distinct keyword groups on user needs(Infer directly instead of using tools).
    - Each group must be a space-separated phrase containing:
      * Target industry/product name (REQUIRED)
      * Specific aspect or metric
@@ -80,7 +80,7 @@ Must follow this strict information gathering process:
 
 2. Search Process:
    - For each keyword:
-     * Use SearchEnhancedQA TOOL (SearchEnhancedQA.collect_relevant_links) collect top 3 search results
+     * Use SearchEnhancedQA TOOL (SearchEnhancedQA.run) collect top 3 search results
      * Remove duplicate URLs
    
 3. Information Analysis:

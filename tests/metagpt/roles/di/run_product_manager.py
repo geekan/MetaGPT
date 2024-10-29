@@ -4,16 +4,10 @@ import sys
 from metagpt.logs import logger
 from metagpt.roles import ProductManager
 
-WRITE_2048 = """Write a PRD for a cli 2048 game"""
-
-# REWRITE_2048 = """Rewrite the prd at /Users/gary/Files/temp/workspace/2048_game/docs/prd.json, add a web UI"""
-
-CASUAL_CHAT = """What's your name?"""
-
-CASE1_GREEDY_SNAKE = "设计一个贪吃蛇游戏，root path: '/Users/seeker/Projects/sdfz/mg/mgx_ops/workspace/temp'"
+CASE0_WRITE_2048 = """Write a PRD for a cli 2048 game"""
+CASE1_GREEDY_SNAKE = "设计一个贪吃蛇游戏"
 CASE2_SMART_HOME = "搜索并分析米家、华为智能家居和海尔智家在智能家居市场中的功能、用户需求和市场定位"
 CASE3_BEST_SELLING_REFRIGERATOR = "调研当前市场上最畅销的智能冰箱的五个关键特性"
-
 OLD_PRD = """
 Language
 en_us
@@ -62,33 +56,32 @@ Anything UNCLEAR
 Currently, all aspects of the project are clear.
 """
 CASE4_MUSIC_STREAMING_MEDIA = f"""We have received feedback from users regarding the current music streaming service, stating that they need better personalized recommendations. Please readjust the content of PRD {OLD_PRD} based on these feedback."""
-
 CASE5_SMART_BIG_SCREEN = """分析2024年上半年中国家庭智能大屏行业的发展情况并输出市场分析报告"""
+CASE6_ELECTRONIC_CIGARETTE = """我想要生产一个电子烟产品，请帮我完成市场调研分析报告"""
 
-# CASE6 = "我想要生产一个电子烟产品，请帮我完成市场调研分析报告"
 
-
-async def main(requirement):
-    product_manager = ProductManager()
-    await product_manager.run(requirement)
+def main():
+    cases = [
+        # CASE0_WRITE_2048,
+        # CASE1_GREEDY_SNAKE,
+        # CASE2_SMART_HOME,
+        # CASE3_BEST_SELLING_REFRIGERATOR,
+        # CASE4_MUSIC_STREAMING_MEDIA,
+        CASE5_SMART_BIG_SCREEN,
+        # CASE6_ELECTRONIC_CIGARETTE,
+    ]
+    root_path = "/tmp"
+    logger.remove()
+    logger.add(sys.stderr, level="INFO")
+    for case in cases:
+        case += f"\nroot path: '{root_path}'"
+        logger.info(f"user requirement:\n{case}")
+        try:
+            product_manager = ProductManager()
+            asyncio.run(product_manager.run(case))
+        except Exception as e:
+            print(e)
 
 
 if __name__ == "__main__":
-    cases = [
-        # CASE1_GREEDY_SNAKE,
-        # CASE2_SMART_HOME,
-        CASE3_BEST_SELLING_REFRIGERATOR,
-        # CASE4_MUSIC_STREAMING_MEDIA,
-        # CASE5_SMART_BIG_SCREEN,
-        # CASE6,
-        # WRITE_2048,
-    ]
-    logger.remove()
-    # logger.add(sys.stderr, level="DEBUG")
-    logger.add(sys.stderr, level="INFO")
-    for case in cases:
-        logger.info(f"user requirement:\n{case}")
-        try:
-            asyncio.run(main(case))
-        except Exception as e:
-            print(e)
+    main()
