@@ -26,7 +26,9 @@ class LLMType(Enum):
     GEMINI = "gemini"
     METAGPT = "metagpt"
     AZURE = "azure"
-    OLLAMA = "ollama"
+    OLLAMA = "ollama"  # /chat at ollama api
+    OLLAMA_GENERATE = "ollama.generate"  # /generate at ollama api
+    OLLAMA_EMBEDDING = "ollama.embeddings"  # /embeddings at ollama api
     QIANFAN = "qianfan"  # Baidu BCE
     DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
     MOONSHOT = "moonshot"
@@ -104,7 +106,8 @@ class LLMConfig(YamlModel):
             root_config_path = CONFIG_ROOT / "config2.yaml"
             if root_config_path.exists():
                 raise ValueError(
-                    f"Please set your API key in {root_config_path}. If you also set your config in {repo_config_path}, \nthe former will overwrite the latter. This may cause unexpected result.\n"
+                    f"Please set your API key in {root_config_path}. If you also set your config in {
+                        repo_config_path}, \nthe former will overwrite the latter. This may cause unexpected result.\n"
                 )
             elif repo_config_path.exists():
                 raise ValueError(f"Please set your API key in {repo_config_path}")

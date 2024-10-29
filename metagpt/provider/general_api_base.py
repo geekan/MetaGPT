@@ -13,6 +13,7 @@ import time
 from contextlib import asynccontextmanager
 from enum import Enum
 from typing import (
+    Any,
     AsyncGenerator,
     AsyncIterator,
     Dict,
@@ -121,7 +122,7 @@ def logfmt(props):
 
 
 class OpenAIResponse:
-    def __init__(self, data, headers):
+    def __init__(self, data: Union[bytes, Any], headers: dict):
         self._headers = headers
         self.data = data
 
