@@ -37,15 +37,14 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
 1. Configure optimization parameters:
    - Use command line arguments or modify default parameters in `examples/aflow/optimize.py`:
      ```python
-     --dataset MATH          # Dataset type (HumanEval/MBPP/GSM8K/MATH/HotpotQA/DROP)
+     --dataset              # (Required) Dataset type (HumanEval/MBPP/GSM8K/MATH/HotpotQA/DROP)
      --sample 4             # Sample count - number of workflows to be resampled
-     --question_type math   # Question type (math/code/qa)
      --optimized_path PATH  # Optimized result save path
      --initial_round 1      # Initial round
      --max_rounds 20        # Max iteration rounds for AFLOW
      --check_convergence    # Whether to enable early stop
      --validation_rounds 5  # Validation rounds for AFLOW
-     --if_first_optimize   # Set True for first optimization, False afterwards
+     --if_first_optimize    # Set True for first optimization, False afterwards
      ```
 
 2. Configure LLM parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
@@ -61,15 +60,15 @@ For custom tasks, you can reference the code in the `metagpt/ext/aflow/benchmark
 7. Run the optimization:
    ```bash
    # Using default parameters
-   python -m examples.aflow.optimize
+   python -m examples.aflow.optimize --dataset MATH
    
    # Or with custom parameters
-   python -m examples.aflow.optimize --dataset MATH --sample 4 --question_type math
+   python -m examples.aflow.optimize --dataset MATH --sample n --optimized_path xxx ...
    ```
 
 ## Reproduce the Results in the Paper
 1. We provide the raw data obtained from our experiments in this [link](https://drive.google.com/uc?export=download&id=1Sr5wjgKf3bN8OC7G6cO3ynzJqD4w6_Dv), including the workflows and prompts generated in each iteration, as well as their trajectories on the validation dataset. We also provide the optimal workflow for each dataset and the corresponding data on the test dataset. You can download these data using `metagpt/ext/aflow/data/download_data.py`.
-2. You can directly reproduce our experimental results by running the scripts in `examples/aflow/experiments`.
+2. You can directly reproduce our experimental results by use different `ExperimentConfig` of `examples/aflow/optimize.py`.
 
 
 ## Citation
