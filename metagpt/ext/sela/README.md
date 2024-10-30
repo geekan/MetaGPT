@@ -9,7 +9,7 @@ SELA is an innovative system that enhances Automated Machine Learning (AutoML) b
 ## 1. Data Preparation
 
 You can either download the datasets from the link or prepare the datasets from scratch.
-- **Download Datasets:** [Dataset Link](https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink)
+- **Download Datasets:** [Dataset Link](https://drive.google.com/drive/folders/151FIZoLygkRfeJgSI9fNMiLsixh1mK0r?usp=sharing)
 - **Download and prepare datasets from scratch:**
     ```bash
     cd data
