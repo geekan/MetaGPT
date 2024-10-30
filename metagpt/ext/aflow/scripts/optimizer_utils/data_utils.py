@@ -18,7 +18,11 @@ class DataUtils:
     def load_results(self, path: str) -> list:
         result_path = os.path.join(path, "results.json")
         if os.path.exists(result_path):
-            return read_json_file(result_path, encoding="utf-8")
+            with open(result_path, "r") as json_file:
+                try:
+                    return json.load(json_file)
+                except json.JSONDecodeError:
+                    return []
         return []
 
     def get_top_rounds(self, sample: int, path=None, mode="Graph"):

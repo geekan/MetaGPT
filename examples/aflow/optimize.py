@@ -72,7 +72,12 @@ def parse_args():
     parser.add_argument("--max_rounds", type=int, default=20, help="Max iteration rounds")
     parser.add_argument("--check_convergence", type=bool, default=True, help="Whether to enable early stop")
     parser.add_argument("--validation_rounds", type=int, default=5, help="Validation rounds")
-    parser.add_argument("--if_first_optimize", type=bool, default=True, help="Whether it's the first optimization")
+    parser.add_argument(
+        "--if_first_optimize",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Whether to download dataset for the first time",
+    )
     return parser.parse_args()
 
 
