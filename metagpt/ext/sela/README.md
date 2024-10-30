@@ -1,9 +1,15 @@
 # SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning
 
+
+Official implementation for paper [SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning](https://arxiv.org/abs/2410.17238).
+
+
+SELA is an innovative system that enhances Automated Machine Learning (AutoML) by integrating Monte Carlo Tree Search (MCTS) with LLM-based agents. Traditional AutoML methods often generate low-diversity and suboptimal code, limiting their effectiveness in model selection and ensembling. SELA addresses these challenges by representing pipeline configurations as trees, enabling agents to intelligently explore the solution space and iteratively refine their strategies based on experimental feedback.
+
 ## 1. Data Preparation
 
 You can either download the datasets from the link or prepare the datasets from scratch.
-- **Download Datasets:** [Dataset Link](https://deepwisdom.feishu.cn/drive/folder/RVyofv9cvlvtxKdddt2cyn3BnTc?from=from_copylink)
+- **Download Datasets:** [Dataset Link](https://drive.google.com/drive/folders/151FIZoLygkRfeJgSI9fNMiLsixh1mK0r?usp=sharing)
 - **Download and prepare datasets from scratch:**
     ```bash
     cd data
@@ -83,3 +89,18 @@ pip install -r requirements.txt
     ```bash
     python run_experiment.py --exp_mode rs --task titanic --rs_mode set
     ```
+
+## 4. Citation
+Please cite our paper if you use SELA or find it cool or useful! 
+
+```bibtex
+@misc{chi2024selatreesearchenhancedllm,
+      title={SELA: Tree-Search Enhanced LLM Agents for Automated Machine Learning}, 
+      author={Yizhou Chi and Yizhang Lin and Sirui Hong and Duyi Pan and Yaying Fei and Guanghao Mei and Bangbang Liu and Tianqi Pang and Jacky Kwok and Ceyao Zhang and Bang Liu and Chenglin Wu},
+      year={2024},
+      eprint={2410.17238},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2410.17238}, 
+}
+```
