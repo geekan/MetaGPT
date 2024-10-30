@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : llm_config.py
 """
+
 from enum import Enum
 from typing import Optional
 
@@ -25,7 +26,10 @@ class LLMType(Enum):
     GEMINI = "gemini"
     METAGPT = "metagpt"
     AZURE = "azure"
-    OLLAMA = "ollama"
+    OLLAMA = "ollama"  # /chat at ollama api
+    OLLAMA_GENERATE = "ollama.generate"  # /generate at ollama api
+    OLLAMA_EMBEDDINGS = "ollama.embeddings"  # /embeddings at ollama api
+    OLLAMA_EMBED = "ollama.embed"  # /embed at ollama api
     QIANFAN = "qianfan"  # Baidu BCE
     DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
     MOONSHOT = "moonshot"
@@ -57,6 +61,7 @@ class LLMConfig(YamlModel):
     # For Cloud Service Provider like Baidu/ Alibaba
     access_key: Optional[str] = None
     secret_key: Optional[str] = None
+    session_token: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
 
     # For Spark(Xunfei), maybe remove later
@@ -76,10 +81,12 @@ class LLMConfig(YamlModel):
     best_of: Optional[int] = None
     n: Optional[int] = None
     stream: bool = True
+    seed: Optional[int] = None
     # https://cookbook.openai.com/examples/using_logprobs
     logprobs: Optional[bool] = None
     top_logprobs: Optional[int] = None
     timeout: int = 600
+    context_length: Optional[int] = None  # Max input tokens
 
     # For Amazon Bedrock
     region_name: str = None
@@ -101,7 +108,8 @@ class LLMConfig(YamlModel):
             root_config_path = CONFIG_ROOT / "config2.yaml"
             if root_config_path.exists():
                 raise ValueError(
-                    f"Please set your API key in {root_config_path}. If you also set your config in {repo_config_path}, \nthe former will overwrite the latter. This may cause unexpected result.\n"
+                    f"Please set your API key in {root_config_path}. If you also set your config in {repo_config_path}, \n"
+                    f"the former will overwrite the latter. This may cause unexpected result.\n"
                 )
             elif repo_config_path.exists():
                 raise ValueError(f"Please set your API key in {repo_config_path}")

@@ -103,7 +103,7 @@ class OpenAILLM(BaseLLM):
             if has_finished:
                 # for oneapi, there has a usage chunk after finish_reason not none chunk
                 if chunk_has_usage:
-                    usage = CompletionUsage(**chunk.usage)
+                    usage = CompletionUsage(**chunk.usage) if isinstance(chunk.usage, dict) else chunk.usage
             if finish_reason:
                 if chunk_has_usage:
                     # Some services have usage as an attribute of the chunk, such as Fireworks

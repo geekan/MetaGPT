@@ -10,6 +10,7 @@ ref3: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/t
 ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
 ref5: https://ai.google.dev/models/gemini
 """
+import anthropic
 import tiktoken
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletionChunk
@@ -377,6 +378,10 @@ SPARK_TOKENS = {
 
 def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
+    if "claude" in model:
+        vo = anthropic.Client()
+        num_tokens = vo.count_tokens(str(messages))
+        return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
@@ -463,6 +468,10 @@ def count_output_tokens(string: str, model: str) -> int:
     Returns:
         int: The number of tokens in the text string.
     """
+    if "claude" in model:
+        vo = anthropic.Client()
+        num_tokens = vo.count_tokens(string)
+        return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
