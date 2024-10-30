@@ -91,7 +91,7 @@ pip install -r requirements.txt
     ```
 
 ## 4. Citation
-Please cite our paper if you use SELA or find it useful! 
+Please cite our paper if you use SELA or find it cool or useful! 
 
 ```bibtex
 @misc{chi2024selatreesearchenhancedllm,
