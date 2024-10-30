@@ -28,7 +28,8 @@ class LLMType(Enum):
     AZURE = "azure"
     OLLAMA = "ollama"  # /chat at ollama api
     OLLAMA_GENERATE = "ollama.generate"  # /generate at ollama api
-    OLLAMA_EMBEDDING = "ollama.embeddings"  # /embeddings at ollama api
+    OLLAMA_EMBEDDINGS = "ollama.embeddings"  # /embeddings at ollama api
+    OLLAMA_EMBED = "ollama.embed"  # /embeddings at ollama api
     QIANFAN = "qianfan"  # Baidu BCE
     DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
     MOONSHOT = "moonshot"

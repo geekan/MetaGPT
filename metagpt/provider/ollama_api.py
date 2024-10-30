@@ -20,6 +20,7 @@ class OllamaMessageAPI(Enum):
     CHAT = auto()
     GENERATE = auto()
     EMBED = auto()
+    EMBEDDINGS = auto()
 
 
 class OllamaMessageBase:
@@ -141,20 +142,46 @@ class OllamaMessageGenerate(OllamaMessageChat, metaclass=OllamaMessageMeta):
         return to_choice_dict["response"]
 
 
-class OllamaMessageEmbed(OllamaMessageBase, metaclass=OllamaMessageMeta):
-    api_type = OllamaMessageAPI.EMBED
+class OllamaMessageEmbeddings(OllamaMessageBase, metaclass=OllamaMessageMeta):
+    api_type = OllamaMessageAPI.EMBEDDINGS
 
     @property
     def api_suffix(self) -> str:
         return "/embeddings"
 
     def apply(self, messages: list[dict]) -> dict:
-        prompts = []
-        for msg in messages:
-            prompt, _ = self._parse_input_msg(msg)
-            if prompt:
-                prompts.append(prompt)
+        content = messages[0]["content"]
+        prompts = []  # NOTE: not support image to embedding
+        if isinstance(content, list):
+            for msg in content:
+                prompt, _ = self._parse_input_msg(msg)
+                if prompt:
+                    prompts.append(prompt)
+        else:
+            prompts.append(content)
         sends = {"model": self.model, "prompt": "\n".join(prompts)}
+        sends.update(self.additional_kwargs)
+        return sends
+
+
+class OllamaMessageEmbed(OllamaMessageEmbeddings, metaclass=OllamaMessageMeta):
+    api_type = OllamaMessageAPI.EMBED
+
+    @property
+    def api_suffix(self) -> str:
+        return "/embed"
+
+    def apply(self, messages: list[dict]) -> dict:
+        content = messages[0]["content"]
+        prompts = []  # NOTE: not support image to embedding
+        if isinstance(content, list):
+            for msg in content:
+                prompt, _ = self._parse_input_msg(msg)
+                if prompt:
+                    prompts.append(prompt)
+        else:
+            prompts.append(content)
+        sends = {"model": self.model, "input": prompts}
         sends.update(self.additional_kwargs)
         return sends
 
@@ -263,11 +290,11 @@ class OllamaGenerate(OllamaLLM):
         return {"options": {"temperature": 0.3}, "stream": self.config.stream}
 
 
-@register_provider(LLMType.OLLAMA_EMBEDDING)
+@register_provider(LLMType.OLLAMA_EMBEDDINGS)
 class OllamaEmbeddings(OllamaLLM):
     @property
     def _llama_api_inuse(self) -> OllamaMessageAPI:
-        return OllamaMessageAPI.EMBED
+        return OllamaMessageAPI.EMBEDDINGS
 
     @property
     def _llama_api_kwargs(self) -> dict:
@@ -277,7 +304,6 @@ class OllamaEmbeddings(OllamaLLM):
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.ollama_message.api_suffix,
-            headers=self.headers,
             params=self.ollama_message.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
         )
@@ -288,3 +314,10 @@ class OllamaEmbeddings(OllamaLLM):
 
     def get_choice_text(self, rsp):
         return rsp
+
+
+@register_provider(LLMType.OLLAMA_EMBED)
+class OllamaEmbed(OllamaLLM):
+    @property
+    def _llama_api_inuse(self) -> OllamaMessageAPI:
+        return OllamaMessageAPI.EMBED
