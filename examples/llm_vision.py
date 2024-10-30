@@ -16,7 +16,8 @@ async def main():
     invoice_path = Path(__file__).parent.joinpath("..", "tests", "data", "invoices", "invoice-2.png")
     encode_image(invoice_path)
     # res = await llm.aask(msg="return `True` if this image might be a invoice, or return `False`", images=[img_base64])
-    await llm.aask(msg="hello")
+    res = await llm.aask(msg="hello")
+    print(res)
     # assert ("true" in res.lower()) or ("invoice" in res.lower())
 
 
