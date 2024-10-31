@@ -1,4 +1,4 @@
-
+<a name="readme-top"></a>
 # MetaGPT: The Multi-Agent Framework
 
 <p align="center">
@@ -165,6 +165,16 @@ If you have any questions or feedback about this project, please feel free to co
 
 We will respond to all questions within 2-3 business days.
 
+###  Contributors
+
+<a href="https://github.com/geekan/MetaGPT/graphs/contributors">
+  <img alt="contributors" src="https://contrib.rocks/image?repo=geekan/MetaGPT"/>
+</a>
+
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=geekan/MetaGPT&type=Date)](https://star-history.com/#geekan/MetaGPT&Date)
+
 ## Citation
 
 To stay updated with the latest research and development, follow [@MetaGPT_](https://twitter.com/MetaGPT_) on Twitter. 
@@ -197,3 +207,9 @@ To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) or [Data Interpret
       url={https://arxiv.org/abs/2410.10762}, 
 }
 ```
+
+<p align="right" style="font-size: 14px; color: #555; margin-top: 20px;">
+    <a href="#readme-top" style="text-decoration: none; color: #007bff; font-weight: bold;">
+        ↑ Back to Top ↑
+    </a>
+</p>
