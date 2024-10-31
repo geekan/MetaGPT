@@ -1,0 +1,6 @@
+llm:
+  api_type: "hunyuan" # 腾讯混元大模型
+  model: "hunyuan-standard" # 可选 hunyuan-lite、hunyuan-standard 、hunyuan-standard-256K、hunyuan-pro、hunyuan-turbo、hunyuan-code
+  endpoint: "hunyuan.tencentcloudapi.com" #默认 hunyuan.tencentcloudapi.com
+  secret_id: "" #腾讯云账户 SecretId 和 SecretKey，请注意保密。申请链接：https://console.cloud.tencent.com/cam/capi
+  secret_key: ""

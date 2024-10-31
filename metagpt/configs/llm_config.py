@@ -38,6 +38,7 @@ class LLMType(Enum):
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
     ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
+    HUNYUAN = "hunyuan"  # Tencent Hunyuan
 
     def __missing__(self, key):
         return self.OPENAI
@@ -63,6 +64,8 @@ class LLMConfig(YamlModel):
     secret_key: Optional[str] = None
     session_token: Optional[str] = None
     endpoint: Optional[str] = None  # for self-deployed model on the cloud
+    # For Tencent Hunyuan
+    secret_id: Optional[str] = None
 
     # For Spark(Xunfei), maybe remove later
     app_id: Optional[str] = None
