@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from metagpt.actions import Action
 from metagpt.schema import Message
+
 BEGGING_PROMPT = """
 # user requirements
    {user_requirement}
@@ -22,25 +24,23 @@ BEGGING_PROMPT = """
    4. The response should be provided in {language} to align with the user's requirements.
 """
 
+
 class WriteGuide(Action):
-    async def run(  self,
-                    user_requirement: str,
-                    chapter_name : str,
-                    subheadings  : str,
-                    contexts : str,
-                    language : str = 'chinese'
-                    ) -> str:      
+    async def run(
+        self, user_requirement: str, chapter_name: str, subheadings: str, contexts: str, language: str = "chinese"
+    ) -> str:
         structual_prompt = BEGGING_PROMPT.format(
             user_requirement=user_requirement,
-            chapter_name = chapter_name,
-            subheadings =  subheadings,
-            contexts = contexts,
-            language = language
-            )
-        
+            chapter_name=chapter_name,
+            subheadings=subheadings,
+            contexts=contexts,
+            language=language,
+        )
+
         context = self.llm.format_msg([Message(content=structual_prompt, role="user")])
         rsp = await self.llm.aask(context)
         return rsp
+
 
 REFINE = """
 # user's guidance:
@@ -68,22 +68,25 @@ REFINE = """
 - Maintain the integrity of the original response while incorporating the enhancements.
 """
 
+
 class Refine(Action):
-    async def run(  self,
-                    original_query: str,
-                    respones : str,
-                    contexts  : str,
-                    user_requirement : str = '',
-                    language : str = 'chinese',
-                    **kwargs) -> str:    
-        original_query = f"{original_query}"  
+    async def run(
+        self,
+        original_query: str,
+        respones: str,
+        contexts: str,
+        user_requirement: str = "",
+        language: str = "chinese",
+        **kwargs,
+    ) -> str:
+        original_query = f"{original_query}"
         structual_prompt = REFINE.format(
-            original_query = original_query,
-            respones = respones,
-            contexts = contexts,
-            user_requirement = user_requirement,
-            language = language
-            )
+            original_query=original_query,
+            respones=respones,
+            contexts=contexts,
+            user_requirement=user_requirement,
+            language=language,
+        )
         context = self.llm.format_msg([Message(content=structual_prompt, role="user")])
         rsp = await self.llm.aask(context, **kwargs)
         return rsp
@@ -113,16 +116,15 @@ SUBSECTION_PROMPT = """
    3. Focus on Content Depth:
       Concentrate on developing the substance of your writing around the core theme indicated by the subsection heading. Where applicable, enrich your discussion with relevant references to support your arguments and enhance credibility.  
 """
-       
+
+
 class WriteSubsection(Action):
-    async def run( self, subsection  : str,  contexts : str,  **kwargs) -> str:     
-        structual_prompt = SUBSECTION_PROMPT.format( subsection = subsection,
-                                                     contexts = contexts
-                                                    )
+    async def run(self, subsection: str, contexts: str, **kwargs) -> str:
+        structual_prompt = SUBSECTION_PROMPT.format(subsection=subsection, contexts=contexts)
         context = self.llm.format_msg([Message(content=structual_prompt, role="user")])
         rsp = await self.llm.aask(context, **kwargs)
         return rsp
-    
+
 
 CLC_PROMPT = """ 
 # Title: 
@@ -139,13 +141,11 @@ CLC_PROMPT = """
   1. Keep the expansion to approximately 5 sentences for brevity.
   2. The response should be provided in {language}.
 """
+
+
 class Clean(Action):
-    async def run(self,title: str,contexts: str, language:str = 'chinese') -> str:    
-      structual_prompt = CLC_PROMPT.format(
-            title = title,
-            contexts = contexts,
-            language = language
-            )
-      context = self.llm.format_msg([Message(content=structual_prompt, role="user")])
-      rsp = await self.llm.aask(context)
-      return rsp  
+    async def run(self, title: str, contexts: str, language: str = "chinese") -> str:
+        structual_prompt = CLC_PROMPT.format(title=title, contexts=contexts, language=language)
+        context = self.llm.format_msg([Message(content=structual_prompt, role="user")])
+        rsp = await self.llm.aask(context)
+        return rsp
