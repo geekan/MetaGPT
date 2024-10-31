@@ -114,9 +114,6 @@ class OpenAILLM(BaseLLM):
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
-                elif "openrouter.ai" in self.config.base_url and chunk_has_usage:
-                    # due to it get token cost from api
-                    usage = chunk.usage
                 has_finished = True
 
         log_llm_stream("\n")
