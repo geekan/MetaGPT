@@ -94,6 +94,10 @@ class LLMConfig(YamlModel):
     # For Network
     proxy: Optional[str] = None
 
+    # For baidu qianfan
+    system: bool = False       # 模型人设
+    disable_search: bool = True   # 是否关闭实时搜索
+
     # Cost Control
     calc_usage: bool = True
 
