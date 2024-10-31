@@ -478,10 +478,10 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-
-        # create initial plan and update it until confirmation
-        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
-        await self.planner.update_plan(goal=goal)
+        if not self.planner.plan.goal:
+            # create initial plan and update it until confirmation
+            goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+            await self.planner.update_plan(goal=goal)
 
         # take on tasks until all finished
         while self.planner.current_task:
