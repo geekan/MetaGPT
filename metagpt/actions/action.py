@@ -49,6 +49,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
             llm = create_llm_instance(config)
             llm.cost_manager = data.llm.cost_manager
             data.llm = llm
+            data.config = config   # if not set self.config, self.llm will be reset when you call Role.set_actions function
         return data
 
     @property
