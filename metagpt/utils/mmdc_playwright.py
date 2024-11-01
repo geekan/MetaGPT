@@ -81,10 +81,13 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             if "svg" in suffixes:
                 svg_xml = await page.evaluate(
                     """() => {
-                    const svg = document.querySelector('svg');
-                    const xmlSerializer = new XMLSerializer();
-                    return xmlSerializer.serializeToString(svg);
-                }"""
+                        const svg = document.querySelector('svg');
+                        if (!svg) {
+                            throw new Error('SVG element not found');
+                        }
+                        const xmlSerializer = new XMLSerializer();
+                        return xmlSerializer.serializeToString(svg);
+                    }"""
                 )
                 logger.info(f"Generating {output_file_without_suffix}.svg..")
                 with open(f"{output_file_without_suffix}.svg", "wb") as f:
