@@ -1,0 +1,27 @@
+llm:
+  api_type: "openai"  # or azure / ollama / groq etc.
+  base_url: "YOUR_gpt-3.5-turbo_BASE_URL"
+  api_key: "YOUR_gpt-3.5-turbo_API_KEY"
+  model: "gpt-3.5-turbo"  # or gpt-3.5-turbo
+  # proxy: "YOUR_gpt-3.5-turbo_PROXY"  # for LLM API requests
+  # timeout: 600 # Optional. If set to 0, default value is 300.
+  # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+  pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+
+models:
+  "YOUR_MODEL_NAME_1": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
+    api_type: "openai"  # or azure / ollama / groq etc.
+    base_url: "YOUR_MODEL_1_BASE_URL"
+    api_key: "YOUR_MODEL_1_API_KEY"
+    # proxy: "YOUR_MODEL_1_PROXY"  # for LLM API requests
+    # timeout: 600 # Optional. If set to 0, default value is 300.
+    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+  "YOUR_MODEL_NAME_2": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
+    api_type: "openai"  # or azure / ollama / groq etc.
+    base_url: "YOUR_MODEL_2_BASE_URL"
+    api_key: "YOUR_MODEL_2_API_KEY"
+    proxy: "YOUR_MODEL_2_PROXY"  # for LLM API requests
+    # timeout: 600 # Optional. If set to 0, default value is 300.
+    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
