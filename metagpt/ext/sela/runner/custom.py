@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -47,7 +47,7 @@ class CustomRunner(Runner):
 
     def evaluate_predictions(self, preds, split):
         metric = self.state["dataset_config"]["metric"]
-        gt_path = os.path.join(self.state["datasets_dir"][f"{split}_target"])
+        gt_path = Path(self.state["datasets_dir"][f"{split}_target"])
         gt = pd.read_csv(gt_path)["target"]
         score = evaluate_score(preds, gt, metric)
         return score

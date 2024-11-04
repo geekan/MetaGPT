@@ -3,6 +3,8 @@ import time
 
 import aide
 
+from metagpt.ext.sela.utils import mcts_logger
+
 os.environ["OPENAI_API_KEY"] = "sk-xxx"
 os.environ["OPENAI_BASE_URL"] = "your url"
 
@@ -27,9 +29,9 @@ exp = aide.Experiment(
 
 best_solution = exp.run(steps=10)
 
-print(f"Best solution has validation metric: {best_solution.valid_metric}")
-print(f"Best solution code: {best_solution.code}")
+mcts_logger.info(f"Best solution has validation metric: {best_solution.valid_metric}")
+mcts_logger.info(f"Best solution code: {best_solution.code}")
 end_time = time.time()
 execution_time = end_time - start_time
 
-print(f"run time : {execution_time} seconds")
+mcts_logger.info(f"run time : {execution_time} seconds")

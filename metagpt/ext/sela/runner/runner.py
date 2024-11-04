@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ import pandas as pd
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
 from metagpt.ext.sela.experimenter import Experimenter
 from metagpt.ext.sela.search.tree_search import create_initial_state
-from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
+from metagpt.ext.sela.utils import DATA_CONFIG, mcts_logger, save_notebook
 
 
 class Runner:
@@ -38,7 +39,7 @@ class Runner:
                 score_dict = self.evaluate(score_dict, self.state)
                 run_finished = True
             except Exception as e:
-                print(f"Error: {e}")
+                mcts_logger.info(f"Error: {e}")
                 num_runs += 1
         # save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
         save_name = self.get_save_name()
@@ -94,10 +95,10 @@ class Runner:
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):
-        pred_path = os.path.join(state["work_dir"], state["task"], f"{split}_predictions.csv")
+        pred_path = Path(state["work_dir"]) / state["task"] / f"{split}_predictions.csv"
         os.makedirs(state["node_dir"], exist_ok=True)
-        pred_node_path = os.path.join(state["node_dir"], f"{self.start_time}-{split}_predictions.csv")
-        gt_path = os.path.join(state["datasets_dir"][f"{split}_target"])
+        pred_node_path = Path(state["node_dir"]) / f"{self.start_time}-{split}_predictions.csv"
+        gt_path = Path(state["datasets_dir"]) / f"{split}_target.csv"
         preds = pd.read_csv(pred_path)
         preds = preds[preds.columns.tolist()[-1]]
         preds.to_csv(pred_node_path, index=False)

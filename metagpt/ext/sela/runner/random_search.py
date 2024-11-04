@@ -1,7 +1,7 @@
 from metagpt.ext.sela.experimenter import Experimenter
 from metagpt.ext.sela.insights.instruction_generator import InstructionGenerator
 from metagpt.ext.sela.runner.runner import Runner
-from metagpt.ext.sela.utils import get_exp_pool_path
+from metagpt.ext.sela.utils import get_exp_pool_path, mcts_logger
 
 EXPS_PROMPT = """
 When doing the tasks, you can refer to the insights below:
@@ -37,7 +37,7 @@ class RandomSearchRunner(Runner):
             di = Experimenter(node_id=str(i), use_reflection=self.args.reflection, role_timeout=self.args.role_timeout)
             di.role_dir = f"{di.role_dir}_{self.args.task}"
             requirement = user_requirement + EXPS_PROMPT.format(experience=exps[i])
-            print(requirement)
+            mcts_logger.info(requirement)
             score_dict = await self.run_di(di, requirement, run_idx=i)
             results.append(
                 {

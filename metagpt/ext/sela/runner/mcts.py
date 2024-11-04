@@ -7,6 +7,7 @@ from metagpt.ext.sela.evaluation.evaluation import (
 from metagpt.ext.sela.evaluation.visualize_mcts import get_tree_text
 from metagpt.ext.sela.runner.runner import Runner
 from metagpt.ext.sela.search.search_algorithm import MCTS, Greedy, Random
+from metagpt.ext.sela.utils import mcts_logger
 
 
 class MCTSRunner(Runner):
@@ -46,7 +47,7 @@ class MCTSRunner(Runner):
         text += f"Best node: {best_node.id}, score: {best_node.raw_reward}\n"
         text += f"Dev best node: {dev_best_node.id}, score: {dev_best_node.raw_reward}\n"
         text += f"Grader score: {additional_scores['grader']}\n"
-        print(text)
+        mcts_logger.info(text)
         results = [
             {
                 "best_node": best_node.id,
