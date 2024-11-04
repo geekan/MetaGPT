@@ -1,12 +1,10 @@
-import pytest
-
-
-from metagpt.config2 import Config
-from metagpt.roles.role import Role, RoleReactMode
 from metagpt.actions.action import Action
+from metagpt.config2 import Config
+from metagpt.const import TEST_DATA_PATH
 from metagpt.context import Context
 from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.const import TEST_DATA_PATH
+from metagpt.roles.role import Role
+
 
 def test_set_llm():
     config1 = Config.default()
@@ -31,7 +29,7 @@ def test_set_llm():
     act1.config = config2
     role1.set_actions([act1])
     assert act1.llm.model == llm2.model
-    
+
     # multiple LLM
 
     config3_path = TEST_DATA_PATH / "config/config2_multi_llm.yaml"
@@ -45,9 +43,3 @@ def test_set_llm():
     role3.set_actions([act3])
     assert act3.config.llm.model == "gpt-3.5-turbo"
     assert act3.llm.model == "gpt-4-turbo"
-    
-    
-
-
-
-
