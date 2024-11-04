@@ -52,6 +52,8 @@ TOKEN_COSTS = {
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
+    "glm-4-flash": {"prompt": 0, "completion": 0},
+    "glm-4-plus": {"prompt": 0.007, "completion": 0.007},
     "gemini-1.5-flash": {"prompt": 0.000075, "completion": 0.0003},
     "gemini-1.5-pro": {"prompt": 0.0035, "completion": 0.0105},
     "gemini-1.0-pro": {"prompt": 0.0005, "completion": 0.0015},

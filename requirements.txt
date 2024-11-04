@@ -52,7 +52,7 @@ httplib2~=0.22.0
 websocket-client~=1.8.0
 aiofiles==23.2.1
 gitpython==3.1.40
-zhipuai==2.0.1
+zhipuai~=2.1.5
 rich==13.6.0
 nbclient==0.9.0
 nbformat==5.9.2

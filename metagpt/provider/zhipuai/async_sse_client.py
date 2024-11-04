@@ -17,7 +17,7 @@ class AsyncSSEClient(object):
                 f"Request failed, msg: {self._event_source.decode('utf-8')}, please ref to `https://open.bigmodel.cn/dev/api#error-code-v3`"
             )
         async for chunk in self._event_source:
-            line = chunk.decode("utf-8")
+            line = chunk.data.decode("utf-8")
             if line.startswith(":") or not line:
                 return
 
