@@ -67,6 +67,8 @@ TOKEN_COSTS = {
     "claude-2.0": {"prompt": 0.008, "completion": 0.024},
     "claude-2.1": {"prompt": 0.008, "completion": 0.024},
     "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
+    "claude-3-5-sonnet": {"prompt": 0.003, "completion": 0.015},
+    "claude-3-5-sonnet-v2": {"prompt": 0.003, "completion": 0.015},  # alias of newer 3.5 sonnet
     "claude-3-5-sonnet-20240620": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "claude-3-haiku-20240307": {"prompt": 0.00025, "completion": 0.00125},
@@ -379,8 +381,12 @@ SPARK_TOKENS = {
 def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     if "claude" in model:
+        # rough estimation for models newer than claude-2.1
         vo = anthropic.Client()
-        num_tokens = vo.count_tokens(str(messages))
+        num_tokens = 0
+        for message in messages:
+            for key, value in message.items():
+                num_tokens += vo.count_tokens(str(value))
         return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
