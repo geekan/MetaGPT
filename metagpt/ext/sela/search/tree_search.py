@@ -374,7 +374,7 @@ class BaseTreeSearch:
                 return best_score, best_child
             for child in self.children[node]:
                 score = child.normalized_reward[split]
-                print(child.id, split, score)
+                mcts_logger.info(f"{child.id} {split} {score}")
                 if score > best_score:
                     best_score = score
                     best_child = child

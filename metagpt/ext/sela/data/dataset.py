@@ -10,7 +10,7 @@ import yaml
 from sklearn.model_selection import train_test_split
 
 from metagpt.ext.sela.insights.solution_designer import SolutionDesigner
-from metagpt.ext.sela.utils import DATA_CONFIG
+from metagpt.ext.sela.utils import DATA_CONFIG, mcts_logger
 
 BASE_USER_REQUIREMENT = """
 This is a {datasetname} dataset. Your goal is to predict the target column `{target_col}`.
@@ -191,7 +191,7 @@ def generate_task_requirement(task_name, data_config, is_di=True, special_instru
         additional_instruction=additional_instruction,
         data_info_path=data_info_path,
     )
-    print(user_requirement)
+    mcts_logger.info(user_requirement)
     return user_requirement
 
 
@@ -286,16 +286,16 @@ class ExpDataset:
     def save_dataset(self, target_col):
         df, test_df = self.get_raw_dataset()
         if not self.check_dataset_exists() or self.force_update:
-            print(f"Saving Dataset {self.name} in {self.dataset_dir}")
+            mcts_logger.info(f"Saving Dataset {self.name} in {self.dataset_dir}")
             self.split_and_save(df, target_col, test_df=test_df)
         else:
-            print(f"Dataset {self.name} already exists")
+            mcts_logger.info(f"Dataset {self.name} already exists")
         if not self.check_datasetinfo_exists() or self.force_update:
-            print(f"Saving Dataset info for {self.name}")
+            mcts_logger.info(f"Saving Dataset info for {self.name}")
             dataset_info = self.get_dataset_info()
             self.save_datasetinfo(dataset_info)
         else:
-            print(f"Dataset info for {self.name} already exists")
+            mcts_logger.info(f"Dataset info for {self.name} already exists")
 
     def save_datasetinfo(self, dataset_info):
         with open(Path(self.dataset_dir, self.name, "dataset_info.json"), "w", encoding="utf-8") as file:

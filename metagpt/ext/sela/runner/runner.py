@@ -8,7 +8,7 @@ import pandas as pd
 from metagpt.ext.sela.evaluation.evaluation import evaluate_score
 from metagpt.ext.sela.experimenter import Experimenter
 from metagpt.ext.sela.search.tree_search import create_initial_state
-from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
+from metagpt.ext.sela.utils import DATA_CONFIG, mcts_logger, save_notebook
 
 
 class Runner:
@@ -38,7 +38,7 @@ class Runner:
                 score_dict = self.evaluate(score_dict, self.state)
                 run_finished = True
             except Exception as e:
-                print(f"Error: {e}")
+                mcts_logger.info(f"Error: {e}")
                 num_runs += 1
         # save_notebook(role=di, save_dir=self.result_path, name=f"{self.args.task}_{self.start_time}_{run_idx}")
         save_name = self.get_save_name()

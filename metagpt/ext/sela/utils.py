@@ -57,7 +57,7 @@ def get_exp_pool_path(task_name, data_config, pool_name="analysis_pool"):
 
 
 def change_plan(role, plan):
-    print(f"Change next plan to: {plan}")
+    mcts_logger.info(f"Change next plan to: {plan}")
     tasks = role.planner.plan.tasks
     finished = True
     for i, task in enumerate(tasks):
@@ -115,8 +115,8 @@ async def load_execute_notebook(role):
     # await executor.build()
     for code in codes:
         outputs, success = await executor.run(code)
-        print(f"Execution success: {success}, Output: {outputs}")
-    print("Finish executing the loaded notebook")
+        mcts_logger.info(f"Execution success: {success}, Output: {outputs}")
+    mcts_logger.info("Finish executing the loaded notebook")
     return executor
 
 

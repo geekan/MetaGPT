@@ -133,9 +133,9 @@ class Experimenter(DataInterpreter):
         if self.planner.plan.goal != "":
             self.set_actions([WriteAnalysisCode])
             self._set_state(0)
-            print("Plan already exists, skipping initialization.")
+            mcts_logger.info("Plan already exists, skipping initialization.")
             return self
-        print("Initializing plan and tool...")
+        mcts_logger.info("Initializing plan and tool...")
         return super().set_plan_and_tool()
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from metagpt.ext.sela.search.tree_search import Node
+from metagpt.ext.sela.utils import mcts_logger
 
 NODE_TEMPLATE = """\
 [Node {id}]
@@ -139,7 +140,7 @@ def build_tree_recursive(graph, parent_id, node, node_order, start_task_id=2):
         instruction = "\n\n".join([role.planner.plan.tasks[i].instruction for i in range(start_task_id)])
     else:
         instruction = role.planner.plan.tasks[depth + start_task_id - 1].instruction
-    print(instruction)
+    mcts_logger.info(instruction)
     # Add the current node with attributes to the graph
     dev_score = node.raw_reward.get("dev_score", 0) * 100
     avg_score = node.avg_value() * 100

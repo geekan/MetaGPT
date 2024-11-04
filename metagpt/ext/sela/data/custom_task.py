@@ -6,6 +6,7 @@ from metagpt.ext.sela.runner.mle_bench.instructions import (
     INSTRUCTIONS,
     INSTRUCTIONS_OBFUSCATED,
 )
+from metagpt.ext.sela.utils import mcts_logger
 
 MLE_BENCH_FILES = ["description.md", "description_obfuscated.md"]
 
@@ -70,5 +71,5 @@ def get_mle_bench_requirements(dataset_dir, data_config, special_instruction, ob
         output_dir=output_dir,
         special_instruction=special_instruction,
     )
-    print(mle_requirement)
+    mcts_logger.info(mle_requirement)
     return mle_requirement
