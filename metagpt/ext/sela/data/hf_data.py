@@ -1,6 +1,5 @@
 import asyncio
 import io
-import os
 from pathlib import Path
 
 import pandas as pd
@@ -63,7 +62,7 @@ class HFExpDataset(ExpDataset):
         raw_dir = Path(self.dataset_dir, self.name, "raw")
         raw_dir.mkdir(parents=True, exist_ok=True)
 
-        if os.path.exists(Path(raw_dir, "train.csv")):
+        if Path(raw_dir, "train.csv").exists():
             df = pd.read_csv(Path(raw_dir, "train.csv"), encoding="utf-8")
         else:
             df = self.dataset["train"].to_pandas()
@@ -73,7 +72,7 @@ class HFExpDataset(ExpDataset):
 
             df.to_csv(Path(raw_dir, "train.csv"), index=False, encoding="utf-8")
 
-        if os.path.exists(Path(raw_dir, "test.csv")):
+        if Path(raw_dir, "test.csv").exists():
             test_df = pd.read_csv(Path(raw_dir, "test.csv"), encoding="utf-8")
         else:
             if self.dataset and "test" in self.dataset:

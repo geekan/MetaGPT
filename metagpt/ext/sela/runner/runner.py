@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -94,10 +95,10 @@ class Runner:
         self.save_result(results)
 
     def evaluate_prediction(self, split, state):
-        pred_path = os.path.join(state["work_dir"], state["task"], f"{split}_predictions.csv")
+        pred_path = Path(state["work_dir"]) / state["task"] / f"{split}_predictions.csv"
         os.makedirs(state["node_dir"], exist_ok=True)
-        pred_node_path = os.path.join(state["node_dir"], f"{self.start_time}-{split}_predictions.csv")
-        gt_path = os.path.join(state["datasets_dir"][f"{split}_target"])
+        pred_node_path = Path(state["node_dir"]) / f"{self.start_time}-{split}_predictions.csv"
+        gt_path = Path(state["datasets_dir"]) / f"{split}_target.csv"
         preds = pd.read_csv(pred_path)
         preds = preds[preds.columns.tolist()[-1]]
         preds.to_csv(pred_node_path, index=False)

@@ -1,9 +1,10 @@
-import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
 from metagpt.ext.sela.runner.custom import CustomRunner
+from metagpt.ext.sela.utils import DATA_CONFIG
 
 
 class AGRunner:
@@ -80,7 +81,7 @@ class AGRunner:
         """
 
         # Define the root path to append
-        root_folder = os.path.join("F:/Download/Dataset/", self.state["task"])
+        root_folder = Path(DATA_CONFIG["datasets_dir"]) / self.state["task"]
 
         # Load the datasets
         train_data = pd.read_csv(train_path)
@@ -92,12 +93,10 @@ class AGRunner:
         image_column = train_data.columns[0]
 
         # Append root folder path to the image column in each dataset
-        train_data[image_column] = train_data[image_column].apply(lambda x: os.path.join(root_folder, x))
-        dev_data[image_column] = dev_data[image_column].apply(lambda x: os.path.join(root_folder, x))
-        dev_wo_target_data[image_column] = dev_wo_target_data[image_column].apply(
-            lambda x: os.path.join(root_folder, x)
-        )
-        test_data[image_column] = test_data[image_column].apply(lambda x: os.path.join(root_folder, x))
+        train_data[image_column] = train_data[image_column].apply(lambda x: Path(root_folder) / x)
+        dev_data[image_column] = dev_data[image_column].apply(lambda x: Path(root_folder) / x)
+        dev_wo_target_data[image_column] = dev_wo_target_data[image_column].apply(lambda x: Path(root_folder) / x)
+        test_data[image_column] = test_data[image_column].apply(lambda x: Path(root_folder) / x)
 
         return train_data, dev_data, dev_wo_target_data, test_data
 

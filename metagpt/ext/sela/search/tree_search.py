@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import shutil
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -95,7 +96,9 @@ def create_initial_state(task: str, start_task_id: int, data_config: dict, args)
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
-        "node_dir": os.path.join(data_config["work_dir"], data_config["role_dir"], f"{task}{args.name}"),
+        "node_dir": os.path.join(
+            data_config["work_dir"], data_config["role_dir"], f"{task}{args.name}"
+        ),  # cannot use Path here because of the Pydantic
         "dataset_config": dataset_config,
         "datasets_dir": datasets_dir,  # won't be used if external eval is used
         "exp_pool_path": exp_pool_path,
@@ -145,12 +148,15 @@ class Node:
         return hash(self.id)
 
     def save_node(self):
-        os.makedirs(self.state["node_dir"], exist_ok=True)
-        with open(os.path.join(self.state["node_dir"], f"Node-{self.id}.pkl"), "wb") as f:
+        node_dir = Path(self.state["node_dir"])
+        node_dir.mkdir(parents=True, exist_ok=True)
+        node_path = node_dir / f"Node-{self.id}.pkl"
+        with node_path.open("wb") as f:
             pickle.dump(self, f)
 
     def load_node(self):
-        with open(os.path.join(self.state["node_dir"], f"Node-{self.id}.pkl"), "rb") as f:
+        node_path = Path(self.state["node_dir"]) / f"Node-{self.id}.pkl"
+        with node_path.open("rb") as f:
             return pickle.load(f)
 
     def get_depth(self):
@@ -195,7 +201,7 @@ class Node:
 
     def get_role_path(self):
         fname = f"Node-{self.id}.json"
-        role_path = os.path.join(self.state["node_dir"], fname)
+        role_path = Path(self.state["node_dir"]) / fname
         return role_path
 
     def load_role(self):
@@ -239,17 +245,17 @@ class Node:
             self.add_child(node)
 
     def get_predictions_path(self, split):
-        return os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}_predictions.csv")
+        return Path(self.state["node_dir"]) / f"Node-{self.id}-{split}_predictions.csv"
 
     def get_and_move_predictions(self, split):
-        if not os.path.exists(self.get_predictions_path(split)):
-            pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}_predictions.csv")
+        if not self.get_predictions_path(split).exists():
+            pred_path = Path(self.state["work_dir"]) / self.state["task"] / f"{split}_predictions.csv"
             shutil.copy(pred_path, self.get_predictions_path(split))
             os.remove(pred_path)
         return pd.read_csv(self.get_predictions_path(split))
 
     def get_gt(self, split):
-        gt_path = os.path.join(self.state["datasets_dir"][f"{split}_target"])
+        gt_path = Path(self.state["datasets_dir"][f"{split}_target"])
         return pd.read_csv(gt_path)
 
     def evaluate_prediction(self, split):
@@ -391,11 +397,11 @@ class BaseTreeSearch:
 
     def save_node_order(self, node_id: str):
         self.node_order.append(node_id)
-        with open(os.path.join(self.root_node.state["node_dir"], "node_order.json"), "w") as f:
+        with open(Path(self.root_node.state["node_dir"]) / "node_order.json", "w") as f:
             json.dump(self.node_order, f)
 
     def load_node_order(self):
-        with open(os.path.join(self.root_node.state["node_dir"], "node_order.json"), "r") as f:
+        with open(Path(self.root_node.state["node_dir"]) / "node_order.json", "r") as f:
             self.node_order = json.load(f)
 
     def get_score_order_dict(self):
@@ -481,8 +487,9 @@ class BaseTreeSearch:
         # Load all pkl files in the node_dir
         all_pkl_files = os.listdir(self.root_node.state["node_dir"])
         all_pkl_files = [f for f in all_pkl_files if f.endswith(".pkl")]
-        if os.path.exists(os.path.join(self.root_node.state["node_dir"], "Node-0.pkl")):
-            with open(os.path.join(self.root_node.state["node_dir"], "Node-0.pkl"), "rb") as f:
+        node_0_path = Path(self.root_node.state["node_dir"]) / "Node-0.pkl"
+        if node_0_path.exists():
+            with open(node_0_path, "rb") as f:
                 self.root_node = pickle.load(f)
             self.children[self.root_node] = self.root_node.children
             load_children_node(self.root_node)

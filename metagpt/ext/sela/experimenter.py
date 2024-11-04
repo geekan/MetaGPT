@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
+from pathlib import Path
 
 from pydantic import model_validator
 
@@ -172,7 +172,7 @@ class Experimenter(DataInterpreter):
             mcts_logger.log("MCTS", "Static Saving")
         stg_path = self.role_dir
         name = self.get_node_name()
-        role_path = os.path.join(stg_path, f"{name}.json")
+        role_path = Path(stg_path) / f"{name}.json"
         # save state as json file
         write_json_file(role_path, self.model_dump())
 

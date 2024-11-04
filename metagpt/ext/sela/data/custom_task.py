@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from metagpt.ext.sela.data.dataset import SPECIAL_INSTRUCTIONS
 from metagpt.ext.sela.runner.mle_bench.instructions import (
@@ -62,7 +63,7 @@ def get_mle_bench_requirements(dataset_dir, data_config, special_instruction, ob
         instructions = INSTRUCTIONS.format(dataset_dir=dataset_dir, output_dir=output_dir)
         task_file = "description.md"
 
-    with open(os.path.join(dataset_dir, task_file), encoding="utf-8") as f:
+    with open(Path(dataset_dir) / task_file, encoding="utf-8") as f:
         task_description = f.read()
     mle_requirement = MLE_REQUIREMENTS.format(
         instructions=instructions,

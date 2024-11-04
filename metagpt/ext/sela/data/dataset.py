@@ -113,15 +113,15 @@ def get_split_dataset_path(dataset_name, config):
     datasets_dir = config["datasets_dir"]
     if dataset_name in config["datasets"]:
         dataset = config["datasets"][dataset_name]
-        data_path = os.path.join(datasets_dir, dataset["dataset"])
+        data_path = Path(datasets_dir) / dataset["dataset"]
         split_datasets = {
-            "train": os.path.join(data_path, "split_train.csv"),
-            "dev": os.path.join(data_path, "split_dev.csv"),
-            "dev_wo_target": os.path.join(data_path, "split_dev_wo_target.csv"),
-            "dev_target": os.path.join(data_path, "split_dev_target.csv"),
-            "test": os.path.join(data_path, "split_test.csv"),
-            "test_wo_target": os.path.join(data_path, "split_test_wo_target.csv"),
-            "test_target": os.path.join(data_path, "split_test_target.csv"),
+            "train": data_path / "split_train.csv",
+            "dev": data_path / "split_dev.csv",
+            "dev_wo_target": data_path / "split_dev_wo_target.csv",
+            "dev_target": data_path / "split_dev_target.csv",
+            "test": data_path / "split_test.csv",
+            "test_wo_target": data_path / "split_test_wo_target.csv",
+            "test_target": data_path / "split_test_target.csv",
         }
         return split_datasets
     else:
@@ -131,10 +131,8 @@ def get_split_dataset_path(dataset_name, config):
 
 
 def get_user_requirement(task_name, config):
-    # datasets_dir = config["datasets_dir"]
     if task_name in config["datasets"]:
         dataset = config["datasets"][task_name]
-        # data_path = os.path.join(datasets_dir, dataset["dataset"])
         user_requirement = dataset["user_requirement"]
         return user_requirement
     else:
@@ -220,22 +218,22 @@ class ExpDataset:
             "split_test_target.csv",
         ]
         for fname in fnames:
-            if not os.path.exists(Path(self.dataset_dir, self.name, fname)):
+            if not Path(self.dataset_dir, self.name, fname).exists():
                 return False
         return True
 
     def check_datasetinfo_exists(self):
-        return os.path.exists(Path(self.dataset_dir, self.name, "dataset_info.json"))
+        return Path(self.dataset_dir, self.name, "dataset_info.json").exists()
 
     def get_raw_dataset(self):
         raw_dir = Path(self.dataset_dir, self.name, "raw")
         train_df = None
         test_df = None
-        if not os.path.exists(Path(raw_dir, "train.csv")):
+        if not Path(raw_dir, "train.csv").exists():
             raise FileNotFoundError(f"Raw dataset `train.csv` not found in {raw_dir}")
         else:
             train_df = pd.read_csv(Path(raw_dir, "train.csv"))
-        if os.path.exists(Path(raw_dir, "test.csv")):
+        if Path(raw_dir, "test.csv").exists():
             test_df = pd.read_csv(Path(raw_dir, "test.csv"))
         return train_df, test_df
 
