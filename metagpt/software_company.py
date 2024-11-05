@@ -60,6 +60,8 @@ def generate_repo(
 
         if run_tests:
             company.hire([QaEngineer()])
+            if n_round < 8:
+                n_round = 8  # If `--run-tests` is enabled, at least 8 rounds are required to run all QA actions.
     else:
         stg_path = Path(recover_path)
         if not stg_path.exists() or not str(stg_path).endswith("team"):
