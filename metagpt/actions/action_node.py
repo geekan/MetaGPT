@@ -541,14 +541,14 @@ class ActionNode:
         result = {field_name: extracted_code}
         return result
 
-    async def single_fill(self, context: str) -> Dict[str, str]:
+    async def single_fill(self, context: str, images: Optional[Union[str, list[str]]] = None) -> Dict[str, str]:
         field_name = self.get_field_name()
         prompt = context
-        content = await self.llm.aask(prompt)
+        content = await self.llm.aask(prompt, images=images)
         result = {field_name: content}
         return result
 
-    async def xml_fill(self, context: str) -> Dict[str, Any]:
+    async def xml_fill(self, context: str, images: Optional[Union[str, list[str]]] = None) -> Dict[str, Any]:
         """
         Fill context with XML tags and convert according to field types, including string, integer, boolean, list and dict types
         """
@@ -556,7 +556,7 @@ class ActionNode:
         field_types = self.get_field_types()
 
         extracted_data: Dict[str, Any] = {}
-        content = await self.llm.aask(context)
+        content = await self.llm.aask(context, images=images)
 
         for field_name in field_names:
             pattern = rf"<{field_name}>(.*?)</{field_name}>"
@@ -635,12 +635,12 @@ class ActionNode:
 
         elif mode == FillMode.XML_FILL.value:
             context = self.xml_compile(context=self.context)
-            result = await self.xml_fill(context)
+            result = await self.xml_fill(context, images=images)
             self.instruct_content = self.create_class()(**result)
             return self
 
         elif mode == FillMode.SINGLE_FILL.value:
-            result = await self.single_fill(context)
+            result = await self.single_fill(context, images=images)
             self.instruct_content = self.create_class()(**result)
             return self
 
