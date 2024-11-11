@@ -3,6 +3,7 @@
 # @Desc   : base env of executing environment
 
 import asyncio
+import time
 from abc import abstractmethod
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
@@ -198,14 +199,22 @@ class Environment(ExtEnv):
         """处理一次所有信息的运行
         Process all Role runs at once
         """
-        for _ in range(k):
+        logger.info(f"=========Starting execution of roles for {k} iterations.")
+        start_time = time.time()
+
+        for iteration in range(k):
+            logger.info(f"Iteration {iteration + 1} started.")
             futures = []
-            for role in self.roles.values():
+            for role_name, role in self.roles.items():
+                logger.info(f"Executing role: {role_name}")
                 future = role.run()
                 futures.append(future)
 
             await asyncio.gather(*futures)
-            logger.debug(f"is idle: {self.is_idle}")
+            logger.debug(f"Iteration {iteration + 1} completed. Environment is idle: {self.is_idle}")
+
+        end_time = time.time()
+        logger.info(f"Execution completed. Total time: {end_time - start_time:.2f} seconds.")
 
     def get_roles(self) -> dict[str, "Role"]:
         """获得环境内的所有角色
