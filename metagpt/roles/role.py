@@ -23,7 +23,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
+import asyncio
+from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union, Callable, Dict, Any
+from metagpt.gui_updates import update_gui_with_thinking_details, update_gui_with_acting_details, update_gui_with_planning_details
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -35,9 +37,10 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
 from metagpt.schema import Message, MessageQueue, SerializationMixin
-from metagpt.strategy.planner import Planner
+from metagpt.strategy.planner import Planner, Task, TaskResult
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
+from metagpt.gui_update_callback import gui_update_callback
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 if TYPE_CHECKING:
@@ -132,6 +135,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     name: str = ""
     profile: str = ""
     goal: str = ""
+    update_callback: Optional[Callable[[Dict[str, Any]], None]] = Field(default=gui_update_callback, exclude=True)
     constraints: str = ""
     desc: str = ""
     is_human: bool = False
@@ -149,6 +153,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     rc: RoleContext = Field(default_factory=RoleContext)
     addresses: set[str] = set()
     planner: Planner = Field(default_factory=Planner)
+    update_callback: Optional[Callable[[Dict[str, Any]], None]] = Field(default=gui_update_callback, exclude=True)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -360,6 +365,20 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _think(self) -> bool:
         """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
+        if self.update_callback:
+            update_info = {
+                "event": "thinking",
+                "state": self.rc.state,
+                "actions": [str(action) for action in self.actions],
+                "current_action": str(self.rc.todo) if self.rc.todo else "None",
+                "history": [msg.content for msg in self.rc.history],
+                "important_memory": [msg.content for msg in self.rc.important_memory]
+            }
+            if asyncio.iscoroutinefunction(self.update_callback):
+                await self.update_callback(update_info)
+            else:
+                self.update_callback(update_info)
+
         if len(self.actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
@@ -401,7 +420,26 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        if self.update_callback:
+            update_info = {
+                "event": "acting",
+                "action": str(self.rc.todo),
+                "description": self.rc.todo.desc if self.rc.todo else "No description",
+                "action_details": {
+                    "name": self.rc.todo.name,
+                    "context": self.rc.todo.context,
+                    "parameters": self.rc.todo.parameters
+                }
+            }
+            if asyncio.iscoroutinefunction(self.update_callback):
+                await self.update_callback(update_info)
+            else:
+                self.update_callback(update_info)
+            self.update_callback(update_info)
+            update_gui_with_acting_details(update_info)
+
         response = await self.rc.todo.run(self.rc.history)
+
         if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
@@ -478,6 +516,20 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
+        if self.update_callback and self.planner:
+            update_info = {
+                "event": "planning_and_acting",
+                "current_task": str(self.planner.current_task) if self.planner.current_task else "None",
+                "task_description": str(self.planner.current_task) if self.planner.current_task else "No task",
+                "plan": {
+                    "goal": self.planner.plan.goal if self.planner.plan else "No goal",
+                    "tasks": [str(task) for task in self.planner.plan.tasks] if self.planner.plan else [],
+                    "current_task": str(self.planner.current_task) if self.planner.current_task else "None"
+                }
+            }
+            self.update_callback(update_info)
+            update_gui_with_planning_details(update_info)
+
         if not self.planner.plan.goal:
             # create initial plan and update it until confirmation
             goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
@@ -516,6 +568,16 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
+        if self.update_callback:
+            update_info = {
+                "event": "reacting",
+                "mode": self.rc.react_mode,
+                "state": self.rc.state,
+                "current_action": str(self.rc.todo) if self.rc.todo else "None"
+            }
+            await self.update_callback(update_info)
+            await gui_update_callback(update_info)
+
         if self.rc.react_mode == RoleReactMode.REACT or self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._react()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
