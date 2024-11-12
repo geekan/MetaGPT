@@ -35,41 +35,7 @@ jobs:
       run: |
         export ALLOW_OPENAI_API_CALL=0
         mkdir -p ~/.metagpt && cp tests/config2.yaml ~/.metagpt/config2.yaml
-        pytest --continue-on-collection-errors tests/ \
-          --ignore=tests/metagpt/environment/android_env \
-          --ignore=tests/metagpt/ext/android_assistant \
-          --ignore=tests/metagpt/ext/stanford_town \
-          --ignore=tests/metagpt/provider/test_bedrock_api.py \
-          --ignore=tests/metagpt/rag/factories/test_embedding.py \
-          --ignore=tests/metagpt/ext/werewolf/actions/test_experience_operation.py \
-          --ignore=tests/metagpt/provider/test_openai.py \
-          --ignore=tests/metagpt/planner/test_action_planner.py \
-          --ignore=tests/metagpt/planner/test_basic_planner.py \
-          --ignore=tests/metagpt/actions/test_project_management.py \
-          --ignore=tests/metagpt/actions/test_write_code.py \
-          --ignore=tests/metagpt/actions/test_write_code_review.py \
-          --ignore=tests/metagpt/actions/test_write_prd.py \
-          --ignore=tests/metagpt/environment/werewolf_env/test_werewolf_ext_env.py \
-          --ignore=tests/metagpt/memory/test_brain_memory.py \
-          --ignore=tests/metagpt/roles/test_assistant.py \
-          --ignore=tests/metagpt/roles/test_engineer.py \
-          --ignore=tests/metagpt/serialize_deserialize/test_write_code_review.py \
-          --ignore=tests/metagpt/test_environment.py \
-          --ignore=tests/metagpt/test_llm.py \
-          --ignore=tests/metagpt/tools/test_metagpt_oas3_api_svc.py \
-          --ignore=tests/metagpt/tools/test_moderation.py \
-          --ignore=tests/metagpt/tools/test_search_engine.py \
-          --ignore=tests/metagpt/tools/test_tool_convert.py \
-          --ignore=tests/metagpt/tools/test_web_browser_engine_playwright.py \
-          --ignore=tests/metagpt/utils/test_mermaid.py \
-          --ignore=tests/metagpt/utils/test_redis.py \
-          --ignore=tests/metagpt/utils/test_tree.py \
-          --ignore=tests/metagpt/serialize_deserialize/test_sk_agent.py \
-          --ignore=tests/metagpt/utils/test_text.py \
-          --ignore=tests/metagpt/actions/di/test_write_analysis_code.py \
-          --ignore=tests/metagpt/provider/test_ark.py \
-          --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov \
-          --durations=20 | tee unittest.txt
+        pytest | tee unittest.txt
     - name: Show coverage report
       run: |
         coverage report -m
@@ -91,8 +57,3 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
-    # - name: Upload coverage reports to Codecov
-    #   uses: codecov/codecov-action@v3
-    #   env:
-    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    #   if: ${{ always() }}
