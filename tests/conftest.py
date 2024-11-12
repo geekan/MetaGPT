@@ -27,7 +27,6 @@ from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
 from tests.mock.mock_httplib2 import MockHttplib2Response
-from tests.mock.mock_llm import MockLLM
 
 RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
 ALLOW_OPENAI_API_CALL = int(
@@ -60,23 +59,23 @@ def pytest_runtest_makereport(item, call):
         item.test_outcome = rep
 
 
-@pytest.fixture(scope="function", autouse=True)
-def llm_mock(rsp_cache, mocker, request):
-    llm = MockLLM(allow_open_api_call=ALLOW_OPENAI_API_CALL)
-    llm.rsp_cache = rsp_cache
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
-    mocker.patch("metagpt.provider.openai_api.OpenAILLM.aask_code", llm.aask_code)
-    yield mocker
-    if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
-        if llm.rsp_candidates:
-            for rsp_candidate in llm.rsp_candidates:
-                cand_key = list(rsp_candidate.keys())[0]
-                cand_value = list(rsp_candidate.values())[0]
-                if cand_key not in llm.rsp_cache:
-                    logger.info(f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache")
-                    llm.rsp_cache.update(rsp_candidate)
-                RSP_CACHE_NEW.update(rsp_candidate)
+# @pytest.fixture(scope="function", autouse=True)
+# def llm_mock(rsp_cache, mocker, request):
+#     llm = MockLLM(allow_open_api_call=ALLOW_OPENAI_API_CALL)
+#     llm.rsp_cache = rsp_cache
+#     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
+#     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
+#     mocker.patch("metagpt.provider.openai_api.OpenAILLM.aask_code", llm.aask_code)
+#     yield mocker
+#     if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
+#         if llm.rsp_candidates:
+#             for rsp_candidate in llm.rsp_candidates:
+#                 cand_key = list(rsp_candidate.keys())[0]
+#                 cand_value = list(rsp_candidate.values())[0]
+#                 if cand_key not in llm.rsp_cache:
+#                     logger.info(f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache")
+#                     llm.rsp_cache.update(rsp_candidate)
+#                 RSP_CACHE_NEW.update(rsp_candidate)
 
 
 class Context:
