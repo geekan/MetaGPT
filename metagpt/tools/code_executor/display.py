@@ -6,6 +6,7 @@
 """
 
 import asyncio
+from typing import Literal
 
 from rich.console import Console, Group
 from rich.live import Live
@@ -15,10 +16,14 @@ from rich.text import Text
 
 async def print_pycode_live(code: str, delay: float = 0.15):
     """
-    在终端上实时打印代码，使用特定的风格突出显示代码。
+    Asynchronously prints Python code line by line with syntax highlighting in the terminal.
 
-    :param code: 要打印的代码字符串
-    :param delay: 每次打印的延迟时间（秒）
+    Args:
+        code (str): The Python code to be printed.
+        delay (float, optional): The delay between printing each line in seconds. Defaults to 0.15.
+
+    Returns:
+        None
     """
     syntax_lines = []
     with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
@@ -30,12 +35,17 @@ async def print_pycode_live(code: str, delay: float = 0.15):
             await asyncio.sleep(delay)
 
 
-async def print_text_live(text: str, level: str = "STDOUT", delay: float = 0.15):
+async def print_text_live(text: str, level: Literal["STDOUT", "STDERR"] = "STDOUT", delay: float = 0.15):
     """
-    在终端上实时打印文本，使用特定的风格突出显示文本。
+    Asynchronously prints text line by line with specified style in the terminal.
 
-    :param text: 要打印的文本字符串
-    :param delay: 每次打印的延迟时间（秒）
+    Args:
+        text (str): The text to be printed.
+        level (str, optional): The log level, which determines the text style. Defaults to "STDOUT".
+        delay (float, optional): The delay between printing each line in seconds. Defaults to 0.15.
+
+    Returns:
+        None
     """
     text_objs = []
     styles = {"STDOUT": "bold white on blue", "STDERR": "bold white on yellow"}
