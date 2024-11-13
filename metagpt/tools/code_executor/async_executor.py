@@ -3,6 +3,7 @@ import json
 import pprint
 import shutil
 import subprocess
+import traceback
 from collections import OrderedDict
 from pathlib import Path
 from typing import List, Literal, Union
@@ -10,6 +11,7 @@ from typing import List, Literal, Union
 from loguru import logger
 
 from metagpt.tools.code_executor.constant import SCRIPT_FILES
+from metagpt.tools.code_executor.display import print_pycode_live, print_text_live
 
 
 class AsyncCodeExecutor(object):
@@ -22,9 +24,11 @@ class AsyncCodeExecutor(object):
         is_save_obj: bool = False,
         save_obj_cmd: str = None,
         load_obj_cmd: str = None,
+        print_code_live=print_pycode_live,
     ):
         self.start_subprocess = start_subprocess
         self.print_cmd = print_cmd + "\n"
+        # 双下划线的变量名不会被序列化保存到本地
         self.__process = None
         self.__cmd_event = asyncio.Event()  # 用于通知process前一个输入的command是否执行完成
         self._cmd_space = OrderedDict()  # cmd_id: {cmd, stddout, stderr}
@@ -33,6 +37,7 @@ class AsyncCodeExecutor(object):
         self.is_save_obj = is_save_obj
         self.load_obj_cmd = load_obj_cmd
         self.save_obj_cmd = save_obj_cmd
+        self.__print_code_live = print_code_live
         if self.is_save_obj:
             assert self.save_obj_cmd is not None, "save_obj_cmd should be string cmd when is_save_obj is True!"
             assert self.load_obj_cmd is not None, "load_obj_cmd should be string cmd when is_save_obj is True!"
@@ -144,12 +149,11 @@ class AsyncCodeExecutor(object):
             if line and not line.startswith(">>>"):
                 if prefix.startswith("STDERR:"):
                     stderr += "\n" + line.strip()
+                    await print_text_live(f"{prefix}{line}", "STDERR") if "END_OF_EXECUTION" not in line else None
 
                 if prefix.startswith("STDOUT:"):
                     stdout += "\n" + line.strip() if "END_OF_EXECUTION" not in line else "\n"
-
-                if "END_OF_EXECUTION" not in line:
-                    print(f"{prefix}{line}")
+                    await print_text_live(f"{prefix}{line}", "STDOUT") if "END_OF_EXECUTION" not in line else None
 
                 if "END_OF_EXECUTION" in line:
                     cmd_id = list(self._cmd_space)[-1]
@@ -167,6 +171,7 @@ class AsyncCodeExecutor(object):
         self.__cmd_event.clear()
 
         full_command = " ".join(cmds) + "\n\n"
+        await self.__print_code_live(full_command)
         cmd_id = str(len(self._cmd_space))
         # 添加cmd到cmd_space
         self._cmd_space[cmd_id] = {}
@@ -216,4 +221,5 @@ class AsyncCodeExecutor(object):
                 await self._run(cmds)
             except Exception as e:
                 logger.error(e)
+                traceback.print_exc()
                 break
