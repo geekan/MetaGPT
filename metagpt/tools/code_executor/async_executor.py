@@ -40,6 +40,9 @@ class AsyncCodeExecutor(object):
             Path(self.work_dir).mkdir(parents=True, exist_ok=True)
         self._executor_save_path = str(Path(self.work_dir) / "executor.json") if self.work_dir else ""
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
     def manage_work_dir(self, cmd: Literal["c", "d"] = "c"):
         """管理cmd变量的共享文件目录"""
         if self.is_save_obj:
@@ -112,22 +115,22 @@ class AsyncCodeExecutor(object):
 
     async def stop_process(self):
         if self.__process:
-            logger.info("Attempting to terminate the process...")
+            logger.info(f"Start: Attempting to terminate the {self} process ...")
             self.__process.terminate()
             try:
                 await asyncio.wait_for(self.__process.wait(), timeout=10)
             except asyncio.TimeoutError:
-                logger.warning("Process did not terminate in time. Killing...")
+                logger.warning(f"{self} process did not terminate in time. Killing...")
                 self.__process.kill()
-        logger.info("Process terminate successfully!")
+        logger.info(f"Done: {self} process terminate successfully!")
 
-        logger.info("Attempting to terminate the stderr and stdout tasks ...")
+        logger.debug(f"Start: Attempting to terminate the stderr and stdout tasks of {self}...")
         if self.__cmd_event:
             self.__cmd_event.set()
 
         # set process is None
         self.__process = None
-        logger.info("Stderr and stdout tasks terminate successfully!")
+        logger.debug(f"Done: Stderr and stdout tasks of {self} terminate successfully!")
         if self.is_save_obj:
             self.save_executor()
 
@@ -174,7 +177,7 @@ class AsyncCodeExecutor(object):
             full_command += self.save_obj_cmd.format(self.obj_save_path(cmd_id))
 
         full_command += self.print_cmd.format("END_OF_EXECUTION")
-        logger.info(f"Sending command: \n{full_command.strip()}")
+        logger.debug(f"Sending command: \n{full_command.strip()}")
 
         try:
             self.__process.stdin.write(full_command.encode())
