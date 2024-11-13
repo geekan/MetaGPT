@@ -138,7 +138,7 @@ class AsyncCodeExecutor(object):
             if not line:
                 break
             line = line.decode().strip()
-            if line:
+            if line and not line.startswith(">>>"):
                 if prefix.startswith("STDERR:"):
                     stderr += "\n" + line.strip()
 
@@ -174,7 +174,7 @@ class AsyncCodeExecutor(object):
             full_command += self.save_obj_cmd.format(self.obj_save_path(cmd_id))
 
         full_command += self.print_cmd.format("END_OF_EXECUTION")
-        logger.info(f"Sending command: {full_command.strip()}")
+        logger.info(f"Sending command: \n{full_command.strip()}")
 
         try:
             self.__process.stdin.write(full_command.encode())
@@ -206,6 +206,7 @@ class AsyncCodeExecutor(object):
                     cmds = [cmds]
                 else:
                     with open(cmds, "r") as f:
+                        # FIXME: python文件必须有if __name__ == "__main__":才能执行。
                         cmds = [f.read()]
 
             try:
