@@ -180,21 +180,14 @@ async def kickoff():
     gpt4 = Config.default()
     gpt4.llm.model = "gpt-4o-mini"
 
-    da1_action = Action(config=gpt4, name="DataAnalyst1", instruction="Analyze historical company data")
-    da2_action = Action(config=gpt4, name="DataAnalyst2", instruction="Analyze historical company sales and marketing data")
-
-    data_analyst_1 = DataInterpreter(name="Alex", profile="Data Analyst for sales", actions=[da1_action])
-    data_analyst_2 = DataInterpreter(name="Bob", profile="Data Analyst for marketing", actions=[da2_action])
-
-    env = Environment(desc="Sales and Marketing Data Analysis")
-
-    # Set the WebSocket callback for the WebSocketClient
+    action1 = Action(config=gpt4, name="AlexSay", instruction="Express your opinion with emotion and don't repeat it")
+    action2 = Action(config=gpt4, name="BobSay", instruction="Express your opinion with emotion and don't repeat it")
+    alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2])
+    bob = Role(name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1])
+    env = Environment(desc="US election live broadcast")
     WebSocketClient.set_callback(websocket_gui_callback)
+    team = Team(investment=10.0, env=env, roles=[alex, bob], progress_callback=gui_update_callback)
 
-    team = Team(investment=10.0, env=env, roles=[data_analyst_1, data_analyst_2],
-                progress_callback=gui_update_callback)  # Use the standard gui_update_callback
-
-    # Start the team's work in the background
-    asyncio.create_task(team.run(idea="Create dummy sales data for a chocolate company and Analyze the sales data.", send_to="Alex", n_round=5, auto_archive=False))
+    asyncio.create_task(team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=5, auto_archive=False))
 
     return {"status": "started"}
