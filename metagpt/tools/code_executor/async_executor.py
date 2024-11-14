@@ -34,14 +34,20 @@ class AsyncCodeExecutor(object):
         self._cmd_space = OrderedDict()  # cmd_id: {cmd, stddout, stderr}
         # 下面是为了磁盘保存对象而设置
         self.work_dir = work_dir
-        self.is_save_obj = is_save_obj
+        self.__is_save_obj = is_save_obj
         self.load_obj_cmd = load_obj_cmd
         self.save_obj_cmd = save_obj_cmd
         self.__print_code_live = print_code_live
-        if self.is_save_obj:
+        if self.__is_save_obj:
             assert self.save_obj_cmd is not None, "save_obj_cmd should be string cmd when is_save_obj is True!"
             assert self.load_obj_cmd is not None, "load_obj_cmd should be string cmd when is_save_obj is True!"
             assert self.work_dir is not None, "work_dir should be a path when is_save_obj is True!"
+            if Path(self.work_dir).exists():
+                try:
+                    shutil.rmtree(self.work_dir)
+                    logger.info(f"已删除 {self.work_dir} 及其所有内容")
+                except Exception as e:
+                    logger.info(f"删除 {self.work_dir} 时发生错误: {e}")
             Path(self.work_dir).mkdir(parents=True, exist_ok=True)
         self._executor_save_path = str(Path(self.work_dir) / "executor.json") if self.work_dir else ""
 
@@ -50,7 +56,7 @@ class AsyncCodeExecutor(object):
 
     def manage_work_dir(self, cmd: Literal["c", "d"] = "c"):
         """管理cmd变量的共享文件目录"""
-        if self.is_save_obj:
+        if self.__is_save_obj:
             root = Path(self.work_dir)
             root.mkdir(parents=True, exist_ok=True)
             current_cmd_id = str(len(self._cmd_space) - 1)
@@ -76,16 +82,12 @@ class AsyncCodeExecutor(object):
 
     def load(self, arg_names: list[str]) -> "AsyncCodeExecutor":
         """载入Executor对象和全局作用域中所有对象"""
-        # 保存第一优先级的is_save_obj
-        is_save_obj = self.is_save_obj
         # 载入Executor对象
         with open(f"{self._executor_save_path}", "r") as f:
             executor_state = json.load(f)
 
         input_kwargs = {k: v for k, v in executor_state.items() if k in arg_names}
         self.__init__(**input_kwargs)
-        # 恢复第一优先级的is_save_obj
-        self.is_save_obj = is_save_obj
 
         # 最后一个cmd的全局作用域保存路径
         obj_path = self.obj_save_path(str(len(executor_state["_cmd_space"]) - 1))
@@ -118,7 +120,7 @@ class AsyncCodeExecutor(object):
         asyncio.create_task(self.save_and_print_output(self.__process.stdout, "STDOUT: "))
         asyncio.create_task(self.save_and_print_output(self.__process.stderr, "STDERR: "))
 
-    async def stop_process(self):
+    async def terminate(self):
         if self.__process:
             logger.info(f"Start: Attempting to terminate the {self} process ...")
             self.__process.terminate()
@@ -136,9 +138,15 @@ class AsyncCodeExecutor(object):
         # set process is None
         self.__process = None
         logger.debug(f"Done: Stderr and stdout tasks of {self} terminate successfully!")
-        if self.is_save_obj:
+        if self.__is_save_obj:
             self.save_executor()
 
+    async def reset(self):
+        await self.terminate()
+        await asyncio.sleep(1)
+        await self.start_process()
+
+    # FIXME: 修复STDERR的打印不全，而且没有存入stderr
     async def save_and_print_output(self, pipe: asyncio.StreamReader, prefix: str = ""):
         stdout, stderr = "", ""
         while True:
@@ -146,7 +154,7 @@ class AsyncCodeExecutor(object):
             if not line:
                 break
             line = line.decode().strip()
-            if line and not line.startswith(">>>"):
+            if line:
                 if prefix.startswith("STDERR:"):
                     stderr += "\n" + line.strip()
                     await print_text_live(f"{prefix}{line}", "STDERR") if "END_OF_EXECUTION" not in line else None
@@ -155,13 +163,11 @@ class AsyncCodeExecutor(object):
                     stdout += "\n" + line.strip() if "END_OF_EXECUTION" not in line else "\n"
                     await print_text_live(f"{prefix}{line}", "STDOUT") if "END_OF_EXECUTION" not in line else None
 
-                if "END_OF_EXECUTION" in line:
+                if line.endswith("END_OF_EXECUTION"):
                     cmd_id = list(self._cmd_space)[-1]
                     self._cmd_space[cmd_id]["stderr"] = stderr.strip()
                     self._cmd_space[cmd_id]["stdout"] = stdout.strip()
                     stdout, stderr = "", ""
-
-                if "END_OF_EXECUTION" in line or prefix.startswith("STDERR:"):
                     self.__cmd_event.set()
 
     async def _run(self, cmds):
@@ -177,7 +183,7 @@ class AsyncCodeExecutor(object):
         self._cmd_space[cmd_id] = {}
         self._cmd_space[cmd_id]["cmd"] = full_command
 
-        if self.is_save_obj:
+        if self.__is_save_obj:
             self.manage_work_dir()
             full_command += self.save_obj_cmd.format(self.obj_save_path(cmd_id))
 
@@ -194,7 +200,7 @@ class AsyncCodeExecutor(object):
             await self.__process.stdin.drain()
         except KeyboardInterrupt:
             logger.warning("\nReceived keyboard interrupt. Terminating...")
-            await self.stop_process()
+            await self.terminate()
             raise KeyboardInterrupt()
         # Wait until execution completes
         await self.__cmd_event.wait()

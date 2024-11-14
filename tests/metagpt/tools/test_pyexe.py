@@ -17,7 +17,7 @@ async def test_async_save():
     await python_code_gen.asend(["print(globals())"])
     pyer.print_cmd_space()
     # 停止python进程
-    await pyer.stop_process()
+    await pyer.terminate()
     assert len(pyer._cmd_space) == 4
 
 
@@ -33,7 +33,7 @@ async def test_async_load():
     await python_code_gen.asend(["print(2*a + b + c)"])
     pyer.print_cmd_space()
     # 停止python进程
-    await pyer.stop_process()
+    await pyer.terminate()
     assert len(pyer._cmd_space) == 5
     assert pyer._cmd_space["4"]["stdout"] == "7"
 
@@ -51,7 +51,7 @@ async def test_async_script():
     )  # 注意: 如果没有if __name__ == "__main__" 语句，python脚本无法执行
     pyer.print_cmd_space()
     # 停止python进程
-    await pyer.stop_process()
+    await pyer.terminate()
     assert len(pyer._cmd_space) == 1
     assert "Hello from Python!" in pyer._cmd_space["0"]["stdout"]
     assert "3" in pyer._cmd_space["0"]["stdout"]
