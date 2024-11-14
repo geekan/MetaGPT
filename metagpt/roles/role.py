@@ -427,8 +427,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                 "description": self.rc.todo.desc if self.rc.todo else "No description",
                 "action_details": {
                     "name": self.rc.todo.name,
-                    "context": self.rc.todo.context,
-                    "parameters": self.rc.todo.parameters
+                    #"context": self.rc.todo.context,
+                    #"parameters": self.rc.todo.parameters
                 }
             }
             if asyncio.iscoroutinefunction(self.update_callback):
