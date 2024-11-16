@@ -114,7 +114,6 @@ class SimpleEngine(RetrieverQueryEngine):
 
         transformations = transformations or cls._default_transformations()
         nodes = run_transformations(documents, transformations=transformations)
-
         return cls._from_nodes(
             nodes=nodes,
             transformations=transformations,
