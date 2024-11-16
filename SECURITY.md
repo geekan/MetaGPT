@@ -12,3 +12,6 @@
 ## Reporting a Vulnerability
 
 If you have any vulnerability reports, please contact alexanderwu@deepwisdom.ai .
+
+Alexandre Masse
+Version Control Certification
