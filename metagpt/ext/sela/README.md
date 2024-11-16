@@ -12,9 +12,9 @@ You can either download the datasets from the link or prepare the datasets from 
 - **Download Datasets:** [Dataset Link](https://drive.google.com/drive/folders/151FIZoLygkRfeJgSI9fNMiLsixh1mK0r?usp=sharing)
 - **Download and prepare datasets from scratch:**
     ```bash
-    cd data
-    python dataset.py --save_analysis_pool
-    python hf_data.py --save_analysis_pool
+    # cd to SELA
+    python data/dataset.py --save_analysis_pool
+    python data/hf_data.py --save_analysis_pool
     ```
 
 ## 2. Configurations
