@@ -314,7 +314,7 @@ def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
     pattern = r"\[CONTENT\]([\s\S]*)\[/CONTENT\]"
     new_content = re_extract_content(raw_content, pattern)
 
-    if not new_content.startswith("{"):
+    if not new_content.startswith("{") and not new_content.startswith("```json"):
         # TODO find a more general pattern
         # # for `[CONTENT]xxx[CONTENT]xxxx[/CONTENT] situation
         logger.warning(f"extract_content try another pattern: {pattern}")
