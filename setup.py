@@ -27,7 +27,7 @@ extras_require = {
     "selenium": ["selenium>4", "webdriver_manager", "beautifulsoup4"],
     "search-google": ["google-api-python-client==2.94.0"],
     "search-ddg": ["duckduckgo-search~=4.1.1"],
-    "ocr": ["paddlepaddle==2.4.2", "paddleocr~=2.7.3", "tabulate==0.9.0"],
+    # "ocr": ["paddlepaddle==2.4.2", "paddleocr~=2.7.3", "tabulate==0.9.0"],
     "rag": [
         "llama-index-core==0.10.15",
         "llama-index-embeddings-azure-openai==0.1.6",
@@ -62,7 +62,7 @@ extras_require["test"] = [
     "aioboto3~=12.4.0",
     "gradio==3.0.0",
     "google-api-core==2.17.1",
-    "protobuf==3.19.6",
+    "protobuf~=4.25.5",
     "pylint==3.0.3",
     "pybrowsers",
 ]

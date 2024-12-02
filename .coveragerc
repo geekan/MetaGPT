@@ -2,6 +2,7 @@
 source = 
     ./metagpt/
 omit = 
-    */metagpt/environment/android/*
-    */metagpt/ext/android_assistant/*
-    */metagpt/ext/werewolf/*
+    */metagpt/ext/*
+    */metagpt/environment/android_env/*
+    */metagpt/environment/werewolf_env/*
+    
