@@ -17,7 +17,7 @@
 
 
 from metagpt.actions import DebugError, RunCode, WriteTest
-from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.actions.start_qa import StartQA
 from metagpt.const import MESSAGE_ROUTE_TO_NONE
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -42,7 +42,7 @@ class QaEngineer(Role):
         # FIXME: a bit hack here, only init one action to circumvent _think() logic,
         #  will overwrite _think() in future updates
         self.set_actions([WriteTest])
-        self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
+        self._watch([StartQA, WriteTest, RunCode, DebugError])
         self.test_round = 0
 
     async def _write_test(self, message: Message) -> None:
@@ -152,7 +152,7 @@ class QaEngineer(Role):
             )
             return result_msg
 
-        code_filters = any_to_str_set({SummarizeCode})
+        code_filters = any_to_str_set({StartQA})
         test_filters = any_to_str_set({WriteTest, DebugError})
         run_filters = any_to_str_set({RunCode})
         for msg in self.rc.news:

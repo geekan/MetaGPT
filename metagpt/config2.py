@@ -31,7 +31,6 @@ class CLIParams(BaseModel):
     project_name: str = ""
     inc: bool = False
     reqa_file: str = ""
-    max_auto_summarize_code: int = 0
     git_reinit: bool = False
 
     @model_validator(mode="after")
@@ -124,7 +123,7 @@ class Config(CLIParams, YamlModel):
         final = merge_dict(dicts)
         return Config(**final)
 
-    def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
+    def update_via_cli(self, project_path, project_name, inc, reqa_file):
         """update config via cli"""
 
         # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
@@ -135,7 +134,6 @@ class Config(CLIParams, YamlModel):
         self.project_name = project_name
         self.inc = inc
         self.reqa_file = reqa_file
-        self.max_auto_summarize_code = max_auto_summarize_code
 
     @property
     def extra(self):

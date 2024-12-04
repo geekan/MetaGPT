@@ -12,7 +12,7 @@ import pytest
 from pydantic import Field
 
 from metagpt.actions import DebugError, RunCode, WriteTest
-from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.actions.start_qa import StartQA
 from metagpt.environment import Environment
 from metagpt.roles import QaEngineer
 from metagpt.schema import Message
@@ -38,7 +38,7 @@ async def test_qa(context):
 
     role = QaEngineer(context=context)
     role.set_env(env)
-    await role.run(with_message=Message(content="", cause_by=SummarizeCode))
+    await role.run(with_message=Message(content="", cause_by=StartQA))
     assert env.msgs
     assert env.msgs[0].cause_by == any_to_str(WriteTest)
     msg = env.msgs[0]

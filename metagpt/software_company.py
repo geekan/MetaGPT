@@ -24,7 +24,6 @@ def generate_repo(
     inc=False,
     project_path="",
     reqa_file="",
-    max_auto_summarize_code=0,
     recover_path=None,
 ) -> ProjectRepo:
     """Run the startup logic. Can be called from CLI or other Python scripts."""
@@ -42,7 +41,7 @@ def generate_repo(
     if config.agentops_api_key != "":
         agentops.init(config.agentops_api_key, tags=["software_company"])
 
-    config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
+    config.update_via_cli(project_path, project_name, inc, reqa_file)
     ctx = Context(config=config)
 
     if not recover_path:
@@ -97,11 +96,6 @@ def startup(
     reqa_file: str = typer.Option(
         default="", help="Specify the source file name for rewriting the quality assurance code."
     ),
-    max_auto_summarize_code: int = typer.Option(
-        default=0,
-        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
-        "unlimited. This parameter is used for debugging the workflow.",
-    ),
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
     init_config: bool = typer.Option(default=False, help="Initialize the configuration file for MetaGPT."),
 ):
@@ -125,7 +119,6 @@ def startup(
         inc,
         project_path,
         reqa_file,
-        max_auto_summarize_code,
         recover_path,
     )
 

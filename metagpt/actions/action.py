@@ -18,7 +18,6 @@ from metagpt.context_mixin import ContextMixin
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.schema import (
     CodePlanAndChangeContext,
-    CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
     SerializationMixin,
@@ -31,9 +30,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str = ""
-    i_context: Union[
-        dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, CodePlanAndChangeContext, str, None
-    ] = ""
+    i_context: Union[dict, CodingContext, TestingContext, RunCodeContext, CodePlanAndChangeContext, str, None] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)

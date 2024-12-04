@@ -649,28 +649,6 @@ class RunCodeResult(BaseContext):
     stderr: str
 
 
-class CodeSummarizeContext(BaseModel):
-    design_filename: str = ""
-    task_filename: str = ""
-    codes_filenames: List[str] = Field(default_factory=list)
-    reason: str = ""
-
-    @staticmethod
-    def loads(filenames: List) -> CodeSummarizeContext:
-        ctx = CodeSummarizeContext()
-        for filename in filenames:
-            if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
-                ctx.design_filename = str(filename)
-                continue
-            if Path(filename).is_relative_to(TASK_FILE_REPO):
-                ctx.task_filename = str(filename)
-                continue
-        return ctx
-
-    def __hash__(self):
-        return hash((self.design_filename, self.task_filename))
-
-
 class BugFixContext(BaseContext):
     filename: str = ""
 
