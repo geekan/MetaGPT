@@ -1,6 +1,6 @@
 import chainlit as cl
 from init_setup import ChainlitEnv
-
+from chainlit.input_widget import Switch, TextInput 
 from metagpt.roles import (
     Architect,
     Engineer,
@@ -39,7 +39,20 @@ async def chat_profile() -> list[cl.ChatProfile]:
         )
     ]
 
-
+@cl.on_chat_start
+async def start():
+    settings = await cl.ChatSettings(
+        [
+            TextInput(id="ProjectName", label="Project Name"),
+            TextInput(id="ProjectPath", label="Project Path"),
+            Switch(id="Incremental", label="Incremental Feature"),
+        ]
+    ).send()
+@cl.on_settings_update
+async def setup_agent(settings):
+    cl.user_session.set('incremental', settings['Incremental'])
+    cl.user_session.set('project_path', settings['ProjectPath'])
+    cl.user_session.set('project_name', settings['ProjectName'])
 # https://docs.chainlit.io/concepts/message
 @cl.on_message
 async def startup(message: cl.Message) -> None:
@@ -61,7 +74,9 @@ async def startup(message: cl.Message) -> None:
             QaEngineer(),
         ]
     )
-
+    company.env.context.config.inc = cl.user_session.get('incremental')
+    company.env.context.config.project_path = cl.user_session.get('project_path')
+    company.env.context.config.project_name = cl.user_session.get('project_name')
     company.invest(investment=3.0)
     company.run_project(idea=idea)
 
