@@ -12,7 +12,7 @@ from metagpt.ext.sela.search.search_algorithm import MCTS, Greedy, Random
 class MCTSRunner(Runner):
     result_path: str = "results/mcts"
 
-    def __init__(self, args, tree_mode=None, **kwargs):
+    def __init__(self, args, data_config=None, tree_mode=None, **kwargs):
         if args.special_instruction == "image":
             self.start_task_id = 1  # start from datapreprocessing if it is image task
         else:
@@ -23,7 +23,7 @@ class MCTSRunner(Runner):
         elif args.eval_func == "mlebench":
             self.eval_func = node_evaluate_score_mlebench
 
-        super().__init__(args, **kwargs)
+        super().__init__(args, data_config=None, **kwargs)
         self.tree_mode = tree_mode
 
     async def run_experiment(self):
