@@ -23,7 +23,7 @@ class MCTSRunner(Runner):
         elif args.eval_func == "mlebench":
             self.eval_func = node_evaluate_score_mlebench
 
-        super().__init__(args, data_config=None, **kwargs)
+        super().__init__(args, data_config=data_config, **kwargs)
         self.tree_mode = tree_mode
 
     async def run_experiment(self):
@@ -35,7 +35,7 @@ class MCTSRunner(Runner):
             mcts = Random(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
         else:
             mcts = MCTS(root_node=None, max_depth=depth, use_fixed_insights=use_fixed_insights)
-        best_nodes = await mcts.search(state=self.state, args=self.args)
+        best_nodes = await mcts.search(state=self.state, args=self.args, data_config=self.data_config)
         best_node = best_nodes["global_best"]
         dev_best_node = best_nodes["dev_best"]
         score_dict = best_nodes["scores"]
