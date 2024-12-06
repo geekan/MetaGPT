@@ -194,4 +194,4 @@ metagpt/ext/sela/results/*
 .chainlit/
 
 metagpt/ext/aflow/data
-metagpt/ext/aflow/scripts
+metagpt/ext/aflow/scripts/optimized
