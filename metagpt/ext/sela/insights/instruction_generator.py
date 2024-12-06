@@ -34,9 +34,8 @@ DATA_CONFIG = load_data_config()
 
 
 class InstructionGenerator:
-    data_config = DATA_CONFIG
-
-    def __init__(self, state, use_fixed_insights, from_scratch):
+    def __init__(self, state, use_fixed_insights, from_scratch, data_config=None):
+        self.data_config = data_config if data_config is not None else DATA_CONFIG
         self.state = state
         self.file_path = state["exp_pool_path"]
         if state["custom_dataset_dir"]:
@@ -44,8 +43,11 @@ class InstructionGenerator:
                 self.dataset_info = file.read()
         else:
             dataset_info_path = (
-                f"{self.data_config['datasets_dir']}/{state['dataset_config']['dataset']}/dataset_info.json"
+                f"{self.data_config['datasets_dir']}/dataset_info.json"
+                if self.data_config["datasets_dir"].rpartition("/")[-1] == state["dataset_config"]["dataset"]
+                else f"{self.data_config['datasets_dir']}/{state['dataset_config']['dataset']}/dataset_info.json"
             )
+
             with open(dataset_info_path, "r") as file:
                 self.dataset_info = json.load(file)
         self.use_fixed_insights = use_fixed_insights
