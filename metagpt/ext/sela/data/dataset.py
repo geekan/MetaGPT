@@ -117,7 +117,7 @@ def get_split_dataset_path(dataset_name, config):
         if datasets_dir.rpartition("/")[-1] == dataset["dataset"]:
             data_path = datasets_dir
         else:
-            data_path = datasets_dir / dataset["dataset"]
+            data_path = Path(datasets_dir) / dataset["dataset"]
         split_datasets = {
             "train": os.path.join(data_path, "split_train.csv"),
             "dev": os.path.join(data_path, "split_dev.csv"),
