@@ -4,6 +4,7 @@ import json
 from typing import Literal
 
 from pydantic import Field, model_validator
+from metagpt.gui_update_callback import gui_update_callback
 
 from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
@@ -45,8 +46,10 @@ class DataInterpreter(Role):
     max_react_loop: int = 10  # used for react mode
 
     @model_validator(mode="after")
-    def set_plan_and_tool(self) -> "Interpreter":
+    def set_plan_and_tool(self) -> "DataInterpreter":
+        logger.info(f"Initializing DataInterpreter: {self.name} with profile: {self.profile}")
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
+        logger.debug(f"React mode set to: {self.react_mode}, max react loop: {self.max_react_loop}")
         self.use_plan = (
             self.react_mode == "plan_and_act"
         )  # create a flag for convenience, overwrite any passed-in value
@@ -62,17 +65,23 @@ class DataInterpreter(Role):
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
+        logger.info("===> Thinking about the next action.")
         user_requirement = self.get_memories()[0].content
+        logger.debug(f"User requirement: {user_requirement}")
         context = self.working_memory.get()
+        logger.debug(f"Current context: {context}")
 
         if not context:
             # just started the run, we need action certainly
+            logger.info("===> Starting new run, adding user requirement to working memory.")
             self.working_memory.add(self.get_memories()[0])  # add user requirement to working memory
             self._set_state(0)
             return True
 
         prompt = REACT_THINK_PROMPT.format(user_requirement=user_requirement, context=context)
+        logger.debug("Sending prompt to LLM for response.")
         rsp = await self.llm.aask(prompt)
+        logger.debug(f"Received response: {rsp}")
         rsp_dict = json.loads(CodeParser.parse_code(block=None, text=rsp))
         self.working_memory.add(Message(content=rsp_dict["thoughts"], role="assistant"))
         need_action = rsp_dict["state"]
@@ -82,13 +91,39 @@ class DataInterpreter(Role):
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
+        logger.info("===> Acting based on the current task.")
         code, _, _ = await self._write_and_exec_code()
+        logger.debug(f"Generated code: {code}")
         return Message(content=code, role="assistant", cause_by=WriteAnalysisCode)
 
     async def _plan_and_act(self) -> Message:
         try:
+            logger.info("===> Planning and acting on the task.")
+            if self.update_callback:
+                update_info = {
+                    "event": "plan_and_act_started",
+                    "status": "Starting plan and act execution",
+                    "current_task": None,
+                    "progress": 0
+                }
+                await self.update_callback(update_info)
+                await gui_update_callback(update_info)
+            
             rsp = await super()._plan_and_act()
+            logger.info("===> Terminating code execution.")
             await self.execute_code.terminate()
+            
+            if self.update_callback:
+                update_info = {
+                    "event": "plan_and_act_completed",
+                    "status": "Completed plan and act execution",
+                    "response": str(rsp),
+                    "progress": 100
+                }
+                await self.update_callback(update_info)
+                await gui_update_callback(update_info)
+            
+            logger.info(f"Plan and act response: {rsp}")
             return rsp
         except Exception as e:
             await self.execute_code.terminate()
@@ -101,11 +136,28 @@ class DataInterpreter(Role):
         return task_result
 
     async def _write_and_exec_code(self, max_retry: int = 3):
+        if self.update_callback:
+            await self.update_callback({
+                "event": "acting",
+                "action": "write_and_exec_code",
+                "description": "Starting code writing and execution",
+                "action_details": {"max_retry": max_retry}
+            })
+            await gui_update_callback({
+                "event": "acting",
+                "action": "write_and_exec_code",
+                "description": "Starting code writing and execution",
+                "action_details": {"max_retry": max_retry}
+            })
+            
+        logger.info("===> Writing and executing code.")
         counter = 0
+        logger.debug(f"Max retry attempts: {max_retry}")
         success = False
 
         # plan info
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
+        logger.debug(f"Plan status: {plan_status}")
 
         # tool info
         if self.tool_recommender:
@@ -118,16 +170,36 @@ class DataInterpreter(Role):
             tool_info = ""
 
         # data info
+        logger.info("===> Checking data before execution.")
         await self._check_data()
 
         while not success and counter < max_retry:
             ### write code ###
+            if self.update_callback:
+                self.update_callback({
+                    "event": "acting",
+                    "action": "writing_code",
+                    "description": f"Attempt {counter + 1} of {max_retry}",
+                    "action_details": {"attempt": counter + 1}
+                })
+                
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
-
+            logger.info(f"Attempt {counter + 1}: Writing code.")
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            logger.debug(f"Code written: {code}")
 
             ### execute code ###
+            if self.update_callback:
+                self.update_callback({
+                    "event": "acting",
+                    "action": "executing_code",
+                    "description": "Executing generated code",
+                    "action_details": {"code_length": len(code)}
+                })
+                
+            logger.info("===> Executing code.")
             result, success = await self.execute_code.run(code)
+            logger.debug(f"Execution result: {result}, success: {success}")
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
@@ -136,11 +208,14 @@ class DataInterpreter(Role):
             counter += 1
 
             if not success and counter >= max_retry:
-                logger.info("coding failed!")
+                logger.info("===> coding failed!")
+                logger.info("===> Code execution failed, requesting review.")
                 review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
+                logger.debug(f"Review response: {review}")
                 if ReviewConst.CHANGE_WORDS[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
+        task_result = TaskResult(code=code, result=result, is_success=success)
         return code, result, success
 
     async def _write_code(
@@ -177,7 +252,7 @@ class DataInterpreter(Role):
             ]
         ):
             return
-        logger.info("Check updated data")
+        logger.info("===> Check updated data")
         code = await CheckData().run(self.planner.plan)
         if not code.strip():
             return
