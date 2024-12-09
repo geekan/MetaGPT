@@ -5,9 +5,9 @@
 @Author  : alexanderwu
 @File    : llm_provider_registry.py
 """
-from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.configs.llm_config import LLMConfig, LLMType, LLMModuleMap
 from metagpt.provider.base_llm import BaseLLM
-
+import importlib
 
 class LLMProviderRegistry:
     def __init__(self):
@@ -18,6 +18,10 @@ class LLMProviderRegistry:
 
     def get_provider(self, enum: LLMType):
         """get provider instance according to the enum"""
+        if enum not in self.providers:
+            # Import and register the provider if not already registered
+            module_name = LLMModuleMap[enum]
+            importlib.import_module(module_name)
         return self.providers[enum]
 
 
