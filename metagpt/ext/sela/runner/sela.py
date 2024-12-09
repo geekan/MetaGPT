@@ -13,8 +13,9 @@ from metagpt.utils.common import CodeParser
 SELA_INSTRUCTION = """
 You are an assistant for configuring machine learning experiments.
 
-Given the requirement:
+Given the requirement and data directory:
 {requirement}
+{data_dir}
 
 Your task:
 1. Extract **experiment configurations** from the requirement if explicitly mentioned, such as:
@@ -23,7 +24,7 @@ Your task:
    - "max_depth: 4"
 
 2. Extract **experiment data information**, including:
-   - **dataset**: Dataset name
+   - **dataset**: Dataset name (if explicitly mentioned in the requirement, use that; otherwise, use the last folder name in the data directory path)
    - **metric**: Evaluation metric
    - **target_col**: Target column
    - **user_requirement**: Specific instructions or dataset handling requirements 
@@ -43,6 +44,7 @@ Output a JSON object with two parts:
   - "user_requirement": str 
 
 Example output:
+```json
 {{
   "config": {{
     "task": "titanic",
@@ -56,6 +58,7 @@ Example output:
     "user_requirement": "Predict the target column `Survived`. Perform data analysis, preprocessing, feature engineering, and modeling. Report f1 on eval data. Do not include visualizations."
   }}
 }}
+```
 
 Return only the JSON object.
 """
@@ -92,13 +95,15 @@ class SELA:
         """
         self.llm = LLM() if use_llm else None
 
-    async def _parse_requirement(self, requirement: str) -> dict:
+    async def _parse_requirement(self, requirement: str, data_dir: str) -> dict:
         """
         Use LLM to analyze the experiment requirement and extract configurations.
         """
         if not self.llm:
             raise ValueError("LLM is not initialized. Cannot parse the requirement.")
-        response = await self.llm.aask(SELA_INSTRUCTION.format(requirement=json.dumps(requirement)))
+        response = await self.llm.aask(
+            SELA_INSTRUCTION.format(requirement=json.dumps(requirement), data_dir=json.dumps(data_dir))
+        )
         print(f"LLM Response: {response}")
         parsed_response = self._parse_json(response)
         return {
@@ -142,7 +147,7 @@ class SELA:
         if not os.path.exists(data_dir):
             raise FileNotFoundError(f"Dataset directory not found: {data_dir}")
 
-        config_all = await self._parse_requirement(requirement)
+        config_all = await self._parse_requirement(requirement, data_dir)
         config_exp, data_info = config_all["config"], config_all["data_info"]
 
         data_config = {

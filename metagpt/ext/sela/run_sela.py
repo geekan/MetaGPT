@@ -1,18 +1,20 @@
 import fire
 from runner.sela import SELA
 
-requirement = (
-    "Optimize dataset using MCTS with 10 rollouts. "
-    "This is a 05_house-prices-advanced-regression-techniques dataset."
-    "Your goal is to predict the target column `SalePrice`."
-    "Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target."
-    "Report rmse on the eval data. Do not plot or make any visualizations."
-)
-
-data_dir = "/Path/to/SELA-datasets/05_house-prices-advanced-regression-techniques"
+requirement = """
+Implement MCTS with a rollout count of 10 to improve my dataset. Focus on forecasting the RS column. 
+Carry out data analysis, data preprocessing, feature engineering, and modeling for the forecast. 
+Report the rmse on the evaluation dataset, omitting any visual or graphical outputs.
+"""
 
 
 async def main():
+    """
+    The main function serves as an entry point and supports direct running.
+    """
+    # Example requirement and data path
+    data_dir = "Path/to/dataset"
+
     # Initialize Sela and run
     sela = SELA()
     await sela.run(requirement, data_dir)
