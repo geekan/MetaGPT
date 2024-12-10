@@ -173,7 +173,6 @@ class AsyncCodeExecutor(object):
 
     async def save_and_print_stderr(self, pipe: asyncio.StreamReader):
         try:
-            self.__cmd_stdout_event.wait()
             while line := await pipe.readline():
                 line = line.decode().replace(">>>", "").strip()
                 if line and not line.endswith(IGNORE_ERRORS):
