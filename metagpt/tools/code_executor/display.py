@@ -51,8 +51,9 @@ async def print_text_live(text: str, level: Literal["STDOUT", "STDERR"] = "STDOU
     styles = {"STDOUT": "bold white on blue", "STDERR": "bold white on yellow"}
     with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
         for line in text.splitlines():
-            text_obj = Text(line, style=styles[level])
-            text_objs.append(text_obj)
-            live.update(Group(*text_objs))
-            live.refresh()
-            await asyncio.sleep(delay)
+            if line != "END_OF_EXECUTION":
+                text_obj = Text(line, style=styles[level])
+                text_objs.append(text_obj)
+                live.update(Group(*text_objs))
+                live.refresh()
+                await asyncio.sleep(delay)

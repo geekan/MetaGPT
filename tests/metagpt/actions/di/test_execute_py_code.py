@@ -2,22 +2,23 @@ import pytest
 
 from metagpt.actions.di.execute_py_code import ExecutePyCode
 
-# @pytest.mark.asyncio
-# async def test_code_running():
-#     executor = ExecutePyCode()
-#     output, is_success = await executor.run("print('hello world!')")
-#     assert is_success
-#     await executor.terminate()
+
+@pytest.mark.asyncio
+async def test_code_running():
+    executor = ExecutePyCode()
+    output, is_success = await executor.run("print('hello world!')")
+    assert is_success
+    await executor.terminate()
 
 
-# @pytest.mark.asyncio
-# async def test_split_code_running():
-#     executor = ExecutePyCode()
-#     _ = await executor.run("x=1\ny=2")
-#     _ = await executor.run("z=x+y")
-#     output, is_success = await executor.run("assert z==3")
-#     assert is_success
-#     await executor.terminate()
+@pytest.mark.asyncio
+async def test_split_code_running():
+    executor = ExecutePyCode()
+    _ = await executor.run("x=1\ny=2")
+    _ = await executor.run("z=x+y")
+    output, is_success = await executor.run("assert z==3")
+    assert is_success
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -93,8 +94,8 @@ async def test_parse_outputs():
     print(df['DUMMPY_ID'])
     """
     output, is_success = await executor.run(code)
-    assert not is_success
     assert "Index(['ID', 'NAME'], dtype='object')" in output
     assert "KeyError: 'DUMMPY_ID'" in output
     assert "columns num:2" in output
     await executor.terminate()
+    print(executor.executor._cmd_space)

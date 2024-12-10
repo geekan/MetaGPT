@@ -30,7 +30,8 @@ class AsyncCodeExecutor(object):
         self.print_cmd = print_cmd + "\n"
         # 双下划线的变量名不会被序列化保存到本地
         self.__process = None
-        self.__cmd_event = asyncio.Event()  # 用于通知process前一个输入的command是否执行完成
+        self.__cmd_stdout_event = asyncio.Event()  # 用于通知process前一个输入的command是否执行完成标准输出流
+        self.__cmd_stderr_event = asyncio.Event()  # 用于通知process前一个输入的command是否执行完成标准错误流
         self._cmd_space = OrderedDict()  # cmd_id: {cmd, stddout, stderr}
         # 下面是为了磁盘保存对象而设置
         self.work_dir = work_dir
@@ -117,8 +118,11 @@ class AsyncCodeExecutor(object):
             stderr=subprocess.PIPE,
             bufsize=0,
         )
-        asyncio.create_task(self.save_and_print_output(self.__process.stdout, "STDOUT: "))
-        asyncio.create_task(self.save_and_print_output(self.__process.stderr, "STDERR: "))
+        asyncio.create_task(self.save_and_print_stdout(self.__process.stdout))
+        asyncio.create_task(self.save_and_print_stderr(self.__process.stderr))
+
+        self.__cmd_stdout_event.clear()
+        self.__cmd_stderr_event.clear()
 
     async def terminate(self):
         if self.__process:
@@ -132,8 +136,11 @@ class AsyncCodeExecutor(object):
         logger.info(f"Done: {self} process terminate successfully!")
 
         logger.debug(f"Start: Attempting to terminate the stderr and stdout tasks of {self}...")
-        if self.__cmd_event:
-            self.__cmd_event.set()
+        if self.__cmd_stderr_event:
+            self.__cmd_stderr_event.set()
+
+        if self.__cmd_stdout_event:
+            self.__cmd_stdout_event.set()
 
         # set process is None
         self.__process = None
@@ -146,35 +153,41 @@ class AsyncCodeExecutor(object):
         await asyncio.sleep(1)
         await self.start_process()
 
-    # FIXME: 修复STDERR的打印不全，而且没有存入stderr
-    async def save_and_print_output(self, pipe: asyncio.StreamReader, prefix: str = ""):
-        stdout, stderr = "", ""
-        while True:
-            line = await pipe.readline()
-            if not line:
-                break
-            line = line.decode().strip()
-            if line:
-                if prefix.startswith("STDERR:"):
-                    stderr += "\n" + line.strip()
-                    await print_text_live(f"{prefix}{line}", "STDERR") if "END_OF_EXECUTION" not in line else None
+    async def save_and_print_stdout(self, pipe: asyncio.StreamReader):
+        try:
+            while line := await pipe.readline():
+                line = line.decode().replace(">>>", "").strip()
 
-                if prefix.startswith("STDOUT:"):
-                    stdout += "\n" + line.strip() if "END_OF_EXECUTION" not in line else "\n"
-                    await print_text_live(f"{prefix}{line}", "STDOUT") if "END_OF_EXECUTION" not in line else None
-
-                if line.endswith("END_OF_EXECUTION"):
+                if not line or line.endswith("END_OF_EXECUTION"):
+                    self.__cmd_stdout_event.set()
+                else:
                     cmd_id = list(self._cmd_space)[-1]
-                    self._cmd_space[cmd_id]["stderr"] = stderr.strip()
-                    self._cmd_space[cmd_id]["stdout"] = stdout.strip()
-                    stdout, stderr = "", ""
-                    self.__cmd_event.set()
+                    self._cmd_space[cmd_id]["stdout"].append("\n" + line.strip())
+                    await print_text_live(line, "STDOUT")
+        except Exception as e:
+            print(f"系统级别错误: {e}")
+        finally:
+            self.__cmd_stdout_event.set()
+
+    async def save_and_print_stderr(self, pipe: asyncio.StreamReader):
+        try:
+            while line := await pipe.readline():
+                line = line.decode().replace(">>>", "").strip()
+                if line:
+                    cmd_id = list(self._cmd_space)[-1]
+                    self._cmd_space[cmd_id]["stderr"].append("\n" + line.strip())
+                    await print_text_live(line, "STDERR")
+        except Exception as e:
+            print(f"系统级别错误: {e}")
+        finally:
+            self.__cmd_stderr_event.set()
 
     async def _run(self, cmds):
         if self.__process is None:
             await self.start_process()
 
-        self.__cmd_event.clear()
+        self.__cmd_stdout_event.clear()
+        self.__cmd_stderr_event.clear()
 
         full_command = " ".join(cmds) + "\n\n"
         await self.__print_code_live(full_command)
@@ -182,6 +195,8 @@ class AsyncCodeExecutor(object):
         # 添加cmd到cmd_space
         self._cmd_space[cmd_id] = {}
         self._cmd_space[cmd_id]["cmd"] = full_command
+        self._cmd_space[cmd_id]["stderr"] = []
+        self._cmd_space[cmd_id]["stdout"] = []
 
         if self.__is_save_obj:
             self.manage_work_dir()
@@ -203,7 +218,11 @@ class AsyncCodeExecutor(object):
             await self.terminate()
             raise KeyboardInterrupt()
         # Wait until execution completes
-        await self.__cmd_event.wait()
+        await self.__cmd_stdout_event.wait()
+        # await self.__cmd_stderr_event.wait()
+        # 当处理没有stderr内容的代码时, 程序会一直卡在这里, 因此设置了2秒的超时等待, 超出2秒后就不再等待。
+        # 这是一种临时的解决方案。
+        await asyncio.wait([self.__cmd_stderr_event.wait()], timeout=2)
 
     def print_cmd_space(self):
         pprint.pprint(self._cmd_space)
