@@ -11,7 +11,6 @@ from collections import OrderedDict
 from typing import Literal
 
 from metagpt.actions import Action
-from metagpt.logs import logger
 from metagpt.tools.code_executor.display import print_text_live
 from metagpt.tools.code_executor.pyexe import AsyncPyExecutor
 
@@ -53,7 +52,6 @@ class ExecutePyCode(Action):
                 code = textwrap.dedent(code)
             await self.code_gen.asend(code)
             res = self.executor._cmd_space[str(len(self.executor._cmd_space) - 1)]
-            logger.info(self.executor._cmd_space)
             if res["stderr"]:
                 return "\n".join(res["stdout"]) + "\n".join(res["stderr"]), False
             return "\n".join(res["stdout"]) + "\n".join(res["stderr"]), True

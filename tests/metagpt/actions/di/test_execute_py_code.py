@@ -98,4 +98,3 @@ async def test_parse_outputs():
     assert "KeyError: 'DUMMPY_ID'" in output
     assert "columns num:2" in output
     await executor.terminate()
-    print(executor.executor._cmd_space)

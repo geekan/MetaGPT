@@ -13,6 +13,8 @@ from loguru import logger
 from metagpt.tools.code_executor.constant import SCRIPT_FILES
 from metagpt.tools.code_executor.display import print_pycode_live, print_text_live
 
+IGNORE_ERRORS = ("chose IMKClient_Modern", "chose IMKInputSession_Modern")
+
 
 class AsyncCodeExecutor(object):
     def __init__(
@@ -171,9 +173,10 @@ class AsyncCodeExecutor(object):
 
     async def save_and_print_stderr(self, pipe: asyncio.StreamReader):
         try:
+            self.__cmd_stdout_event.wait()
             while line := await pipe.readline():
                 line = line.decode().replace(">>>", "").strip()
-                if line:
+                if line and not line.endswith(IGNORE_ERRORS):
                     cmd_id = list(self._cmd_space)[-1]
                     self._cmd_space[cmd_id]["stderr"].append("\n" + line.strip())
                     await print_text_live(line, "STDERR")
