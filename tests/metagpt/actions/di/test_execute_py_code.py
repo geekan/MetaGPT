@@ -98,3 +98,22 @@ async def test_parse_outputs():
     assert "KeyError: 'DUMMPY_ID'" in output
     assert "columns num:2" in output
     await executor.terminate()
+
+
+@pytest.mark.asyncio
+async def test_save_code():
+    executor = ExecutePyCode(True, "tests/data/code_executor/python_example")
+    output, is_success = await executor.run("a=1\nb=2\nc=3\nprint(f'a={a}')")
+    assert is_success
+    assert "a=1" in output
+    await executor.terminate()
+
+
+@pytest.mark.asyncio
+async def test_load_code():
+    executor = ExecutePyCode(False, "tests/data/code_executor/python_example")
+    executor.executor = executor.executor.load()
+    output, is_success = await executor.run("d=a+b+c\nprint(f'd={d}')")
+    assert is_success
+    assert "d=6" in output
+    await executor.terminate()
