@@ -7,6 +7,10 @@ STRUCTUAL_PROMPT = """
 # Plan Status
 {plan_status}
 
+# Reference experience (can be empty):
+This is some previous coding experience that is similar to the current task. You can learn from the successful code and avoid the mistakes from the failed code. If there are other codes you don't know about in the experience, please don't refer to it.
+{experiences}
+
 # Tool Info
 {tool_info}
 
