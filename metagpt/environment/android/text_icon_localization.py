@@ -8,7 +8,21 @@ import clip
 import cv2
 import groundingdino.datasets.transforms as T
 import numpy as np
-import torch
+class LazyTorch:
+    def __init__(self):
+        self._torch = None
+
+    def _import_torch(self):
+        if self._torch is None:
+            import torch
+            self._torch = torch
+
+    def __getattr__(self, item):
+        self._import_torch()
+        return getattr(self._torch, item)
+
+# Create the LazyTorch instance
+torch = LazyTorch()
 from groundingdino.models import build_model
 from groundingdino.util.slconfig import SLConfig
 from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap

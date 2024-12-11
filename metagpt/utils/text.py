@@ -59,18 +59,19 @@ def generate_prompt_chunk(
     max_token = TOKEN_MAX.get(model_name, 2048) - reserved - 100
 
     while paragraphs:
-        paragraph = paragraphs.pop(0)
-        token = count_output_tokens(paragraph, model_name)
-        if current_token + token <= max_token:
-            current_lines.append(paragraph)
-            current_token += token
-        elif token > max_token:
-            paragraphs = split_paragraph(paragraph) + paragraphs
-            continue
-        else:
-            yield prompt_template.format("".join(current_lines))
-            current_lines = [paragraph]
-            current_token = token
+        paragraph = paragraphs.pop(0).strip()
+        if len(paragraph) != 0:
+            token = count_output_tokens(paragraph, model_name)
+            if current_token + token <= max_token:
+                current_lines.append(paragraph)
+                current_token += token
+            elif token > max_token:
+                paragraphs = split_paragraph(paragraph) + paragraphs
+                continue
+            else:
+                yield prompt_template.format("".join(current_lines))
+                current_lines = [paragraph]
+                current_token = token
 
     if current_lines:
         yield prompt_template.format("".join(current_lines))
