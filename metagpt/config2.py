@@ -74,6 +74,8 @@ class Config(CLIParams, YamlModel):
     enable_longterm_memory: bool = False
     code_review_k_times: int = 2
     agentops_api_key: str = ""
+    otlp_endpoint: str = ""
+    otlp_headers: str = ""
 
     # Will be removed in the future
     metagpt_tti_url: str = ""

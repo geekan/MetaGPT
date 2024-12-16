@@ -5,6 +5,7 @@ import asyncio
 from pathlib import Path
 
 import agentops
+import openlit
 import typer
 
 from metagpt.const import CONFIG_ROOT
@@ -41,6 +42,11 @@ def generate_repo(
 
     if config.agentops_api_key != "":
         agentops.init(config.agentops_api_key, tags=["software_company"])
+    elif config.otlp_endpoint != "":
+        if config.otlp_headers != "":
+            openlit.init(otlp_endpoint = config.otlp_endpoint, otlp_headers=config.otlp_headers)
+        else:
+            openlit.init(otlp_endpoint = config.otlp_endpoint)
 
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
     ctx = Context(config=config)
