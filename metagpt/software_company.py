@@ -43,7 +43,7 @@ def generate_repo(
     if config.agentops_api_key != "":
         agentops.init(config.agentops_api_key, tags=["software_company"])
     elif config.otlp_endpoint != "":
-        if config.otlp_endpoint != "":
+        if config.otlp_headers != "":
             openlit.init(otlp_endpoint = config.otlp_endpoint, otlp_headers=config.otlp_headers)
         else:
             openlit.init(otlp_endpoint = config.otlp_endpoint)
