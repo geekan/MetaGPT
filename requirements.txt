@@ -82,6 +82,7 @@ gymnasium==0.29.1
 boto3~=1.34.69
 spark_ai_python~=0.3.30
 agentops
+openlit
 tree_sitter~=0.23.2
 tree_sitter_python~=0.23.2
 httpx==0.27.2
