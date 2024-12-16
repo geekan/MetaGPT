@@ -83,3 +83,5 @@ models:
 #    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
 
 agentops_api_key: "YOUR_AGENTOPS_API_KEY" # get key from https://app.agentops.ai/settings/projects
+otlp_endpoint: "YOUR_OPENTELEMETRY_ENDPOINT" # URL endpoint of your OpenTelemetry collector or endpoint
+otlp_headers: "YOUR_OPENTELEMETRY_HEADERS" # Authetication headers for the OpenTelemetry collector or endpoint
