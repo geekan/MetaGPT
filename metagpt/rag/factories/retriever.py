@@ -4,7 +4,7 @@ from functools import wraps
 
 import chromadb
 import faiss
-from llama_index.core import StorageContext, VectorStoreIndex, PropertyGraphIndex
+from llama_index.core import PropertyGraphIndex, StorageContext, VectorStoreIndex
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.property_graph import PGRetriever
 from llama_index.core.schema import BaseNode
@@ -30,7 +30,8 @@ from metagpt.rag.schema import (
     ElasticsearchKeywordRetrieverConfig,
     ElasticsearchRetrieverConfig,
     FAISSRetrieverConfig,
-    MilvusRetrieverConfig, Neo4jPGRetrieverConfig,
+    MilvusRetrieverConfig,
+    Neo4jPGRetrieverConfig,
 )
 from metagpt.utils.async_helper import NestAsyncio
 
@@ -67,7 +68,7 @@ class RetrieverFactory(ConfigBasedFactory):
         super().__init__(creators)
 
     def get_retriever(
-            self, configs: list[BaseRetrieverConfig] = None, build_graph: bool = False, **kwargs
+        self, configs: list[BaseRetrieverConfig] = None, build_graph: bool = False, **kwargs
     ) -> RAGRetriever:
         """Creates and returns a retriever instance based on the provided configurations.
 
@@ -189,7 +190,7 @@ class RetrieverFactory(ConfigBasedFactory):
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 
     def _build_index_from_vector_store(
-            self, config: BaseRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
+        self, config: BaseRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
     ) -> VectorStoreIndex:
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         index = VectorStoreIndex(

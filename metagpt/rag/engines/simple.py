@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
-from llama_index.core import SimpleDirectoryReader, Settings
+from llama_index.core import Settings, SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.embeddings.mock_embed_model import MockEmbedding
@@ -116,7 +116,6 @@ class SimpleEngine(RetrieverQueryEngine):
 
         transformations = transformations or cls._default_transformations()
         nodes = run_transformations(documents, transformations=transformations)
-        print("nodes:", len(nodes))
 
         return cls._from_nodes(
             nodes=nodes,

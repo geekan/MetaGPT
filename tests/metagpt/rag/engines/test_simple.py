@@ -67,7 +67,7 @@ class TestSimpleEngine:
         input_files = ["test_file1", "test_file2"]
         transformations = [mocker.MagicMock()]
         embed_model = mocker.MagicMock()
-        llm = mocker.MagicMock()
+        llm = MockLLM()
         retriever_configs = [mocker.MagicMock()]
         ranker_configs = [mocker.MagicMock()]
 
@@ -80,6 +80,7 @@ class TestSimpleEngine:
             llm=llm,
             retriever_configs=retriever_configs,
             ranker_configs=ranker_configs,
+            build_graph=True,
         )
 
         # Assert

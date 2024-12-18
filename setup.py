@@ -43,9 +43,9 @@ extras_require = {
         "llama-index-postprocessor-cohere-rerank==0.1.4",
         "llama-index-postprocessor-colbert-rerank==0.1.1",
         "llama-index-postprocessor-flag-embedding-reranker==0.1.2",
-        # "llama-index-vector-stores-milvus==0.1.23",
+        "llama-index-vector-stores-milvus==0.4.0",
         "docx2txt==0.8",
-        "llama-index-graph-stores-neo4j==0.4.4"
+        "llama-index-graph-stores-neo4j==0.4.4",
     ],
 }
 
