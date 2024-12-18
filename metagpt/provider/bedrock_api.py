@@ -38,7 +38,7 @@ class BedrockLLM(BaseLLM):
             "region_name": os.environ.get("AWS_DEFAULT_REGION", self.config.region_name),
         }
         session = boto3.Session(**self.__credential_kwargs)
-        client = session.client(service_name)
+        client = session.client(service_name, region_name=self.__credential_kwargs["region_name"])
         return client
 
     @property
