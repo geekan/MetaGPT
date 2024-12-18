@@ -102,6 +102,13 @@ class ChromaRetrieverConfig(IndexRetrieverConfig):
     )
 
 
+class Neo4jPGRetrieverConfig(IndexRetrieverConfig):
+    username: str = Field(default="neo4j", description="The username for neo4j.")
+    password: str = Field(default="<password>", description="The password for neo4j.")
+    url: str = Field(default="bolt://localhost:7687", description="The neo4j server to save data.")
+    database: str = Field(default="neo4j", description="The database to save data.")
+
+
 class ElasticsearchStoreConfig(BaseModel):
     index_name: str = Field(default="metagpt", description="Name of the Elasticsearch index.")
     es_url: str = Field(default=None, description="Elasticsearch URL.")

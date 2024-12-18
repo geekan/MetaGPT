@@ -1,14 +1,15 @@
 """RAG Retriever Factory."""
 
-
 from functools import wraps
 
 import chromadb
 import faiss
-from llama_index.core import StorageContext, VectorStoreIndex
+from llama_index.core import StorageContext, VectorStoreIndex, PropertyGraphIndex
 from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.indices.property_graph import PGRetriever
 from llama_index.core.schema import BaseNode
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
@@ -29,8 +30,9 @@ from metagpt.rag.schema import (
     ElasticsearchKeywordRetrieverConfig,
     ElasticsearchRetrieverConfig,
     FAISSRetrieverConfig,
-    MilvusRetrieverConfig,
+    MilvusRetrieverConfig, Neo4jPGRetrieverConfig,
 )
+from metagpt.utils.async_helper import NestAsyncio
 
 
 def get_or_build_index(build_index_func):
@@ -60,25 +62,42 @@ class RetrieverFactory(ConfigBasedFactory):
             ElasticsearchRetrieverConfig: self._create_es_retriever,
             ElasticsearchKeywordRetrieverConfig: self._create_es_retriever,
             MilvusRetrieverConfig: self._create_milvus_retriever,
+            Neo4jPGRetrieverConfig: self._create_neo4j_pg_retriever,
         }
         super().__init__(creators)
 
-    def get_retriever(self, configs: list[BaseRetrieverConfig] = None, **kwargs) -> RAGRetriever:
+    def get_retriever(
+            self, configs: list[BaseRetrieverConfig] = None, build_graph: bool = False, **kwargs
+    ) -> RAGRetriever:
         """Creates and returns a retriever instance based on the provided configurations.
 
         If multiple retrievers, using SimpleHybridRetriever.
+        If build_graph is True and no graph-related retriver_config is provided,
+        the default is to use memory for graph attribute storage and retrieval.
+        If a graph-related retriever_config is provided,
+        the build_graph parameter is ignored and the configured one is used directly.
         """
         if not configs:
-            return self._create_default(**kwargs)
+            return self._create_default(build_graph=build_graph, **kwargs)
 
         retrievers = super().get_instances(configs, **kwargs)
+        has_pg_retriever = any(isinstance(retriever, PGRetriever) for retriever in retrievers)
+
+        if build_graph and not has_pg_retriever:
+            pg_index = self._extract_index(None, **kwargs) or self._build_default_pg_index(**kwargs)
+            retrievers.append(pg_index.as_retriever())
 
         return SimpleHybridRetriever(*retrievers) if len(retrievers) > 1 else retrievers[0]
 
-    def _create_default(self, **kwargs) -> RAGRetriever:
-        index = self._extract_index(None, **kwargs) or self._build_default_index(**kwargs)
+    def _create_default(self, build_graph: bool = False, **kwargs) -> RAGRetriever:
+        vector_index = self._extract_index(None, **kwargs) or self._build_default_vector_index(**kwargs)
+        retrievers = [vector_index.as_retriever()]
 
-        return index.as_retriever()
+        if build_graph:
+            pg_index = self._extract_index(None, **kwargs) or self._build_default_pg_index(**kwargs)
+            retrievers.append(pg_index.as_retriever())
+
+        return SimpleHybridRetriever(*retrievers) if len(retrievers) > 1 else retrievers[0]
 
     def _create_milvus_retriever(self, config: MilvusRetrieverConfig, **kwargs) -> MilvusRetriever:
         config.index = self._build_milvus_index(config, **kwargs)
@@ -106,6 +125,16 @@ class RetrieverFactory(ConfigBasedFactory):
 
         return ElasticsearchRetriever(**config.model_dump())
 
+    def _create_neo4j_pg_retriever(self, config: Neo4jPGRetrieverConfig, **kwargs) -> PGRetriever:
+        NestAsyncio.apply_once()
+        graph_store = Neo4jPropertyGraphStore(**config.model_dump(exclude={"index", "similarity_top_k"}))
+        graph_index = PropertyGraphIndex(
+            nodes=self._extract_nodes(**kwargs),
+            property_graph_store=graph_store,
+            embed_model=self._extract_embed_model(**kwargs),
+        )
+        return graph_index.as_retriever(**config.model_dump())
+
     def _extract_index(self, config: BaseRetrieverConfig = None, **kwargs) -> VectorStoreIndex:
         return self._val_from_config_or_kwargs("index", config, **kwargs)
 
@@ -115,13 +144,21 @@ class RetrieverFactory(ConfigBasedFactory):
     def _extract_embed_model(self, config: BaseRetrieverConfig = None, **kwargs) -> BaseEmbedding:
         return self._val_from_config_or_kwargs("embed_model", config, **kwargs)
 
-    def _build_default_index(self, **kwargs) -> VectorStoreIndex:
-        index = VectorStoreIndex(
+    def _build_default_vector_index(self, **kwargs) -> VectorStoreIndex:
+        vector_index = VectorStoreIndex(
             nodes=self._extract_nodes(**kwargs),
             embed_model=self._extract_embed_model(**kwargs),
         )
+        return vector_index
 
-        return index
+    def _build_default_pg_index(self, **kwargs):
+        # build default PropertyGraphIndex
+        NestAsyncio.apply_once()
+        pg_index = PropertyGraphIndex(
+            nodes=self._extract_nodes(**kwargs),
+            embed_model=self._extract_embed_model(**kwargs),
+        )
+        return pg_index
 
     @get_or_build_index
     def _build_faiss_index(self, config: FAISSRetrieverConfig, **kwargs) -> VectorStoreIndex:
@@ -152,7 +189,7 @@ class RetrieverFactory(ConfigBasedFactory):
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
 
     def _build_index_from_vector_store(
-        self, config: BaseRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
+            self, config: BaseRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
     ) -> VectorStoreIndex:
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         index = VectorStoreIndex(

@@ -29,15 +29,15 @@ extras_require = {
     "search-ddg": ["duckduckgo-search~=4.1.1"],
     # "ocr": ["paddlepaddle==2.4.2", "paddleocr~=2.7.3", "tabulate==0.9.0"],
     "rag": [
-        "llama-index-core==0.10.15",
-        "llama-index-embeddings-azure-openai==0.1.6",
-        "llama-index-embeddings-openai==0.1.5",
+        "llama-index-core==0.12.5",
+        "llama-index-embeddings-azure-openai==0.3.0",
+        "llama-index-embeddings-openai==0.3.1",
         "llama-index-embeddings-gemini==0.1.6",
         "llama-index-embeddings-ollama==0.1.2",
-        "llama-index-llms-azure-openai==0.1.4",
+        "llama-index-llms-azure-openai==0.3.0",
         "llama-index-readers-file==0.1.4",
         "llama-index-retrievers-bm25==0.1.3",
-        "llama-index-vector-stores-faiss==0.1.1",
+        "llama-index-vector-stores-faiss==0.3.0",
         "llama-index-vector-stores-elasticsearch==0.1.6",
         "llama-index-vector-stores-chroma==0.1.6",
         "llama-index-postprocessor-cohere-rerank==0.1.4",
@@ -45,6 +45,7 @@ extras_require = {
         "llama-index-postprocessor-flag-embedding-reranker==0.1.2",
         # "llama-index-vector-stores-milvus==0.1.23",
         "docx2txt==0.8",
+        "llama-index-graph-stores-neo4j==0.4.4"
     ],
 }
 
