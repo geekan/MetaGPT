@@ -33,7 +33,6 @@ from metagpt.rag.schema import (
     MilvusRetrieverConfig,
     Neo4jPGRetrieverConfig,
 )
-from metagpt.utils.async_helper import NestAsyncio
 
 
 def get_or_build_index(build_index_func):
@@ -127,13 +126,7 @@ class RetrieverFactory(ConfigBasedFactory):
         return ElasticsearchRetriever(**config.model_dump())
 
     def _create_neo4j_pg_retriever(self, config: Neo4jPGRetrieverConfig, **kwargs) -> PGRetriever:
-        NestAsyncio.apply_once()
-        graph_store = Neo4jPropertyGraphStore(**config.model_dump(exclude={"index", "similarity_top_k"}))
-        graph_index = PropertyGraphIndex(
-            nodes=self._extract_nodes(**kwargs),
-            property_graph_store=graph_store,
-            embed_model=self._extract_embed_model(**kwargs),
-        )
+        graph_index = self._build_neo4j_pg_index(config, **kwargs)
         return graph_index.as_retriever(**config.model_dump())
 
     def _extract_index(self, config: BaseRetrieverConfig = None, **kwargs) -> VectorStoreIndex:
@@ -154,7 +147,6 @@ class RetrieverFactory(ConfigBasedFactory):
 
     def _build_default_pg_index(self, **kwargs):
         # build default PropertyGraphIndex
-        NestAsyncio.apply_once()
         pg_index = PropertyGraphIndex(
             nodes=self._extract_nodes(**kwargs),
             embed_model=self._extract_embed_model(**kwargs),
@@ -188,6 +180,17 @@ class RetrieverFactory(ConfigBasedFactory):
         vector_store = ElasticsearchStore(**config.store_config.model_dump())
 
         return self._build_index_from_vector_store(config, vector_store, **kwargs)
+
+    @get_or_build_index
+    def _build_neo4j_pg_index(self, config: Neo4jPGRetrieverConfig, **kwargs) -> PropertyGraphIndex:
+        graph_store = Neo4jPropertyGraphStore(**config.store_config.model_dump())
+        graph_index = PropertyGraphIndex(
+            nodes=self._extract_nodes(**kwargs),
+            property_graph_store=graph_store,
+            embed_model=self._extract_embed_model(**kwargs),
+            **config.model_dump(),
+        )
+        return graph_index
 
     def _build_index_from_vector_store(
         self, config: BaseRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
