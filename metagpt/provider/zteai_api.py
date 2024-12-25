@@ -1,31 +1,27 @@
-from typing import Optional, Union
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
-from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 import json
-from metagpt.provider.llm_provider_registry import register_provider
+from typing import Optional, Union
+
 import aiohttp
 
+from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider.llm_provider_registry import register_provider
 
-async def ZTEAI(querytext,appid,apikey,numb,token,modeltype):
+
+async def ZTEAI(querytext, appid, apikey, numb, token, modeltype):
     url = "https://rdcloud.zte.com.cn/zte-studio-ai-platform/openapi/v1/chat"
-    headers = {"Content-Type": "application/json",
-               "Authorization":"Bearer "+appid+"-"+apikey,
-               "X-Emp-No": numb,
-               "X-Auth-Value": token}
-    data = {
-        "chatUuid":"",
-        "chatName":"",
-        "stream":False,
-        "keep": True,
-        "text":querytext,
-        "model":modeltype
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + appid + "-" + apikey,
+        "X-Emp-No": numb,
+        "X-Auth-Value": token,
     }
+    data = {"chatUuid": "", "chatName": "", "stream": False, "keep": True, "text": querytext, "model": modeltype}
     async with aiohttp.ClientSession() as session:
-        async with session.post(url,headers = headers,json=data) as response:
-            nowresult =  await response.text()
-            return (json.loads(nowresult)['bo']['result'])
+        async with session.post(url, headers=headers, json=data) as response:
+            nowresult = await response.text()
+            return json.loads(nowresult)["bo"]["result"]
 
 
 @register_provider(LLMType.ZTEAI)
@@ -34,7 +30,9 @@ class ZTEaiLLM(BaseLLM):
         self.config = config
 
     async def ask(self, msg: str, timeout=USE_CONFIG_TIMEOUT) -> str:
-        rsp = await ZTEAI(msg,self.config.app_id,self.config.api_key,self.config.domain,self.config.access_key,self.config.model)
+        rsp = await ZTEAI(
+            msg, self.config.app_id, self.config.api_key, self.config.domain, self.config.access_key, self.config.model
+        )
         return rsp
 
     async def aask(
