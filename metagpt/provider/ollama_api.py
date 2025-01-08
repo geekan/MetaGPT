@@ -214,7 +214,7 @@ class OllamaLLM(BaseLLM):
             dict: Configuration dictionary containing parameters like temperature, repeat_penalty and stream
         """
         return {
-            "options": {"temperature": 0.3, "repeat_penalty": self.config.repetition_penalty},
+            "options": {"temperature": self.config.temperature, "repeat_penalty": self.config.repetition_penalty},
             "stream": self.config.stream,
         }
 
