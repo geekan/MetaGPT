@@ -207,9 +207,9 @@ class OllamaLLM(BaseLLM):
     @property
     def _llama_api_kwargs(self) -> dict:
         """Get Ollama API parameter configuration
-        
+
         Reference: https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
-        
+
         Returns:
             dict: Configuration dictionary containing parameters like temperature, repeat_penalty and stream
         """
