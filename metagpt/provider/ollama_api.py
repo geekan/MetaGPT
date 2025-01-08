@@ -206,7 +206,15 @@ class OllamaLLM(BaseLLM):
 
     @property
     def _llama_api_kwargs(self) -> dict:
-        return {"options": {"temperature": 0.3}, "stream": self.config.stream}
+        """_summary_
+        https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
+        Returns:
+            dict: _description_
+        """
+        return {
+            "options": {"temperature": 0.3, "repeat_penalty": self.config.repetition_penalty},
+            "stream": self.config.stream,
+        }
 
     def __init_ollama(self, config: LLMConfig):
         assert config.base_url, "ollama base url is required!"
