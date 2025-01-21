@@ -1,4 +1,7 @@
 import tempfile
+from pathlib import Path
+
+import pytest
 
 from metagpt.tools.libs.linter import Linter, LintResult
 
@@ -20,7 +23,8 @@ def test_get_abs_fname():
 def test_py_lint():
     linter = Linter()
     code = "print('Hello, World!')"
-    result = linter.py_lint("test_linter.py", "test_linter.py", code)
+    test_file_path = str(Path(__file__).resolve())
+    result = linter.py_lint(test_file_path, test_file_path, code)
     assert result is None  # No errors expected for valid Python code
 
 
@@ -54,3 +58,7 @@ def test_run_cmd():
         result = linter.run_cmd("flake8", temp_file.name, "print('Hello, World!')")
         # Since flake8 might not be installed in the test environment, we just ensure no exception is raised
         assert result is None or isinstance(result, LintResult)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

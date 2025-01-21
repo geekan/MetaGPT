@@ -46,7 +46,7 @@ async def test_index_repo(path, query):
     ],
 )
 def test_classify_path(paths, path_type, root):
-    result, result_root = IndexRepo.classify_path(paths)
+    result, result_root = IndexRepo.find_index_repo_path(paths)
     assert path_type in set(result.keys())
     assert root == result_root.get(path_type, "")
 
