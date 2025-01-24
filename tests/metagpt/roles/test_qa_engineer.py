@@ -7,20 +7,16 @@
 """
 from pathlib import Path
 from typing import List
-import json
 
 import pytest
 from pydantic import BaseModel, Field
-from unittest.mock import AsyncMock, MagicMock
 
 from metagpt.actions import DebugError, RunCode, WriteTest, UserRequirement
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.environment import Environment
 from metagpt.roles import QaEngineer
-from metagpt.schema import Message, AIMessage, Document, RunCodeContext, TestingContext
-from metagpt.utils.common import any_to_str, aread, awrite
-from metagpt.utils.project_repo import ProjectRepo
+from metagpt.schema import Message, AIMessage, Document, RunCodeContext
+from metagpt.utils.common import any_to_str, awrite
 
 
 class MockProjectRepo:
