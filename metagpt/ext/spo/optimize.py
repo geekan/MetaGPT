@@ -7,7 +7,7 @@ if __name__ == "__main__":
     SPO_LLM.initialize(
         optimize_kwargs={"model": "claude-3-5-sonnet-20240620", "temperature": 0.7},
         evaluate_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
-        execute_kwargs={"model": "gpt-4o-mini", "temperature": 0.3}
+        execute_kwargs={"model": "gpt-4o-mini", "temperature": 0}
     )
 
     optimizer = Optimizer(
