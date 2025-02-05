@@ -13,7 +13,7 @@ from metagpt.ext.spo.scripts.utils.llm_client import SPO_LLM, extract_content
 
 class QuickExecute:
     """
-    完成不同数据集的评估。
+    Execute Prompt
     """
 
     def __init__(self, prompt: str):
@@ -41,7 +41,7 @@ class QuickExecute:
 
 class QuickEvaluate:
     """
-    Complete the evaluation for different datasets here.
+    Complete the evaluation for different answers here.
     """
 
     def __init__(self):
@@ -79,6 +79,5 @@ class QuickEvaluate:
 if __name__ == "__main__":
     execute = QuickExecute(prompt="Answer the Question，{question}")
 
-    # 使用asyncio.run来运行异步方法
     answers = asyncio.run(execute.prompt_evaluate())
     print(answers)

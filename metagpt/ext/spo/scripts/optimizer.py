@@ -84,8 +84,6 @@ class Optimizer:
 
         logger.info(f"choose {sample['round']}")
 
-        prompt = sample['prompt']
-
         golden_answer = self.data_utils.list_to_markdown(qa)
         best_answer = self.data_utils.list_to_markdown(sample["answers"])
 
@@ -98,6 +96,9 @@ class Optimizer:
         response = await self.llm.responser(role="optimize", messages=[{"role": "user", "content": optimize_prompt}])
 
         modification = extract_content(response, "modification")
+
+        logger.info(f"Modification of this round: {modification}")
+
         prompt = extract_content(response, "prompt")
         if prompt:
             self.prompt = prompt

@@ -55,23 +55,23 @@ def extract_content(xml_string, tag):
 
 
 async def spo():
-    # 在入口处初始化配置
+    # test LLM
     SPO_LLM.initialize(
-        optimize_kwargs={"model": "gpt-4o-mini", "temperature": 0.7},
+        optimize_kwargs={"model": "gpt-4o", "temperature": 0.7},
         evaluate_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
         execute_kwargs={"model": "gpt-4o-mini", "temperature": 0.3}
     )
 
     llm = SPO_LLM.get_instance()
 
-    # 测试消息
-    hello_msg = [{"role": "user", "content": "你是什么模型"}]
+    # test messages
+    hello_msg = [{"role": "user", "content": "hello"}]
     response = await llm.responser(role='execute', messages=hello_msg)
-    print(f"AI回复: {response}")
+    print(f"AI: {response}")
     response = await llm.responser(role='optimize', messages=hello_msg)
-    print(f"AI回复: {response}")
+    print(f"AI: {response}")
     response = await llm.responser(role='evaluate', messages=hello_msg)
-    print(f"AI回复: {response}")
+    print(f"AI: {response}")
 
 
 if __name__ == "__main__":
