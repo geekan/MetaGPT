@@ -1,7 +1,7 @@
 import asyncio
 
-from script.evaluator import QuickEvaluate, QuickExecute
-from utils.logs import logger
+from metagpt.ext.spo.scripts.evaluator import QuickEvaluate, QuickExecute
+from metagpt.logs import logger
 import tiktoken
 
 
@@ -16,10 +16,10 @@ class EvaluationUtils:
     def __init__(self, root_path: str):
         self.root_path = root_path
 
-    async def execute_prompt(self, optimizer, prompt_path, data, model, initial=False, k=3):
+    async def execute_prompt(self, optimizer, prompt_path, initial=False):
 
         optimizer.prompt = optimizer.prompt_utils.load_prompt(optimizer.round, prompt_path)
-        evaluator = QuickExecute(prompt=optimizer.prompt, k=k, model=model)
+        evaluator = QuickExecute(prompt=optimizer.prompt)
 
         answers = await evaluator.prompt_execute()
 
@@ -29,10 +29,9 @@ class EvaluationUtils:
 
         return new_data
 
-    async def evaluate_prompt(self, optimizer, sample, new_sample, path, data, model, initial=False):
+    async def evaluate_prompt(self, optimizer, sample, new_sample, path, data, initial=False):
 
-        evaluator = QuickEvaluate(k=3)
-        original_token = count_tokens(sample)
+        evaluator = QuickEvaluate()
         new_token = count_tokens(new_sample)
 
         if initial is True:
@@ -40,7 +39,7 @@ class EvaluationUtils:
         else:
             evaluation_results = []
             for _ in range(4):
-                result = await evaluator.prompt_evaluate(sample=sample, new_sample=new_sample, model=model)
+                result = await evaluator.prompt_evaluate(sample=sample, new_sample=new_sample)
                 evaluation_results.append(result)
 
             logger.info(evaluation_results)

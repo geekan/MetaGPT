@@ -2,7 +2,8 @@ import yaml
 import random
 import os
 
-FILE_NAME = 'meta.yaml'  # 默认值
+FILE_NAME = 'meta.yaml'
+SAMPLE_K = 3
 
 
 def load_llm():
@@ -19,11 +20,10 @@ def set_file_name(name):
     FILE_NAME = name
 
 
-def load_meta_data(k=5):
+def load_meta_data(k=SAMPLE_K):
 
-    k = 5
     # 读取 YAML 文件
-    config_path = os.path.join(os.path.dirname(__file__), '../settings', FILE_NAME)
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'settings', FILE_NAME)
     with open(config_path, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
 
@@ -44,7 +44,7 @@ def load_meta_data(k=5):
     else:
         count = ""
 
-    # 随机选择三组问答
+    # 随机选择k组问答
     random_qa = random.sample(qa, min(k, len(qa)))  # 确保不超过列表长度
 
     return prompt, requirements, random_qa, count

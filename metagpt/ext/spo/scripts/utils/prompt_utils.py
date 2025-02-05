@@ -4,7 +4,7 @@ import re
 import time
 import traceback
 from typing import List
-from utils.logs import logger
+from metagpt.logs import logger
 
 
 class PromptUtils:
