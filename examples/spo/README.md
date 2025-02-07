@@ -21,7 +21,7 @@ Configure LLM parameters in `config/config2.yaml` (see `examples/aflow/config2.e
 Create a Iteration template file `metagpt/ext/spo/settings/task_name.yaml`:
 ```yaml
 prompt: |
-  solve question.
+  Please solve the following problem.
 
 requirements: |
   ...
@@ -39,6 +39,14 @@ faq:
     answer: |
       ...
 ```
+
+Notes:
+- `prompt`: Initial prompt for iteration
+- `requirements`: Desired effects/outcomes (e.g., generate more thinking, use more humorous language)
+- `count`: Target word count for the generated prompt (e.g., 50). Set to None for no limit
+- `faq`: QA pairs used for iteration, can include appropriate number of pairs (typically 3)
+  - `question`: Questions from the dataset used for iteration
+  - `answer`: Corresponding answers. Can contain desired thinking patterns or responses instead of actual answers, or can be left empty. See `metagpt/ext/spo/settings/Navigate.yaml` for reference
 
 ### 3. Implement the Optimizer 🔧
 

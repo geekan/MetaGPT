@@ -7,32 +7,32 @@ def parse_args():
     parser = argparse.ArgumentParser(description='SPO Optimizer CLI')
 
     # LLM parameter
-    parser.add_argument('--optimize-model', type=str, default='claude-3-5-sonnet-20240620',
-                        help='Model for optimization')
-    parser.add_argument('--optimize-temperature', type=float, default=0.7,
-                        help='Temperature for optimization')
-    parser.add_argument('--evaluate-model', type=str, default='gpt-4o-mini',
-                        help='Model for evaluation')
-    parser.add_argument('--evaluate-temperature', type=float, default=0.3,
-                        help='Temperature for evaluation')
-    parser.add_argument('--execute-model', type=str, default='gpt-4o-mini',
-                        help='Model for execution')
-    parser.add_argument('--execute-temperature', type=float, default=0,
-                        help='Temperature for execution')
+    parser.add_argument('--opt-model', type=str, default='claude-3-5-sonnet-20240620',
+                       help='Model for optimization')
+    parser.add_argument('--opt-temp', type=float, default=0.7,
+                       help='Temperature for optimization')
+    parser.add_argument('--eval-model', type=str, default='gpt-4o-mini',
+                       help='Model for evaluation')
+    parser.add_argument('--eval-temp', type=float, default=0.3,
+                       help='Temperature for evaluation')
+    parser.add_argument('--exec-model', type=str, default='gpt-4o-mini',
+                       help='Model for execution')
+    parser.add_argument('--exec-temp', type=float, default=0,
+                       help='Temperature for execution')
 
     # Optimizer parameter
     parser.add_argument('--workspace', type=str, default='workspace',
-                        help='Path for optimized output')
+                       help='Path for optimized output')
     parser.add_argument('--initial-round', type=int, default=1,
-                        help='Initial round number')
+                       help='Initial round number')
     parser.add_argument('--max-rounds', type=int, default=10,
-                        help='Maximum number of rounds')
+                       help='Maximum number of rounds')
     parser.add_argument('--template', type=str, default='Poem.yaml',
-                        help='Template file name')
+                       help='Template file name')
     parser.add_argument('--name', type=str, default='Poem',
-                        help='Project name')
+                       help='Project name')
     parser.add_argument('--no-iteration', action='store_false', dest='iteration',
-                        help='Disable iteration mode')
+                       help='Disable iteration mode')
 
     return parser.parse_args()
 
@@ -42,16 +42,16 @@ def main():
 
     SPO_LLM.initialize(
         optimize_kwargs={
-            "model": args.optimize_model,
-            "temperature": args.optimize_temperature
+            "model": args.opt_model,
+            "temperature": args.opt_temp
         },
         evaluate_kwargs={
-            "model": args.evaluate_model,
-            "temperature": args.evaluate_temperature
+            "model": args.eval_model,
+            "temperature": args.eval_temp
         },
         execute_kwargs={
-            "model": args.execute_model,
-            "temperature": args.execute_temperature
+            "model": args.exec_model,
+            "temperature": args.exec_temp
         }
     )
 
