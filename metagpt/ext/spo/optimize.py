@@ -1,5 +1,5 @@
-from metagpt.ext.spo.scripts.optimizer import Optimizer
-from metagpt.ext.spo.scripts.utils.llm_client import SPO_LLM
+from metagpt.ext.spo.components.optimizer import Optimizer
+from metagpt.ext.spo.utils.llm_client import SPO_LLM
 
 
 if __name__ == "__main__":

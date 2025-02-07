@@ -49,8 +49,8 @@ faq:
 Use `metagpt/ext/spo/optimize.py` to execute:
 
 ```python
-from metagpt.ext.spo.scripts.optimizer import Optimizer
-from metagpt.ext.spo.scripts.utils.llm_client import SPO_LLM
+from metagpt.ext.spo.components.optimizer import Optimizer
+from metagpt.ext.spo.utils.llm_client import SPO_LLM
 
 if __name__ == "__main__":
     # Initialize LLM settings
@@ -62,12 +62,12 @@ if __name__ == "__main__":
 
     # Create and run optimizer
     optimizer = Optimizer(
-        optimized_path="workspace",    # Output directory
-        initial_round=1,               # Starting round
-        max_rounds=10,                 # Maximum optimization rounds
-        template="Poem.yaml",          # Template file
-        name="Poem",                   # Project name
-        iteration=True,                # Enable iteration mode
+        optimized_path="workspace",  # Output directory
+        initial_round=1,  # Starting round
+        max_rounds=10,  # Maximum optimization rounds
+        template="Poem.yaml",  # Template file
+        name="Poem",  # Project name
+        iteration=True,  # Enable iteration mode
     )
 
     optimizer.optimize()

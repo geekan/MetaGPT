@@ -4,14 +4,13 @@
 # @Desc    : optimizer for prompt
 
 import asyncio
-import time
-from metagpt.ext.spo.scripts.utils.data_utils import DataUtils
-from metagpt.ext.spo.scripts.utils.evaluation_utils import EvaluationUtils
-from metagpt.ext.spo.scripts.utils.prompt_utils import PromptUtils
+from metagpt.ext.spo.utils.data_utils import DataUtils
+from metagpt.ext.spo.utils.evaluation_utils import EvaluationUtils
+from metagpt.ext.spo.utils.prompt_utils import PromptUtils
 from metagpt.ext.spo.prompts.optimize_prompt import PROMPT_OPTIMIZE_PROMPT
-from metagpt.ext.spo.scripts.utils import load
+from metagpt.ext.spo.utils import load
 from metagpt.logs import logger
-from metagpt.ext.spo.scripts.utils.llm_client import extract_content, SPO_LLM
+from metagpt.ext.spo.utils.llm_client import extract_content, SPO_LLM
 
 
 
@@ -45,15 +44,15 @@ class Optimizer:
             for opt_round in range(self.max_rounds):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                score = loop.run_until_complete(self._optimize_prompt())
+                prompt = loop.run_until_complete(self._optimize_prompt())
                 self.round += 1
-                logger.info(f"Score for round {self.round}: {score}")
+                logger.info(f"Prompt generated in round {self.round}: {prompt}")
 
         else:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            score = loop.run_until_complete(self._test_prompt())
-            logger.info(f"Score for round {self.round}: {score}")
+            prompt = loop.run_until_complete(self._test_prompt())
+            logger.info(f"Prompt generated in round {self.round}: {prompt}")
 
     async def _optimize_prompt(self):
 
@@ -100,6 +99,7 @@ class Optimizer:
         logger.info(f"Modification of this round: {modification}")
 
         prompt = extract_content(response, "prompt")
+
         if prompt:
             self.prompt = prompt
         else:
@@ -117,7 +117,6 @@ class Optimizer:
 
         self.prompt_utils.write_answers(directory, answers=answers)
 
-        logger.info(prompt)
         logger.info(success)
 
         logger.info(f"now is {self.round + 1}")

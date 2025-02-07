@@ -1,4 +1,4 @@
-from metagpt.ext.spo.scripts.evaluator import QuickEvaluate, QuickExecute
+from metagpt.ext.spo.components.evaluator import QuickEvaluate, QuickExecute
 from metagpt.logs import logger
 import tiktoken
 

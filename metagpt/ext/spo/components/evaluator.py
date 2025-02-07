@@ -3,12 +3,12 @@
 # @Author  : all
 # @Desc    : Evaluation for different datasets
 import asyncio
-from typing import Dict, Literal, Tuple, List, Any
+from typing import Dict, Any
 
-from metagpt.ext.spo.scripts.utils import load
+from metagpt.ext.spo.utils import load
 from metagpt.ext.spo.prompts.evaluate_prompt import EVALUATE_PROMPT
 import random
-from metagpt.ext.spo.scripts.utils.llm_client import SPO_LLM, extract_content
+from metagpt.ext.spo.utils.llm_client import SPO_LLM, extract_content
 
 
 class QuickExecute:
