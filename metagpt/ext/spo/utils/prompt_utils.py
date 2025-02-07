@@ -33,6 +33,4 @@ class PromptUtils:
 
         with open(os.path.join(directory, "prompt.txt"), "w", encoding="utf-8") as file:
             file.write(prompt)
-        with open(os.path.join(directory, "__init__.py"), "w", encoding="utf-8") as file:
-            file.write("")
 

@@ -11,11 +11,19 @@ def set_file_name(name):
 
 
 def load_meta_data(k=SAMPLE_K):
-
     # load yaml file
     config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings', FILE_NAME)
-    with open(config_path, 'r', encoding='utf-8') as file:
-        data = yaml.safe_load(file)
+
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Configuration file '{FILE_NAME}' not found in settings directory")
+
+    try:
+        with open(config_path, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+    except yaml.YAMLError as e:
+        raise ValueError(f"Error parsing YAML file '{FILE_NAME}': {str(e)}")
+    except Exception as e:
+        raise Exception(f"Error reading file '{FILE_NAME}': {str(e)}")
 
     qa = []
 
