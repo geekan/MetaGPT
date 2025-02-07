@@ -13,7 +13,7 @@ def set_file_name(name):
 def load_meta_data(k=SAMPLE_K):
 
     # load yaml file
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'settings', FILE_NAME)
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings', FILE_NAME)
     with open(config_path, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
 

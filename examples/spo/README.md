@@ -103,3 +103,28 @@ For help:
 ```bash
 python optimize.py --help
 ```
+
+### 4. View Results
+```
+workspace
+  └── Project_name
+      └── prompts
+          ├── results.json 
+          ├── round_1
+          │   ├── answers.txt
+          │   └── prompt.txt
+          ├── round_2
+          │   ├── answers.txt
+          │   └── prompt.txt
+          ├── round_3
+          │   ├── answers.txt
+          │   └── prompt.txt
+          ├── ...
+          └── round_n
+              ├── answers.txt
+              └── prompt.txt
+```
+
+- `results.json`: Stores whether each iteration round was judged successful and other related information
+- `prompt.txt`: The optimized prompt for the corresponding round
+- `answers.txt`: The output results generated using the prompt for the corresponding round
