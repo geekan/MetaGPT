@@ -1,12 +1,20 @@
+import asyncio
 import re
+from enum import Enum
 from typing import Optional
+
 from metagpt.configs.models_config import ModelsConfig
 from metagpt.llm import LLM
-import asyncio
+
+
+class RequestType(Enum):
+    OPTIMIZE = "optimize"
+    EVALUATE = "evaluate"
+    EXECUTE = "execute"
 
 
 class SPO_LLM:
-    _instance: Optional['SPO_LLM'] = None
+    _instance: Optional["SPO_LLM"] = None
 
     def __init__(self, optimize_kwargs=None, evaluate_kwargs=None, execute_kwargs=None):
         self.evaluate_llm = LLM(llm_config=self._load_llm_config(evaluate_kwargs))
@@ -14,7 +22,7 @@ class SPO_LLM:
         self.execute_llm = LLM(llm_config=self._load_llm_config(execute_kwargs))
 
     def _load_llm_config(self, kwargs: dict):
-        model = kwargs.get('model')
+        model = kwargs.get("model")
         if not model:
             raise ValueError("'model' parameter is required")
 
@@ -31,23 +39,24 @@ class SPO_LLM:
 
             return config
 
-        except AttributeError as e:
+        except AttributeError:
             raise ValueError(f"Model '{model}' not found in configuration")
         except Exception as e:
             raise ValueError(f"Error loading configuration for model '{model}': {str(e)}")
 
-    async def responser(self, type: str, messages):
-        if type == "optimize":
-            response = await self.optimize_llm.acompletion(messages)
-        elif type == "evaluate":
-            response = await self.evaluate_llm.acompletion(messages)
-        elif type == "execute":
-            response = await self.execute_llm.acompletion(messages)
-        else:
-            raise ValueError("Please set the correct name: optimize, evaluate or execute")
+    async def responser(self, request_type: RequestType, messages: list):
+        llm_mapping = {
+            RequestType.OPTIMIZE: self.optimize_llm,
+            RequestType.EVALUATE: self.evaluate_llm,
+            RequestType.EXECUTE: self.execute_llm,
+        }
 
-        rsp = response.choices[0].message.content
-        return rsp
+        llm = llm_mapping.get(request_type)
+        if not llm:
+            raise ValueError(f"Invalid request type. Valid types: {', '.join([t.value for t in RequestType])}")
+
+        response = await llm.acompletion(messages)
+        return response.choices[0].message.content
 
     @classmethod
     def initialize(cls, optimize_kwargs, evaluate_kwargs, execute_kwargs):
@@ -61,8 +70,9 @@ class SPO_LLM:
             raise RuntimeError("SPO_LLM not initialized. Call initialize() first.")
         return cls._instance
 
+
 def extract_content(xml_string, tag):
-    pattern = rf'<{tag}>(.*?)</{tag}>'
+    pattern = rf"<{tag}>(.*?)</{tag}>"
     match = re.search(pattern, xml_string, re.DOTALL)
     return match.group(1).strip() if match else None
 
@@ -72,23 +82,20 @@ async def spo():
     SPO_LLM.initialize(
         optimize_kwargs={"model": "gpt-4o", "temperature": 0.7},
         evaluate_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
-        execute_kwargs={"model": "gpt-4o-mini", "temperature": 0.3}
+        execute_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
     )
 
     llm = SPO_LLM.get_instance()
 
     # test messages
     hello_msg = [{"role": "user", "content": "hello"}]
-    response = await llm.responser(type='execute', messages=hello_msg)
+    response = await llm.responser(request_type=RequestType.EXECUTE, messages=hello_msg)
     print(f"AI: {response}")
-    response = await llm.responser(type='optimize', messages=hello_msg)
+    response = await llm.responser(request_type=RequestType.OPTIMIZE, messages=hello_msg)
     print(f"AI: {response}")
-    response = await llm.responser(type='evaluate', messages=hello_msg)
+    response = await llm.responser(request_type=RequestType.EVALUATE, messages=hello_msg)
     print(f"AI: {response}")
 
 
 if __name__ == "__main__":
     asyncio.run(spo())
-
-
-

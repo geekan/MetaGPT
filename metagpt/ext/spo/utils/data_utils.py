@@ -1,11 +1,11 @@
 import datetime
 import json
 import os
-import random
-from typing import Union, List, Dict
-import pandas as pd
-from metagpt.logs import logger
+from typing import Dict, List, Union
 
+import pandas as pd
+
+from metagpt.logs import logger
 
 
 class DataUtils:
@@ -14,7 +14,7 @@ class DataUtils:
         self.top_scores = []
 
     def load_results(self, path: str) -> list:
-        result_path = os.path.join(path, "results.json")
+        result_path = self.get_results_file_path(path)
         if os.path.exists(result_path):
             with open(result_path, "r") as json_file:
                 try:
@@ -24,7 +24,6 @@ class DataUtils:
         return []
 
     def get_best_round(self):
-
         self._load_scores()
 
         for entry in self.top_scores:
@@ -44,11 +43,6 @@ class DataUtils:
         with open(json_file_path, "w") as json_file:
             json.dump(data, json_file, default=str, indent=4)
 
-    def save_cost(self, directory: str, data: Union[List, Dict]):
-        json_file = os.path.join(directory, 'cost.json')
-        with open(json_file, "w", encoding="utf-8") as file:
-            json.dump(data, file, default=str, indent=4)
-
     def _load_scores(self):
         rounds_dir = os.path.join(self.root_path, "prompts")
         result_file = os.path.join(rounds_dir, "results.json")
@@ -65,12 +59,14 @@ class DataUtils:
             df = pd.DataFrame(data)
 
             for index, row in df.iterrows():
-                self.top_scores.append({
-                    "round": row["round"],
-                    "succeed": row["succeed"],
-                    "prompt": row["prompt"],
-                    "answers": row['answers']
-                })
+                self.top_scores.append(
+                    {
+                        "round": row["round"],
+                        "succeed": row["succeed"],
+                        "prompt": row["prompt"],
+                        "answers": row["answers"],
+                    }
+                )
 
             self.top_scores.sort(key=lambda x: x["round"], reverse=True)
 

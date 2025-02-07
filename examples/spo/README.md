@@ -4,12 +4,35 @@ An automated prompt engineering tool for Large Language Models (LLMs), designed 
 
 A next-generation prompt engineering system implementing **Self-Supervised Prompt Optimization (SPO)**. Achieves state-of-the-art performance with 17.8-90.9× higher cost efficiency than conventional methods. 🚀
 
+<p align="center">
+<a href=""><img src="../../docs/resources/spo/SPO-method.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+</p>
+
 ## ✨ Core Advantages
 
 - 💸 **Ultra-Low Cost** - _$0.15 per task optimization_
 - 🏷️ **Zero Supervision** - _No ground truth/human feedback required_
 - ⚡ **Universal Adaptation** - _Closed & open-ended tasks supported_
 - 🔄 **Self-Evolving** - _Auto-optimization via LLM-as-judge mechanism_
+
+[Read our paper on arXiv](coming soon)
+
+## 📊 Experiment
+
+###  Closed Tasks
+<p align="center">
+<a href=""><img src="../../docs/resources/spo/SPO-closed_task_table.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-closed_task_figure.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+</p>
+
+*SPO demonstrates superior cost efficiency, requiring only 1.1% to 5.6% of the cost of state-of-the-art methods while maintaining competitive performance.*
+
+### Open-ended Tasks
+<p align="center">
+<a href=""><img src="../../docs/resources/spo/SPO-open-ended _task_figure.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+</p>
+
+*SPO significantly improves model performance across all model configurations in open-ended tasks.*
 
 ## 🚀 Quick Start
 

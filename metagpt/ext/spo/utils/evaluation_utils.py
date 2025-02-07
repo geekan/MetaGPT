@@ -1,22 +1,24 @@
+import tiktoken
+
 from metagpt.ext.spo.components.evaluator import QuickEvaluate, QuickExecute
 from metagpt.logs import logger
-import tiktoken
 
 EVALUATION_REPETITION = 4
 
+
 def count_tokens(sample):
-    if sample is None:
+    if not sample:
         return 0
     else:
         encoding = tiktoken.get_encoding("cl100k_base")
-        return len(encoding.encode(str(sample['answers'])))
+        return len(encoding.encode(str(sample["answers"])))
+
 
 class EvaluationUtils:
     def __init__(self, root_path: str):
         self.root_path = root_path
 
     async def execute_prompt(self, optimizer, prompt_path, initial=False):
-
         optimizer.prompt = optimizer.prompt_utils.load_prompt(optimizer.round, prompt_path)
         executor = QuickExecute(prompt=optimizer.prompt)
 
@@ -29,7 +31,6 @@ class EvaluationUtils:
         return new_data
 
     async def evaluate_prompt(self, optimizer, samples, new_samples, path, data, initial=False):
-
         evaluator = QuickEvaluate()
         new_token = count_tokens(new_samples)
 
@@ -47,8 +48,9 @@ class EvaluationUtils:
             false_count = evaluation_results.count(False)
             succeed = true_count > false_count
 
-        new_data = optimizer.data_utils.create_result_data(new_samples['round'], new_samples['answers'],
-                                                           new_samples['prompt'], succeed, new_token)
+        new_data = optimizer.data_utils.create_result_data(
+            new_samples["round"], new_samples["answers"], new_samples["prompt"], succeed, new_token
+        )
 
         data.append(new_data)
 
@@ -56,6 +58,6 @@ class EvaluationUtils:
 
         optimizer.data_utils.save_results(result_path, data)
 
-        answers = new_samples['answers']
+        answers = new_samples["answers"]
 
         return succeed, answers

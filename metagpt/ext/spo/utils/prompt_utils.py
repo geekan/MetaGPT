@@ -1,4 +1,5 @@
 import os
+
 from metagpt.logs import logger
 
 
@@ -15,14 +16,13 @@ class PromptUtils:
         prompt_file_name = f"{prompts_path}/prompt.txt"
 
         try:
-            with open(prompt_file_name, 'r', encoding='utf-8') as file:
+            with open(prompt_file_name, "r", encoding="utf-8") as file:
                 return file.read()
         except FileNotFoundError as e:
             logger.info(f"Error loading prompt for round {round_number}: {e}")
             raise
 
     def write_answers(self, directory: str, answers: dict, name: str = "answers.txt"):
-
         with open(os.path.join(directory, name), "w", encoding="utf-8") as file:
             for item in answers:
                 file.write(f"Question:\n{item['question']}\n")
@@ -30,7 +30,5 @@ class PromptUtils:
                 file.write("\n")
 
     def write_prompt(self, directory: str, prompt: str):
-
         with open(os.path.join(directory, "prompt.txt"), "w", encoding="utf-8") as file:
             file.write(prompt)
-

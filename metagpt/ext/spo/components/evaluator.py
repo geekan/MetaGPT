@@ -3,11 +3,12 @@
 # @Author  : all
 # @Desc    : Evaluation for different datasets
 import asyncio
-from typing import Dict, Any
-from metagpt.ext.spo.utils import load
-from metagpt.ext.spo.prompts.evaluate_prompt import EVALUATE_PROMPT
 import random
-from metagpt.ext.spo.utils.llm_client import SPO_LLM, extract_content
+from typing import Any, Dict
+
+from metagpt.ext.spo.prompts.evaluate_prompt import EVALUATE_PROMPT
+from metagpt.ext.spo.utils import load
+from metagpt.ext.spo.utils.llm_client import SPO_LLM, RequestType, extract_content
 from metagpt.logs import logger
 
 
@@ -17,7 +18,6 @@ class QuickExecute:
     """
 
     def __init__(self, prompt: str):
-
         self.prompt = prompt
         self.llm = SPO_LLM.get_instance()
 
@@ -28,12 +28,12 @@ class QuickExecute:
         async def fetch_answer(q: str) -> Dict[str, Any]:
             messages = [{"role": "user", "content": f"{self.prompt}\n\n{q}"}]
             try:
-                answer = await self.llm.responser(type="execute", messages=messages)
-                return {'question': q, 'answer': answer}
+                answer = await self.llm.responser(request_type=RequestType.EXECUTE, messages=messages)
+                return {"question": q, "answer": answer}
             except Exception as e:
-                return {'question': q, 'answer': str(e)}
+                return {"question": q, "answer": str(e)}
 
-        tasks = [fetch_answer(item['question']) for item in qa]
+        tasks = [fetch_answer(item["question"]) for item in qa]
         answers = await asyncio.gather(*tasks)
 
         return answers
@@ -56,15 +56,18 @@ class QuickEvaluate:
         else:
             is_swapped = False
 
-        messages = [{"role": "user", "content": EVALUATE_PROMPT.format(
-            requirement=requirement,
-            sample=samples,
-            new_sample=new_samples,
-            answers=str(qa))}]
+        messages = [
+            {
+                "role": "user",
+                "content": EVALUATE_PROMPT.format(
+                    requirement=requirement, sample=samples, new_sample=new_samples, answers=str(qa)
+                ),
+            }
+        ]
 
         try:
-            response = await self.llm.responser(type="evaluate", messages=messages)
-            choose = extract_content(response, 'choose')
+            response = await self.llm.responser(request_type=RequestType.EVALUATE, messages=messages)
+            choose = extract_content(response, "choose")
             return choose == "A" if is_swapped else choose == "B"
 
         except Exception as e:
@@ -72,9 +75,8 @@ class QuickEvaluate:
             return False
 
 
-
 if __name__ == "__main__":
-    execute = QuickExecute(prompt="Answer the Question")
+    executor = QuickExecute(prompt="Answer the Question")
 
-    answers = asyncio.run(execute.prompt_evaluate())
+    answers = asyncio.run(executor.prompt_execute())
     print(answers)
