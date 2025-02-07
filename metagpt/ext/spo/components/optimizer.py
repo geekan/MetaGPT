@@ -14,7 +14,7 @@ from metagpt.ext.spo.utils.llm_client import extract_content, SPO_LLM
 
 
 
-class Optimizer:
+class PromptOptimizer:
     def __init__(
             self,
             optimized_path: str = None,
@@ -39,7 +39,7 @@ class Optimizer:
         self.llm = SPO_LLM.get_instance()
 
     def optimize(self):
-        if self.iteration is True:
+        if self.iteration:
 
             for opt_round in range(self.max_rounds):
                 loop = asyncio.new_event_loop()
@@ -68,8 +68,9 @@ class Optimizer:
             prompt, _, _, _ = load.load_meta_data()
             self.prompt = prompt
             self.prompt_utils.write_prompt(directory, prompt=self.prompt)
-            new_sample = await self.evaluation_utils.execute_prompt(self, directory, initial=True)
-            _, answers = await self.evaluation_utils.evaluate_prompt(self, None, new_sample, path=prompt_path, data=data, initial=True)
+            new_samples = await self.evaluation_utils.execute_prompt(self, directory, initial=True)
+            _, answers = await self.evaluation_utils.evaluate_prompt(self, None, new_samples, path=prompt_path,
+                                                                     data=data, initial=True)
             self.prompt_utils.write_answers(directory, answers=answers)
 
 
@@ -79,20 +80,20 @@ class Optimizer:
 
         top_round = self.data_utils.get_best_round()
 
-        sample = top_round
+        samples = top_round
 
-        logger.info(f"choose {sample['round']}")
+        logger.info(f"choose {samples['round']}")
 
         golden_answer = self.data_utils.list_to_markdown(qa)
-        best_answer = self.data_utils.list_to_markdown(sample["answers"])
+        best_answer = self.data_utils.list_to_markdown(samples["answers"])
 
         optimize_prompt = PROMPT_OPTIMIZE_PROMPT.format(
-            prompt=sample["prompt"], answers=best_answer,
+            prompt=samples["prompt"], answers=best_answer,
             requirements=requirements,
             golden_answers=golden_answer,
             count=count)
 
-        response = await self.llm.responser(role="optimize", messages=[{"role": "user", "content": optimize_prompt}])
+        response = await self.llm.responser(type="optimize", messages=[{"role": "user", "content": optimize_prompt}])
 
         modification = extract_content(response, "modification")
 
@@ -105,19 +106,16 @@ class Optimizer:
         else:
             self.prompt = ""
 
-        logger.info(directory)
-
         self.prompt_utils.write_prompt(directory, prompt=self.prompt)
 
-        new_sample = await self.evaluation_utils.execute_prompt(self, directory, data)
+        new_samples = await self.evaluation_utils.execute_prompt(self, directory, data)
 
-        success, answers = await self.evaluation_utils.evaluate_prompt(self, sample, new_sample,
-                                                                       path=prompt_path,
+        success, answers = await self.evaluation_utils.evaluate_prompt(self, samples, new_samples, path=prompt_path,
                                                                        data=data, initial=False)
 
         self.prompt_utils.write_answers(directory, answers=answers)
 
-        logger.info(success)
+        logger.info(f"Current round optimization successful:{success}")
 
         logger.info(f"now is {self.round + 1}")
 

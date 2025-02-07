@@ -4,11 +4,11 @@
 # @Desc    : Evaluation for different datasets
 import asyncio
 from typing import Dict, Any
-
 from metagpt.ext.spo.utils import load
 from metagpt.ext.spo.prompts.evaluate_prompt import EVALUATE_PROMPT
 import random
 from metagpt.ext.spo.utils.llm_client import SPO_LLM, extract_content
+from metagpt.logs import logger
 
 
 class QuickExecute:
@@ -28,7 +28,7 @@ class QuickExecute:
         async def fetch_answer(q: str) -> Dict[str, Any]:
             messages = [{"role": "user", "content": f"{self.prompt}\n\n{q}"}]
             try:
-                answer = await self.llm.responser(role="execute", messages=messages)
+                answer = await self.llm.responser(type="execute", messages=messages)
                 return {'question': q, 'answer': answer}
             except Exception as e:
                 return {'question': q, 'answer': str(e)}
@@ -47,37 +47,34 @@ class QuickEvaluate:
     def __init__(self):
         self.llm = SPO_LLM.get_instance()
 
-    async def prompt_evaluate(self, sample: list, new_sample: list) -> bool:
+    async def prompt_evaluate(self, samples: list, new_samples: list) -> bool:
         _, requirement, qa, _ = load.load_meta_data()
 
         if random.random() < 0.5:
-            sample, new_sample = new_sample, sample
+            samples, new_samples = new_samples, samples
             is_swapped = True
         else:
             is_swapped = False
 
         messages = [{"role": "user", "content": EVALUATE_PROMPT.format(
             requirement=requirement,
-            sample=sample,
-            new_sample=new_sample,
+            sample=samples,
+            new_sample=new_samples,
             answers=str(qa))}]
 
         try:
-            response = await self.llm.responser(role="evaluate", messages=messages)
+            response = await self.llm.responser(type="evaluate", messages=messages)
             choose = extract_content(response, 'choose')
-
-            if is_swapped:
-                return choose == "A"
-            return choose == "B"
+            return choose == "A" if is_swapped else choose == "B"
 
         except Exception as e:
-            print(e)
+            logger.error(e)
             return False
 
 
 
 if __name__ == "__main__":
-    execute = QuickExecute(prompt="Answer the Question，{question}")
+    execute = QuickExecute(prompt="Answer the Question")
 
     answers = asyncio.run(execute.prompt_evaluate())
     print(answers)

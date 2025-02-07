@@ -2,7 +2,7 @@ import yaml
 import random
 import os
 
-FILE_NAME = 'meta.yaml'
+FILE_NAME = ''
 SAMPLE_K = 3
 
 def set_file_name(name):

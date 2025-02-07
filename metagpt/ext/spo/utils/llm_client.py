@@ -15,20 +15,33 @@ class SPO_LLM:
 
     def _load_llm_config(self, kwargs: dict):
         model = kwargs.get('model')
-        config = ModelsConfig.default().get(model).model_copy()
+        if not model:
+            raise ValueError("'model' parameter is required")
 
-        for key, value in kwargs.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
+        try:
+            model_config = ModelsConfig.default().get(model)
+            if model_config is None:
+                raise ValueError(f"Model '{model}' not found in configuration")
 
-        return config
+            config = model_config.model_copy()
 
-    async def responser(self, role: str, messages):
-        if role == "optimize":
+            for key, value in kwargs.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
+
+            return config
+
+        except AttributeError as e:
+            raise ValueError(f"Model '{model}' not found in configuration")
+        except Exception as e:
+            raise ValueError(f"Error loading configuration for model '{model}': {str(e)}")
+
+    async def responser(self, type: str, messages):
+        if type == "optimize":
             response = await self.optimize_llm.acompletion(messages)
-        elif role == "evaluate":
+        elif type == "evaluate":
             response = await self.evaluate_llm.acompletion(messages)
-        elif role == "execute":
+        elif type == "execute":
             response = await self.execute_llm.acompletion(messages)
         else:
             raise ValueError("Please set the correct name: optimize, evaluate or execute")
@@ -66,11 +79,11 @@ async def spo():
 
     # test messages
     hello_msg = [{"role": "user", "content": "hello"}]
-    response = await llm.responser(role='execute', messages=hello_msg)
+    response = await llm.responser(type='execute', messages=hello_msg)
     print(f"AI: {response}")
-    response = await llm.responser(role='optimize', messages=hello_msg)
+    response = await llm.responser(type='optimize', messages=hello_msg)
     print(f"AI: {response}")
-    response = await llm.responser(role='evaluate', messages=hello_msg)
+    response = await llm.responser(type='evaluate', messages=hello_msg)
     print(f"AI: {response}")
 
 

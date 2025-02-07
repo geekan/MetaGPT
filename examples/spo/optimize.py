@@ -1,10 +1,10 @@
 import argparse
-from metagpt.ext.spo.components.optimizer import Optimizer
+from metagpt.ext.spo.components.optimizer import PromptOptimizer
 from metagpt.ext.spo.utils.llm_client import SPO_LLM
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='SPO Optimizer CLI')
+    parser = argparse.ArgumentParser(description='SPO PromptOptimizer CLI')
 
     # LLM parameter
     parser.add_argument('--opt-model', type=str, default='claude-3-5-sonnet-20240620',
@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument('--exec-temp', type=float, default=0,
                        help='Temperature for execution')
 
-    # Optimizer parameter
+    # PromptOptimizer parameter
     parser.add_argument('--workspace', type=str, default='workspace',
                        help='Path for optimized output')
     parser.add_argument('--initial-round', type=int, default=1,
@@ -55,7 +55,7 @@ def main():
         }
     )
 
-    optimizer = Optimizer(
+    optimizer = PromptOptimizer(
         optimized_path=args.workspace,
         initial_round=args.initial_round,
         max_rounds=args.max_rounds,

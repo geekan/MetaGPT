@@ -4,10 +4,8 @@ import os
 import random
 from typing import Union, List, Dict
 import pandas as pd
-import yaml
+from metagpt.logs import logger
 
-FILE_NAME = ''
-SAMPLE_K = 3
 
 
 class DataUtils:
@@ -52,21 +50,36 @@ class DataUtils:
             json.dump(data, file, default=str, indent=4)
 
     def _load_scores(self):
-
         rounds_dir = os.path.join(self.root_path, "prompts")
-
         result_file = os.path.join(rounds_dir, "results.json")
         self.top_scores = []
 
-        with open(result_file, "r", encoding="utf-8") as file:
-            data = json.load(file)
-        df = pd.DataFrame(data)
+        try:
+            if not os.path.exists(result_file):
+                logger.warning(f"Results file not found at {result_file}")
+                return self.top_scores
 
-        for index, row in df.iterrows():
-            self.top_scores.append(
-                {"round": row["round"], "succeed": row["succeed"], "prompt": row["prompt"], "answers": row['answers']})
+            with open(result_file, "r", encoding="utf-8") as file:
+                data = json.load(file)
 
-        self.top_scores.sort(key=lambda x: x["round"], reverse=True)
+            df = pd.DataFrame(data)
+
+            for index, row in df.iterrows():
+                self.top_scores.append({
+                    "round": row["round"],
+                    "succeed": row["succeed"],
+                    "prompt": row["prompt"],
+                    "answers": row['answers']
+                })
+
+            self.top_scores.sort(key=lambda x: x["round"], reverse=True)
+
+        except FileNotFoundError:
+            logger.error(f"Could not find results file: {result_file}")
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON format in file: {result_file}")
+        except Exception as e:
+            logger.error(f"Unexpected error loading scores: {str(e)}")
 
         return self.top_scores
 

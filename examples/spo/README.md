@@ -1,4 +1,4 @@
-# SPO 🤖 | Self-Supervised Prompt Optimizer
+# SPO 🤖 | Self-Supervised Prompt PromptOptimizer
 
 An automated prompt engineering tool for Large Language Models (LLMs), designed for universal domain adaptation.
 
@@ -15,7 +15,7 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 
 ### 1. Configure Your API Key ⚙️
 
-Configure LLM parameters in `config/config2.yaml` (see `examples/aflow/config2.example.yaml` for reference)
+Configure LLM parameters in `config/config2.yaml` (see `examples/spo/config2.example.yaml` for reference)
 ### 2. Define Your Iteration template 📝
 
 Create a Iteration template file `metagpt/ext/spo/settings/task_name.yaml`:
@@ -48,39 +48,39 @@ Notes:
   - `question`: Questions from the dataset used for iteration
   - `answer`: Corresponding answers. Can contain desired thinking patterns or responses instead of actual answers, or can be left empty. See `metagpt/ext/spo/settings/Navigate.yaml` for reference
 
-### 3. Implement the Optimizer 🔧
+### 3. Implement the PromptOptimizer 🔧
 
 Use `metagpt/ext/spo/optimize.py` to execute:
 
 ```python
-from metagpt.ext.spo.components.optimizer import Optimizer
+from metagpt.ext.spo.components.optimizer import PromptOptimizer
 from metagpt.ext.spo.utils.llm_client import SPO_LLM
 
 if __name__ == "__main__":
-    # Initialize LLM settings
-    SPO_LLM.initialize(
-        optimize_kwargs={"model": "claude-3-5-sonnet-20240620", "temperature": 0.7},
-        evaluate_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
-        execute_kwargs={"model": "gpt-4o-mini", "temperature": 0}
-    )
+  # Initialize LLM settings
+  SPO_LLM.initialize(
+    optimize_kwargs={"model": "claude-3-5-sonnet-20240620", "temperature": 0.7},
+    evaluate_kwargs={"model": "gpt-4o-mini", "temperature": 0.3},
+    execute_kwargs={"model": "gpt-4o-mini", "temperature": 0}
+  )
 
-    # Create and run optimizer
-    optimizer = Optimizer(
-        optimized_path="workspace",  # Output directory
-        initial_round=1,  # Starting round
-        max_rounds=10,  # Maximum optimization rounds
-        template="Poem.yaml",  # Template file
-        name="Poem",  # Project name
-        iteration=True,  # Enable iteration mode
-    )
+  # Create and run optimizer
+  optimizer = PromptOptimizer(
+    optimized_path="workspace",  # Output directory
+    initial_round=1,  # Starting round
+    max_rounds=10,  # Maximum optimization rounds
+    template="Poem.yaml",  # Template file
+    name="Poem",  # Project name
+    iteration=True,  # Enable iteration mode
+  )
 
-    optimizer.optimize()
+  optimizer.optimize()
 ```
 
 Or you can use command line interface:
 
 ```bash
-python optimize.py [options]
+python -m examples.spo.optimize
 ```
 
 Available command line options:
