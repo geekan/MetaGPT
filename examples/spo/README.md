@@ -124,7 +124,7 @@ Available command line options:
 
 For help:
 ```bash
-python optimize.py --help
+python -m examples.spo.optimize --help
 ```
 
 ### 4. View Results
