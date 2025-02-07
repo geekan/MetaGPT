@@ -42,10 +42,6 @@ faq:
 
 ### 3. Implement the Optimizer 🔧
 
-我帮你完成这个 Readme 部分：
-
-### 3. Implement the Optimizer 🔧
-
 Use `metagpt/ext/spo/optimize.py` to execute:
 
 ```python
