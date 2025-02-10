@@ -1,4 +1,5 @@
-# SPO 🤖 | Self-Supervised Prompt PromptOptimizer
+# SPO | Self-Supervised Prompt PromptOptimizer <img src="../../docs/resources/spo/SPO-logo.png" width="60" height="60" style="vertical-align: middle; margin-left: 10px; position: relative; top: -5px;">
+
 
 An automated prompt engineering tool for Large Language Models (LLMs), designed for universal domain adaptation.
 
