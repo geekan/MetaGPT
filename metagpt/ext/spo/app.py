@@ -1,12 +1,13 @@
 import sys
 from pathlib import Path
 
-root_path = Path(__file__).parent.parent.parent.parent
-sys.path.append(str(root_path))
-
 import streamlit as st
 import yaml
 import os
+
+root_path = Path(__file__).parent.parent.parent.parent
+sys.path.append(str(root_path))
+
 from metagpt.ext.spo.components.optimizer import PromptOptimizer
 from metagpt.ext.spo.utils.llm_client import SPO_LLM
 
@@ -19,7 +20,6 @@ def load_yaml_template(template_path):
 
 
 def save_yaml_template(template_path, data):
-    # 确保数据结构正确
     template_format = {
         "prompt": str(data.get("prompt", "")),
         "requirements": str(data.get("requirements", "")),
@@ -33,10 +33,8 @@ def save_yaml_template(template_path, data):
         ]
     }
 
-    # 创建目录（如果不存在）
     template_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 保存文件
     with open(template_path, 'w', encoding='utf-8') as f:
         yaml.dump(template_format, f, allow_unicode=True, sort_keys=False)
 
@@ -89,7 +87,6 @@ def main():
         initial_round = st.number_input("Initial Round", 1, 100, 1)
         max_rounds = st.number_input("Maximum Rounds", 1, 100, 10)
 
-
     # Main content area
     st.header("Template Configuration")
 
@@ -97,7 +94,6 @@ def main():
         template_path = settings_path / f"{template_name}.yaml"
         template_data = load_yaml_template(template_path)
 
-        # 使用key来检测模板是否改变
         if 'current_template' not in st.session_state or st.session_state.current_template != template_name:
             st.session_state.current_template = template_name
             st.session_state.faqs = template_data.get('faq', [])
@@ -119,7 +115,6 @@ def main():
             st.markdown(f"**FAQ #{i + 1}**")
             col1, col2, col3 = st.columns([45, 45, 10])
 
-            # 使用unique key确保每个FAQ都有独立的状态
             with col1:
                 question = st.text_area(
                     f"Question {i + 1}",
@@ -149,13 +144,12 @@ def main():
                 "count": None,
                 "faq": new_faqs
             }
-            # 保存到文件
+
             save_yaml_template(template_path, new_template_data)
-            # 更新session state
+
             st.session_state.faqs = new_faqs
             st.success(f"Template saved to {template_path}")
 
-        # 显示当前YAML预览
         st.subheader("Current Template Preview")
         preview_data = {
             "prompt": prompt,
