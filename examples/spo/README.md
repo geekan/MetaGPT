@@ -6,7 +6,7 @@ An automated prompt engineering tool for Large Language Models (LLMs), designed 
 A next-generation prompt engineering system implementing **Self-Supervised Prompt Optimization (SPO)**. Achieves state-of-the-art performance with 17.8-90.9× higher cost efficiency than conventional methods. 🚀
 
 <p align="center">
-<a href=""><img src="../../docs/resources/spo/SPO-method.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-method.png" alt="Framework of SPO" title="Framework of SPO <sub>1</sub>" width="80%"></a>
 </p>
 
 ## ✨ Core Advantages
@@ -22,15 +22,15 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 
 ###  Closed Tasks
 <p align="center">
-<a href=""><img src="../../docs/resources/spo/SPO-closed_task_table.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
-<a href=""><img src="../../docs/resources/spo/SPO-closed_task_figure.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-closed_task_table.png" alt="SPO closed task table" title="SPO closed task table <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-closed_task_figure.png" alt="SPO closed task figure" title="SPO closed task figure <sub>1</sub>" width="80%"></a>
 </p>
 
 *SPO demonstrates superior cost efficiency, requiring only 1.1% to 5.6% of the cost of state-of-the-art methods while maintaining competitive performance.*
 
 ### Open-ended Tasks
 <p align="center">
-<a href=""><img src="../../docs/resources/spo/SPO-open-ended _task_figure.png" alt="Framework of AFlow" title="Framework of AFlow <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-open-ended _task_figure.png" alt="Open-ended task figure" title="Open-ended task figure <sub>1</sub>" width="80%"></a>
 </p>
 
 *SPO significantly improves model performance across all model configurations in open-ended tasks.*
@@ -168,10 +168,11 @@ workspace
 If you use SPO in your research, please cite our paper:
 
 ```
-@misc{xiang2025spo,
+@misc{xiang2024spo,
     title = {Self-Supervised Prompt Optimization},
     author = {Xiang, Jinyu and Zhang, Jiayi and Yu, Zhaoyang and Teng, Fengwei and Tu, Jinhao and Liang, Xinbing and Hong, Sirui and Wu, Chenglin and Luo, Yuyu},
-    year = {2025},
-    url = {D:\PythonProject\AFlow\MetaGPT-AFLow\examples\spo\Self-Supervised Prompt Optimization.pdf}
+    year = {2024},
+    url = {https://github.com/geekan/MetaGPT/blob/main/examples/spo/Self-Supervised Prompt Optimization.pdf},
+    note = {Code available at: https://github.com/geekan/MetaGPT/blob/main/examples/spo}
 }
 ```
