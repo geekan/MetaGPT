@@ -42,7 +42,7 @@ class EvaluationUtils:
                 result = await evaluator.prompt_evaluate(samples=samples, new_samples=new_samples)
                 evaluation_results.append(result)
 
-            logger.info(evaluation_results)
+            logger.info(f"Evaluation Results {evaluation_results}")
 
             true_count = evaluation_results.count(True)
             false_count = evaluation_results.count(False)
