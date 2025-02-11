@@ -25,11 +25,11 @@ def save_yaml_template(template_path, data):
     template_format = {
         "prompt": str(data.get("prompt", "")),
         "requirements": str(data.get("requirements", "")),
-        "count": data.get("count"),
+        "count": data.get("count"),  # 保持None值
         "faq": [
             {
-                "question": str(faq.get("question", "")),
-                "answer": str(faq.get("answer", ""))
+                "question": str(faq.get("question", "")).strip(),
+                "answer": str(faq.get("answer", "")).strip()
             }
             for faq in data.get("faq", [])
         ]
@@ -38,11 +38,20 @@ def save_yaml_template(template_path, data):
     template_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(template_path, 'w', encoding='utf-8') as f:
-        yaml.dump(template_format, f, allow_unicode=True, sort_keys=False)
+        yaml.dump(
+            template_format,
+            f,
+            allow_unicode=True,
+            sort_keys=False,
+            default_flow_style=False,
+            indent=2
+        )
+
 
 
 def main():
-    st.title("SPO Prompt Optimizer")
+
+    st.title("SPO | Self-Supervised Prompt Optimization 🤖")
 
     # Sidebar for configurations
     with st.sidebar:
