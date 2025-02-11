@@ -1,4 +1,4 @@
-# SPO | Self-Supervised Prompt PromptOptimizer <img src="../../docs/resources/spo/SPO-logo.png" width="60" height="60" style="vertical-align: middle; margin-left: 10px; position: relative; top: -5px;">
+# SPO | Self-Supervised Prompt Optimization <img src="../../docs/resources/spo/SPO-logo.png" width="60" height="60" style="vertical-align: middle; margin-left: 10px; position: relative; top: -5px;">
 
 
 An automated prompt engineering tool for Large Language Models (LLMs), designed for universal domain adaptation.
@@ -16,7 +16,7 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 - ⚡ **Universal Adaptation** - _Closed & open-ended tasks supported_
 - 🔄 **Self-Evolving** - _Auto-optimization via LLM-as-judge mechanism_
 
-[Read our paper on arXiv](coming soon)
+[Read our paper](./Self-Supervised Prompt Optimization.pdf)
 
 ## 📊 Experiment
 
@@ -74,7 +74,9 @@ Notes:
 
 ### 3. Implement the PromptOptimizer 🔧
 
-Use `metagpt/ext/spo/optimize.py` to execute:
+You have three ways to run the PromptOptimizer:
+
+#### Option 1: Python Script
 
 ```python
 from metagpt.ext.spo.components.optimizer import PromptOptimizer
@@ -101,7 +103,7 @@ if __name__ == "__main__":
   optimizer.optimize()
 ```
 
-Or you can use command line interface:
+#### Option 2: Command Line Interface
 
 ```bash
 python -m examples.spo.optimize
@@ -128,6 +130,14 @@ For help:
 python -m examples.spo.optimize --help
 ```
 
+#### Option 3: Streamlit Web Interface
+
+For a more user-friendly experience, you can use the Streamlit web interface to configure and run the optimizer:
+
+```bash
+streamlit run metagpt/ext/spo/app.py
+```
+
 ### 4. View Results
 ```
 workspace
@@ -152,3 +162,16 @@ workspace
 - `results.json`: Stores whether each iteration round was judged successful and other related information
 - `prompt.txt`: The optimized prompt for the corresponding round
 - `answers.txt`: The output results generated using the prompt for the corresponding round
+
+## Citation
+
+If you use SPO in your research, please cite our paper:
+
+```
+@misc{xiang2025spo,
+    title = {Self-Supervised Prompt Optimization},
+    author = {Xiang, Jinyu and Zhang, Jiayi and Yu, Zhaoyang and Teng, Fengwei and Tu, Jinhao and Liang, Xinbing and Hong, Sirui and Wu, Chenglin and Luo, Yuyu},
+    year = {2025},
+    url = {D:\PythonProject\AFlow\MetaGPT-AFLow\examples\spo\Self-Supervised Prompt Optimization.pdf}
+}
+```
