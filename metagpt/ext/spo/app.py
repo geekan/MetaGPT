@@ -1,3 +1,4 @@
+from loguru import logger as _logger
 import sys
 from pathlib import Path
 
@@ -10,6 +11,7 @@ sys.path.append(str(root_path))
 
 from metagpt.ext.spo.components.optimizer import PromptOptimizer
 from metagpt.ext.spo.utils.llm_client import SPO_LLM
+from metagpt.const import METAGPT_ROOT
 
 
 def load_yaml_template(template_path):
@@ -159,34 +161,60 @@ def main():
         }
         st.code(yaml.dump(preview_data, allow_unicode=True), language="yaml")
 
-    # Start optimization button
-    if st.button("Start Optimization"):
-        try:
-            # Initialize LLM
-            SPO_LLM.initialize(
-                optimize_kwargs={"model": opt_model, "temperature": opt_temp},
-                evaluate_kwargs={"model": eval_model, "temperature": eval_temp},
-                execute_kwargs={"model": exec_model, "temperature": exec_temp},
-            )
+        # 创建一个固定的容器来显示日志
+        st.subheader("Optimization Logs")
+        log_container = st.empty()
 
-            # Create optimizer instance
-            optimizer = PromptOptimizer(
-                optimized_path="workspace",
-                initial_round=initial_round,
-                max_rounds=max_rounds,
-                template=f"{template_name}.yaml",
-                name=template_name,
-                iteration=True,
-            )
+        class StreamlitSink:
+            def write(self, message):
+                # 获取当前日志内容
+                current_logs = st.session_state.get('logs', [])
+                current_logs.append(message.strip())
+                st.session_state.logs = current_logs
 
-            # Run optimization with progress bar
-            with st.spinner("Optimizing prompts..."):
-                optimizer.optimize()
+                # 使用 code 块显示日志
+                log_container.code(
+                    "\n".join(current_logs),
+                    language="plaintext"
+                )
 
-            st.success("Optimization completed!")
+        # 配置loguru日志
+        streamlit_sink = StreamlitSink()
+        _logger.remove()
+        _logger.add(
+            streamlit_sink.write,
+            format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
+        )
+        _logger.add(METAGPT_ROOT / "logs/{time:YYYYMMDD}.txt", level="DEBUG")
+        # Start optimization button
+        if st.button("Start Optimization"):
+            try:
+                # Initialize LLM
+                SPO_LLM.initialize(
+                    optimize_kwargs={"model": opt_model, "temperature": opt_temp},
+                    evaluate_kwargs={"model": eval_model, "temperature": eval_temp},
+                    execute_kwargs={"model": exec_model, "temperature": exec_temp},
+                )
 
-        except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+                # Create optimizer instance
+                optimizer = PromptOptimizer(
+                    optimized_path="workspace",
+                    initial_round=initial_round,
+                    max_rounds=max_rounds,
+                    template=f"{template_name}.yaml",
+                    name=template_name,
+                    iteration=True,
+                )
+
+                # Run optimization with progress bar
+                with st.spinner("Optimizing prompts..."):
+                    optimizer.optimize()
+
+                st.success("Optimization completed!")
+
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+                _logger.error(f"Error during optimization: {str(e)}")
 
 
 if __name__ == "__main__":
