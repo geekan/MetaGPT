@@ -168,10 +168,10 @@ workspace
 If you use SPO in your research, please cite our paper:
 
 ```
-@misc{xiang2024spo,
+@misc{xiang2025spo,
     title = {Self-Supervised Prompt Optimization},
     author = {Xiang, Jinyu and Zhang, Jiayi and Yu, Zhaoyang and Teng, Fengwei and Tu, Jinhao and Liang, Xinbing and Hong, Sirui and Wu, Chenglin and Luo, Yuyu},
-    year = {2024},
+    year = {2025},
     url = {https://github.com/geekan/MetaGPT/blob/main/examples/spo/Self-Supervised Prompt Optimization.pdf},
     note = {Code available at: https://github.com/geekan/MetaGPT/blob/main/examples/spo}
 }
