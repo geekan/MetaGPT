@@ -45,12 +45,23 @@ class PromptOptimizer:
                 prompt = loop.run_until_complete(self._optimize_prompt())
                 self.round += 1
                 # logger.info(f"Prompt generated in round {self.round}: {prompt}")
+            self.show_final_result()
 
         else:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             prompt = loop.run_until_complete(self._test_prompt())
             # logger.info(f"Prompt generated in round {self.round}: {prompt}")
+
+    def show_final_result(self):
+
+        best_round = self.data_utils.get_best_round()
+
+        logger.info("\n" + "=" * 50)
+        logger.info("\n🏆 OPTIMIZATION COMPLETED - FINAL RESULTS 🏆\n")
+        logger.info(f"\n📌 Best Performing Round: {best_round['round']}")
+        logger.info(f"\n🎯 Final Optimized Prompt:\n{best_round['prompt']}")
+        logger.info("\n" + "=" * 50 + "\n")
 
     async def _optimize_prompt(self):
         prompt_path = f"{self.root_path}/prompts"
@@ -129,9 +140,6 @@ class PromptOptimizer:
 
         logger.info("\n🎯 OPTIMIZATION RESULT 🎯\n")
         logger.info(f"\nRound {self.round + 1} Optimization: {'✅ SUCCESS' if success else '❌ FAILED'}\n")
-
-
-        # logger.info(f"now is {self.round + 1}")
 
         return prompt
 

@@ -81,14 +81,14 @@ def main():
 
         eval_model = st.selectbox(
             "Evaluation Model",
-            ["claude-3-5-sonnet-20240620", "gpt-4o", "gpt-4o-mini", "deepseek-chat"],
+            ["gpt-4o-mini", "claude-3-5-sonnet-20240620", "gpt-4o",  "deepseek-chat"],
             index=0
         )
         eval_temp = st.slider("Evaluation Temperature", 0.0, 1.0, 0.3)
 
         exec_model = st.selectbox(
             "Execution Model",
-            ["claude-3-5-sonnet-20240620", "gpt-4o", "gpt-4o-mini", "deepseek-chat"],
+            ["gpt-4o-mini", "claude-3-5-sonnet-20240620", "gpt-4o",  "deepseek-chat"],
             index=0
         )
         exec_temp = st.slider("Execution Temperature", 0.0, 1.0, 0.0)
