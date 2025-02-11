@@ -572,13 +572,13 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
-def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4):
+def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4, cls: json.JSONEncoder=None):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
+        json.dump(data, fout, ensure_ascii=False, cls=cls, indent=indent, default=to_jsonable_python)
 
 
 def read_jsonl_file(jsonl_file: str, encoding="utf-8") -> list[dict]:
