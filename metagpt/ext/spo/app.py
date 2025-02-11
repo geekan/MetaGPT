@@ -190,11 +190,22 @@ def main():
         # 配置loguru日志
         streamlit_sink = StreamlitSink()
         _logger.remove()
+
+        # 添加过滤器,只捕获 PromptOptimizer 相关的日志
+        def prompt_optimizer_filter(record):
+            # 检查日志记录是否来自 PromptOptimizer 模块
+            return "optimizer" in record["name"].lower()
+
         _logger.add(
             streamlit_sink.write,
-            format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
+            format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
+            filter=prompt_optimizer_filter  # 添加过滤器
         )
-        _logger.add(METAGPT_ROOT / "logs/{time:YYYYMMDD}.txt", level="DEBUG")
+        _logger.add(
+            METAGPT_ROOT / "logs/{time:YYYYMMDD}.txt",
+            level="DEBUG"
+        )
+
         # Start optimization button
         if st.button("Start Optimization"):
             try:
