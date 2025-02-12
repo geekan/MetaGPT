@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
 import tiktoken
@@ -17,10 +18,10 @@ def count_tokens(sample: dict):
 
 
 class EvaluationUtils:
-    def __init__(self, root_path: str) -> None:
+    def __init__(self, root_path: Path) -> None:
         self.root_path = root_path
 
-    async def execute_prompt(self, optimizer: Any, prompt_path: str) -> dict:
+    async def execute_prompt(self, optimizer: Any, prompt_path: Path) -> dict:
         optimizer.prompt = optimizer.prompt_utils.load_prompt(optimizer.round, prompt_path)
         executor = QuickExecute(prompt=optimizer.prompt)
 
@@ -37,7 +38,7 @@ class EvaluationUtils:
         optimizer: Any,
         samples: Optional[dict],
         new_samples: dict,
-        path: str,
+        path: Path,
         data: List[dict],
         initial: bool = False,
     ) -> Tuple[bool, dict]:

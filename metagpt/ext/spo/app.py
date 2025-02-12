@@ -217,7 +217,6 @@ def main():
                     max_rounds=max_rounds,
                     template=f"{template_name}.yaml",
                     name=template_name,
-                    iteration=True,
                 )
 
                 # Run optimization with progress bar
@@ -228,7 +227,7 @@ def main():
 
                 st.header("Optimization Results")
 
-                prompt_path = f"{optimizer.root_path}/prompts"
+                prompt_path = optimizer.root_path / "prompts"
                 result_data = optimizer.data_utils.load_results(prompt_path)
 
                 st.session_state.optimization_results = result_data

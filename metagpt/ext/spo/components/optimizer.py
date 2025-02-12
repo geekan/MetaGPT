@@ -4,6 +4,7 @@
 # @Desc    : optimizer for prompt
 
 import asyncio
+from pathlib import Path
 from typing import List
 
 from metagpt.ext.spo.prompts.optimize_prompt import PROMPT_OPTIMIZE_PROMPT
@@ -24,8 +25,8 @@ class PromptOptimizer:
         name: str = "",
         template: str = "",
     ) -> None:
-        self.dataset = name
-        self.root_path = f"{optimized_path}/{self.dataset}"
+        self.name = name
+        self.root_path = Path(optimized_path) / self.name
         self.top_scores = []
         self.round = initial_round
         self.max_rounds = max_rounds
@@ -55,7 +56,7 @@ class PromptOptimizer:
         logger.info("\n" + "=" * 50 + "\n")
 
     async def _optimize_prompt(self):
-        prompt_path = f"{self.root_path}/prompts"
+        prompt_path = self.root_path / "prompts"
         load.set_file_name(self.template)
         data = self.data_utils.load_results(prompt_path)
 
@@ -75,7 +76,7 @@ class PromptOptimizer:
 
         return self.prompt
 
-    async def _handle_first_round(self, prompt_path: str, data: List[dict]) -> None:
+    async def _handle_first_round(self, prompt_path: Path, data: List[dict]) -> None:
         logger.info("\n⚡ RUNNING Round 1 PROMPT ⚡\n")
         directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
 

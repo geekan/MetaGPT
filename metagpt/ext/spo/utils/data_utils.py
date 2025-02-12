@@ -1,6 +1,6 @@
 import datetime
 import json
-import os
+from pathlib import Path
 from typing import Dict, List, Union
 
 import pandas as pd
@@ -9,18 +9,17 @@ from metagpt.logs import logger
 
 
 class DataUtils:
-    def __init__(self, root_path: str):
+    def __init__(self, root_path: Path):
         self.root_path = root_path
         self.top_scores = []
 
-    def load_results(self, path: str) -> list:
+    def load_results(self, path: Path) -> list:
         result_path = self.get_results_file_path(path)
-        if os.path.exists(result_path):
-            with open(result_path, "r") as json_file:
-                try:
-                    return json.load(json_file)
-                except json.JSONDecodeError:
-                    return []
+        if result_path.exists():
+            try:
+                return json.loads(result_path.read_text())
+            except json.JSONDecodeError:
+                return []
         return []
 
     def get_best_round(self):
@@ -32,30 +31,28 @@ class DataUtils:
 
         return None
 
-    def get_results_file_path(self, prompt_path: str) -> str:
-        return os.path.join(prompt_path, "results.json")
+    def get_results_file_path(self, prompt_path: Path) -> Path:
+        return prompt_path / "results.json"
 
     def create_result_data(self, round: int, answers: list[dict], prompt: str, succeed: bool, tokens: int) -> dict:
         now = datetime.datetime.now()
         return {"round": round, "answers": answers, "prompt": prompt, "succeed": succeed, "tokens": tokens, "time": now}
 
-    def save_results(self, json_file_path: str, data: Union[List, Dict]):
-        with open(json_file_path, "w") as json_file:
-            json.dump(data, json_file, default=str, indent=4)
+    def save_results(self, json_file_path: Path, data: Union[List, Dict]):
+        json_path = json_file_path
+        json_path.write_text(json.dumps(data, default=str, indent=4))
 
     def _load_scores(self):
-        rounds_dir = os.path.join(self.root_path, "prompts")
-        result_file = os.path.join(rounds_dir, "results.json")
+        rounds_dir = self.root_path / "prompts"
+        result_file = rounds_dir / "results.json"
         self.top_scores = []
 
         try:
-            if not os.path.exists(result_file):
+            if not result_file.exists():
                 logger.warning(f"Results file not found at {result_file}")
                 return self.top_scores
 
-            with open(result_file, "r", encoding="utf-8") as file:
-                data = json.load(file)
-
+            data = json.loads(result_file.read_text(encoding="utf-8"))
             df = pd.DataFrame(data)
 
             for index, row in df.iterrows():
