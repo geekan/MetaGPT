@@ -47,7 +47,7 @@ class QuickEvaluate:
     def __init__(self):
         self.llm = SPO_LLM.get_instance()
 
-    async def prompt_evaluate(self, samples: list, new_samples: list) -> bool:
+    async def prompt_evaluate(self, samples: dict, new_samples: dict) -> bool:
         _, requirement, qa, _ = load.load_meta_data()
 
         if random.random() < 0.5:

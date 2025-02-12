@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from pathlib import Path
+from typing import Dict
 
 import streamlit as st
 import yaml
@@ -13,14 +14,14 @@ from metagpt.ext.spo.components.optimizer import PromptOptimizer  # noqa: E402
 from metagpt.ext.spo.utils.llm_client import SPO_LLM, RequestType  # noqa: E402
 
 
-def load_yaml_template(template_path):
+def load_yaml_template(template_path: Path) -> Dict:
     if template_path.exists():
         with open(template_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     return {"prompt": "", "requirements": "", "count": None, "faq": [{"question": "", "answer": ""}]}
 
 
-def save_yaml_template(template_path, data):
+def save_yaml_template(template_path: Path, data: Dict) -> None:
     template_format = {
         "prompt": str(data.get("prompt", "")),
         "requirements": str(data.get("requirements", "")),

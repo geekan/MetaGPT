@@ -4,6 +4,7 @@
 # @Desc    : optimizer for prompt
 
 import asyncio
+from typing import List
 
 from metagpt.ext.spo.prompts.optimize_prompt import PROMPT_OPTIMIZE_PROMPT
 from metagpt.ext.spo.utils import load
@@ -74,7 +75,7 @@ class PromptOptimizer:
 
         return self.prompt
 
-    async def _handle_first_round(self, prompt_path, data):
+    async def _handle_first_round(self, prompt_path: str, data: List[dict]) -> None:
         logger.info("\n⚡ RUNNING Round 1 PROMPT ⚡\n")
         directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
 

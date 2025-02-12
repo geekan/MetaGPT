@@ -7,12 +7,12 @@ FILE_NAME = ""
 SAMPLE_K = 3
 
 
-def set_file_name(name):
+def set_file_name(name: str):
     global FILE_NAME
     FILE_NAME = name
 
 
-def load_meta_data(k=SAMPLE_K):
+def load_meta_data(k: int = SAMPLE_K):
     # load yaml file
     config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "settings", FILE_NAME)
 

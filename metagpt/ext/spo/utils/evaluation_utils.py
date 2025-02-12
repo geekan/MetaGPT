@@ -1,3 +1,5 @@
+from typing import Any, List, Optional, Tuple
+
 import tiktoken
 
 from metagpt.ext.spo.components.evaluator import QuickEvaluate, QuickExecute
@@ -6,7 +8,7 @@ from metagpt.logs import logger
 EVALUATION_REPETITION = 4
 
 
-def count_tokens(sample):
+def count_tokens(sample: dict):
     if not sample:
         return 0
     else:
@@ -15,10 +17,10 @@ def count_tokens(sample):
 
 
 class EvaluationUtils:
-    def __init__(self, root_path: str):
+    def __init__(self, root_path: str) -> None:
         self.root_path = root_path
 
-    async def execute_prompt(self, optimizer, prompt_path):
+    async def execute_prompt(self, optimizer: Any, prompt_path: str) -> dict:
         optimizer.prompt = optimizer.prompt_utils.load_prompt(optimizer.round, prompt_path)
         executor = QuickExecute(prompt=optimizer.prompt)
 
@@ -30,7 +32,15 @@ class EvaluationUtils:
 
         return new_data
 
-    async def evaluate_prompt(self, optimizer, samples, new_samples, path, data, initial=False):
+    async def evaluate_prompt(
+        self,
+        optimizer: Any,
+        samples: Optional[dict],
+        new_samples: dict,
+        path: str,
+        data: List[dict],
+        initial: bool = False,
+    ) -> Tuple[bool, dict]:
         evaluator = QuickEvaluate()
         new_token = count_tokens(new_samples)
 

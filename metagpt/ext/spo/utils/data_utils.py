@@ -79,7 +79,7 @@ class DataUtils:
 
         return self.top_scores
 
-    def list_to_markdown(self, questions_list):
+    def list_to_markdown(self, questions_list: list):
         """
         Convert a list of question-answer dictionaries to a formatted Markdown string.
 
