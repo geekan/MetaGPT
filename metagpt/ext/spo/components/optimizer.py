@@ -42,19 +42,17 @@ class PromptOptimizer:
             for opt_round in range(self.max_rounds):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                prompt = loop.run_until_complete(self._optimize_prompt())
+                loop.run_until_complete(self._optimize_prompt())
                 self.round += 1
-                # logger.info(f"Prompt generated in round {self.round}: {prompt}")
+
             self.show_final_result()
 
         else:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            prompt = loop.run_until_complete(self._test_prompt())
-            # logger.info(f"Prompt generated in round {self.round}: {prompt}")
+            loop.run_until_complete(self._test_prompt())
 
     def show_final_result(self):
-
         best_round = self.data_utils.get_best_round()
 
         logger.info("\n" + "=" * 50)
@@ -70,7 +68,6 @@ class PromptOptimizer:
         data = self.data_utils.load_results(prompt_path)
 
         if self.round == 1:
-
             logger.info("\n⚡ RUNNING Round 1 PROMPT ⚡\n")
 
             directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
@@ -91,9 +88,8 @@ class PromptOptimizer:
 
         samples = self.data_utils.get_best_round()
 
-        logger.info(f"\n🚀Round {self.round+1} OPTIMIZATION STARTING 🚀\n")
+        logger.info(f"\n🚀Round {self.round + 1} OPTIMIZATION STARTING 🚀\n")
         logger.info(f"\nSelecting prompt for round {samples['round']} and advancing to the iteration phase\n")
-
 
         golden_answer = self.data_utils.list_to_markdown(qa)
         best_answer = self.data_utils.list_to_markdown(samples["answers"])
@@ -112,7 +108,7 @@ class PromptOptimizer:
 
         modification = extract_content(response, "modification")
 
-        logger.info(f"Modification of {self.round+1} round: {modification}")
+        logger.info(f"Modification of {self.round + 1} round: {modification}")
 
         prompt = extract_content(response, "prompt")
 
@@ -122,7 +118,7 @@ class PromptOptimizer:
             self.prompt = ""
 
         logger.info("\n🎯 NEW PROMPT GENERATED 🎯\n")
-        logger.info(f"\nRound {self.round+1} Prompt: {self.prompt}\n")
+        logger.info(f"\nRound {self.round + 1} Prompt: {self.prompt}\n")
 
         self.prompt_utils.write_prompt(directory, prompt=self.prompt)
 
