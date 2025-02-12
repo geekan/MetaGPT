@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from pathlib import Path
 from typing import Dict
 
@@ -7,11 +6,9 @@ import streamlit as st
 import yaml
 from loguru import logger as _logger
 
-sys.path.append(str(Path(__file__).parents[3]))
-
-from metagpt.const import METAGPT_ROOT  # noqa: E402
-from metagpt.ext.spo.components.optimizer import PromptOptimizer  # noqa: E402
-from metagpt.ext.spo.utils.llm_client import SPO_LLM, RequestType  # noqa: E402
+from metagpt.const import METAGPT_ROOT
+from metagpt.ext.spo.components.optimizer import PromptOptimizer
+from metagpt.ext.spo.utils.llm_client import SPO_LLM, RequestType
 
 
 def load_yaml_template(template_path: Path) -> Dict:

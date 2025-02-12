@@ -133,7 +133,7 @@ python -m examples.spo.optimize --help
 For a more user-friendly experience, you can use the Streamlit web interface to configure and run the optimizer:
 
 ```bash
-streamlit run metagpt/ext/spo/app.py
+python -m streamlit run metagpt/ext/spo/app.py
 ```
 
 ### 4. View Results
