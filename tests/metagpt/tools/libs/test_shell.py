@@ -14,7 +14,8 @@ from metagpt.tools.libs.shell import shell_execute
     ],
 )
 async def test_shell(command, expect_stdout, expect_stderr):
-    stdout, stderr = await shell_execute(command)
+    stdout, stderr, returncode = await shell_execute(command)
+    assert returncode == 0
     assert expect_stdout in stdout
     assert stderr == expect_stderr
 

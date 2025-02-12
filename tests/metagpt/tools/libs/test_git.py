@@ -12,7 +12,6 @@ from pydantic import BaseModel
 from metagpt.context import Context
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import UserMessage
-from metagpt.tools.libs.git import git_checkout, git_clone
 from metagpt.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
 
@@ -24,21 +23,6 @@ class SWEBenchItem(BaseModel):
 
 async def get_env(key: str, app_name: str = ""):
     return os.environ.get(key)
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ["url", "commit_id"], [("https://github.com/sqlfluff/sqlfluff.git", "d19de0ecd16d298f9e3bfb91da122734c40c01e5")]
-)
-@pytest.mark.skip
-async def test_git(url: str, commit_id: str):
-    repo_dir = await git_clone(url)
-    assert repo_dir
-
-    await git_checkout(repo_dir, commit_id)
-
-    repo = GitRepository(repo_dir, auto_init=False)
-    repo.delete_repository()
 
 
 @pytest.mark.skip
