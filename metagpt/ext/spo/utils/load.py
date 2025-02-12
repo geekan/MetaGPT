@@ -1,5 +1,5 @@
-import os
 import random
+from pathlib import Path
 
 import yaml
 
@@ -14,13 +14,13 @@ def set_file_name(name: str):
 
 def load_meta_data(k: int = SAMPLE_K):
     # load yaml file
-    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "settings", FILE_NAME)
+    config_path = Path(__file__).parent.parent / "settings" / FILE_NAME
 
-    if not os.path.exists(config_path):
+    if not config_path.exists():
         raise FileNotFoundError(f"Configuration file '{FILE_NAME}' not found in settings directory")
 
     try:
-        with open(config_path, "r", encoding="utf-8") as file:
+        with config_path.open("r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
     except yaml.YAMLError as e:
         raise ValueError(f"Error parsing YAML file '{FILE_NAME}': {str(e)}")
