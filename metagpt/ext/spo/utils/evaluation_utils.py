@@ -18,13 +18,13 @@ class EvaluationUtils:
     def __init__(self, root_path: str):
         self.root_path = root_path
 
-    async def execute_prompt(self, optimizer, prompt_path, initial=False):
+    async def execute_prompt(self, optimizer, prompt_path):
         optimizer.prompt = optimizer.prompt_utils.load_prompt(optimizer.round, prompt_path)
         executor = QuickExecute(prompt=optimizer.prompt)
 
         answers = await executor.prompt_execute()
 
-        cur_round = optimizer.round + 1 if not initial else optimizer.round
+        cur_round = optimizer.round
 
         new_data = {"round": cur_round, "answers": answers, "prompt": optimizer.prompt}
 

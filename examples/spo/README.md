@@ -97,7 +97,6 @@ if __name__ == "__main__":
     max_rounds=10,  # Maximum optimization rounds
     template="Poem.yaml",  # Template file
     name="Poem",  # Project name
-    iteration=True,  # Enable iteration mode
   )
 
   optimizer.optimize()
@@ -111,18 +110,17 @@ python -m examples.spo.optimize
 
 Available command line options:
 ```
---optimize-model         Model for optimization (default: claude-3-5-sonnet-20240620)
---optimize-temperature  Temperature for optimization (default: 0.7)
---evaluate-model        Model for evaluation (default: gpt-4o-mini)
---evaluate-temperature  Temperature for evaluation (default: 0.3)
---execute-model         Model for execution (default: gpt-4o-mini)
---execute-temperature   Temperature for execution (default: 0)
---workspace            Output directory path (default: workspace)
---initial-round        Initial round number (default: 1)
---max-rounds          Maximum number of rounds (default: 10)
---template            Template file name (default: Poem.yaml)
---name                Project name (default: Poem)
---no-iteration        Disable iteration mode (iteration enabled by default)
+--opt-model            Model for optimization (default: claude-3-5-sonnet-20240620)
+--opt-temp            Temperature for optimization (default: 0.7)
+--eval-model          Model for evaluation (default: gpt-4o-mini)
+--eval-temp          Temperature for evaluation (default: 0.3)
+--exec-model          Model for execution (default: gpt-4o-mini)
+--exec-temp          Temperature for execution (default: 0)
+--workspace          Output directory path (default: workspace)
+--initial-round      Initial round number (default: 1)
+--max-rounds        Maximum number of rounds (default: 10)
+--template          Template file name (default: Poem.yaml)
+--name              Project name (default: Poem)
 ```
 
 For help:

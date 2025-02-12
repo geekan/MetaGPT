@@ -21,7 +21,6 @@ def parse_args():
     parser.add_argument("--max-rounds", type=int, default=10, help="Maximum number of rounds")
     parser.add_argument("--template", type=str, default="Poem.yaml", help="Template file name")
     parser.add_argument("--name", type=str, default="Poem", help="Project name")
-    parser.add_argument("--no-iteration", action="store_false", dest="iteration", help="Disable iteration mode")
 
     return parser.parse_args()
 
@@ -41,7 +40,6 @@ def main():
         max_rounds=args.max_rounds,
         template=args.template,
         name=args.name,
-        iteration=args.iteration,
     )
 
     optimizer.optimize()

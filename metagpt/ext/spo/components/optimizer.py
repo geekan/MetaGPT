@@ -22,7 +22,6 @@ class PromptOptimizer:
         max_rounds: int = 10,
         name: str = "",
         template: str = "",
-        iteration: bool = True,
     ) -> None:
         self.dataset = name
         self.root_path = f"{optimized_path}/{self.dataset}"

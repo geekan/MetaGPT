@@ -73,10 +73,3 @@ class QuickEvaluate:
         except Exception as e:
             logger.error(e)
             return False
-
-
-if __name__ == "__main__":
-    executor = QuickExecute(prompt="Answer the Question")
-
-    answers = asyncio.run(executor.prompt_execute())
-    print(answers)
