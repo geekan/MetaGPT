@@ -30,7 +30,7 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 
 ### Open-ended Tasks
 <p align="center">
-<a href=""><img src="../../docs/resources/spo/SPO-open-ended _task_figure.png" alt="Open-ended task figure" title="Open-ended task figure <sub>1</sub>" width="80%"></a>
+<a href=""><img src="../../docs/resources/spo/SPO-open_ended_task_figure.png" alt="Open-ended task figure" title="Open-ended task figure <sub>1</sub>" width="80%"></a>
 </p>
 
 *SPO significantly improves model performance across all model configurations in open-ended tasks.*
