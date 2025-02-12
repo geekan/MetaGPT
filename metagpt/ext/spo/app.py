@@ -184,6 +184,46 @@ def main():
 
                 st.success("Optimization completed!")
 
+                st.header("Optimization Results")
+
+                prompt_path = f"{optimizer.root_path}/prompts"
+                result_data = optimizer.data_utils.load_results(prompt_path)
+
+                for result in result_data:
+                    round_num = result["round"]
+                    success = result["succeed"]
+                    prompt = result["prompt"]
+
+                    with st.expander(f"Round {round_num} {':white_check_mark:' if success else ':x:'}"):
+                        st.markdown("**Prompt:**")
+                        st.code(prompt, language="text")
+                        st.markdown("<br>", unsafe_allow_html=True)
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.markdown(f"**Status:** {'Success ✅ ' if success else 'Failed ❌ '}")
+                        with col2:
+                            st.markdown(f"**Tokens:** {result['tokens']}")
+
+                        st.markdown("**Answers:**")
+                        for idx, answer in enumerate(result["answers"]):
+                            st.markdown(f"**Question {idx + 1}:**")
+                            st.text(answer["question"])
+                            st.markdown("**Answer:**")
+                            st.text(answer["answer"])
+                            st.markdown("---")
+
+                # Summary
+                success_count = sum(1 for r in result_data if r["succeed"])
+                total_rounds = len(result_data)
+
+                st.markdown("### Summary")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Total Rounds", total_rounds)
+                with col2:
+                    st.metric("Successful Rounds", success_count)
+
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
                 _logger.error(f"Error during optimization: {str(e)}")

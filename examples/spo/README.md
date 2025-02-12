@@ -16,7 +16,7 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 - ⚡ **Universal Adaptation** - _Closed & open-ended tasks supported_
 - 🔄 **Self-Evolving** - _Auto-optimization via LLM-as-judge mechanism_
 
-[Read our paper](./Self-Supervised Prompt Optimization.pdf)
+[Read our paper on arXiv](https://arxiv.org/pdf/2502.06855)
 
 ## 📊 Experiment
 
@@ -169,10 +169,12 @@ If you use SPO in your research, please cite our paper:
 
 ```
 @misc{xiang2025spo,
-    title = {Self-Supervised Prompt Optimization},
-    author = {Xiang, Jinyu and Zhang, Jiayi and Yu, Zhaoyang and Teng, Fengwei and Tu, Jinhao and Liang, Xinbing and Hong, Sirui and Wu, Chenglin and Luo, Yuyu},
-    year = {2025},
-    url = {https://github.com/geekan/MetaGPT/blob/main/examples/spo/Self-Supervised Prompt Optimization.pdf},
-    note = {Code available at: https://github.com/geekan/MetaGPT/blob/main/examples/spo}
+      title={Self-Supervised Prompt Optimization}, 
+      author={Jinyu Xiang and Jiayi Zhang and Zhaoyang Yu and Fengwei Teng and Jinhao Tu and Xinbing Liang and Sirui Hong and Chenglin Wu and Yuyu Luo},
+      year={2025},
+      eprint={2502.06855},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2502.06855}, 
 }
 ```
