@@ -29,7 +29,6 @@ class PromptOptimizer:
         self.top_scores = []
         self.round = initial_round
         self.max_rounds = max_rounds
-        self.iteration = iteration
         self.template = template
 
         self.prompt_utils = PromptUtils(self.root_path)
@@ -38,19 +37,13 @@ class PromptOptimizer:
         self.llm = SPO_LLM.get_instance()
 
     def optimize(self):
-        if self.iteration:
-            for opt_round in range(self.max_rounds):
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(self._optimize_prompt())
-                self.round += 1
-
-            self.show_final_result()
-
-        else:
+        for opt_round in range(self.max_rounds):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(self._test_prompt())
+            loop.run_until_complete(self._optimize_prompt())
+            self.round += 1
+
+        self.show_final_result()
 
     def show_final_result(self):
         best_round = self.data_utils.get_best_round()
@@ -64,31 +57,43 @@ class PromptOptimizer:
     async def _optimize_prompt(self):
         prompt_path = f"{self.root_path}/prompts"
         load.set_file_name(self.template)
-
         data = self.data_utils.load_results(prompt_path)
 
         if self.round == 1:
-            logger.info("\n⚡ RUNNING Round 1 PROMPT ⚡\n")
+            await self._handle_first_round(prompt_path, data)
+            return
 
-            directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
-            # Load prompt using prompt_utils
+        directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
+        new_prompt = await self._generate_optimized_prompt()
+        self.prompt = new_prompt
 
-            prompt, _, _, _ = load.load_meta_data()
-            self.prompt = prompt
-            self.prompt_utils.write_prompt(directory, prompt=self.prompt)
-            new_samples = await self.evaluation_utils.execute_prompt(self, directory, initial=True)
-            _, answers = await self.evaluation_utils.evaluate_prompt(
-                self, None, new_samples, path=prompt_path, data=data, initial=True
-            )
-            self.prompt_utils.write_answers(directory, answers=answers)
+        logger.info(f"\nRound {self.round} Prompt: {self.prompt}\n")
+        self.prompt_utils.write_prompt(directory, prompt=self.prompt)
 
+        success, answers = await self._evaluate_new_prompt(prompt_path, data, directory)
+        self._log_optimization_result(success)
+
+        return self.prompt
+
+    async def _handle_first_round(self, prompt_path, data):
+        logger.info("\n⚡ RUNNING Round 1 PROMPT ⚡\n")
+        directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
+
+        prompt, _, _, _ = load.load_meta_data()
+        self.prompt = prompt
+        self.prompt_utils.write_prompt(directory, prompt=self.prompt)
+
+        new_samples = await self.evaluation_utils.execute_prompt(self, directory)
+        _, answers = await self.evaluation_utils.evaluate_prompt(
+            self, None, new_samples, path=prompt_path, data=data, initial=True
+        )
+        self.prompt_utils.write_answers(directory, answers=answers)
+
+    async def _generate_optimized_prompt(self):
         _, requirements, qa, count = load.load_meta_data()
-
-        directory = self.prompt_utils.create_round_directory(prompt_path, self.round + 1)
-
         samples = self.data_utils.get_best_round()
 
-        logger.info(f"\n🚀Round {self.round + 1} OPTIMIZATION STARTING 🚀\n")
+        logger.info(f"\n🚀Round {self.round} OPTIMIZATION STARTING 🚀\n")
         logger.info(f"\nSelecting prompt for round {samples['round']} and advancing to the iteration phase\n")
 
         golden_answer = self.data_utils.list_to_markdown(qa)
@@ -107,52 +112,24 @@ class PromptOptimizer:
         )
 
         modification = extract_content(response, "modification")
-
-        logger.info(f"Modification of {self.round + 1} round: {modification}")
+        logger.info(f"Modification of {self.round} round: {modification}")
 
         prompt = extract_content(response, "prompt")
+        return prompt if prompt else ""
 
-        if prompt:
-            self.prompt = prompt
-        else:
-            self.prompt = ""
-
-        logger.info("\n🎯 NEW PROMPT GENERATED 🎯\n")
-        logger.info(f"\nRound {self.round + 1} Prompt: {self.prompt}\n")
-
-        self.prompt_utils.write_prompt(directory, prompt=self.prompt)
-
+    async def _evaluate_new_prompt(self, prompt_path, data, directory):
         logger.info("\n⚡ RUNNING OPTIMIZED PROMPT ⚡\n")
-
         new_samples = await self.evaluation_utils.execute_prompt(self, directory)
 
         logger.info("\n📊 EVALUATING OPTIMIZED PROMPT 📊\n")
-
+        samples = self.data_utils.get_best_round()
         success, answers = await self.evaluation_utils.evaluate_prompt(
             self, samples, new_samples, path=prompt_path, data=data, initial=False
         )
 
         self.prompt_utils.write_answers(directory, answers=answers)
+        return success, answers
 
+    def _log_optimization_result(self, success):
         logger.info("\n🎯 OPTIMIZATION RESULT 🎯\n")
-        logger.info(f"\nRound {self.round + 1} Optimization: {'✅ SUCCESS' if success else '❌ FAILED'}\n")
-
-        return prompt
-
-    async def _test_prompt(self):
-        load.set_file_name(self.template)
-
-        prompt_path = f"{self.root_path}/prompts"
-        data = self.data_utils.load_results(prompt_path)
-
-        directory = self.prompt_utils.create_round_directory(prompt_path, self.round)
-        # Load prompt using prompt_utils
-
-        new_sample = await self.evaluation_utils.execute_prompt(self, directory, data)
-        self.prompt_utils.write_answers(directory, answers=new_sample["answers"], name="test_answers.txt")
-
-        logger.info(new_sample)
-
-        logger.info(self.round)
-
-        return None
+        logger.info(f"\nRound {self.round} Optimization: {'✅ SUCCESS' if success else '❌ FAILED'}\n")
