@@ -57,7 +57,7 @@ requirements: |
 
 count: None
 
-faq:
+qa:
   - question: |
       ...
     answer: |
