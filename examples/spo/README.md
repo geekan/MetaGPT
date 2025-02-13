@@ -1,5 +1,7 @@
 # SPO | Self-Supervised Prompt Optimization <img src="../../docs/resources/spo/SPO-logo.png" width="60" height="60" style="vertical-align: middle; margin-left: 10px; position: relative; top: -5px;">
 
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/pdf/2502.06855)
+[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/XiangJinYu/SPO)
 
 An automated prompt engineering tool for Large Language Models (LLMs), designed for universal domain adaptation.
 
@@ -16,7 +18,10 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 - ⚡ **Universal Adaptation** - _Closed & open-ended tasks supported_
 - 🔄 **Self-Evolving** - _Auto-optimization via LLM-as-judge mechanism_
 
-[Read our paper on arXiv](https://arxiv.org/pdf/2502.06855)
+## 🔗 Quick Links
+
+- [📝 Read our paper](https://arxiv.org/pdf/2502.06855)
+- [🤗 Try our demo](https://huggingface.co/spaces/XiangJinYu/SPO)
 
 ## 📊 Experiment
 
