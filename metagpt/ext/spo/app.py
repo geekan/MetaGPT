@@ -76,7 +76,25 @@ def main():
     if "optimization_results" not in st.session_state:
         st.session_state.optimization_results = []
 
-    st.title("SPO | Self-Supervised Prompt Optimization 🤖")
+    st.markdown(
+        """
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+                <h1 style="margin: 0;">SPO | Self-Supervised Prompt Optimization 🤖</h1>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center">
+                <a href="https://arxiv.org/pdf/2502.06855" target="_blank" style="text-decoration: none;">
+                    <img src="https://img.shields.io/badge/Paper-PDF-red.svg" alt="Paper">
+                </a>
+                <a href="https://github.com/geekan/MetaGPT/blob/main/examples/spo/README.md" target="_blank" style="text-decoration: none;">
+                    <img src="https://img.shields.io/badge/GitHub-Repository-blue.svg" alt="GitHub">
+                </a>
+                <span style="color: #666;">A framework for self-supervised prompt optimization</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # Sidebar for configurations
     with st.sidebar:
