@@ -130,9 +130,15 @@ python -m examples.spo.optimize --help
 
 #### Option 3: Streamlit Web Interface
 
-For a more user-friendly experience, you can use the Streamlit web interface to configure and run the optimizer:
+For a more user-friendly experience, you can use the Streamlit web interface to configure and run the optimizer.
 
+First, install Streamlit:
 ```bash
+pip install "streamlit~=1.42.0"
+```
+
+Then run the web interface:
+```bash 
 python -m streamlit run metagpt/ext/spo/app.py
 ```
 
