@@ -6,7 +6,7 @@ requirements: |
 
 count: None
 
-faq:
+qa:
   - question: |
       Write a modern sonnet about climate change
     answer: |

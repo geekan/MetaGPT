@@ -29,7 +29,7 @@ def load_meta_data(k: int = SAMPLE_K):
 
     qa = []
 
-    for item in data["faq"]:
+    for item in data["qa"]:
         question = item["question"]
         answer = item["answer"]
         qa.append({"question": question, "answer": answer})
