@@ -9,7 +9,7 @@ requirements: |
 
 count: None
 
-faq:
+qa:
   - question: |
         If you follow these instructions, do you return to the starting point? Always face forward. Take 7 steps left. Take 2 steps backward. Take 7 steps backward. Take 7 steps backward. Take 3 steps forward.
         Options:

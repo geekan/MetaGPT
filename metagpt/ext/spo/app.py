@@ -15,7 +15,7 @@ def load_yaml_template(template_path: Path) -> Dict:
     if template_path.exists():
         with open(template_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
-    return {"prompt": "", "requirements": "", "count": None, "faq": [{"question": "", "answer": ""}]}
+    return {"prompt": "", "requirements": "", "count": None, "qa": [{"question": "", "answer": ""}]}
 
 
 def save_yaml_template(template_path: Path, data: Dict) -> None:
@@ -23,9 +23,9 @@ def save_yaml_template(template_path: Path, data: Dict) -> None:
         "prompt": str(data.get("prompt", "")),
         "requirements": str(data.get("requirements", "")),
         "count": data.get("count"),
-        "faq": [
-            {"question": str(faq.get("question", "")).strip(), "answer": str(faq.get("answer", "")).strip()}
-            for faq in data.get("faq", [])
+        "qa": [
+            {"question": str(qa.get("question", "")).strip(), "answer": str(qa.get("answer", "")).strip()}
+            for qa in data.get("qa", [])
         ],
     }
 
@@ -76,7 +76,25 @@ def main():
     if "optimization_results" not in st.session_state:
         st.session_state.optimization_results = []
 
-    st.title("SPO | Self-Supervised Prompt Optimization 🤖")
+    st.markdown(
+        """
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+                <h1 style="margin: 0;">SPO | Self-Supervised Prompt Optimization 🤖</h1>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center">
+                <a href="https://arxiv.org/pdf/2502.06855" target="_blank" style="text-decoration: none;">
+                    <img src="https://img.shields.io/badge/Paper-PDF-red.svg" alt="Paper">
+                </a>
+                <a href="https://github.com/geekan/MetaGPT/blob/main/examples/spo/README.md" target="_blank" style="text-decoration: none;">
+                    <img src="https://img.shields.io/badge/GitHub-Repository-blue.svg" alt="GitHub">
+                </a>
+                <span style="color: #666;">A framework for self-supervised prompt optimization</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # Sidebar for configurations
     with st.sidebar:
@@ -126,51 +144,51 @@ def main():
 
         if "current_template" not in st.session_state or st.session_state.current_template != template_name:
             st.session_state.current_template = template_name
-            st.session_state.faqs = template_data.get("faq", [])
+            st.session_state.qas = template_data.get("qa", [])
 
         # Edit template sections
         prompt = st.text_area("Prompt", template_data.get("prompt", ""), height=100)
         requirements = st.text_area("Requirements", template_data.get("requirements", ""), height=100)
 
-        # FAQ section
-        st.subheader("FAQ Examples")
+        # qa section
+        st.subheader("Q&A Examples")
 
-        # Add new FAQ button
-        if st.button("Add New FAQ"):
-            st.session_state.faqs.append({"question": "", "answer": ""})
+        # Add new qa button
+        if st.button("Add New Q&A"):
+            st.session_state.qas.append({"question": "", "answer": ""})
 
-        # Edit FAQs
-        new_faqs = []
-        for i in range(len(st.session_state.faqs)):
-            st.markdown(f"**FAQ #{i + 1}**")
+        # Edit qas
+        new_qas = []
+        for i in range(len(st.session_state.qas)):
+            st.markdown(f"**QA #{i + 1}**")
             col1, col2, col3 = st.columns([45, 45, 10])
 
             with col1:
                 question = st.text_area(
-                    f"Question {i + 1}", st.session_state.faqs[i].get("question", ""), key=f"q_{i}", height=100
+                    f"Question {i + 1}", st.session_state.qas[i].get("question", ""), key=f"q_{i}", height=100
                 )
             with col2:
                 answer = st.text_area(
-                    f"Answer {i + 1}", st.session_state.faqs[i].get("answer", ""), key=f"a_{i}", height=100
+                    f"Answer {i + 1}", st.session_state.qas[i].get("answer", ""), key=f"a_{i}", height=100
                 )
             with col3:
                 if st.button("🗑️", key=f"delete_{i}"):
-                    st.session_state.faqs.pop(i)
+                    st.session_state.qas.pop(i)
                     st.rerun()
 
-            new_faqs.append({"question": question, "answer": answer})
+            new_qas.append({"question": question, "answer": answer})
 
         # Save template button
         if st.button("Save Template"):
-            new_template_data = {"prompt": prompt, "requirements": requirements, "count": None, "faq": new_faqs}
+            new_template_data = {"prompt": prompt, "requirements": requirements, "count": None, "qa": new_qas}
 
             save_yaml_template(template_path, new_template_data)
 
-            st.session_state.faqs = new_faqs
+            st.session_state.qas = new_qas
             st.success(f"Template saved to {template_path}")
 
         st.subheader("Current Template Preview")
-        preview_data = {"prompt": prompt, "requirements": requirements, "count": None, "faq": new_faqs}
+        preview_data = {"qa": new_qas, "requirements": requirements, "prompt": prompt}
         st.code(yaml.dump(preview_data, allow_unicode=True), language="yaml")
 
         st.subheader("Optimization Logs")
