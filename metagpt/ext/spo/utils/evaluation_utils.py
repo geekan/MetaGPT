@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
@@ -49,9 +50,15 @@ class EvaluationUtils:
             succeed = True
         else:
             evaluation_results = []
-            for _ in range(EVALUATION_REPETITION):
-                result = await evaluator.prompt_evaluate(samples=samples, new_samples=new_samples)
-                evaluation_results.append(result)
+
+            evaluation_results.extend(
+                await asyncio.gather(
+                    *(
+                        evaluator.prompt_evaluate(samples=samples, new_samples=new_samples)
+                        for _ in range(EVALUATION_REPETITION)
+                    )
+                )
+            )
 
             logger.info(f"Evaluation Results {evaluation_results}")
 
