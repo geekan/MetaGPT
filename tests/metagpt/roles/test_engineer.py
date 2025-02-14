@@ -20,18 +20,27 @@ from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.utils.git_repository import ChangeType
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
+from metagpt.utils.project_repo import ProjectRepo
+from types import SimpleNamespace
 
 
 @pytest.mark.asyncio
 async def test_engineer(context):
     # Prerequisites
     rqno = "20231221155954.json"
-    await context.repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
-    await context.repo.docs.prd.save(rqno, content=MockMessages.prd.content)
-    await context.repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
-    await context.repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
+    project_repo = ProjectRepo(context.config.project_path)
 
+    # 设置engineer
     engineer = Engineer(context=context)
+    engineer.repo = project_repo
+    engineer.input_args = SimpleNamespace(project_path=context.config.project_path)
+
+    # 使用project_repo保存所需文件
+    await project_repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
+    await project_repo.docs.prd.save(rqno, content=MockMessages.prd.content)
+    await project_repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
+    await project_repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
+
     rsp = await engineer.run(Message(content="", cause_by=WriteTasks))
 
     logger.info(rsp)

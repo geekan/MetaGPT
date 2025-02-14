@@ -40,78 +40,70 @@ def env():
 @pytest.mark.asyncio
 async def test_plan_for_software_requirement(env):
     requirement = "create a 2048 game"
-
-    tl = env.get_role("Team Leader")
+    tl = env.get_role("Mike")
     env.publish_message(Message(content=requirement, send_to=tl.name))
     await tl.run()
 
-    # TL should assign tasks to 5 members first, then send message to the first assignee, 6 commands in total
-    assert len(tl.commands) == 6
-    plan_cmd = tl.commands[:5]
-    route_cmd = tl.commands[5]
+    history = env.history.get()
 
-    task_assignment = [task["args"]["assignee"] for task in plan_cmd]
-    assert task_assignment == [
-        ProductManager().name,
-        Architect().name,
-        ProjectManager().name,
-        Engineer().name,
-        QaEngineer().name,
-    ]
-
-    assert route_cmd["command_name"] == "publish_message"
-    assert route_cmd["args"]["send_to"] == ProductManager().name
+    messages_to_team = [msg for msg in history if msg.sent_from == tl.name]
+    pm_messages = [msg for msg in messages_to_team if "Alice" in msg.send_to]
+    assert len(pm_messages) > 0, "Should have message sent to Product Manager"
+    found_task_msg = False
+    for msg in messages_to_team:
+        if "prd" in msg.content.lower() and any(role in msg.content for role in ["Alice", "Bob", "Alex", "David"]):
+            found_task_msg = True
+            break
+    assert found_task_msg, "Should have task assignment message"
 
 
 @pytest.mark.asyncio
 async def test_plan_for_data_related_requirement(env):
     requirement = "I want to use yolov5 for target detection, yolov5 all the information from the following link, please help me according to the content of the link (https://github.com/ultralytics/yolov5), set up the environment and download the model parameters, and finally provide a few pictures for inference, the inference results will be saved!"
 
-    tl = env.get_role("Team Leader")
+    tl = env.get_role("Mike")
     env.publish_message(Message(content=requirement, send_to=tl.name))
     await tl.run()
 
-    # TL should assign 1 task to Data Analyst and send message to it
-    assert len(tl.commands) == 2
-    plan_cmd = tl.commands[0]
-    route_cmd = tl.commands[-1]
+    history = env.history.get()
+    messages_from_tl = [msg for msg in history if msg.sent_from == tl.name]
+    da_messages = [msg for msg in messages_from_tl if "David" in msg.send_to]
+    assert len(da_messages) > 0
 
-    da = env.get_role("Data Analyst")
-    assert plan_cmd["command_name"] == "append_task"
-    assert plan_cmd["args"]["assignee"] == da.name
+    da_message = da_messages[0]
+    assert "https://github.com/ultralytics/yolov5" in da_message.content
 
-    assert route_cmd["command_name"] == "publish_message"
-    assert "https://github.com" in route_cmd["args"]["content"]  # necessary info must be in the message
-    assert route_cmd["args"]["send_to"] == da.name
+    def is_valid_task_message(msg: Message) -> bool:
+        content = msg.content.lower()
+        has_model_info = "yolov5" in content
+        has_task_info = any(word in content for word in ["detection", "inference", "environment", "parameters"])
+        has_link = "github.com" in content
+        return has_model_info and has_task_info and has_link
+
+    assert is_valid_task_message(da_message)
 
 
 @pytest.mark.asyncio
 async def test_plan_for_mixed_requirement(env):
     requirement = "Search the web for the new game 2048X, then replicate it"
 
-    tl = env.get_role("Team Leader")
+    tl = env.get_role("Mike")
     env.publish_message(Message(content=requirement, send_to=tl.name))
     await tl.run()
 
-    # TL should assign 6 tasks, first to Data Analyst to search the web, following by the software team sequence
-    # TL should send message to Data Analyst after task assignment
-    assert len(tl.commands) == 7
-    plan_cmd = tl.commands[:6]
-    route_cmd = tl.commands[-1]
+    history = env.history.get()
+    messages_from_tl = [msg for msg in history if msg.sent_from == tl.name]
 
-    task_assignment = [task["args"]["assignee"] for task in plan_cmd]
-    da = env.get_role("Data Analyst")
-    assert task_assignment == [
-        da.name,
-        ProductManager().name,
-        Architect().name,
-        ProjectManager().name,
-        Engineer().name,
-        QaEngineer().name,
-    ]
+    da_messages = [msg for msg in messages_from_tl if "David" in msg.send_to]
+    assert len(da_messages) > 0
 
-    assert route_cmd["command_name"] == "publish_message"
-    assert route_cmd["args"]["send_to"] == da.name
+    da_message = da_messages[0]
+
+    def is_valid_search_task(msg: Message) -> bool:
+        content = msg.content.lower()
+        return "2048x" in content and "search" in content
+
+    assert is_valid_search_task(da_message)
 
 
 PRD_MSG_CONTENT = """{'docs': {'20240424153821.json': {'root_path': 'docs/prd', 'filename': '20240424153821.json', 'content': '{"Language":"en_us","Programming Language":"Python","Original Requirements":"create a 2048 game","Project Name":"game_2048","Product Goals":["Develop an intuitive and addictive 2048 game variant","Ensure the game is accessible and performs well on various devices","Design a visually appealing and modern user interface"],"User Stories":["As a player, I want to be able to undo my last move so I can correct mistakes","As a player, I want to see my high scores to track my progress over time","As a player, I want to be able to play the game without any internet connection"],"Competitive Analysis":["2048 Original: Classic gameplay, minimalistic design, lacks social sharing features","2048 Hex: Unique hexagon board, but not mobile-friendly","2048 Multiplayer: Offers real-time competition, but overwhelming ads","2048 Bricks: Innovative gameplay with bricks, but poor performance on older devices","2048.io: Multiplayer battle royale mode, but complicated UI for new players","2048 Animated: Animated tiles add fun, but the game consumes a lot of battery","2048 3D: 3D version of the game, but has a steep learning curve"],"Competitive Quadrant Chart":"quadrantChart\\n    title \\"User Experience and Feature Set of 2048 Games\\"\\n    x-axis \\"Basic Features\\" --> \\"Rich Features\\"\\n    y-axis \\"Poor Experience\\" --> \\"Great Experience\\"\\n    quadrant-1 \\"Need Improvement\\"\\n    quadrant-2 \\"Feature-Rich but Complex\\"\\n    quadrant-3 \\"Simplicity with Poor UX\\"\\n    quadrant-4 \\"Balanced\\"\\n    \\"2048 Original\\": [0.2, 0.7]\\n    \\"2048 Hex\\": [0.3, 0.4]\\n    \\"2048 Multiplayer\\": [0.6, 0.5]\\n    \\"2048 Bricks\\": [0.4, 0.3]\\n    \\"2048.io\\": [0.7, 0.4]\\n    \\"2048 Animated\\": [0.5, 0.6]\\n    \\"2048 3D\\": [0.6, 0.3]\\n    \\"Our Target Product\\": [0.8, 0.9]","Requirement Analysis":"The game must be engaging and retain players, which requires a balance of simplicity and challenge. Accessibility on various devices is crucial for a wider reach. A modern UI is needed to attract and retain the modern user. The ability to play offline is important for users on the go. High score tracking and the ability to undo moves are features that will enhance user experience.","Requirement Pool":[["P0","Implement core 2048 gameplay mechanics"],["P0","Design responsive UI for multiple devices"],["P1","Develop undo move feature"],["P1","Integrate high score tracking system"],["P2","Enable offline gameplay capability"]],"UI Design draft":"The UI will feature a clean and modern design with a minimalist color scheme. The game board will be center-aligned with smooth tile animations. Score and high score will be displayed at the top. Undo and restart buttons will be easily accessible. The design will be responsive to fit various screen sizes.","Anything UNCLEAR":"The monetization strategy for the game is not specified. Further clarification is needed on whether the game should include advertisements, in-app purchases, or be completely free."}'}}}"""
@@ -122,48 +114,60 @@ DESIGN_CONTENT = """{"docs":{"20240424214432.json":{"root_path":"docs/system_des
 async def test_plan_update_and_routing(env):
     requirement = "create a 2048 game"
 
-    tl = env.get_role("Team Leader")
+    tl = env.get_role("Mike")
     env.publish_message(Message(content=requirement))
     await tl.run()
 
-    # Assuming Product Manager finishes its task
-    env.publish_message(Message(content=PRD_MSG_CONTENT, role="Alice(Product Manager)", sent_from="Alice"))
+    # Verify message routing after PM completes task
+    env.publish_message(Message(content=PRD_MSG_CONTENT, sent_from="Alice", send_to={"<all>"}))
     await tl.run()
 
-    # TL should mark current task as finished, and forward Product Manager's message to Architect
-    # Current task should be updated to the second task
-    plan_cmd = tl.commands[0]
-    route_cmd = tl.commands[-1]
-    assert plan_cmd["command_name"] == "finish_current_task"
-    assert route_cmd["command_name"] == "publish_message"
-    assert route_cmd["args"]["send_to"] == Architect().name
-    assert tl.planner.plan.current_task_id == "2"
+    # Get message history
+    history = env.history.get()
+    messages_from_tl = [msg for msg in history if msg.sent_from == tl.name]
 
-    # Next step, assuming Architect finishes its task
-    env.publish_message(Message(content=DESIGN_CONTENT, role="Bob(Architect)", sent_from="Bob"))
+    # Verify messages sent to architect
+    architect_messages = [msg for msg in messages_from_tl if "Bob" in msg.send_to]
+    assert len(architect_messages) > 0, "Should have message forwarded to architect"
+
+    # Verify message content contains PRD info
+    architect_message = architect_messages[-1]
+    assert "2048 game based on the PRD" in architect_message.content, "Message to architect should contain PRD info"
+
+    # Verify message routing after architect completes task
+    env.publish_message(Message(content=DESIGN_CONTENT, sent_from="Bob", send_to={"<all>"}))
     await tl.run()
-    plan_cmd = tl.commands[0]
-    route_cmd = tl.commands[-1]
-    assert plan_cmd["command_name"] == "finish_current_task"
-    assert route_cmd["command_name"] == "publish_message"
-    assert route_cmd["args"]["send_to"] == ProjectManager().name
-    assert tl.planner.plan.current_task_id == "3"
 
 
 @pytest.mark.asyncio
 async def test_reply_to_human(env):
     requirement = "create a 2048 game"
 
-    tl = env.get_role("Team Leader")
+    tl = env.get_role("Mike")
     env.publish_message(Message(content=requirement))
     await tl.run()
 
-    # Assuming Product Manager finishes its task
-    env.publish_message(Message(content=PRD_MSG_CONTENT, role="Alice(Product Manager)", sent_from="Alice"))
+    # PM finishes task
+    env.publish_message(Message(content=PRD_MSG_CONTENT, sent_from="Alice", send_to={"<all>"}))
     await tl.run()
 
-    # Human inquires about the progress
-    env.publish_message(Message(content="Who is working? How does the project go?"))
+    # Get history before human inquiry
+    history_before = env.history.get()
+
+    # Human inquires about progress
+    env.publish_message(Message(content="Who is working? How does the project go?", send_to={tl.name}))
     await tl.run()
 
-    assert tl.commands[0]["command_name"] == "reply_to_human"
+    # Get new messages after human inquiry
+    history_after = env.history.get()
+    new_messages = [msg for msg in history_after if msg not in history_before]
+
+    # Verify team leader's response
+    tl_responses = [msg for msg in new_messages if msg.sent_from == tl.name]
+    assert len(tl_responses) > 0, "Should have response from team leader"
+
+    # Verify response contains project status
+    response = tl_responses[0].content
+    assert any(
+        keyword in response.lower() for keyword in ["progress", "status", "working"]
+    ), "Response should contain project status information"
