@@ -2,6 +2,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/pdf/2502.06855)
 [![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/XiangJinYu/SPO)
+[![ModelScope](https://img.shields.io/badge/Demo-ModelScope-blue)](https://modelscope.cn/studios/AI-ModelScope/SPO)
 
 An automated prompt engineering tool for Large Language Models (LLMs), designed for universal domain adaptation.
 
@@ -21,7 +22,9 @@ A next-generation prompt engineering system implementing **Self-Supervised Promp
 ## 🔗 Quick Links
 
 - [📝 Read our paper](https://arxiv.org/pdf/2502.06855)
-- [🤗 Try our demo](https://huggingface.co/spaces/XiangJinYu/SPO)
+- [🤗 Try our Hugging Face demo](https://huggingface.co/spaces/XiangJinYu/SPO)
+- [🔮 Try our ModelScope demo](https://modelscope.cn/studios/AI-ModelScope/SPO)
+
 
 ## 📊 Experiment
 
