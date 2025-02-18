@@ -203,7 +203,6 @@ To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) or [Data Interpret
       title={FACT: Examining the Effectiveness of Iterative Context Rewriting for Multi-fact Retrieval}, 
       author={Jinlin Wang and Suyuchen Wang and Ziwen Xia and Sirui Hong and Yun Zhu and Bang Liu and Chenglin Wu},
       booktitle={The 2025 Annual Conference of the Nations of the Americas Chapter of the ACL},
-      booktitle={The 2025 Annual Conference of the Nations of the Americas Chapter of the ACL},
       year={2025},
       url={https://openreview.net/forum?id=VXOircx5h3}
 }
