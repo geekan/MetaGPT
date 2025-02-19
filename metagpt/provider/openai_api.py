@@ -33,6 +33,7 @@ from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.format import ResponseFormat
 from metagpt.utils.token_counter import (
     count_input_tokens,
     count_output_tokens,
@@ -85,9 +86,11 @@ class OpenAILLM(BaseLLM):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
+        if response_format and isinstance(response_format, ResponseFormat):
+            response_format = response_format.get_response_format(self.config.api_type)
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
-            **self._cons_kwargs(messages, timeout=self.get_timeout(timeout)), stream=True
+            **self._cons_kwargs(messages, timeout=self.get_timeout(timeout), response_format=response_format), stream=True
         )
         usage = None
         collected_messages = []
@@ -159,12 +162,12 @@ class OpenAILLM(BaseLLM):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT, response_format: Optional[dict[str, any]] = None) -> str:
         """when streaming, print each token in place."""
         if stream:
-            return await self._achat_completion_stream(messages, timeout=timeout)
+            return await self._achat_completion_stream(messages, timeout=timeout, response_format=response_format)
 
-        rsp = await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+        rsp = await self._achat_completion(messages, timeout=self.get_timeout(timeout), response_format=response_format)
         return self.get_choice_text(rsp)
 
     async def _achat_completion_function(

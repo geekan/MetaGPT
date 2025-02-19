@@ -14,7 +14,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 from metagpt.utils.cost_manager import CostManager
-
+from metagpt.utils.format import ResponseFormat
 
 class ZhiPuEvent(Enum):
     ADD = "add"
@@ -54,22 +54,22 @@ class ZhiPuAILLM(BaseLLM):
         }
         return kwargs
 
-    def completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+    def completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> dict:
         resp: Completion = self.llm.chat.completions.create(**self._const_kwargs(messages))
         usage = resp.usage.model_dump()
         self._update_costs(usage)
         return resp.model_dump()
 
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> dict:
         resp = await self.llm.acreate(**self._const_kwargs(messages))
         usage = resp.get("usage", {})
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
-        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> dict:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout), response_format=response_format)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         response = await self.llm.acreate_stream(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = {}

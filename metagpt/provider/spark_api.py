@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from typing import Optional
 from sparkai.core.messages import _convert_to_message, convert_to_messages
 from sparkai.core.messages.ai import AIMessage
 from sparkai.core.messages.base import BaseMessage
@@ -16,6 +16,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.common import any_to_str
 from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.format import ResponseFormat
 from metagpt.utils.token_counter import SPARK_TOKENS
 
 
@@ -60,16 +61,16 @@ class SparkLLM(BaseLLM):
         else:
             return {}
 
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        response = await self.acreate(messages, stream=False)
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
+        response = await self.acreate(messages, stream=False, response_format=response_format)
         usage = self.get_usage(response)
         self._update_costs(usage)
         return response
 
-    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
-        return await self._achat_completion(messages, timeout)
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
+        return await self._achat_completion(messages, timeout, response_format)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         response = await self.acreate(messages, stream=True)
         collected_content = []
         usage = {}
@@ -87,9 +88,9 @@ class SparkLLM(BaseLLM):
     def _extract_assistant_rsp(self, context: list[BaseMessage]) -> str:
         return "\n".join([i.content for i in context if "AIMessage" in any_to_str(i)])
 
-    async def acreate(self, messages: list[dict], stream: bool = True):
+    async def acreate(self, messages: list[dict], stream: bool = True, response_format: Optional[ResponseFormat] = None):
         messages = convert_to_messages(messages)
         if stream:
-            return self.client.astream(messages)
+            return self.client.astream(messages, response_format=response_format)
         else:
-            return await self.client.agenerate([messages])
+            return await self.client.agenerate([messages], response_format=response_format)

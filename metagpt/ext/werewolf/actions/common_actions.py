@@ -3,20 +3,48 @@
 # @Desc   :
 
 import json
+import re
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.utils.common import parse_json_code_block
-
+from metagpt.utils.format import ResponseFormat, JsonResponseFormat
 
 def log_and_parse_json(name: str, rsp: str) -> dict:
     rsp = rsp.replace("\n", " ")
     logger.debug(f"{name} result: {rsp}")
     json_blocks = parse_json_code_block(rsp)
-    rsp_json = json.loads(json_blocks[0])
+    try:
+        rsp_json = json.loads(json_blocks[0])
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing JSON: {rsp}, {e}")
+        rsp_json = json.loads(convert_to_json_if_reason(rsp))
     return rsp_json
+
+
+def convert_to_json_if_reason(rsp: str) -> str:
+    """deepseek response format with <think>...</think> **RESPONSE:** {answer} """
+    if re.search(r"<think\w*>", rsp, re.IGNORECASE) and re.search(r"\*?\*?(RESPONSE|ANSWER)\*?\*?:", rsp, re.IGNORECASE):
+        answer = re.split(r"\*?\*?(RESPONSE|ANSWER)\*?\*?:", rsp, flags=re.IGNORECASE)[-1]
+        think = re.search(r"(?:<think\w*>)(.*?)(?:</think\w*>)", rsp, re.DOTALL)
+        if think:
+            # 处理think中的特殊字符
+            thought = think.group(1).replace('"', "'")
+            response = re.split('\s+', answer)[-1]
+            return f'{{"THOUGHT": "{thought}", "RESPONSE": "{response}"}}'
+    # 查找json字符串
+    elif re.search(r"\{(.*?)\}", rsp, re.DOTALL):
+        return '{' + re.findall(r"\{(.*?)\}", rsp, re.DOTALL)[-1] + '}'
+    # 找到最后出现的PlayerX字符串并返回为RESPONSE
+    response = re.findall(r"(Player\s*\d+|pass|none)", rsp, re.IGNORECASE)
+    if response:
+        return f'{{"RESPONSE": "{response[-1]}"}}'
+    else:
+        # 删除<think>...</think>
+        rsp = re.sub(r"(?:<think\w*>)(.*?)(?:</think\w*>)", "", rsp)
+        return f'{{"RESPONSE": "{rsp}"}}'
 
 
 class Speak(Action):
@@ -53,6 +81,17 @@ class Speak(Action):
 
     name: str = "Speak"
 
+    def _construct_response_format(self, **kwargs) -> ResponseFormat:
+        response_format = JsonResponseFormat()
+        response_format.add_property("ROLE", "Your role, in this case, __profile__", "string", required=True)
+        response_format.add_property("PLAYER_NAME", "Your name, in this case, __name__", "string", required=True)
+        response_format.add_property("LIVING_PLAYERS", "List the players who is alive based on moderator's latest instruction. Return a json LIST datatype.", "array", required=True)
+        response_format.add_property("THOUGHTS", "Choose one living player from `LIVING_PLAYERS` to __action__ this night. Return the reason why you choose to __action__ this player. If you observe nothing at first night, DONT imagine unexisting player actions! If you find similar situation in `PAST_EXPERIENCES`, you may draw lessons from them to refine your strategy and take better actions. Give your step-by-step thought process, you should think no more than 3 steps. For example: My step-by-step thought process:...", "string", required=True)
+        response_format.add_property("RESPONSE", "As a __profile__, you should choose one living player from `LIVING_PLAYERS` to __action__ this night according to the THOUGHTS you have just now. Return the player name ONLY.", "string", required=True)
+        response_format.update_describe_with_dict(kwargs)
+        return response_format
+
+
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def run(
         self,
@@ -73,10 +112,22 @@ class Speak(Action):
             .replace("__experiences__", experiences)
         )
 
-        rsp = await self._aask(prompt)
+        response_formatter = self._construct_response_format(
+            __profile__=profile, __name__=name, __context__=context, __latest_instruction__=latest_instruction,
+            __strategy__=self.STRATEGY, __reflection__=reflection, __experiences__=experiences
+        )
+        rsp = await self._aask(prompt, response_format=response_formatter)
         rsp_json = log_and_parse_json(self.name, rsp)
 
-        return rsp_json["RESPONSE"]
+        try:
+            return rsp_json["RESPONSE"]
+        except KeyError as e:
+            # For some not-so-smart models, there will be no RESPONSE key, so here we look for the key value corresponding to the most similar key
+            ret = response_formatter.get_most_likely_key(rsp_json, "RESPONSE")
+            if ret:
+                return ret
+            else:
+                raise e
 
 
 class NighttimeWhispers(Action):
@@ -183,13 +234,27 @@ class NighttimeWhispers(Action):
         # one can modify the prompt_json dictionary here
         return prompt_json
 
+    def _construct_response_format(self, **kwargs) -> ResponseFormat:
+        response_format = JsonResponseFormat()
+        response_format.add_property("ROLE", "Your role, in this case, __profile__", "string", required=True)
+        response_format.add_property("PLAYER_NAME", "Your name, in this case, __name__", "string", required=True)
+        response_format.add_property("LIVING_PLAYERS", "List the players who is alive based on moderator's latest instruction. Return a json LIST datatype.", "array", required=True)
+        response_format.add_property("THOUGHTS", "Choose one living player from `LIVING_PLAYERS` to __action__ this night. Return the reason why you choose to __action__ this player. If you observe nothing at first night, DONT imagine unexisting player actions! If you find similar situation in `PAST_EXPERIENCES`, you may draw lessons from them to refine your strategy and take better actions. Give your step-by-step thought process, you should think no more than 3 steps. For example: My step-by-step thought process:...", "string", required=True)
+        response_format.add_property("RESPONSE", "As a __profile__, you should choose one living player from `LIVING_PLAYERS` to __action__ this night according to the THOUGHTS you have just now. Return the player name ONLY.", "string", required=True)
+        response_format.update_describe_with_dict(kwargs)
+        return response_format
+
+
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def run(self, context: str, profile: str, name: str, reflection: str = "", experiences: str = ""):
         prompt = self._construct_prompt_json(
             role_profile=profile, role_name=name, context=context, reflection=reflection, experiences=experiences
         )
 
-        rsp = await self._aask(prompt)
+        rsp = await self._aask(prompt, response_format=self._construct_response_format(
+            __profile__=profile, __name__=name, __context__=context, __reflection__=reflection, 
+            __experiences__=experiences, __action__=self.name, __strategy_=self.STRATEGY
+        ))
         rsp_json = log_and_parse_json(self.name, rsp)
 
         return f"{self.name} " + rsp_json["RESPONSE"]
@@ -225,7 +290,28 @@ class Reflect(Action):
 
     name: str = "Reflect"
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    def _construct_response_format(self, **kwargs) -> ResponseFormat:
+        response_format = JsonResponseFormat()
+        response_format.add_property("ROLE", "Your role, in this case, __profile__", "string", required=True)
+        response_format.add_property("PLAYER_NAME", "Your name, in this case, __name__", "string", required=True)
+        response_format.add_property("GAME_STATES", """You are about to follow `MODERATOR_INSTRUCTION`, but before taking any action, analyze each player, including the living and the dead, and summarize the game states.
+                        For each player, your reflection should be a ONE-LINE json covering the following dimension, return a LIST of jsons (return an empty LIST for the first night):
+                        [
+                            {"TARGET": "the player you will analyze, if the player is yourself or your werewolf partner, indicate it" ,"STATUS": "living or dead, if dead, how was he/she possibly killed?", "CLAIMED_ROLE": "claims a role or not, if so, what role, any contradiction to others? If there is no claim, return 'None'", "SIDE_WITH": "sides with which players? If none, return 'None'", "ACCUSE": "accuses which players? If none, return 'None'"}
+                            ,{...}
+                            ,...
+                        ]""", "array", required=True)
+        response_format.add_property("REFLECTION", """Based on the whole `GAME_STATES`, return a json (return an empty string for the first night):
+                       {
+                            "Player1": "the true role (werewolf / special role / villager, living or dead) you infer about him/her, and why is this role? If the player is yourself or your werewolf partner, indicate it."
+                            ,...
+                            ,"Player7": "the true role (werewolf / special role / villager, living or dead) you infer about him/her, and why is this role? If the player is yourself or your werewolf partner, indicate it."
+                            ,"GAME_STATE_SUMMARIZATION": "summarize the current situation from your standpoint in one sentence, your summarization should catch the most important information from your reflection, such as conflicts, number of living werewolves, special roles, and villagers."
+                       }""", "json_object", required=True)
+        response_format.update_describe_with_dict(kwargs)
+        return response_format
+
+    @retry(stop=stop_after_attempt(4), wait=wait_fixed(1), retry_error_cls={KeyError, json.JSONDecodeError})
     async def run(self, profile: str, name: str, context: str, latest_instruction: str):
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", context)
@@ -234,7 +320,18 @@ class Reflect(Action):
             .replace("__latest_instruction__", latest_instruction)
         )
 
-        rsp = await self._aask(prompt)
+        response_formatter = self._construct_response_format(
+            __profile__=profile, __name__=name, __context__=context, __latest_instruction__=latest_instruction
+        )
+        rsp = await self._aask(prompt, response_format=response_formatter)
         rsp_json = log_and_parse_json(self.name, rsp)
 
-        return json.dumps(rsp_json["REFLECTION"])
+        try:
+            rsp_reflection = rsp_json["REFLECTION"]
+        except KeyError:
+            rsp_reflection = response_formatter.get_most_likely_key(rsp_json, "REFLECTION")
+
+        if isinstance(rsp_reflection, str):
+            return rsp_reflection
+        else:
+            return json.dumps(rsp_reflection)

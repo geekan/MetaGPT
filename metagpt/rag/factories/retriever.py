@@ -12,7 +12,6 @@ from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.faiss import FaissVectorStore
-from llama_index.vector_stores.milvus import MilvusVectorStore
 
 from metagpt.rag.factories.base import ConfigBasedFactory
 from metagpt.rag.retrievers.base import RAGRetriever
@@ -139,6 +138,7 @@ class RetrieverFactory(ConfigBasedFactory):
 
     @get_or_build_index
     def _build_milvus_index(self, config: MilvusRetrieverConfig, **kwargs) -> VectorStoreIndex:
+        from llama_index.vector_stores.milvus import MilvusVectorStore
         vector_store = MilvusVectorStore(
             uri=config.uri, collection_name=config.collection_name, token=config.token, dim=config.dimensions
         )

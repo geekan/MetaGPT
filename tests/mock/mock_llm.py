@@ -8,6 +8,7 @@ from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
+from tests.metagpt.provider.mock_llm_config import mock_llm_config_azure
 
 OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 
@@ -17,6 +18,9 @@ class MockLLM(OriginalLLM):
         original_llm_config = (
             config.get_openai_llm() if config.llm.api_type == LLMType.OPENAI else config.get_azure_llm()
         )
+        if original_llm_config is None:
+            original_llm_config = mock_llm_config_azure
+
         super().__init__(original_llm_config)
         self.allow_open_api_call = allow_open_api_call
         self.rsp_cache: dict = {}

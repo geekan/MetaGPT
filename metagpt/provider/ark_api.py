@@ -27,6 +27,7 @@ from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM
+from metagpt.utils.format import ResponseFormat
 from metagpt.utils.token_counter import DOUBAO_TOKEN_COSTS
 
 
@@ -71,7 +72,7 @@ class ArkLLM(OpenAILLM):
         if self.pricing_plan in self.cost_manager.token_costs:
             super()._update_costs(usage, self.pricing_plan, local_calc_usage)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages, timeout=self.get_timeout(timeout)),
             stream=True,
@@ -92,7 +93,7 @@ class ArkLLM(OpenAILLM):
         self._update_costs(usage, chunk.model)
         return full_reply_content
 
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> ChatCompletion:
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> ChatCompletion:
         kwargs = self._cons_kwargs(messages, timeout=self.get_timeout(timeout))
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage, rsp.model)

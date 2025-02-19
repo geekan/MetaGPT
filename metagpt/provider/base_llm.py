@@ -28,7 +28,7 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
-
+from metagpt.utils.format import ResponseFormat
 
 class BaseLLM(ABC):
     """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities"""
@@ -132,6 +132,7 @@ class BaseLLM(ABC):
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
+        response_format: Optional[ResponseFormat] = None,
         stream=None,
     ) -> str:
         if system_msgs:
@@ -149,7 +150,7 @@ class BaseLLM(ABC):
         if stream is None:
             stream = self.config.stream
         logger.debug(message)
-        rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
+        rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout), response_format=response_format)
         return rsp
 
     def _extract_assistant_rsp(self, context):
@@ -169,11 +170,11 @@ class BaseLLM(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
         """_achat_completion implemented by inherited class"""
 
     @abstractmethod
-    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
         """Asynchronous version of completion
         All GPTAPIs are required to provide the standard OpenAI completion interface
         [
@@ -184,7 +185,7 @@ class BaseLLM(ABC):
         """
 
     @abstractmethod
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         """_achat_completion_stream implemented by inherited class"""
 
     @retry(
@@ -195,12 +196,12 @@ class BaseLLM(ABC):
         retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(
-        self, messages: list[dict], stream: bool = False, timeout: int = USE_CONFIG_TIMEOUT
+        self, messages: list[dict], stream: bool = False, timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None
     ) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
         if stream:
-            return await self._achat_completion_stream(messages, timeout=self.get_timeout(timeout))
-        resp = await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+            return await self._achat_completion_stream(messages, timeout=self.get_timeout(timeout), response_format=response_format)
+        resp = await self._achat_completion(messages, timeout=self.get_timeout(timeout), response_format=response_format)
         return self.get_choice_text(resp)
 
     def get_choice_text(self, rsp: dict) -> str:

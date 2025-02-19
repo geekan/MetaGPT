@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 from functools import partial
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 import boto3
 from botocore.eventstream import EventStream
@@ -15,6 +15,7 @@ from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUPPORT_STREAM_MODELS, get_max_tokens
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.format import ResponseFormat
 from metagpt.utils.token_counter import BEDROCK_TOKEN_COSTS
 
 
@@ -104,17 +105,17 @@ class BedrockLLM(BaseLLM):
     def get_choice_text(self, rsp: dict) -> str:
         return self.__provider.get_choice_text(rsp)
 
-    async def acompletion(self, messages: list[dict]) -> dict:
+    async def acompletion(self, messages: list[dict], response_format: Optional[ResponseFormat] = None) -> dict:
         request_body = self.__provider.get_request_body(messages, self._const_kwargs)
         response_body = await self.invoke_model(request_body)
         return response_body
 
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> dict:
-        return await self.acompletion(messages)
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> dict:
+        return await self.acompletion(messages, response_format)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         if self.config.model in NOT_SUPPORT_STREAM_MODELS:
-            rsp = await self.acompletion(messages)
+            rsp = await self.acompletion(messages, response_format)
             full_text = self.get_choice_text(rsp)
             log_llm_stream(full_text)
             return full_text

@@ -9,7 +9,7 @@ from metagpt.configs.llm_config import LLMConfig
 from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.base_llm import BaseLLM
-
+from metagpt.utils.format import ResponseFormat
 
 class HumanProvider(BaseLLM):
     """Humans provide themselves as a 'model', which actually takes in human input as its response.
@@ -37,17 +37,17 @@ class HumanProvider(BaseLLM):
     ) -> str:
         return self.ask(msg, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+    async def _achat_completion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
         pass
 
-    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT):
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None):
         """dummy implementation of abstract method in base"""
         return []
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         pass
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         """dummy implementation of abstract method in base"""
         return ""
 
