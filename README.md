@@ -27,6 +27,8 @@
 </p>
 
 ## News
+🚀 Feb. 19, 2025: Today we are officially launching our natural language programming product: MGX (MetaGPT X) - the world's first AI agent development team.  [Offical website](https://mgx.dev/) [Twitter](https://x.com/MetaGPT_/status/1892199535130329356)
+
 🚀 Jan. 22, 2025: Our paper [AFlow: Automating Agentic Workflow Generation](https://openreview.net/forum?id=z5uVAKwmjf) accepted for **oral presentation (top 1.8%)** at ICLR 2025, **ranking #2** in the LLM-based Agent category.
 
 🚀 Oct. 29, 2024: We introduced three papers: [AFLOW](https://arxiv.org/abs/2410.10762), [FACT](https://arxiv.org/abs/2410.21012), and [SELA](https://arxiv.org/abs/2410.17238), check the [code](examples)!
