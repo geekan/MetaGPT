@@ -5,33 +5,62 @@
 @Author  : alexanderwu
 @File    : __init__.py
 """
+import importlib
+from metagpt.configs.llm_config import LLMType, LLMModuleMap
 
-from metagpt.provider.google_gemini_api import GeminiLLM
-from metagpt.provider.ollama_api import OllamaLLM
-from metagpt.provider.openai_api import OpenAILLM
-from metagpt.provider.zhipuai_api import ZhiPuAILLM
-from metagpt.provider.azure_openai_api import AzureOpenAILLM
-from metagpt.provider.metagpt_api import MetaGPTLLM
-from metagpt.provider.human_provider import HumanProvider
-from metagpt.provider.spark_api import SparkLLM
-from metagpt.provider.qianfan_api import QianFanLLM
-from metagpt.provider.dashscope_api import DashScopeLLM
-from metagpt.provider.anthropic_api import AnthropicLLM
-from metagpt.provider.bedrock_api import BedrockLLM
-from metagpt.provider.ark_api import ArkLLM
+class LLMFactory:
+    def __init__(self, module_name, instance_name):
+        self.module_name = module_name
+        self.instance_name = instance_name
+        self._module = None
 
-__all__ = [
-    "GeminiLLM",
-    "OpenAILLM",
-    "ZhiPuAILLM",
-    "AzureOpenAILLM",
-    "MetaGPTLLM",
-    "OllamaLLM",
-    "HumanProvider",
-    "SparkLLM",
-    "QianFanLLM",
-    "DashScopeLLM",
-    "AnthropicLLM",
-    "BedrockLLM",
-    "ArkLLM",
+    def __getattr__(self, name):
+        if self._module is None:
+            self._module = importlib.import_module(self.module_name)
+        return getattr(self._module, name)
+    
+    def __instancecheck__(self, instance):
+        if self._module is None:
+            self._module = importlib.import_module(self.module_name)
+        return isinstance(instance, getattr(self._module, self.instance_name))
+    
+    def __call__(self, config):
+        # Import the module when it鈥檚 called for the first time
+        if self._module is None:
+            self._module = importlib.import_module(self.module_name)
+        
+        # Create an instance of the specified class from the module with the given config
+        return getattr(self._module, self.instance_name)(config)
+    
+def create_llm_symbol(llm_configurations):
+    factories = {name: LLMFactory(LLMModuleMap[llm_type], name) for llm_type, name in llm_configurations}
+    # Add the factory created llm objects to the global namespace
+    globals().update(factories)
+    return factories.keys()
+
+# List of LLM configurations
+llm_configurations = [
+    (LLMType.GEMINI, "GeminiLLM"),
+    (LLMType.OLLAMA, "OllamaLLM"),
+    (LLMType.OPENAI, "OpenAILLM"),
+    (LLMType.ZHIPUAI, "ZhiPuAILLM"),
+    (LLMType.AZURE, "AzureOpenAILLM"),
+    (LLMType.METAGPT, "MetaGPTLLM"),
+    (LLMType.HUMAN, "HumanProvider"),
+    (LLMType.SPARK, "SparkLLM"),
+    (LLMType.QIANFAN, "QianFanLLM"),
+    (LLMType.DASHSCOPE, "DashScopeLLM"),
+    (LLMType.ANTHROPIC, "AnthropicLLM"),
+    (LLMType.BEDROCK, "BedrockLLM"),
+    (LLMType.ARK, "ArkLLM"),
+    (LLMType.FIREWORKS, "FireworksLLM"),
+    (LLMType.OPEN_LLM, "OpenLLM"),
+    (LLMType.MOONSHOT, "MoonshotLLM"),
+    (LLMType.MISTRAL, "MistralLLM"),
+    (LLMType.YI, "YiLLM"),
+    (LLMType.OPENROUTER, "OpenRouterLLM"),
+    (LLMType.CLAUDE, "ClaudeLLM"),
 ]
+
+# Create all LLMFactory instances and get created symbols
+__all__ = create_llm_symbol(llm_configurations)
