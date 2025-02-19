@@ -8,15 +8,17 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from metagpt.actions.action import Action
-from metagpt.config2 import config
 from metagpt.ext.stanford_town.utils.const import PROMPTS_DIR
 from metagpt.logs import logger
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider.llm_provider_registry import create_llm_instance
 
 
 class STAction(Action):
     name: str = "STAction"
     prompt_dir: Path = PROMPTS_DIR
     fail_default_resp: Optional[str] = None
+    mx_token_llm: Optional[BaseLLM] = None
 
     @property
     def cls_name(self):
@@ -62,13 +64,8 @@ class STAction(Action):
     async def _run_gpt35_max_tokens(self, prompt: str, max_tokens: int = 50, retry: int = 3):
         for idx in range(retry):
             try:
-                tmp_max_tokens_rsp = getattr(config.llm, "max_token", 1500)
-                setattr(config.llm, "max_token", max_tokens)
-                self.llm.use_system_prompt = False  # to make it behave like a non-chat completions
-
-                llm_resp = await self._aask(prompt)
-
-                setattr(config.llm, "max_token", tmp_max_tokens_rsp)
+                llm = self._get_mx_llm(max_tokens)
+                llm_resp = await llm.aask(prompt)
                 logger.info(f"Action: {self.cls_name} llm _run_gpt35_max_tokens raw resp: {llm_resp}")
                 if self._func_validate(llm_resp, prompt):
                     return self._func_cleanup(llm_resp, prompt)
@@ -117,3 +114,13 @@ class STAction(Action):
     async def run(self, *args, **kwargs):
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")
+
+    def _get_mx_llm(self, max_tokens: int) -> BaseLLM:
+        if self.mx_token_llm:
+            return self.mx_token_llm
+
+        llm_config = self.llm.config.model_copy(deep=True)
+        llm_config.max_token = max_tokens
+        self.mx_token_llm = create_llm_instance(llm_config)
+        self.mx_token_llm.use_system_prompt = False  # to make it behave like a non-chat completions
+        return self.mx_token_llm
