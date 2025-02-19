@@ -25,6 +25,7 @@ class LLMType(Enum):
     OPEN_LLM = "open_llm"
     GEMINI = "gemini"
     METAGPT = "metagpt"
+    HUMAN = "human"
     AZURE = "azure"
     OLLAMA = "ollama"  # /chat at ollama api
     OLLAMA_GENERATE = "ollama.generate"  # /generate at ollama api
@@ -42,6 +43,28 @@ class LLMType(Enum):
     def __missing__(self, key):
         return self.OPENAI
 
+LLMModuleMap = {
+    LLMType.OPENAI: "metagpt.provider.openai_api",
+    LLMType.ANTHROPIC: "metagpt.provider.anthropic_api",
+    LLMType.CLAUDE: "metagpt.provider.anthropic_api",  # Same module as Anthropic
+    LLMType.SPARK: "metagpt.provider.spark_api",
+    LLMType.ZHIPUAI: "metagpt.provider.zhipuai_api",
+    LLMType.FIREWORKS: "metagpt.provider.fireworks_api",
+    LLMType.OPEN_LLM: "metagpt.provider.open_llm_api",
+    LLMType.GEMINI: "metagpt.provider.google_gemini_api",
+    LLMType.METAGPT: "metagpt.provider.metagpt_api",
+    LLMType.HUMAN: "metagpt.provider.human_provider",
+    LLMType.AZURE: "metagpt.provider.azure_openai_api",
+    LLMType.OLLAMA: "metagpt.provider.ollama_api",
+    LLMType.QIANFAN: "metagpt.provider.qianfan_api",  # Baidu BCE
+    LLMType.DASHSCOPE: "metagpt.provider.dashscope_api",  # Aliyun LingJi DashScope
+    LLMType.MOONSHOT: "metagpt.provider.moonshot_api",
+    LLMType.MISTRAL: "metagpt.provider.mistral_api",
+    LLMType.YI: "metagpt.provider.yi_api",  # lingyiwanwu
+    LLMType.OPENROUTER: "metagpt.provider.openrouter_api",
+    LLMType.BEDROCK: "metagpt.provider.bedrock_api",
+    LLMType.ARK: "metagpt.provider.ark_api",
+}
 
 class LLMConfig(YamlModel):
     """Config for LLM
