@@ -138,7 +138,7 @@ class JsonResponseFormat(ResponseFormat):
             LLMType.LLMSTUDIO.value: {
                 "type": "json_schema",
                 "json_schema": {
-                    "schema": ret | {"type": "object"},
+                    "schema": self.update_type(ret | {"type": "object"}, "json_object", "object"),
                 },
             },
             LLMType.OLLAMA.value: json.dumps(ret | {"type": "object"}),
@@ -146,6 +146,22 @@ class JsonResponseFormat(ResponseFormat):
             'ollama_low_version': 'json'
         }
 
+
+    def update_type(self, format_dict: dict[str, any], old_type: str, new_type: str):
+        """
+        Update type description in format_dict
+        """
+        for key, value in format_dict.items():
+            if isinstance(value, dict):
+                self.update_type(value, old_type, new_type)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        self.update_type(item, old_type, new_type)
+            elif isinstance(value, str):
+                if old_type == value:
+                    format_dict[key] = new_type
+        return format_dict
 
     def get_response_format(self, llm_type: LLMType):
         """
