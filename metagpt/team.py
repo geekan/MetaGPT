@@ -130,7 +130,12 @@ class Team(BaseModel):
                 logger.debug("All roles are idle.")
                 break
             n_round -= 1
-            self._check_balance()
+            try:
+                self._check_balance()
+            except NoMoneyException as e:
+                logger.error(f"Project stopped due to insufficient funds: {e}")
+                break
+
             await self.env.run()
 
             logger.debug(f"max {n_round=} left.")

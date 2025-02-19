@@ -4,7 +4,6 @@
 import asyncio
 from pathlib import Path
 
-import agentops
 import typer
 
 from metagpt.const import CONFIG_ROOT
@@ -39,9 +38,6 @@ def generate_repo(
     )
     from metagpt.team import Team
 
-    if config.agentops_api_key != "":
-        agentops.init(config.agentops_api_key, tags=["software_company"])
-
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
     ctx = Context(config=config)
 
@@ -74,9 +70,6 @@ def generate_repo(
     company.run_project(idea)
     asyncio.run(company.run(n_round=n_round))
 
-    if config.agentops_api_key != "":
-        agentops.end_session("Success")
-
     return ctx.repo
 
 
@@ -89,7 +82,7 @@ def startup(
     run_tests: bool = typer.Option(default=False, help="Whether to enable QA for adding & running tests."),
     implement: bool = typer.Option(default=True, help="Enable or disable code implementation."),
     project_name: str = typer.Option(default="", help="Unique project name, such as 'game_2048'."),
-    inc: bool = typer.Option(default=False, help="Incremental mode. Use it to coop with existing repo."),
+    inc: bool = typer.Option(default=False, help="Incremental mode. Use it to cope with existing repo."),
     project_path: str = typer.Option(
         default="",
         help="Specify the directory path of the old version project to fulfill the incremental requirements.",
@@ -132,10 +125,9 @@ def startup(
 
 DEFAULT_CONFIG = """# Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
-# Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
 llm:
-  api_type: "openai"  # or azure / ollama / groq etc.
-  model: "gpt-4-turbo"  # or gpt-3.5-turbo
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
   base_url: "https://api.openai.com/v1"  # or forward url / other llm url
   api_key: "YOUR_API_KEY"
 """
@@ -145,16 +137,16 @@ def copy_config_to():
     """Initialize the configuration file for MetaGPT."""
     target_path = CONFIG_ROOT / "config2.yaml"
 
-    # 创建目标目录（如果不存在）
+    # 创建目标目录（如果不存在）/ Create the target directory if it does not exist
     target_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 如果目标文件已经存在，则重命名为 .bak
+    # 如果目标文件已经存在，则重命名为 .bak / If the target file already exists, rename it to .bak
     if target_path.exists():
         backup_path = target_path.with_suffix(".bak")
         target_path.rename(backup_path)
         print(f"Existing configuration file backed up at {backup_path}")
 
-    # 复制文件
+    # 复制文件 / Copy files
     target_path.write_text(DEFAULT_CONFIG, encoding="utf-8")
     print(f"Configuration file initialized at {target_path}")
 

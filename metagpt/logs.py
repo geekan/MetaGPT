@@ -8,19 +8,16 @@
 
 import sys
 from datetime import datetime
+from functools import partial
+from typing import Callable, Optional
 
 from loguru import logger as _logger
 
 from metagpt.const import METAGPT_ROOT
 
-_print_level = "INFO"
 
-
-def define_log_level(print_level="INFO", logfile_level="DEBUG", name: str = None):
-    """Adjust the log level to above level"""
-    global _print_level
-    _print_level = print_level
-
+def define_log_level(print_level: str = "INFO", logfile_level: str = "DEBUG", name: Optional[str] = None) -> _logger:
+    """Adjust the log level to the specified levels."""
     current_date = datetime.now()
     formatted_date = current_date.strftime("%Y%m%d")
     log_name = f"{name}_{formatted_date}" if name else formatted_date  # name a log with prefix name
@@ -34,15 +31,15 @@ def define_log_level(print_level="INFO", logfile_level="DEBUG", name: str = None
 logger = define_log_level()
 
 
-def log_llm_stream(msg):
+def log_llm_stream(msg: str) -> None:
+    """Log LLM stream messages."""
     _llm_stream_log(msg)
 
 
-def set_llm_stream_logfunc(func):
+def set_llm_stream_logfunc(func: Callable[[str], None]) -> None:
+    """Set the function to be used for logging LLM streams."""
     global _llm_stream_log
     _llm_stream_log = func
 
 
-def _llm_stream_log(msg):
-    if _print_level in ["INFO"]:
-        print(msg, end="")
+_llm_stream_log: Callable[[str], None] = partial(print, end="")
