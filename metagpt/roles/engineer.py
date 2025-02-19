@@ -20,14 +20,13 @@
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
-from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.actions.start_qa import StartQA
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
 from metagpt.const import (
     BUGFIX_FILENAME,
@@ -40,13 +39,12 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
     CodePlanAndChangeContext,
-    CodeSummarizeContext,
     CodingContext,
     Document,
     Documents,
     Message,
 )
-from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
+from metagpt.utils.common import any_to_str, any_to_str_set
 
 IS_PASS_PROMPT = """
 {context}
@@ -81,18 +79,13 @@ class Engineer(Role):
     n_borg: int = 1
     use_code_review: bool = False
     code_todos: list = []
-    summarize_todos: list = []
-    next_todo_action: str = ""
-    n_summarize: int = 0
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.set_actions([WriteCode])
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
+        self._watch([WriteTasks, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
         self.code_todos = []
-        self.summarize_todos = []
-        self.next_todo_action = any_to_name(WriteCode)
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
@@ -142,14 +135,9 @@ class Engineer(Role):
         if self.rc.todo is None:
             return None
         if isinstance(self.rc.todo, WriteCodePlanAndChange):
-            self.next_todo_action = any_to_name(WriteCode)
             return await self._act_code_plan_and_change()
         if isinstance(self.rc.todo, WriteCode):
-            self.next_todo_action = any_to_name(SummarizeCode)
             return await self._act_write_code()
-        if isinstance(self.rc.todo, SummarizeCode):
-            self.next_todo_action = any_to_name(WriteCode)
-            return await self._act_summarize()
         return None
 
     async def _act_write_code(self):
@@ -160,47 +148,6 @@ class Engineer(Role):
             cause_by=WriteCodeReview if self.use_code_review else WriteCode,
             send_to=self,
             sent_from=self,
-        )
-
-    async def _act_summarize(self):
-        tasks = []
-        for todo in self.summarize_todos:
-            summary = await todo.run()
-            summary_filename = Path(todo.i_context.design_filename).with_suffix(".md").name
-            dependencies = {todo.i_context.design_filename, todo.i_context.task_filename}
-            for filename in todo.i_context.codes_filenames:
-                rpath = self.project_repo.src_relative_path / filename
-                dependencies.add(str(rpath))
-            await self.project_repo.resources.code_summary.save(
-                filename=summary_filename, content=summary, dependencies=dependencies
-            )
-            is_pass, reason = await self._is_pass(summary)
-            if not is_pass:
-                todo.i_context.reason = reason
-                tasks.append(todo.i_context.model_dump())
-
-                await self.project_repo.docs.code_summary.save(
-                    filename=Path(todo.i_context.design_filename).name,
-                    content=todo.i_context.model_dump_json(),
-                    dependencies=dependencies,
-                )
-            else:
-                await self.project_repo.docs.code_summary.delete(filename=Path(todo.i_context.design_filename).name)
-
-        logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
-        if not tasks or self.config.max_auto_summarize_code == 0:
-            return Message(
-                content="",
-                role=self.profile,
-                cause_by=SummarizeCode,
-                sent_from=self,
-                send_to="Edward",  # The name of QaEngineer
-            )
-        # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
-        # This parameter is used for debugging the workflow.
-        self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
-        return Message(
-            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
         )
 
     async def _act_code_plan_and_change(self):
@@ -242,8 +189,8 @@ class Engineer(Role):
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
-        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
+        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange])
+        start_qa_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None
         msg = self.rc.news[0]
@@ -255,10 +202,18 @@ class Engineer(Role):
             logger.debug(f"TODO WriteCode:{msg.model_dump_json()}")
             await self._new_code_actions()
             return self.rc.todo
-        if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
-            logger.debug(f"TODO SummarizeCode:{msg.model_dump_json()}")
-            await self._new_summarize_actions()
-            return self.rc.todo
+        if msg.cause_by in start_qa_filters and msg.sent_from == any_to_str(self):
+            logger.debug(f"TODO Start QA:{msg.model_dump_json()}")
+            self.publish_message(
+                Message(
+                    content="Start QA",
+                    role=self.profile,
+                    cause_by=StartQA,
+                    sent_from=self,
+                    send_to="Edward",  # The name of QaEngineer
+                )
+            )
+            return None
         return None
 
     async def _new_coding_context(self, filename, dependency) -> CodingContext:
@@ -351,28 +306,6 @@ class Engineer(Role):
         if self.code_todos:
             self.set_todo(self.code_todos[0])
 
-    async def _new_summarize_actions(self):
-        src_files = self.project_repo.srcs.all_files
-        # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
-        summarizations = defaultdict(list)
-        for filename in src_files:
-            dependencies = await self.project_repo.srcs.get_dependency(filename=filename)
-            ctx = CodeSummarizeContext.loads(filenames=list(dependencies))
-            summarizations[ctx].append(filename)
-        for ctx, filenames in summarizations.items():
-            ctx.codes_filenames = filenames
-            new_summarize = SummarizeCode(i_context=ctx, context=self.context, llm=self.llm)
-            for i, act in enumerate(self.summarize_todos):
-                if act.i_context.task_filename == new_summarize.i_context.task_filename:
-                    self.summarize_todos[i] = new_summarize
-                    new_summarize = None
-                    break
-            if new_summarize:
-                self.summarize_todos.append(new_summarize)
-        if self.summarize_todos:
-            self.set_todo(self.summarize_todos[0])
-            self.summarize_todos.pop(0)
-
     async def _new_code_plan_and_change_action(self, cause_by: str):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
         files = self.project_repo.all_files
@@ -385,11 +318,6 @@ class Engineer(Role):
             options["issue"] = fixbug_doc.content
         code_plan_and_change_ctx = CodePlanAndChangeContext.loads(files, **options)
         self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_ctx, context=self.context, llm=self.llm)
-
-    @property
-    def action_description(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self.next_todo_action
 
     async def _is_fixbug(self) -> bool:
         fixbug_doc = await self.project_repo.docs.get(BUGFIX_FILENAME)
