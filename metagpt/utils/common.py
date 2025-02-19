@@ -571,6 +571,16 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
             raise ValueError(f"read json file: {json_file} failed")
     return data
 
+def wrapper_none_error(func):
+    """Wrapper for ValueError"""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ValueError as e:
+            # the to_jsonable_python of pydantic will raise PydanticSerializationError
+            # return None to call the custom JSONEncoder
+            return None
+    return wrapper
 
 def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4, cls: json.JSONEncoder=None):
     folder_path = Path(json_file).parent
@@ -578,7 +588,8 @@ def write_json_file(json_file: str, data: list, encoding: str = None, indent: in
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, cls=cls, indent=indent, default=to_jsonable_python)
+        json.dump(data, fout, ensure_ascii=False, cls=cls, indent=indent, 
+                  default=wrapper_none_error(to_jsonable_python) if cls else to_jsonable_python)
 
 
 def read_jsonl_file(jsonl_file: str, encoding="utf-8") -> list[dict]:
