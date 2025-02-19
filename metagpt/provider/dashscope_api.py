@@ -4,7 +4,7 @@
 
 import json
 from http import HTTPStatus
-from typing import Any, AsyncGenerator, Dict, List, Union
+from typing import Any, AsyncGenerator, Dict, List, Union, Optional
 
 import dashscope
 from dashscope.aigc.generation import Generation
@@ -30,6 +30,7 @@ from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM, LLMConfig
 from metagpt.provider.llm_provider_registry import LLMType, register_provider
 from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.format import ResponseFormat
 from metagpt.utils.token_counter import DASHSCOPE_TOKEN_COSTS
 
 
@@ -207,16 +208,16 @@ class DashScopeLLM(BaseLLM):
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> GenerationOutput:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> GenerationOutput:
         resp: GenerationResponse = await self.aclient.acall(**self._const_kwargs(messages, stream=False))
         self._check_response(resp)
         self._update_costs(dict(resp.usage))
         return resp.output
 
-    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT) -> GenerationOutput:
+    async def acompletion(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> GenerationOutput:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
         resp = await self.aclient.acall(**self._const_kwargs(messages, stream=True))
         collected_content = []
         usage = {}

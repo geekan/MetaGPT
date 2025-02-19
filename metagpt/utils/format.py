@@ -141,9 +141,10 @@ class JsonResponseFormat(ResponseFormat):
                     "schema": self.update_type(ret | {"type": "object"}, "json_object", "object"),
                 },
             },
-            LLMType.OLLAMA.value: json.dumps(ret | {"type": "object"}),
+            LLMType.OLLAMA.value: ret | {"type": "object"},
             # use just 'json' for ollama version less than 0.5.0
-            'ollama_low_version': 'json'
+            'ollama_low_version': 'json',
+            LLMType.QIANFAN.value: ret | {"type": "json_schema"},
         }
 
 

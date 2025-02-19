@@ -248,11 +248,11 @@ class OllamaLLM(BaseLLM):
             import re
             # if version of ollama is less than 0.5.0, use custom key
             version_pattern = re.compile(r'(\d+)\.(\d+)\.(\d+)')
-            api_verison = version_pattern.match(self.config.api_version)
-            if api_verison is None or api_verison < (0, 5, 0):
-                response_format = response_format.get_response_format_with_custom_key('ollama_low_version')
-            else:
+            api_verison = version_pattern.match(self.config.api_version) if self.config.api_version else None
+            if api_verison is None or tuple(map(int, api_verison.groups())) >= (0, 5, 0):
                 response_format = response_format.get_response_format(LLMType.OLLAMA)
+            else:
+                response_format = response_format.get_response_format_with_custom_key('ollama_low_version')
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.ollama_message.api_suffix,
