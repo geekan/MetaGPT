@@ -1,8 +1,12 @@
+import os
+
 import faiss
 import pytest
 from llama_index.core import VectorStoreIndex
 from llama_index.core.embeddings import MockEmbedding
+from llama_index.core.indices.property_graph import PGRetriever
 from llama_index.core.schema import TextNode
+from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 from llama_index.vector_stores.milvus import MilvusVectorStore
@@ -21,6 +25,7 @@ from metagpt.rag.schema import (
     ElasticsearchStoreConfig,
     FAISSRetrieverConfig,
     MilvusRetrieverConfig,
+    Neo4jPGRetrieverConfig,
 )
 
 
@@ -53,6 +58,10 @@ class TestRetrieverFactory:
         return mocker.MagicMock(spec=ElasticsearchStore)
 
     @pytest.fixture
+    def mock_neo4j_pg_store(self, mocker):
+        return mocker.MagicMock(spec=Neo4jPropertyGraphStore)
+
+    @pytest.fixture
     def mock_nodes(self, mocker):
         return [TextNode(text="msg")]
 
@@ -69,6 +78,9 @@ class TestRetrieverFactory:
 
         assert isinstance(retriever, FAISSRetriever)
 
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], build_graph=True)
+        assert isinstance(retriever, SimpleHybridRetriever)
+
     def test_get_retriever_with_bm25_config(self, mocker, mock_nodes):
         mock_config = BM25RetrieverConfig()
         mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
@@ -77,15 +89,25 @@ class TestRetrieverFactory:
 
         assert isinstance(retriever, DynamicBM25Retriever)
 
-    def test_get_retriever_with_multiple_configs_returns_hybrid(self, mocker, mock_nodes, mock_embedding):
+    def test_get_retriever_with_multiple_configs_returns_hybrid(
+        self, mocker, mock_nodes, mock_neo4j_pg_store, mock_embedding
+    ):
         mock_faiss_config = FAISSRetrieverConfig(dimensions=1)
+        mock_neo4j_pg_config = Neo4jPGRetrieverConfig()
         mock_bm25_config = BM25RetrieverConfig()
         mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
+        mocker.patch("metagpt.rag.factories.retriever.Neo4jPropertyGraphStore", return_value=mock_neo4j_pg_store)
 
         retriever = self.retriever_factory.get_retriever(
             configs=[mock_faiss_config, mock_bm25_config], nodes=mock_nodes, embed_model=mock_embedding
         )
 
+        assert isinstance(retriever, SimpleHybridRetriever)
+
+        os.environ.setdefault("IS_TESTING", "test")  # use MockLLM
+        retriever = self.retriever_factory.get_retriever(
+            configs=[mock_faiss_config, mock_neo4j_pg_config], nodes=mock_nodes, embed_model=mock_embedding
+        )
         assert isinstance(retriever, SimpleHybridRetriever)
 
     def test_get_retriever_with_chroma_config(self, mocker, mock_chroma_vector_store, mock_embedding):
@@ -113,6 +135,15 @@ class TestRetrieverFactory:
         retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
 
         assert isinstance(retriever, ElasticsearchRetriever)
+
+    def test_get_retriever_with_neo4j_pg_config(self, mocker, mock_neo4j_pg_store, mock_embedding):
+        mock_config = Neo4jPGRetrieverConfig()
+        mocker.patch("metagpt.rag.factories.retriever.Neo4jPropertyGraphStore", return_value=mock_neo4j_pg_store)
+        os.environ.setdefault("IS_TESTING", "test")  # use MockLLM
+
+        retriever = self.retriever_factory.get_retriever(configs=[mock_config], nodes=[], embed_model=mock_embedding)
+
+        assert isinstance(retriever, PGRetriever)
 
     def test_create_default_retriever(self, mocker, mock_vector_store_index):
         mocker.patch.object(self.retriever_factory, "_extract_index", return_value=mock_vector_store_index)
