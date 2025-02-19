@@ -48,8 +48,9 @@ ax2.set_title("Degree histogram")
 ax2.set_xlabel("Degree")
 ax2.set_ylabel("# of Nodes")
 
-fig.tight_layout()
-plt.show()
+if __name__ == "__main__":
+    fig.tight_layout()
+    plt.show()
 
 
 class Game:

@@ -149,5 +149,5 @@ _get_human_input = input  # get human input from console by default
 
 
 def _llm_stream_log(msg):
-    if _print_level in ["INFO"]:
+    if _print_level in ["INFO", "DEBUG"]:
         print(msg, end="")
