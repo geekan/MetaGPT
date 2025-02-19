@@ -9,6 +9,7 @@
 """
 
 import warnings
+import json
 from pathlib import Path
 from typing import Any, Optional
 
@@ -40,6 +41,7 @@ class Team(BaseModel):
     env: Optional[Environment] = None
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
+    json_encoder: json.JSONEncoder = Field(default=None, exclude=True)
 
     def __init__(self, context: Context = None, **data: Any):
         super(Team, self).__init__(**data)
@@ -59,7 +61,7 @@ class Team(BaseModel):
         serialized_data = self.model_dump()
         serialized_data["context"] = self.env.context.serialize()
 
-        write_json_file(team_info_path, serialized_data)
+        write_json_file(team_info_path, serialized_data, cls=self.json_encoder)
 
     @classmethod
     def deserialize(cls, stg_path: Path, context: Context = None) -> "Team":
