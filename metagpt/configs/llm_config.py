@@ -38,6 +38,7 @@ class LLMType(Enum):
     OPENROUTER = "openrouter"
     BEDROCK = "bedrock"
     ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
+    UNIFY = "unify"
 
     def __missing__(self, key):
         return self.OPENAI
