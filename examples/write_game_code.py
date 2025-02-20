@@ -2,8 +2,6 @@ import asyncio
 import time
 
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.roles import Architect, ProductManager
-from metagpt.roles.di.data_analyst import DataAnalyst
 from metagpt.roles.di.engineer2 import Engineer2
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import Message
@@ -11,15 +9,7 @@ from metagpt.schema import Message
 
 async def main(requirement="", user_defined_recipient="", enable_human_input=False, allow_idle_time=30):
     env = MGXEnv()
-    env.add_roles(
-        [
-            TeamLeader(),
-            Engineer2(),
-            ProductManager(),
-            Architect(),
-            DataAnalyst(),
-        ]
-    )
+    env.add_roles([TeamLeader(), Engineer2()])
 
     msg = Message(content=requirement)
     env.attach_images(msg)  # attach image content if applicable
