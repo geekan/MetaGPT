@@ -126,19 +126,16 @@ class OpenAILLM(BaseLLM):
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, **extra_kwargs) -> dict:
+        max_token_key = self._get_max_tokens_key()
         kwargs = {
             "messages": messages,
-            "max_tokens": self._get_max_tokens(messages),
+            max_token_key: self._get_max_tokens(messages),
             # "n": 1,  # Some services do not provide this parameter, such as mistral
             # "stop": None,  # default it's None and gpt4-v can't have this one
             "temperature": self.config.temperature,
             "model": self.model,
             "timeout": self.get_timeout(timeout),
         }
-        if "o1-" in self.model:
-            # compatible to openai o1-series
-            kwargs["temperature"] = 1
-            kwargs.pop("max_tokens")
         if extra_kwargs:
             kwargs.update(extra_kwargs)
         return kwargs
@@ -309,3 +306,10 @@ class OpenAILLM(BaseLLM):
             img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
             imgs.append(decode_image(img_url_or_b64))
         return imgs
+
+    def _get_max_tokens_key(self) -> str:
+        pattern = r"^o\d+(-\w+)*$"
+        if re.match(pattern, self.model):
+            # o1 series, see more https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
+            return "max_completion_tokens"
+        return "max_tokens"
