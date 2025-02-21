@@ -80,8 +80,8 @@ class OpenAILLM(BaseLLM):
         params = {}
         if self.config.proxy:
             params = {"proxies": self.config.proxy}
-            if self.config.base_url:
-                params["base_url"] = self.config.base_url
+        if self.config.base_url:
+            params["base_url"] = self.config.base_url
 
         return params
 
