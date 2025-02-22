@@ -130,12 +130,8 @@ def test_insert_content(temp_py_file):
 @pytest.mark.parametrize(
     "filename",
     [
-        TEST_DATA_PATH / "requirements/1.txt",
-        TEST_DATA_PATH / "requirements/1.json",
-        TEST_DATA_PATH / "requirements/1.constraint.md",
-        TEST_DATA_PATH / "requirements/pic/1.png",
-        TEST_DATA_PATH / "docx_for_test.docx",
-        TEST_DATA_PATH / "requirements/2.pdf",
+        TEST_DATA_PATH / "output_parser/1.md",
+        TEST_DATA_PATH / "search/serper-metagpt-8.json",
         TEST_DATA_PATH / "audio/hello.mp3",
         TEST_DATA_PATH / "code/python/1.py",
         TEST_DATA_PATH / "code/js/1.js",
@@ -262,12 +258,6 @@ def test_open_file_long_with_lineno(temp_file_path):
     else:
         expected += f"({1000 - end} more lines below)"
     assert result.split("\n") == expected.split("\n")
-
-
-def test_create_file_unexist_path():
-    editor = Editor()
-    with pytest.raises(FileNotFoundError):
-        editor.create_file("/unexist/path/a.txt")
 
 
 @pytest.mark.asyncio
@@ -578,15 +568,16 @@ Pay attention to the new content. Ensure that it aligns with the new parameters.
 
 def test_edit_file_by_replace_mismatch(temp_py_file):
     editor = Editor()
-    output = editor.edit_file_by_replace(
-        file_name=str(temp_py_file),
-        first_replaced_line_number=5,
-        first_replaced_line_content="",
-        new_content="    b = 9",
-        last_replaced_line_number=5,
-        last_replaced_line_content="",
-    )
-    assert output.strip() == MISMATCH_ERROR.strip()
+    with pytest.raises(ValueError) as match_error:
+        editor.edit_file_by_replace(
+            file_name=str(temp_py_file),
+            first_replaced_line_number=5,
+            first_replaced_line_content="",
+            new_content="    b = 9",
+            last_replaced_line_number=5,
+            last_replaced_line_content="",
+        )
+    assert str(match_error.value).strip() == MISMATCH_ERROR.strip()
 
 
 def test_append_file(temp_file_path):

@@ -37,7 +37,7 @@ class GPTvGenerator:
     It utilizes a vision model to analyze the layout from an image and generate webpage codes accordingly.
     """
 
-    def __init__(self, config: Optional[Config]):
+    def __init__(self, config: Optional[Config] = None):
         """Initialize GPTvGenerator class with default values from the configuration."""
         from metagpt.llm import LLM
 
