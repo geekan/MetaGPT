@@ -6,12 +6,12 @@
 @File    : test_debug_error.py
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
-import uuid
 
 import pytest
 
 from metagpt.actions.debug_error import DebugError
 from metagpt.schema import RunCodeContext, RunCodeResult
+from metagpt.utils.project_repo import ProjectRepo
 
 CODE_CONTENT = '''
 from typing import List
@@ -115,16 +115,15 @@ if __name__ == '__main__':
 
 @pytest.mark.asyncio
 async def test_debug_error(context):
-    context.src_workspace = context.git_repo.workdir / uuid.uuid4().hex
     ctx = RunCodeContext(
         code_filename="player.py",
         test_filename="test_player.py",
         command=["python", "tests/test_player.py"],
         output_filename="output.log",
     )
-
-    await context.repo.with_src_path(context.src_workspace).srcs.save(filename=ctx.code_filename, content=CODE_CONTENT)
-    await context.repo.tests.save(filename=ctx.test_filename, content=TEST_CONTENT)
+    repo = ProjectRepo(context.config.project_path)
+    await repo.srcs.save(filename=ctx.code_filename, content=CODE_CONTENT)
+    await repo.tests.save(filename=ctx.test_filename, content=TEST_CONTENT)
     output_data = RunCodeResult(
         stdout=";",
         stderr="",
@@ -138,7 +137,7 @@ async def test_debug_error(context):
         "----------------------------------------------------------------------\n"
         "Ran 5 tests in 0.007s\n\nFAILED (failures=1)\n;\n",
     )
-    await context.repo.test_outputs.save(filename=ctx.output_filename, content=output_data.model_dump_json())
+    await repo.test_outputs.save(filename=ctx.output_filename, content=output_data.model_dump_json())
     debug_error = DebugError(i_context=ctx, context=context)
 
     rsp = await debug_error.run()

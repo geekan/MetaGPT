@@ -47,6 +47,7 @@ from metagpt.schema import (
     Message,
 )
 from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
+from metagpt.utils.git_repository import GitRepository
 
 IS_PASS_PROMPT = """
 {context}
@@ -239,8 +240,6 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
-        if not self.src_workspace:
-            self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks, FixBug])
         write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
@@ -340,7 +339,8 @@ class Engineer(Role):
             WriteCode(i_context=i, context=self.context, llm=self.llm) for i in changed_files.docs.values()
         ]
         # Code directly modified by the user.
-        dependency = await self.git_repo.get_dependency()
+        git_repo = GitRepository(local_path=self.context.config.project_path, auto_init=False)
+        dependency = await git_repo.get_dependency()
         for filename in changed_src_files:
             if filename in changed_files.docs:
                 continue

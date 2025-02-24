@@ -12,6 +12,7 @@ import pytest
 
 from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.llm import LLM
+from metagpt.utils.project_repo import ProjectRepo
 
 
 @pytest.mark.asyncio
@@ -25,7 +26,8 @@ async def test_rebuild(context):
     await action.run()
     rows = await action.graph_db.select()
     assert rows
-    assert context.repo.docs.graph_repo.changed_files
+    repo = ProjectRepo(context.config.project_path)
+    assert repo.docs.graph_repo.changed_files
 
 
 @pytest.mark.parametrize(

@@ -21,6 +21,7 @@ from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
+from metagpt.utils.git_repository import GitRepository
 
 if TYPE_CHECKING:
     from metagpt.roles.role import Role  # noqa: F401
@@ -239,8 +240,13 @@ class Environment(ExtEnv):
         self.member_addrs[obj] = addresses
 
     def archive(self, auto_archive=True):
-        if auto_archive and self.context.git_repo:
-            self.context.git_repo.archive()
+        if (
+            auto_archive
+            and self.context.config.project_path
+            and GitRepository.is_git_dir(self.context.config.project_path)
+        ):
+            git_repo = GitRepository(local_path=self.context.config.project_path, auto_init=False)
+            git_repo.archive()
 
     @classmethod
     def model_rebuild(cls, **kwargs):

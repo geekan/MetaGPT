@@ -12,8 +12,6 @@ from metagpt.actions.rebuild_sequence_view import RebuildSequenceView
 from metagpt.context import Context
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.utils.git_repository import GitRepository
-from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -59,8 +57,7 @@ def _is_python_package_root(package_root: Path) -> bool:
 
 async def reverse_engineering(package_root: Path, output_dir: Path):
     ctx = Context()
-    ctx.git_repo = GitRepository(output_dir)
-    ctx.repo = ProjectRepo(ctx.git_repo)
+    ctx.config.project_path = str(output_dir)
     action = RebuildClassView(name="ReverseEngineering", i_context=str(package_root), llm=LLM(), context=ctx)
     await action.run()
 

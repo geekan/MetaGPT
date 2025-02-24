@@ -13,6 +13,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -97,11 +98,12 @@ class SummarizeCode(Action):
         return code_rsp
 
     async def run(self):
+        repo = ProjectRepo(self.config.project_path)
         design_pathname = Path(self.i_context.design_filename)
-        design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
+        design_doc = await repo.docs.system_design.get(filename=design_pathname.name)
         task_pathname = Path(self.i_context.task_filename)
-        task_doc = await self.repo.docs.task.get(filename=task_pathname.name)
-        src_file_repo = self.repo.with_src_path(self.context.src_workspace).srcs
+        task_doc = await repo.docs.task.get(filename=task_pathname.name)
+        src_file_repo = repo.with_src_path(self.context.src_workspace).srcs
         code_blocks = []
         for filename in self.i_context.codes_filenames:
             code_doc = await src_file_repo.get(filename)

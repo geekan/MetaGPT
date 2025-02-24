@@ -24,7 +24,6 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
-from metagpt.utils.project_repo import ProjectRepo
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
@@ -50,12 +49,6 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
             llm.cost_manager = data.llm.cost_manager
             data.llm = llm
         return data
-
-    @property
-    def repo(self) -> ProjectRepo:
-        if not self.context.repo:
-            self.context.repo = ProjectRepo(self.context.git_repo)
-        return self.context.repo
 
     @property
     def prompt_schema(self):

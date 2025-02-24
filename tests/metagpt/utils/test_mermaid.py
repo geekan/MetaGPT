@@ -20,7 +20,7 @@ async def test_mermaid(engine, context, mermaid_mocker):
     # playwright prerequisites: playwright install --with-deps chromium
     assert check_cmd_exists("npm") == 0
 
-    save_to = context.git_repo.workdir / f"{engine}/1"
+    save_to = context.config.project_path / f"{engine}/1"
     await mermaid_to_file(engine, MMC1, save_to)
 
     # ink does not support pdf

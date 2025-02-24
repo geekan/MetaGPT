@@ -91,13 +91,14 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
+        repo = ProjectRepo(self.config.project_path)
+        bug_feedback = await repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
-        test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
-        requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
+        test_doc = await repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
+        requirement_doc = await repo.docs.get(filename=REQUIREMENT_FILENAME)
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
-            summary_doc = await self.repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
+            summary_doc = await repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
@@ -107,13 +108,13 @@ class WriteCode(Action):
             code_context = coding_context.code_doc.content
         elif self.config.inc:
             code_context = await self.get_codes(
-                coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, use_inc=True
+                coding_context.task_doc, exclude=self.i_context.filename, project_repo=repo, use_inc=True
             )
         else:
             code_context = await self.get_codes(
                 coding_context.task_doc,
                 exclude=self.i_context.filename,
-                project_repo=self.repo.with_src_path(self.context.src_workspace),
+                project_repo=repo,
             )
 
         if self.config.inc:
@@ -173,20 +174,16 @@ class WriteCode(Action):
         # Incremental development scenario
         if use_inc:
             src_files = src_file_repo.all_files
-            # Get the old workspace contained the old codes and old workspace are created in previous CodePlanAndChange
-            old_file_repo = project_repo.git_repo.new_file_repository(relative_path=project_repo.old_workspace)
-            old_files = old_file_repo.all_files
             # Get the union of the files in the src and old workspaces
-            union_files_list = list(set(src_files) | set(old_files))
-            for filename in union_files_list:
+            for filename in src_files:
                 # Exclude the current file from the all code snippets
                 if filename == exclude:
                     # If the file is in the old workspace, use the old code
                     # Exclude unnecessary code to maintain a clean and focused main.py file, ensuring only relevant and
                     # essential functionality is included for the project’s requirements
-                    if filename in old_files and filename != "main.py":
+                    if filename in src_files and filename != "main.py":
                         # Use old code
-                        doc = await old_file_repo.get(filename=filename)
+                        doc = await src_file_repo.get(filename=filename)
                     # If the file is in the src workspace, skip it
                     else:
                         continue

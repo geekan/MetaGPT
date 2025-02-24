@@ -15,6 +15,7 @@ from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles import ProductManager
 from metagpt.utils.common import any_to_str
+from metagpt.utils.git_repository import GitRepository
 from tests.metagpt.roles.mock import MockMessages
 
 
@@ -22,13 +23,10 @@ from tests.metagpt.roles.mock import MockMessages
 async def test_product_manager(new_filename):
     context = Context()
     try:
-        assert context.git_repo is None
-        assert context.repo is None
+        assert not GitRepository.is_git_dir(context.config.project_path)
         product_manager = ProductManager(context=context)
         # prepare documents
         rsp = await product_manager.run(MockMessages.req)
-        assert context.git_repo
-        assert context.repo
         assert REQUIREMENT_FILENAME in context.repo.docs.changed_files
         assert rsp.cause_by == any_to_str(WritePRD)
         logger.info(rsp)
@@ -43,7 +41,7 @@ async def test_product_manager(new_filename):
     except Exception as e:
         assert not e
     finally:
-        context.git_repo.delete_repository()
+        GitRepository(context.config.project_path).delete_repository()
 
 
 if __name__ == "__main__":

@@ -125,7 +125,7 @@ class ProjectRepo(FileRepository):
     @property
     def srcs(self) -> FileRepository:
         if not self._srcs_path:
-            raise ValueError("Call with_srcs first.")
+            self._srcs_path = self.workdir.name
         return self._git_repo.new_file_repository(self._srcs_path)
 
     def code_files_exists(self) -> bool:

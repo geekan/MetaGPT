@@ -19,6 +19,7 @@ from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.utils.git_repository import ChangeType
+from metagpt.utils.project_repo import ProjectRepo
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
@@ -104,19 +105,20 @@ def test_todo():
 
 @pytest.mark.asyncio
 async def test_new_coding_context(context):
+    repo = ProjectRepo(context.config.project_path)
     # Prerequisites
     demo_path = Path(__file__).parent / "../../data/demo_project"
     deps = json.loads(await aread(demo_path / "dependencies.json"))
-    dependency = await context.git_repo.get_dependency()
+    dependency = await repo.git_repo.get_dependency()
     for k, v in deps.items():
         await dependency.update(k, set(v))
     data = await aread(demo_path / "system_design.json")
     rqno = "20231221155954.json"
-    await awrite(context.repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
+    await awrite(repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
     data = await aread(demo_path / "tasks.json")
-    await awrite(context.repo.workdir / TASK_FILE_REPO / rqno, data)
+    await awrite(repo.workdir / TASK_FILE_REPO / rqno, data)
 
-    context.src_workspace = Path(context.repo.workdir) / "game_2048"
+    repo.with_src_path("game_2048")
 
     try:
         filename = "game.py"
@@ -136,15 +138,15 @@ async def test_new_coding_context(context):
         assert ctx.task_doc.content
         assert ctx.code_doc
 
-        context.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
-        context.git_repo.commit("mock env")
-        await context.repo.with_src_path(context.src_workspace).srcs.save(filename=filename, content="content")
+        repo.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
+        repo.git_repo.commit("mock env")
+        await repo.with_src_path(context.src_workspace).srcs.save(filename=filename, content="content")
         role = Engineer(context=context)
         assert not role.code_todos
         await role._new_code_actions()
         assert role.code_todos
     finally:
-        context.git_repo.delete_repository()
+        repo.git_repo.delete_repository()
 
 
 if __name__ == "__main__":

@@ -22,8 +22,6 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
 from metagpt.context import Context as MetagptContext
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.utils.git_repository import GitRepository
-from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
 from tests.mock.mock_httplib2 import MockHttplib2Response
@@ -149,16 +147,7 @@ def loguru_caplog(caplog):
 @pytest.fixture(scope="function")
 def context(request):
     ctx = MetagptContext()
-    ctx.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
-    ctx.repo = ProjectRepo(ctx.git_repo)
-
-    # Destroy git repo at the end of the test session.
-    def fin():
-        if ctx.git_repo:
-            ctx.git_repo.delete_repository()
-
-    # Register the function for destroying the environment.
-    request.addfinalizer(fin)
+    ctx.config.project_path = DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}"
     return ctx
 
 

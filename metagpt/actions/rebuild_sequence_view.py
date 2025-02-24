@@ -36,6 +36,7 @@ from metagpt.utils.common import (
 )
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import SPO, GraphKeyword, GraphRepository
+from metagpt.utils.project_repo import ProjectRepo
 
 
 class ReverseUseCase(BaseModel):
@@ -92,15 +93,16 @@ class RebuildSequenceView(Action):
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
         """
-        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
+        repo = ProjectRepo(self.config.project_path)
+        graph_repo_pathname = repo.workdir / GRAPH_REPO_FILE_REPO / repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         if not self.i_context:
             entries = await self._search_main_entry()
         else:
             entries = [SPO(subject=self.i_context, predicate="", object_="")]
         for entry in entries:
-            await self._rebuild_main_sequence_view(entry)
-            while await self._merge_sequence_view(entry):
+            await self._rebuild_main_sequence_view(entry, repo=repo)
+            while await self._merge_sequence_view(entry, repo=repo):
                 pass
         await self.graph_db.save()
 
@@ -109,7 +111,7 @@ class RebuildSequenceView(Action):
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
-    async def _rebuild_main_sequence_view(self, entry: SPO):
+    async def _rebuild_main_sequence_view(self, entry: SPO, repo: ProjectRepo):
         """
         Reconstruct the sequence diagram for the __main__ entry of the source code through reverse engineering.
 
@@ -185,9 +187,9 @@ class RebuildSequenceView(Action):
             await self.graph_db.insert(
                 subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=auto_namespace(c.subject)
             )
-        await self._save_sequence_view(subject=entry.subject, content=sequence_view)
+        await self._save_sequence_view(subject=entry.subject, content=sequence_view, repo=repo)
 
-    async def _merge_sequence_view(self, entry: SPO) -> bool:
+    async def _merge_sequence_view(self, entry: SPO, repo: ProjectRepo) -> bool:
         """
         Augments additional information to the provided SPO (Subject, Predicate, Object) entry in the sequence diagram.
 
@@ -201,7 +203,7 @@ class RebuildSequenceView(Action):
         if not new_participant:
             return False
 
-        await self._merge_participant(entry, new_participant)
+        await self._merge_participant(entry, new_participant, repo=repo)
         return True
 
     async def _search_main_entry(self) -> List:
@@ -522,7 +524,7 @@ class RebuildSequenceView(Action):
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
-    async def _merge_participant(self, entry: SPO, class_name: str):
+    async def _merge_participant(self, entry: SPO, class_name: str, repo: ProjectRepo):
         """
         Augments the sequence diagram of `class_name` to the sequence diagram of `entry`.
 
@@ -583,13 +585,14 @@ class RebuildSequenceView(Action):
         await self.graph_db.insert(
             subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=auto_namespace(participant.subject)
         )
-        await self._save_sequence_view(subject=entry.subject, content=sequence_view)
+        await self._save_sequence_view(subject=entry.subject, content=sequence_view, repo=repo)
 
-    async def _save_sequence_view(self, subject: str, content: str):
+    @staticmethod
+    async def _save_sequence_view(subject: str, content: str, repo: ProjectRepo):
         pattern = re.compile(r"[^a-zA-Z0-9]")
         name = re.sub(pattern, "_", subject)
         filename = Path(name).with_suffix(".sequence_diagram.mmd")
-        await self.context.repo.resources.data_api_design.save(filename=str(filename), content=content)
+        await repo.resources.data_api_design.save(filename=str(filename), content=content)
 
     async def _search_participants(self, filename: str) -> Set:
         content = await self._get_source_code(filename)

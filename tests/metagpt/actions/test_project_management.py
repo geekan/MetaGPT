@@ -12,6 +12,7 @@ from metagpt.actions.project_management import WriteTasks
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
+from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import (
     REFINED_DESIGN_JSON,
     REFINED_PRD_JSON,
@@ -22,9 +23,10 @@ from tests.metagpt.actions.mock_json import DESIGN, PRD
 
 @pytest.mark.asyncio
 async def test_task(context):
-    await context.repo.docs.prd.save("1.txt", content=str(PRD))
-    await context.repo.docs.system_design.save("1.txt", content=str(DESIGN))
-    logger.info(context.git_repo)
+    repo = ProjectRepo(context.config.project_path)
+    await repo.docs.prd.save("1.txt", content=str(PRD))
+    await repo.docs.system_design.save("1.txt", content=str(DESIGN))
+    logger.info(repo.git_repo)
 
     action = WriteTasks(context=context)
 
@@ -36,11 +38,12 @@ async def test_task(context):
 
 @pytest.mark.asyncio
 async def test_refined_task(context):
-    await context.repo.docs.prd.save("2.txt", content=str(REFINED_PRD_JSON))
-    await context.repo.docs.system_design.save("2.txt", content=str(REFINED_DESIGN_JSON))
-    await context.repo.docs.task.save("2.txt", content=TASK_SAMPLE)
+    repo = ProjectRepo(context.config.project_path)
+    await repo.docs.prd.save("2.txt", content=str(REFINED_PRD_JSON))
+    await repo.docs.system_design.save("2.txt", content=str(REFINED_DESIGN_JSON))
+    await repo.docs.task.save("2.txt", content=TASK_SAMPLE)
 
-    logger.info(context.git_repo)
+    logger.info(repo.git_repo)
 
     action = WriteTasks(context=context, llm=LLM())
 

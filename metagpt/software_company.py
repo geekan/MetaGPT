@@ -77,7 +77,7 @@ def generate_repo(
     if config.agentops_api_key != "":
         agentops.end_session("Success")
 
-    return ctx.repo
+    return ProjectRepo(ctx.config.project_path)
 
 
 @app.command("", help="Start a new project.")

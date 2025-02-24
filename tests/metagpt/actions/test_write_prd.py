@@ -16,6 +16,7 @@ from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
+from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import NEW_REQUIREMENT_SAMPLE, PRD_SAMPLE
 from tests.metagpt.actions.test_write_code import setup_inc_workdir
 
@@ -56,13 +57,10 @@ async def test_write_prd_inc(new_filename, context, git_dir):
 
 @pytest.mark.asyncio
 async def test_fix_debug(new_filename, context, git_dir):
-    context.src_workspace = context.git_repo.workdir / context.git_repo.workdir.name
-
-    await context.repo.with_src_path(context.src_workspace).srcs.save(
-        filename="main.py", content='if __name__ == "__main__":\nmain()'
-    )
+    repo = ProjectRepo(context.config.project_path)
+    await repo.srcs.save(filename="main.py", content='if __name__ == "__main__":\nmain()')
     requirements = "Please fix the bug in the code."
-    await context.repo.docs.save(filename=REQUIREMENT_FILENAME, content=requirements)
+    await repo.docs.save(filename=REQUIREMENT_FILENAME, content=requirements)
     action = WritePRD(context=context)
 
     prd = await action.run(Message(content=requirements, instruct_content=None))

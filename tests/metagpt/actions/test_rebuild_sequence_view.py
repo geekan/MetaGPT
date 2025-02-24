@@ -16,17 +16,19 @@ from metagpt.llm import LLM
 from metagpt.utils.common import aread
 from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.graph_repository import SPO
+from metagpt.utils.project_repo import ProjectRepo
 
 
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context, mocker):
+    repo = ProjectRepo(context.config.project_path)
     # Mock
     data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.class_view.json")
-    graph_db_filename = Path(context.repo.workdir.name).with_suffix(".json")
-    await context.repo.docs.graph_repo.save(filename=str(graph_db_filename), content=data)
-    context.git_repo.add_change({f"{GRAPH_REPO_FILE_REPO}/{graph_db_filename}": ChangeType.UNTRACTED})
-    context.git_repo.commit("commit1")
+    graph_db_filename = Path(repo.workdir.name).with_suffix(".json")
+    await repo.docs.graph_repo.save(filename=str(graph_db_filename), content=data)
+    repo.git_repo.add_change({f"{GRAPH_REPO_FILE_REPO}/{graph_db_filename}": ChangeType.UNTRACTED})
+    repo.git_repo.commit("commit1")
     # mock_spo = SPO(
     #     subject="metagpt/startup.py:__name__:__main__",
     #     predicate="has_page_info",
@@ -50,7 +52,7 @@ async def test_rebuild(context, mocker):
     await action.run()
     rows = await action.graph_db.select()
     assert rows
-    assert context.repo.docs.graph_repo.changed_files
+    assert repo.docs.graph_repo.changed_files
 
 
 @pytest.mark.parametrize(

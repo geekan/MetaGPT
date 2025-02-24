@@ -28,6 +28,7 @@ from metagpt.schema import UMLClassView
 from metagpt.utils.common import concat_namespace, split_namespace
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
+from metagpt.utils.project_repo import ProjectRepo
 
 
 class RebuildClassView(Action):
@@ -48,7 +49,8 @@ class RebuildClassView(Action):
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
         """
-        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
+        repo = ProjectRepo(self.config.project_path)
+        graph_repo_pathname = repo.workdir / GRAPH_REPO_FILE_REPO / repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=Path(self.i_context))
         # use pylint
@@ -63,19 +65,19 @@ class RebuildClassView(Action):
             # Align to the same root directory in accordance with `class_views`.
             file_info.file = self._align_root(file_info.file, direction, diff_path)
             await GraphRepository.update_graph_db_with_file_info(self.graph_db, file_info)
-        await self._create_mermaid_class_views()
+        await self._create_mermaid_class_views(repo)
         await self.graph_db.save()
 
-    async def _create_mermaid_class_views(self) -> str:
+    async def _create_mermaid_class_views(self, repo: ProjectRepo) -> str:
         """Creates a Mermaid class diagram using data from the `graph_db` graph repository.
 
         This method utilizes information stored in the graph repository to generate a Mermaid class diagram.
         Returns:
             mermaid class diagram file name.
         """
-        path = self.context.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
+        path = repo.workdir / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
-        pathname = path / self.context.git_repo.workdir.name
+        pathname = path / repo.workdir.name
         filename = str(pathname.with_suffix(".class_diagram.mmd"))
         async with aiofiles.open(filename, mode="w", encoding="utf-8") as writer:
             content = "classDiagram\n"
@@ -99,7 +101,7 @@ class RebuildClassView(Action):
         logger.info(f"classes: {len(class_distinct)}, relationship: {len(relationship_distinct)}")
 
         if self.i_context:
-            r_filename = Path(filename).relative_to(self.context.git_repo.workdir)
+            r_filename = Path(filename).relative_to(repo.workdir)
             await self.graph_db.insert(
                 subject=self.i_context, predicate="hasMermaidClassDiagramFile", object_=str(r_filename)
             )

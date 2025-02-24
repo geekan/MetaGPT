@@ -19,6 +19,7 @@ from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
+from metagpt.utils.project_repo import ProjectRepo
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -34,20 +35,21 @@ class WriteTasks(Action):
     i_context: Optional[str] = None
 
     async def run(self, with_messages):
-        changed_system_designs = self.repo.docs.system_design.changed_files
-        changed_tasks = self.repo.docs.task.changed_files
+        repo = ProjectRepo(self.config.project_path)
+        changed_system_designs = repo.docs.system_design.changed_files
+        changed_tasks = repo.docs.task.changed_files
         change_files = Documents()
         # Rewrite the system designs that have undergone changes based on the git head diff under
         # `docs/system_designs/`.
         for filename in changed_system_designs:
-            task_doc = await self._update_tasks(filename=filename)
+            task_doc = await self._update_tasks(filename=filename, repo=repo)
             change_files.docs[filename] = task_doc
 
         # Rewrite the task files that have undergone changes based on the git head diff under `docs/tasks/`.
         for filename in changed_tasks:
             if filename in change_files.docs:
                 continue
-            task_doc = await self._update_tasks(filename=filename)
+            task_doc = await self._update_tasks(filename=filename, repo=repo)
             change_files.docs[filename] = task_doc
 
         if not change_files.docs:
@@ -56,20 +58,20 @@ class WriteTasks(Action):
         # global optimization in subsequent steps.
         return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
-    async def _update_tasks(self, filename):
-        system_design_doc = await self.repo.docs.system_design.get(filename)
-        task_doc = await self.repo.docs.task.get(filename)
+    async def _update_tasks(self, filename, repo: ProjectRepo):
+        system_design_doc = await repo.docs.system_design.get(filename)
+        task_doc = await repo.docs.task.get(filename)
         if task_doc:
             task_doc = await self._merge(system_design_doc=system_design_doc, task_doc=task_doc)
-            await self.repo.docs.task.save_doc(doc=task_doc, dependencies={system_design_doc.root_relative_path})
+            await repo.docs.task.save_doc(doc=task_doc, dependencies={system_design_doc.root_relative_path})
         else:
             rsp = await self._run_new_tasks(context=system_design_doc.content)
-            task_doc = await self.repo.docs.task.save(
+            task_doc = await repo.docs.task.save(
                 filename=filename,
                 content=rsp.instruct_content.model_dump_json(),
                 dependencies={system_design_doc.root_relative_path},
             )
-        await self._update_requirements(task_doc)
+        await self._update_requirements(task_doc, repo=repo)
         return task_doc
 
     async def _run_new_tasks(self, context):
@@ -82,10 +84,11 @@ class WriteTasks(Action):
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
-    async def _update_requirements(self, doc):
+    @staticmethod
+    async def _update_requirements(doc, repo: ProjectRepo):
         m = json.loads(doc.content)
         packages = set(m.get("Required packages", set()))
-        requirement_doc = await self.repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
+        requirement_doc = await repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
             requirement_doc = Document(filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content="")
         lines = requirement_doc.content.splitlines()
@@ -93,4 +96,4 @@ class WriteTasks(Action):
             if pkg == "":
                 continue
             packages.add(pkg)
-        await self.repo.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
+        await repo.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))

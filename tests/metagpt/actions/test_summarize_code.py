@@ -12,6 +12,7 @@ import pytest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_llm import MockLLM
 
 DESIGN_CONTENT = """
@@ -255,17 +256,17 @@ The code consists of the main game logic, including the Game, Snake, and Food cl
 
 @pytest.mark.asyncio
 async def test_summarize_code(context, mocker):
-    context.src_workspace = context.git_repo.workdir / "src"
-    await context.repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
-    await context.repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
-    await context.repo.with_src_path(context.src_workspace).srcs.save(filename="food.py", content=FOOD_PY)
-    assert context.repo.srcs.workdir == context.src_workspace
-    await context.repo.srcs.save(filename="game.py", content=GAME_PY)
-    await context.repo.srcs.save(filename="main.py", content=MAIN_PY)
-    await context.repo.srcs.save(filename="snake.py", content=SNAKE_PY)
+    repo = ProjectRepo(context.config.project_path)
+    await repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
+    await repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
+    await repo.srcs.save(filename="food.py", content=FOOD_PY)
+    assert repo.srcs.workdir == repo.workdir / "src"
+    await repo.srcs.save(filename="game.py", content=GAME_PY)
+    await repo.srcs.save(filename="main.py", content=MAIN_PY)
+    await repo.srcs.save(filename="snake.py", content=SNAKE_PY)
     mocker.patch.object(MockLLM, "_mock_rsp", return_value=mock_rsp)
 
-    all_files = context.repo.srcs.all_files
+    all_files = repo.srcs.all_files
     summarization_context = CodeSummarizeContext(
         design_filename="1.json", task_filename="1.json", codes_filenames=all_files
     )

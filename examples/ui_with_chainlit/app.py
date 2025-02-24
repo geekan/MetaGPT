@@ -10,8 +10,10 @@ from metagpt.roles import (
 )
 from metagpt.team import Team
 
-
 # https://docs.chainlit.io/concepts/starters
+from metagpt.utils.project_repo import ProjectRepo
+
+
 @cl.set_chat_profiles
 async def chat_profile() -> list[cl.ChatProfile]:
     """Generates a chat profile containing starter messages which can be triggered to run MetaGPT
@@ -67,9 +69,9 @@ async def startup(message: cl.Message) -> None:
 
     await company.run(n_round=5)
 
-    workdir = company.env.context.git_repo.workdir
-    files = company.env.context.git_repo.get_files(workdir)
-    files = "\n".join([f"{workdir}/{file}" for file in files if not file.startswith(".git")])
+    repo = ProjectRepo(company.env.context.config.project_path)
+    files = repo.git_repo.get_files(repo.workdir)
+    files = "\n".join([f"{repo.workdir}/{file}" for file in files if not file.startswith(".git")])
 
     await cl.Message(
         content=f"""

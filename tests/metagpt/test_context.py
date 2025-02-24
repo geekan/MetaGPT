@@ -45,8 +45,6 @@ def test_attr_dict_5():
 def test_context_1():
     ctx = Context()
     assert ctx.config is not None
-    assert ctx.git_repo is None
-    assert ctx.src_workspace is None
     assert ctx.cost_manager is not None
 
 

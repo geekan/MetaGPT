@@ -5,7 +5,6 @@
 @Author  : mannaandpoem
 @File    : write_code_plan_and_change_an.py
 """
-import os
 from typing import List
 
 from pydantic import Field
@@ -14,6 +13,7 @@ from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
 from metagpt.schema import CodePlanAndChangeContext
+from metagpt.utils.project_repo import ProjectRepo
 
 DEVELOPMENT_PLAN = ActionNode(
     key="Development Plan",
@@ -208,25 +208,24 @@ class WriteCodePlanAndChange(Action):
     i_context: CodePlanAndChangeContext = Field(default_factory=CodePlanAndChangeContext)
 
     async def run(self, *args, **kwargs):
+        repo = ProjectRepo(self.config.project_path)
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
         "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
-        prd_doc = await self.repo.docs.prd.get(filename=self.i_context.prd_filename)
-        design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
-        task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
+        prd_doc = await repo.docs.prd.get(filename=self.i_context.prd_filename)
+        design_doc = await repo.docs.system_design.get(filename=self.i_context.design_filename)
+        task_doc = await repo.docs.task.get(filename=self.i_context.task_filename)
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
             requirement=f"```text\n{self.i_context.requirement}\n```",
             issue=f"```text\n{self.i_context.issue}\n```",
             prd=prd_doc.content,
             design=design_doc.content,
             task=task_doc.content,
-            code=await self.get_old_codes(),
+            code=await self.get_old_codes(repo),
         )
         logger.info("Writing code plan and change..")
         return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
 
-    async def get_old_codes(self) -> str:
-        self.repo.old_workspace = self.repo.git_repo.workdir / os.path.basename(self.config.project_path)
-        old_file_repo = self.repo.git_repo.new_file_repository(relative_path=self.repo.old_workspace)
-        old_codes = await old_file_repo.get_all()
+    async def get_old_codes(self, repo: ProjectRepo) -> str:
+        old_codes = await repo.srcs.get_all()
         codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
         return "\n".join(codes)

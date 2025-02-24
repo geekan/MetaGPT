@@ -17,6 +17,7 @@ from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
+from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """
 # System
@@ -145,6 +146,7 @@ class WriteCodeReview(Action):
         return result, code
 
     async def run(self, *args, **kwargs) -> CodingContext:
+        repo = ProjectRepo(self.config.project_path)
         iterative_code = self.i_context.code_doc.content
         k = self.context.config.code_review_k_times or 1
 
@@ -154,7 +156,7 @@ class WriteCodeReview(Action):
             code_context = await WriteCode.get_codes(
                 self.i_context.task_doc,
                 exclude=self.i_context.filename,
-                project_repo=self.repo.with_src_path(self.context.src_workspace),
+                project_repo=repo,
                 use_inc=self.config.inc,
             )
 
@@ -164,7 +166,7 @@ class WriteCodeReview(Action):
                 "## Code Files\n" + code_context + "\n",
             ]
             if self.config.inc:
-                requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
+                requirement_doc = await repo.docs.get(filename=REQUIREMENT_FILENAME)
                 insert_ctx_list = [
                     "## User New Requirements\n" + str(requirement_doc) + "\n",
                     "## Code Plan And Change\n" + str(self.i_context.code_plan_and_change_doc) + "\n",
