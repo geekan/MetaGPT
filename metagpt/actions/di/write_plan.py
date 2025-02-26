@@ -65,10 +65,14 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
         # handle a single task
         if current_plan.has_task_id(tasks[0].task_id):
             # replace an existing task
-            current_plan.replace_task(tasks[0])
+            current_plan.replace_task(
+                tasks[0].task_id, tasks[0].dependent_task_ids, tasks[0].instruction, tasks[0].assignee
+            )
         else:
             # append one task
-            current_plan.append_task(tasks[0])
+            current_plan.append_task(
+                tasks[0].task_id, tasks[0].dependent_task_ids, tasks[0].instruction, tasks[0].assignee
+            )
 
     else:
         # add tasks in general

@@ -13,8 +13,7 @@ from typing import List, Optional, Union
 import tiktoken
 from pydantic import BaseModel, ConfigDict
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.tools.libs.index_repo import DEFAULT_MIN_TOKEN_COUNT, IndexRepo
+from metagpt.const import DEFAULT_MIN_TOKEN_COUNT, DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.libs.linter import Linter
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import awrite
@@ -1125,7 +1124,12 @@ class Editor(BaseModel):
             >>> texts: List[str] = await Editor.similarity_search(query=query, path=file_or_path)
             >>> print(texts)
         """
-        return await IndexRepo.cross_repo_search(query=query, file_or_path=path)
+        try:
+            from metagpt.tools.libs.index_repo import IndexRepo
+
+            return await IndexRepo.cross_repo_search(query=query, file_or_path=path)
+        except ImportError:
+            raise ImportError("To use the similarity search, you need to install the RAG module.")
 
     @staticmethod
     def is_large_file(content: str, mix_token_count: int = 0) -> bool:

@@ -22,13 +22,13 @@ Note: All required dependencies and environments have been fully installed and c
 """
     di = DataInterpreter(
         tools=[
-            "write_prd",
-            "write_design",
-            "write_project_plan",
-            "write_codes",
-            "run_qa_test",
-            "fix_bug",
-            "git_archive",
+            "WritePRD",
+            "WriteDesign",
+            "WritePlan",
+            "WriteCode",
+            "RunCode",
+            "DebugError",
+            # "git_archive",
         ]
     )
 
