@@ -32,5 +32,20 @@ Enter project folder `generative_agents`
 Enter `environment/frontend_server` and use `python3 manage.py runserver` to start the front-end service.  
 Visit `http://localhost:8000/simulator_home` to enter the current simulation interface.  
 
-## Appreciation
-The reproduction work has referred the `https://github.com/joonspk-research/generative_agents`, let's make a general statement here.  
+## Acknowledgements
+The reproduction work has referred the [generative_agents](https://github.com/joonspk-research/generative_agents), let's make a general statement here.  
+
+### Citation
+```bib
+@inproceedings{Park2023GenerativeAgents,  
+author = {Park, Joon Sung and O'Brien, Joseph C. and Cai, Carrie J. and Morris, Meredith Ringel and Liang, Percy and Bernstein, Michael S.},  
+title = {Generative Agents: Interactive Simulacra of Human Behavior},  
+year = {2023},  
+publisher = {Association for Computing Machinery},  
+address = {New York, NY, USA},  
+booktitle = {In the 36th Annual ACM Symposium on User Interface Software and Technology (UIST '23)},  
+keywords = {Human-AI interaction, agents, generative AI, large language models},  
+location = {San Francisco, CA, USA},  
+series = {UIST '23}
+}
+```

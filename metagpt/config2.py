@@ -55,7 +55,10 @@ class Config(CLIParams, YamlModel):
     # RAG Embedding
     embedding: EmbeddingConfig = EmbeddingConfig()
 
-    # Global Proxy. Not used by LLM, but by other tools such as browsers.
+    # omniparse
+    omniparse: OmniParseConfig = OmniParseConfig()
+
+    # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
     # Tool Parameters
@@ -86,14 +89,13 @@ class Config(CLIParams, YamlModel):
     iflytek_api_key: str = ""
     azure_tts_subscription_key: str = ""
     azure_tts_region: str = ""
+    _extra: dict = dict()  # extra config dict
 
     # Role's custom configuration
     roles: Optional[List[RoleCustomConfig]] = None
 
     # RoleZero's configuration
     role_zero: RoleZeroConfig = Field(default_factory=RoleZeroConfig)
-
-    omniparse: Optional[OmniParseConfig] = None
 
     @classmethod
     def from_home(cls, path):
@@ -104,7 +106,7 @@ class Config(CLIParams, YamlModel):
         return Config.from_yaml_file(pathname)
 
     @classmethod
-    def default(cls, reload: bool = False, **kwargs):
+    def default(cls, reload: bool = False, **kwargs) -> "Config":
         """Load default config
         - Priority: env < default_config_paths
         - Inside default_config_paths, the latter one overwrites the former one
@@ -145,6 +147,14 @@ class Config(CLIParams, YamlModel):
         self.inc = inc
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
+
+    @property
+    def extra(self):
+        return self._extra
+
+    @extra.setter
+    def extra(self, value: dict):
+        self._extra = value
 
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""

@@ -91,7 +91,7 @@ class DependencyFile:
         try:
             key = Path(filename).relative_to(root).as_posix()
         except ValueError:
-            key = filename
+            key = Path(filename).as_posix()
         return set(self._dependencies.get(str(key), {}))
 
     def delete_file(self):

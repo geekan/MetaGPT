@@ -22,6 +22,8 @@ class RAGLLM(CustomLLM):
     """LlamaIndex's LLM is different from MetaGPT's LLM.
 
     Inherit CustomLLM from llamaindex, making MetaGPT's LLM can be used by LlamaIndex.
+
+    Set context_length or max_token of LLM in config.yaml if you encounter "Calculated available context size -xxx was not non-negative" error.
     """
 
     model_infer: BaseLLM = Field(..., description="The MetaGPT's LLM.")

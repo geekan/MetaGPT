@@ -8,6 +8,7 @@ from metagpt.rag.schema import (
     ElasticsearchIndexConfig,
     ElasticsearchStoreConfig,
     FAISSIndexConfig,
+    MilvusIndexConfig,
 )
 
 
@@ -19,6 +20,10 @@ class TestRAGIndexFactory:
     @pytest.fixture
     def faiss_config(self):
         return FAISSIndexConfig(persist_path="")
+
+    @pytest.fixture
+    def milvus_config(self):
+        return MilvusIndexConfig(uri="", collection_name="")
 
     @pytest.fixture
     def chroma_config(self):
@@ -64,6 +69,16 @@ class TestRAGIndexFactory:
         self, mocker, bm25_config, mock_storage_context, mock_load_index_from_storage, mock_embedding
     ):
         self.index_factory.get_index(bm25_config, embed_model=mock_embedding)
+
+    def test_create_milvus_index(self, mocker, milvus_config, mock_from_vector_store, mock_embedding):
+        # Mock
+        mock_milvus_store = mocker.patch("metagpt.rag.factories.index.MilvusVectorStore")
+
+        # Exec
+        self.index_factory.get_index(milvus_config, embed_model=mock_embedding)
+
+        # Assert
+        mock_milvus_store.assert_called_once()
 
     def test_create_chroma_index(self, mocker, chroma_config, mock_from_vector_store, mock_embedding):
         # Mock

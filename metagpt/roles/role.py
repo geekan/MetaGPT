@@ -315,6 +315,11 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
             self.llm.cost_manager = self.context.cost_manager
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
+    @property
+    def name(self):
+        """Get the role name"""
+        return self._setting.name
+
     def _get_prefix(self):
         """Get the role prefix"""
         if self.desc:
@@ -344,6 +349,12 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
             self._set_state(self.rc.state)  # action to run from recovered state
             self.recovered = False  # avoid max_react_loop out of work
             return True
+
+        if self.rc.react_mode == RoleReactMode.BY_ORDER:
+            if self.rc.max_react_loop != len(self.actions):
+                self.rc.max_react_loop = len(self.actions)
+            self._set_state(self.rc.state + 1)
+            return self.rc.state >= 0 and self.rc.state < len(self.actions)
 
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
@@ -389,8 +400,8 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
-        if self.recovered:
-            news = [self.latest_observed_msg] if self.latest_observed_msg else []
+        if self.recovered and self.latest_observed_msg:
+            news = self.rc.memory.find_news(observed=[self.latest_observed_msg], k=10)
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
@@ -458,21 +469,12 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
             actions_taken += 1
         return rsp  # return output from the last action
 
-    async def _act_by_order(self) -> Message:
-        """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
-        start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
-        rsp = AIMessage(content="No actions taken yet")  # return default message if actions=[]
-        for i in range(start_idx, len(self.states)):
-            self._set_state(i)
-            rsp = await self._act()
-        return rsp  # return output from the last action
-
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-
-        # create initial plan and update it until confirmation
-        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
-        await self.planner.update_plan(goal=goal)
+        if not self.planner.plan.goal:
+            # create initial plan and update it until confirmation
+            goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+            await self.planner.update_plan(goal=goal)
 
         # take on tasks until all finished
         while self.planner.current_task:
@@ -509,10 +511,8 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
-        if self.rc.react_mode == RoleReactMode.REACT:
+        if self.rc.react_mode == RoleReactMode.REACT or self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._react()
-        elif self.rc.react_mode == RoleReactMode.BY_ORDER:
-            rsp = await self._act_by_order()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
             rsp = await self._plan_and_act()
         else:

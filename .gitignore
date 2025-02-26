@@ -178,6 +178,7 @@ tmp.png
 .dependencies.json
 tests/metagpt/utils/file_repo_git
 tests/data/rsp_cache_new.json
+tests/data/serdeser_storage/
 *.tmp
 *.png
 htmlcov
@@ -191,3 +192,9 @@ cov.xml
 *.dot
 .python-version
 tests/data/requirements/*.jpg
+*.csv
+metagpt/ext/sela/results/*
+.chainlit/
+
+metagpt/ext/aflow/data
+metagpt/ext/aflow/scripts/optimized

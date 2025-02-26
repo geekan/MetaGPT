@@ -30,7 +30,10 @@ jobs:
         cache: 'pip'
     - name: Install dependencies
       run: |
-        sh tests/scripts/run_install_deps.sh
+        python -m pip install --upgrade pip
+        pip install -e .[test]
+        npm install -g @mermaid-js/mermaid-cli
+        playwright install --with-deps
     - name: Run reverse proxy script for ssh service
       if: contains(github.ref, '-debugger')
       continue-on-error: true
@@ -76,8 +79,8 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      if: ${{ always() }}
+    # - name: Upload coverage reports to Codecov
+    #   uses: codecov/codecov-action@v3
+    #   env:
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    #   if: ${{ always() }}

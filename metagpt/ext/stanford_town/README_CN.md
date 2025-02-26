@@ -31,5 +31,20 @@ TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 进入`environment/frontend_server`，使用`python3 manage.py runserver`启动前端服务。  
 访问`http://localhost:8000/simulator_home` 进入当前的仿真界面。  
 
-## Appreciation
-The reproduction work has referred the `https://github.com/joonspk-research/generative_agents`, let's make a general statement here.
+## 致谢
+复现工作参考了 [generative_agents](https://github.com/joonspk-research/generative_agents), 感谢相关作者们。
+
+### 引用
+```bib
+@inproceedings{Park2023GenerativeAgents,  
+author = {Park, Joon Sung and O'Brien, Joseph C. and Cai, Carrie J. and Morris, Meredith Ringel and Liang, Percy and Bernstein, Michael S.},  
+title = {Generative Agents: Interactive Simulacra of Human Behavior},  
+year = {2023},  
+publisher = {Association for Computing Machinery},  
+address = {New York, NY, USA},  
+booktitle = {In the 36th Annual ACM Symposium on User Interface Software and Technology (UIST '23)},  
+keywords = {Human-AI interaction, agents, generative AI, large language models},  
+location = {San Francisco, CA, USA},  
+series = {UIST '23}
+}
+```

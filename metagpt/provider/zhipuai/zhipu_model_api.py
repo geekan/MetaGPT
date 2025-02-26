@@ -40,7 +40,7 @@ class ZhiPuModelAPI(ZhipuAI):
         """async invoke different from raw method `async_invoke` which get the final result by task_id"""
         headers = self._default_headers
         resp = await self.arequest(stream=False, method="post", headers=headers, kwargs=kwargs)
-        resp = resp.decode("utf-8")
+        resp = resp.data.decode("utf-8")
         resp = json.loads(resp)
         if "error" in resp:
             raise RuntimeError(

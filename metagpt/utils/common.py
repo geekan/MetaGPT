@@ -609,6 +609,30 @@ def write_json_file(json_file: str, data: Any, encoding: str = "utf-8", indent: 
         json.dump(data, fout, ensure_ascii=False, indent=indent, default=custom_default)
 
 
+def read_jsonl_file(jsonl_file: str, encoding="utf-8") -> list[dict]:
+    if not Path(jsonl_file).exists():
+        raise FileNotFoundError(f"json_file: {jsonl_file} not exist, return []")
+    datas = []
+    with open(jsonl_file, "r", encoding=encoding) as fin:
+        try:
+            for line in fin:
+                data = json.loads(line)
+                datas.append(data)
+        except Exception:
+            raise ValueError(f"read jsonl file: {jsonl_file} failed")
+    return datas
+
+
+def add_jsonl_file(jsonl_file: str, data: list[dict], encoding: str = None):
+    folder_path = Path(jsonl_file).parent
+    if not folder_path.exists():
+        folder_path.mkdir(parents=True, exist_ok=True)
+
+    with open(jsonl_file, "a", encoding=encoding) as fout:
+        for json_item in data:
+            fout.write(json.dumps(json_item) + "\n")
+
+
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
     """
     Reads in a csv file to a list of list. If header is True, it returns a
@@ -752,7 +776,10 @@ def list_files(root: str | Path) -> List[Path]:
 
 
 def parse_json_code_block(markdown_text: str) -> List[str]:
-    json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
+    json_blocks = (
+        re.findall(r"```json(.*?)```", markdown_text, re.DOTALL) if "```json" in markdown_text else [markdown_text]
+    )
+
     return [v.strip() for v in json_blocks]
 
 
@@ -1196,3 +1223,21 @@ def generate_fingerprint(text: str) -> str:
     fingerprint = sha256.hexdigest()
 
     return fingerprint
+
+
+def download_model(file_url: str, target_folder: Path) -> Path:
+    file_name = file_url.split("/")[-1]
+    file_path = target_folder.joinpath(f"{file_name}")
+    if not file_path.exists():
+        file_path.mkdir(parents=True, exist_ok=True)
+        try:
+            response = requests.get(file_url, stream=True)
+            response.raise_for_status()  # 检查请求是否成功
+            # 保存文件
+            with open(file_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                logger.info(f"权重文件已下载并保存至 {file_path}")
+        except requests.exceptions.HTTPError as err:
+            logger.info(f"权重文件下载过程中发生错误: {err}")
+    return file_path

@@ -191,8 +191,8 @@ class File:
     @staticmethod
     async def _read_omniparse_config() -> Tuple[str, int]:
         config = Config.default()
-        if config.omniparse and config.omniparse.url:
-            return config.omniparse.url, config.omniparse.timeout
+        if config.omniparse and config.omniparse.base_url:
+            return config.omniparse.base_url, config.omniparse.timeout
         return "", 0
 
 

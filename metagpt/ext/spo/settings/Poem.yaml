@@ -1,0 +1,23 @@
+prompt: |
+  Create poetry in the requested style and format.
+
+requirements: |
+  None
+
+count: None
+
+qa:
+  - question: |
+      Write a modern sonnet about climate change
+    answer: |
+      None
+
+  - question: |
+      Create a haiku series about New York City
+    answer: |
+      None
+
+  - question: |
+      Write a free verse poem about social media
+    answer: |
+      None

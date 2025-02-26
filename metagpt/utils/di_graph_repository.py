@@ -115,6 +115,20 @@ class DiGraphRepository(GraphRepository):
         self.load_json(data)
 
     def load_json(self, val: str):
+        """
+        Loads a JSON-encoded string representing a graph structure and updates
+        the internal repository (_repo) with the parsed graph.
+
+        Args:
+            val (str): A JSON-encoded string representing a graph structure.
+
+        Returns:
+            self: Returns the instance of the class with the updated _repo attribute.
+
+        Raises:
+            TypeError: If val is not a valid JSON string or cannot be parsed into
+                       a valid graph structure.
+        """
         if not val:
             return self
         m = json.loads(val)
