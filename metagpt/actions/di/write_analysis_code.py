@@ -6,8 +6,6 @@
 """
 from __future__ import annotations
 
-import json
-
 from metagpt.actions import Action
 from metagpt.prompts.di.write_analysis_code import (
     CHECK_DATA_PROMPT,
@@ -30,11 +28,10 @@ class WriteAnalysisCode(Action):
         )
 
         rsp = await self._aask(reflection_prompt, system_msgs=[REFLECTION_SYSTEM_MSG])
-        reflection = json.loads(CodeParser.parse_code(text=rsp))
-        if "```python" in reflection["improved_impl"]:
-            reflection["improved_impl"] = CodeParser.parse_code(text=reflection["improved_impl"], lang="python")
-
-        return reflection["improved_impl"]
+        # reflection = json.loads(CodeParser.parse_code(block=None, text=rsp))
+        # return reflection["improved_impl"]
+        reflection = CodeParser.parse_code(block=None, text=rsp)
+        return reflection
 
     async def run(
         self,

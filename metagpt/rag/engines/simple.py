@@ -16,6 +16,7 @@ from llama_index.core.llms import LLM
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.readers.base import BaseReader
 from llama_index.core.response_synthesizers import (
     BaseSynthesizer,
     get_response_synthesizer,
@@ -30,6 +31,7 @@ from llama_index.core.schema import (
     TransformComponent,
 )
 
+from metagpt.config2 import config
 from metagpt.rag.factories import (
     get_index,
     get_rag_embedding,
@@ -38,6 +40,7 @@ from metagpt.rag.factories import (
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
+from metagpt.rag.parsers import OmniParse
 from metagpt.rag.retrievers.base import (
     DeletableRAGRetriever,
     ModifiableRAGRetriever,
@@ -51,6 +54,9 @@ from metagpt.rag.schema import (
     BaseRetrieverConfig,
     BM25RetrieverConfig,
     ObjectNode,
+    OmniParseOptions,
+    OmniParseType,
+    ParseResultType,
 )
 from metagpt.utils.common import import_class
 
@@ -110,7 +116,10 @@ class SimpleEngine(RetrieverQueryEngine):
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
-        documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files, fs=fs).load_data()
+        file_extractor = cls._get_file_extractor()
+        documents = SimpleDirectoryReader(
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor, fs=fs
+        ).load_data()
         cls._fix_document_metadata(documents)
 
         transformations = transformations or cls._default_transformations()
@@ -277,6 +286,29 @@ class SimpleEngine(RetrieverQueryEngine):
         )
 
     @classmethod
+    def _from_nodes(
+        cls,
+        nodes: list[BaseNode],
+        transformations: Optional[list[TransformComponent]] = None,
+        embed_model: BaseEmbedding = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ) -> "SimpleEngine":
+        embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
+        llm = llm or get_rag_llm()
+
+        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
+        rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
+
+        return cls(
+            retriever=retriever,
+            node_postprocessors=rankers,
+            response_synthesizer=get_response_synthesizer(llm=llm),
+            transformations=transformations,
+        )
+
+    @classmethod
     def _from_index(
         cls,
         index: BaseIndex,
@@ -357,3 +389,23 @@ class SimpleEngine(RetrieverQueryEngine):
     @property
     def filenames(self) -> Set[str]:
         return self._filenames
+
+    @staticmethod
+    def _get_file_extractor() -> dict[str:BaseReader]:
+        """
+        Get the file extractor.
+        Currently, only PDF use OmniParse. Other document types use the built-in reader from llama_index.
+
+        Returns:
+            dict[file_type: BaseReader]
+        """
+        file_extractor: dict[str:BaseReader] = {}
+        if config.omniparse.base_url:
+            pdf_parser = OmniParse(
+                api_key=config.omniparse.api_key,
+                base_url=config.omniparse.base_url,
+                parse_options=OmniParseOptions(parse_type=OmniParseType.PDF, result_type=ParseResultType.MD),
+            )
+            file_extractor[".pdf"] = pdf_parser
+
+        return file_extractor

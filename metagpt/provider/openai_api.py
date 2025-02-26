@@ -35,7 +35,7 @@ from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
-    count_string_tokens,
+    count_output_tokens,
     get_max_completion_tokens,
 )
 
@@ -51,6 +51,7 @@ from metagpt.utils.token_counter import (
         LLMType.OPEN_ROUTER,
         LLMType.DEEPSEEK,
         LLMType.SILICONFLOW,
+        LLMType.OPENROUTER,
     ]
 )
 class OpenAILLM(BaseLLM):
@@ -93,6 +94,7 @@ class OpenAILLM(BaseLLM):
         )
         usage = None
         collected_messages = []
+        has_finished = False
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
             finish_reason = (
@@ -100,16 +102,22 @@ class OpenAILLM(BaseLLM):
             )
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
-            if finish_reason:
-                if hasattr(chunk, "usage"):
-                    # Some services have usage as an attribute of the chunk, such as Fireworks
+            chunk_has_usage = hasattr(chunk, "usage") and chunk.usage
+            if has_finished:
+                # for oneapi, there has a usage chunk after finish_reason not none chunk
+                if chunk_has_usage:
                     usage = CompletionUsage(**chunk.usage) if isinstance(chunk.usage, dict) else chunk.usage
+            if finish_reason:
+                if chunk_has_usage:
+                    # Some services have usage as an attribute of the chunk, such as Fireworks
+                    if isinstance(chunk.usage, CompletionUsage):
+                        usage = chunk.usage
+                    else:
+                        usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
-                if "openrouter.ai" in self.config.base_url and hasattr(chunk, "usage") and chunk.usage is not None:
-                    # due to it get token cost from api
-                    usage = chunk.usage
+                has_finished = True
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
@@ -130,6 +138,10 @@ class OpenAILLM(BaseLLM):
             "model": self.model,
             "timeout": self.get_timeout(timeout),
         }
+        if "o1-" in self.model:
+            # compatible to openai o1-series
+            kwargs["temperature"] = 1
+            kwargs.pop("max_tokens")
         if extra_kwargs:
             kwargs.update(extra_kwargs)
         return kwargs
@@ -254,7 +266,7 @@ class OpenAILLM(BaseLLM):
 
         try:
             usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
-            usage.completion_tokens = count_string_tokens(rsp, self.pricing_plan)
+            usage.completion_tokens = count_output_tokens(rsp, self.pricing_plan)
         except Exception as e:
             logger.warning(f"usage calculation failed: {e}")
 

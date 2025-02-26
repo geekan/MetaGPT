@@ -6,35 +6,13 @@
 @File    : search_engine.py
 """
 import importlib
-from typing import Callable, Coroutine, Literal, Optional, Union, overload
+from typing import Annotated, Callable, Coroutine, Literal, Optional, Union, overload
 
-from pydantic import BaseModel, ConfigDict, model_validator
-from semantic_kernel.skill_definition import sk_function
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.configs.search_config import SearchConfig
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
-
-
-class SkSearchEngine:
-    """A search engine class for executing searches.
-
-    Attributes:
-        search_engine: The search engine instance used for executing searches.
-    """
-
-    def __init__(self, **kwargs):
-        self.search_engine = SearchEngine(**kwargs)
-
-    @sk_function(
-        description="searches results from Google. Useful when you need to find short "
-        "and succinct answers about a specific topic. Input should be a search query.",
-        name="searchAsync",
-        input_description="search",
-    )
-    async def run(self, query: str) -> str:
-        result = await self.search_engine.run(query)
-        return result
 
 
 class SearchEngine(BaseModel):
@@ -51,7 +29,9 @@ class SearchEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: SearchEngineType = SearchEngineType.SERPER_GOOGLE
-    run_func: Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]] = None
+    run_func: Annotated[
+        Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]], Field(exclude=True)
+    ] = None
     api_key: Optional[str] = None
     proxy: Optional[str] = None
 

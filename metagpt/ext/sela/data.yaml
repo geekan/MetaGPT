@@ -1,0 +1,3 @@
+datasets_dir: "path/to/datasets" # path to the datasets directory
+work_dir: ../../../workspace # path to the workspace directory
+role_dir: storage/SELA # path to the role directory

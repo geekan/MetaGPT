@@ -33,6 +33,8 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 # Context
 {context}
 
+-----
+
 ## Code to be Reviewed: {filename}
 ```Code
 {code}
@@ -44,7 +46,8 @@ EXAMPLE_AND_INSTRUCTION = """
 {format_example}
 
 
-# Instruction: Based on the actual code situation, follow one of the "Format example". Return only 1 file under review.
+# Instruction: Based on the actual code, follow one of the "Code Review Format example".
+- Note the code filename should be `{filename}`. Return the only ONE file `{filename}` under review.
 
 ## Code Review: Ordered List. Based on the "Code to be Reviewed", provide key, clear, concise, and specific answer. If any answer is no, explain how to fix it step by step.
 1. Is the code implemented as per the requirements? If not, how to achieve it? Analyse it step by step.
@@ -62,7 +65,9 @@ LGTM/LBTM
 """
 
 FORMAT_EXAMPLE = """
-# Format example 1
+-----
+
+# Code Review Format example 1
 ## Code Review: {filename}
 1. No, we should fix the logic of class A due to ...
 2. ...
@@ -98,7 +103,9 @@ FORMAT_EXAMPLE = """
 ## Code Review Result
 LBTM
 
-# Format example 2
+-----
+
+# Code Review Format example 2
 ## Code Review: {filename}
 1. Yes.
 2. Yes.
@@ -112,10 +119,12 @@ pass
 
 ## Code Review Result
 LGTM
+
+-----
 """
 
 REWRITE_CODE_TEMPLATE = """
-# Instruction: rewrite code based on the Code Review and Actions
+# Instruction: rewrite the `{filename}` based on the Code Review and Actions
 ## Rewrite Code: CodeBlock. If it still has some bugs, rewrite {filename} using a Markdown code block, with the filename docstring preceding the code block. Do your utmost to optimize THIS SINGLE FILE. Return all completed codes and prohibit the return of unfinished codes.
 ```python
 ## {filename}
@@ -189,6 +198,7 @@ class WriteCodeReview(Action):
             )
             cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
                 format_example=format_example,
+                filename=self.i_context.code_doc.filename,
             )
             len1 = len(iterative_code) if iterative_code else 0
             len2 = len(self.i_context.code_doc.content) if self.i_context.code_doc.content else 0

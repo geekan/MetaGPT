@@ -1,0 +1,10 @@
+# 适用于讯飞星火的spark-lite 参考 https://www.xfyun.cn/doc/spark/Web.html#_2-function-call%E8%AF%B4%E6%98%8E
+
+llm:
+  api_type: "spark"
+  # 对应模型的url 参考 https://www.xfyun.cn/doc/spark/Web.html#_1-%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E
+  base_url: "ws(s)://spark-api.xf-yun.com/v1.1/chat" 
+  app_id: ""
+  api_key: ""
+  api_secret: ""
+  domain: "general" # 取值为 [general,generalv2,generalv3,generalv3.5] 和url一一对应

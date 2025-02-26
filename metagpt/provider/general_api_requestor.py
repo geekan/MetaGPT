@@ -3,25 +3,24 @@
 # @Desc   : General Async API for http-based LLM model
 
 import asyncio
-from typing import AsyncGenerator, Generator, Iterator, Tuple, Union
+from typing import AsyncGenerator, Iterator, Optional, Tuple, Union
 
 import aiohttp
 import requests
 
 from metagpt.logs import logger
-from metagpt.provider.general_api_base import APIRequestor
+from metagpt.provider.general_api_base import APIRequestor, OpenAIResponse
 
 
-def parse_stream_helper(line: bytes) -> Union[bytes, None]:
+def parse_stream_helper(line: bytes) -> Optional[bytes]:
     if line and line.startswith(b"data:"):
         if line.startswith(b"data: "):
-            # SSE event may be valid when it contain whitespace
+            # SSE event may be valid when it contains whitespace
             line = line[len(b"data: ") :]
         else:
             line = line[len(b"data:") :]
         if line.strip() == b"[DONE]":
-            # return here will cause GeneratorExit exception in urllib3
-            # and it will close http connection with TCP Reset
+            # Returning None to indicate end of stream
             return None
         else:
             return line
@@ -37,7 +36,7 @@ def parse_stream(rbody: Iterator[bytes]) -> Iterator[bytes]:
 
 class GeneralAPIRequestor(APIRequestor):
     """
-    usage
+    Usage example:
         # full_url = "{base_url}{url}"
         requester = GeneralAPIRequestor(base_url=base_url)
         result, _, api_key = await requester.arequest(
@@ -50,26 +49,47 @@ class GeneralAPIRequestor(APIRequestor):
         )
     """
 
-    def _interpret_response_line(self, rbody: bytes, rcode: int, rheaders, stream: bool) -> bytes:
-        # just do nothing to meet the APIRequestor process and return the raw data
-        # due to the openai sdk will convert the data into OpenAIResponse which we don't need in general cases.
+    def _interpret_response_line(self, rbody: bytes, rcode: int, rheaders: dict, stream: bool) -> OpenAIResponse:
+        """
+        Process and return the response data wrapped in OpenAIResponse.
 
-        return rbody
+        Args:
+            rbody (bytes): The response body.
+            rcode (int): The response status code.
+            rheaders (dict): The response headers.
+            stream (bool): Whether the response is a stream.
+
+        Returns:
+            OpenAIResponse: The response data wrapped in OpenAIResponse.
+        """
+        return OpenAIResponse(rbody, rheaders)
 
     def _interpret_response(
         self, result: requests.Response, stream: bool
-    ) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
-        """Returns the response(s) and a bool indicating whether it is a stream."""
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
+        """
+        Interpret a synchronous response.
+
+        Args:
+            result (requests.Response): The response object.
+            stream (bool): Whether the response is a stream.
+
+        Returns:
+            Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]: A tuple containing the response content and a boolean indicating if it is a stream.
+        """
         content_type = result.headers.get("Content-Type", "")
         if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
             return (
-                self._interpret_response_line(line, result.status_code, result.headers, stream=True)
-                for line in parse_stream(result.iter_lines())
-            ), True
+                (
+                    self._interpret_response_line(line, result.status_code, result.headers, stream=True)
+                    for line in parse_stream(result.iter_lines())
+                ),
+                True,
+            )
         else:
             return (
                 self._interpret_response_line(
-                    result.content,  # let the caller to decode the msg
+                    result.content,  # let the caller decode the msg
                     result.status_code,
                     result.headers,
                     stream=False,
@@ -79,24 +99,39 @@ class GeneralAPIRequestor(APIRequestor):
 
     async def _interpret_async_response(
         self, result: aiohttp.ClientResponse, stream: bool
-    ) -> Tuple[Union[bytes, AsyncGenerator[bytes, None]], bool]:
+    ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]:
+        """
+        Interpret an asynchronous response.
+
+        Args:
+            result (aiohttp.ClientResponse): The response object.
+            stream (bool): Whether the response is a stream.
+
+        Returns:
+            Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]: A tuple containing the response content and a boolean indicating if it is a stream.
+        """
         content_type = result.headers.get("Content-Type", "")
-        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
-            # the `Content-Type` of ollama stream resp is "application/x-ndjson"
+        if stream and (
+            "text/event-stream" in content_type or "application/x-ndjson" in content_type or content_type == ""
+        ):
             return (
-                self._interpret_response_line(line, result.status, result.headers, stream=True)
-                async for line in result.content
-            ), True
+                (
+                    self._interpret_response_line(line, result.status, result.headers, stream=True)
+                    async for line in result.content
+                ),
+                True,
+            )
         else:
             try:
-                await result.read()
+                response_content = await result.read()
             except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
                 raise TimeoutError("Request timed out") from e
             except aiohttp.ClientError as exp:
-                logger.warning(f"response: {result.content}, exp: {exp}")
+                logger.warning(f"response: {result}, exp: {exp}")
+                response_content = b""
             return (
                 self._interpret_response_line(
-                    await result.read(),  # let the caller to decode the msg
+                    response_content,  # let the caller decode the msg
                     result.status,
                     result.headers,
                     stream=False,

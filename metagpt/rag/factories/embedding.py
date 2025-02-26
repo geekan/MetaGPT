@@ -5,6 +5,9 @@ from typing import Any, Optional
 
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.embeddings.gemini import GeminiEmbedding
+from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.embeddings.openai import OpenAIEmbedding
 
 from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType

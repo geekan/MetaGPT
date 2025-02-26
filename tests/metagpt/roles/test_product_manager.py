@@ -14,8 +14,8 @@ from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles import ProductManager
 from metagpt.utils.common import any_to_str
-from tests.metagpt.roles.mock import MockMessages
 from metagpt.utils.git_repository import GitRepository
+from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio

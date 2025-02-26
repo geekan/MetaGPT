@@ -56,10 +56,16 @@ def get_role_environment(sim_code: str, role_name: str, step: int = 0) -> dict:
 
 
 def write_curr_sim_code(curr_sim_code: dict, temp_storage_path: Optional[Path] = None):
-    temp_storage_path = Path(temp_storage_path) or TEMP_STORAGE_PATH
+    if temp_storage_path is None:
+        temp_storage_path = TEMP_STORAGE_PATH
+    else:
+        temp_storage_path = Path(temp_storage_path)
     write_json_file(temp_storage_path.joinpath("curr_sim_code.json"), curr_sim_code)
 
 
 def write_curr_step(curr_step: dict, temp_storage_path: Optional[Path] = None):
-    temp_storage_path = Path(temp_storage_path) or TEMP_STORAGE_PATH
+    if temp_storage_path is None:
+        temp_storage_path = TEMP_STORAGE_PATH
+    else:
+        temp_storage_path = Path(temp_storage_path)
     write_json_file(temp_storage_path.joinpath("curr_step.json"), curr_step)

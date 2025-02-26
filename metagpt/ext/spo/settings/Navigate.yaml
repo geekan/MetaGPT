@@ -1,0 +1,47 @@
+prompt: |
+  Please think step by step.
+  Ensure the response concludes with the answer in the XML format: 
+  <answer>[Yes or No]</answer>.
+
+requirements: |
+  Must put the final answer at the end with XML. (<answer>(Yes or No)</answer>,such as <answer>Yes</answer>)
+  The provided prompt needs to adapt to all current types of questions.
+
+count: None
+
+qa:
+  - question: |
+        If you follow these instructions, do you return to the starting point? Always face forward. Take 7 steps left. Take 2 steps backward. Take 7 steps backward. Take 7 steps backward. Take 3 steps forward.
+        Options:
+        - Yes
+        - No
+
+    answer: |
+        A lot of thinking and analysis processes.
+        ...
+        Final Answer:
+        <answer>(Yes or No)</answer>
+
+  - question: |
+        If you follow these instructions, do you return to the starting point? Always face forward. Take 6 steps backward. Take 8 steps left. Take 3 steps right. Take 7 steps forward. Take 3 steps right. Take 9 steps right. Take 1 step backward. Take 7 steps left.
+        Options:
+        - Yes
+        - No
+
+    answer: |
+        A lot of thinking and analysis processes.
+        ...
+        Final Answer:
+        <answer>(Yes or No)</answer>
+
+  - question: |
+        If you follow these instructions, do you return to the starting point? Turn left. Turn left. Take 6 steps. Take 3 steps. Turn around. Take 1 step. Take 3 steps. Take 5 steps.
+        Options:
+        - Yes
+        - No
+
+    answer: |
+        A lot of thinking and analysis processes.
+        ...
+        Final Answer:
+        <answer>(Yes or No)</answer>

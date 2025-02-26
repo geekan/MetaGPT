@@ -166,6 +166,8 @@ class CollectLinks(Action):
         """
         max_results = max_num_results or max(num_results * 2, 6)
         results = await self._search_urls(query, max_results=max_results)
+        if len(results) == 0:
+            return []
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
         time_stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results, time_stamp=time_stamp)

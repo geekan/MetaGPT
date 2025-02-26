@@ -5,11 +5,11 @@ Author: garylin2099
 """
 import asyncio
 
-from metagpt.logs import logger
-from metagpt.roles.product_manager import ProductManager
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.schema import Message
+from metagpt.logs import logger
 from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.roles.product_manager import ProductManager
+from metagpt.schema import Message
 
 
 async def main():

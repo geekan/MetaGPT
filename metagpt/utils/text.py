@@ -1,6 +1,6 @@
 from typing import Generator, Sequence
 
-from metagpt.utils.token_counter import TOKEN_MAX, count_string_tokens
+from metagpt.utils.token_counter import TOKEN_MAX, count_output_tokens
 
 
 def reduce_message_length(
@@ -23,9 +23,9 @@ def reduce_message_length(
     Raises:
         RuntimeError: If it fails to reduce the concatenated message length.
     """
-    max_token = TOKEN_MAX.get(model_name, 2048) - count_string_tokens(system_text, model_name) - reserved
+    max_token = TOKEN_MAX.get(model_name, 2048) - count_output_tokens(system_text, model_name) - reserved
     for msg in msgs:
-        if count_string_tokens(msg, model_name) < max_token or model_name not in TOKEN_MAX:
+        if count_output_tokens(msg, model_name) < max_token or model_name not in TOKEN_MAX:
             return msg
 
     raise RuntimeError("fail to reduce message length")
@@ -54,13 +54,13 @@ def generate_prompt_chunk(
     current_token = 0
     current_lines = []
 
-    reserved = reserved + count_string_tokens(prompt_template + system_text, model_name)
+    reserved = reserved + count_output_tokens(prompt_template + system_text, model_name)
     # 100 is a magic number to ensure the maximum context length is not exceeded
     max_token = TOKEN_MAX.get(model_name, 2048) - reserved - 100
 
     while paragraphs:
         paragraph = paragraphs.pop(0)
-        token = count_string_tokens(paragraph, model_name)
+        token = count_output_tokens(paragraph, model_name)
         if current_token + token <= max_token:
             current_lines.append(paragraph)
             current_token += token

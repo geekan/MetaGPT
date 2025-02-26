@@ -5,13 +5,13 @@
 @Author  : alexanderwu
 @File    : project_management_an.py
 """
-from typing import List
+from typing import List, Optional
 
 from metagpt.actions.action_node import ActionNode
 
-REQUIRED_PYTHON_PACKAGES = ActionNode(
+REQUIRED_PACKAGES = ActionNode(
     key="Required packages",
-    expected_type=List[str],
+    expected_type=Optional[List[str]],
     instruction="Provide required packages The response language should correspond to the context and requirements.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
@@ -99,7 +99,7 @@ ANYTHING_UNCLEAR_PM = ActionNode(
 )
 
 NODES = [
-    REQUIRED_PYTHON_PACKAGES,
+    REQUIRED_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
     LOGIC_ANALYSIS,
     TASK_LIST,
@@ -109,7 +109,7 @@ NODES = [
 ]
 
 REFINED_NODES = [
-    REQUIRED_PYTHON_PACKAGES,
+    REQUIRED_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
     REFINED_LOGIC_ANALYSIS,
     REFINED_TASK_LIST,
