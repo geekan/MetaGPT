@@ -1,5 +1,5 @@
 import json
-from typing import Literal, Tuple
+from typing import Literal, Tuple, Union
 
 from metagpt.provider.bedrock.base_provider import BaseBedrockProvider
 from metagpt.provider.bedrock.utils import (
@@ -32,6 +32,10 @@ class AnthropicProvider(BaseBedrockProvider):
         return self.messages_to_prompt(system_messages), user_messages
 
     def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs) -> str:
+        if self.reasoning:
+            generate_kwargs["temperature"] = 1  # should be 1
+            generate_kwargs["thinking"] = {"type": "enabled", "budget_tokens": self.reasoning_tokens}
+
         system_message, user_messages = self._split_system_user_messages(messages)
         body = json.dumps(
             {
@@ -43,17 +47,26 @@ class AnthropicProvider(BaseBedrockProvider):
         )
         return body
 
-    def _get_completion_from_dict(self, rsp_dict: dict) -> str:
+    def _get_completion_from_dict(self, rsp_dict: dict) -> dict[str, Tuple[str, str]]:
+        if self.reasoning:
+            return {"reasoning_content": rsp_dict["content"][0]["thinking"], "content": rsp_dict["content"][1]["text"]}
         return rsp_dict["content"][0]["text"]
 
-    def get_choice_text_from_stream(self, event) -> str:
+    def get_choice_text_from_stream(self, event) -> Union[bool, str]:
         # https://docs.anthropic.com/claude/reference/messages-streaming
         rsp_dict = json.loads(event["chunk"]["bytes"])
         if rsp_dict["type"] == "content_block_delta":
-            completions = rsp_dict["delta"]["text"]
-            return completions
+            reasoning = False
+            if rsp_dict["delta"]["type"] == "text_delta":
+                completions = rsp_dict["delta"]["text"]
+            elif rsp_dict["delta"]["type"] == "thinking_delta":
+                completions = rsp_dict["delta"]["thinking"]
+                reasoning = True
+            elif rsp_dict["delta"]["type"] == "signature_delta":
+                completions = ""
+            return reasoning, completions
         else:
-            return ""
+            return False, ""
 
 
 class CohereProvider(BaseBedrockProvider):
@@ -87,10 +100,10 @@ class CohereProvider(BaseBedrockProvider):
             body = json.dumps({"prompt": prompt, "stream": kwargs.get("stream", False), **generate_kwargs})
         return body
 
-    def get_choice_text_from_stream(self, event) -> str:
+    def get_choice_text_from_stream(self, event) -> Union[bool, str]:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = rsp_dict.get("text", "")
-        return completions
+        return False, completions
 
 
 class MetaProvider(BaseBedrockProvider):
@@ -133,10 +146,10 @@ class Ai21Provider(BaseBedrockProvider):
             )
         return body
 
-    def get_choice_text_from_stream(self, event) -> str:
+    def get_choice_text_from_stream(self, event) -> Union[bool, str]:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = rsp_dict.get("choices", [{}])[0].get("delta", {}).get("content", "")
-        return completions
+        return False, completions
 
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         if self.model_type == "j2":
@@ -159,10 +172,10 @@ class AmazonProvider(BaseBedrockProvider):
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:
         return rsp_dict["results"][0]["outputText"]
 
-    def get_choice_text_from_stream(self, event) -> str:
+    def get_choice_text_from_stream(self, event) -> Union[bool, str]:
         rsp_dict = json.loads(event["chunk"]["bytes"])
         completions = rsp_dict["outputText"]
-        return completions
+        return False, completions
 
 
 PROVIDERS = {
@@ -175,8 +188,14 @@ PROVIDERS = {
 }
 
 
-def get_provider(model_id: str):
-    provider, model_name = model_id.split(".")[0:2]  # meta、mistral……
+def get_provider(model_id: str, reasoning: bool = False, reasoning_tokens: int = 4000):
+    arr = model_id.split(".")
+    if len(arr) == 2:
+        provider, model_name = arr  # meta、mistral……
+    elif len(arr) == 3:
+        # some model_ids may contain country like us.xx.xxx
+        _, provider, model_name = arr
+
     if provider not in PROVIDERS:
         raise KeyError(f"{provider} is not supported!")
     if provider == "meta":
@@ -188,4 +207,4 @@ def get_provider(model_id: str):
     elif provider == "cohere":
         # distinguish between R/R+ and older models
         return PROVIDERS[provider](model_name)
-    return PROVIDERS[provider]()
+    return PROVIDERS[provider](reasoning=reasoning, reasoning_tokens=reasoning_tokens)

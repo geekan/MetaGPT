@@ -100,6 +100,10 @@ class LLMConfig(YamlModel):
     # For Messages Control
     use_system_prompt: bool = True
 
+    # reasoning / thinking switch
+    reasoning: bool = False
+    reasoning_tokens: int = 4000  # reasoning budget tokens to generate, usually smaller than max_tokens
+
     @field_validator("api_key")
     @classmethod
     def check_llm_key(cls, v):

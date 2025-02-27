@@ -43,6 +43,16 @@ class BaseLLM(ABC):
     model: Optional[str] = None  # deprecated
     pricing_plan: Optional[str] = None
 
+    _reasoning_content: Optional[str] = None  # content from reasoning mode
+
+    @property
+    def reasoning_content(self):
+        return self._reasoning_content
+
+    @reasoning_content.setter
+    def reasoning_content(self, value: str):
+        self._reasoning_content = value
+
     @abstractmethod
     def __init__(self, config: LLMConfig):
         pass
