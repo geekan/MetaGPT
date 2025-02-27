@@ -31,7 +31,7 @@ tqdm==4.66.2
 #unstructured[local-inference]
 # selenium>4
 # webdriver_manager<3.9
-anthropic==0.18.1
+anthropic==0.47.2
 typing-inspect==0.8.0
 libcst==1.0.1
 qdrant-client==1.7.0
@@ -84,4 +84,4 @@ spark_ai_python~=0.3.30
 agentops
 tree_sitter~=0.23.2
 tree_sitter_python~=0.23.2
-httpx==0.27.2
+httpx==0.28.1

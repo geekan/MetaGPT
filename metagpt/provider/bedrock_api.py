@@ -146,7 +146,7 @@ class BedrockLLM(BaseLLM):
                     collected_reasoning_content.append(chunk_text)
                 else:
                     collected_content.append(chunk_text)
-                log_llm_stream(chunk_text)
+                    log_llm_stream(chunk_text)
             if collected_reasoning_content:
                 self.reasoning_content = "".join(collected_reasoning_content)
             return collected_content

@@ -57,12 +57,13 @@ class AnthropicProvider(BaseBedrockProvider):
         rsp_dict = json.loads(event["chunk"]["bytes"])
         if rsp_dict["type"] == "content_block_delta":
             reasoning = False
-            if rsp_dict["delta"]["type"] == "text_delta":
+            delta_type = rsp_dict["delta"]["type"]
+            if delta_type == "text_delta":
                 completions = rsp_dict["delta"]["text"]
-            elif rsp_dict["delta"]["type"] == "thinking_delta":
+            elif delta_type == "thinking_delta":
                 completions = rsp_dict["delta"]["thinking"]
                 reasoning = True
-            elif rsp_dict["delta"]["type"] == "signature_delta":
+            elif delta_type == "signature_delta":
                 completions = ""
             return reasoning, completions
         else:
