@@ -51,7 +51,7 @@ class GeminiLLM(BaseLLM):
 
         self.__init_gemini(config)
         self.config = config
-        self.model = "gemini-pro"  # so far only one model
+        self.model = config.model
         self.pricing_plan = self.config.pricing_plan or self.model
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
