@@ -34,7 +34,7 @@ class AnthropicLLM(BaseLLM):
                 kwargs["messages"] = messages[1:]
                 kwargs["system"] = messages[0]["content"]  # set system prompt here
         if self.config.reasoning:
-            kwargs["thinking"] = {"type": "enabled", "budget_tokens": self.config.reasoning_tokens}
+            kwargs["thinking"] = {"type": "enabled", "budget_tokens": self.config.reasoning_max_token}
         return kwargs
 
     def _update_costs(self, usage: Usage, model: str = None, local_calc_usage: bool = True):

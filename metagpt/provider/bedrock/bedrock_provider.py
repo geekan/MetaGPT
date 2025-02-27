@@ -20,6 +20,8 @@ class MistralProvider(BaseBedrockProvider):
 
 class AnthropicProvider(BaseBedrockProvider):
     # See https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
+    #     https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-37.html
+    #     https://docs.aws.amazon.com/code-library/latest/ug/python_3_bedrock-runtime_code_examples.html#anthropic_claude
 
     def _split_system_user_messages(self, messages: list[dict]) -> Tuple[str, list[dict]]:
         system_messages = []
@@ -34,7 +36,7 @@ class AnthropicProvider(BaseBedrockProvider):
     def get_request_body(self, messages: list[dict], generate_kwargs, *args, **kwargs) -> str:
         if self.reasoning:
             generate_kwargs["temperature"] = 1  # should be 1
-            generate_kwargs["thinking"] = {"type": "enabled", "budget_tokens": self.reasoning_tokens}
+            generate_kwargs["thinking"] = {"type": "enabled", "budget_tokens": self.reasoning_max_token}
 
         system_message, user_messages = self._split_system_user_messages(messages)
         body = json.dumps(
@@ -189,7 +191,7 @@ PROVIDERS = {
 }
 
 
-def get_provider(model_id: str, reasoning: bool = False, reasoning_tokens: int = 4000):
+def get_provider(model_id: str, reasoning: bool = False, reasoning_max_token: int = 1024):
     arr = model_id.split(".")
     if len(arr) == 2:
         provider, model_name = arr  # meta、mistral……
@@ -208,4 +210,4 @@ def get_provider(model_id: str, reasoning: bool = False, reasoning_tokens: int =
     elif provider == "cohere":
         # distinguish between R/R+ and older models
         return PROVIDERS[provider](model_name)
-    return PROVIDERS[provider](reasoning=reasoning, reasoning_tokens=reasoning_tokens)
+    return PROVIDERS[provider](reasoning=reasoning, reasoning_max_token=reasoning_max_token)

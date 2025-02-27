@@ -7,9 +7,9 @@ class BaseBedrockProvider(ABC):
     # to handle different generation kwargs
     max_tokens_field_name = "max_tokens"
 
-    def __init__(self, reasoning: bool = False, reasoning_tokens: int = 4000):
+    def __init__(self, reasoning: bool = False, reasoning_max_token: int = 1024):
         self.reasoning = reasoning
-        self.reasoning_tokens = reasoning_tokens
+        self.reasoning_max_token = reasoning_max_token
 
     @abstractmethod
     def _get_completion_from_dict(self, rsp_dict: dict) -> str:

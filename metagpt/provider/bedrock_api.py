@@ -24,7 +24,7 @@ class BedrockLLM(BaseLLM):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
         self.__provider = get_provider(
-            self.config.model, reasoning=self.config.reasoning, reasoning_tokens=self.config.reasoning_tokens
+            self.config.model, reasoning=self.config.reasoning, reasoning_max_token=self.config.reasoning_max_token
         )
         self.cost_manager = CostManager(token_costs=BEDROCK_TOKEN_COSTS)
         if self.config.model in NOT_SUPPORT_STREAM_MODELS:
