@@ -91,8 +91,12 @@ class OpenAILLM(BaseLLM):
         )
         usage = None
         collected_messages = []
+        collected_reasoning_messages = []
         has_finished = False
         async for chunk in response:
+            if hasattr(chunk.choices[0].delta, "reasoning_content"):
+                collected_reasoning_messages.append(chunk.choices[0].delta.reasoning_content)  # for deepseek
+                continue
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
             finish_reason = (
                 chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], "finish_reason") else None
@@ -118,6 +122,8 @@ class OpenAILLM(BaseLLM):
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
+        if collected_reasoning_messages:
+            self.reasoning_content = "".join(collected_reasoning_messages)
         if not usage:
             # Some services do not provide the usage attribute, such as OpenAI or OpenLLM
             usage = self._calc_usage(messages, full_reply_content)
