@@ -103,7 +103,7 @@ class LLMConfig(YamlModel):
 
     # reasoning / thinking switch
     reasoning: bool = False
-    reasoning_max_token: int = 1024  # reasoning budget tokens to generate, usually smaller than max_token
+    reasoning_max_token: int = 4000  # reasoning budget tokens to generate, usually smaller than max_token
 
     @field_validator("api_key")
     @classmethod

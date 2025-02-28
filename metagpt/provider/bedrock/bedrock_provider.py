@@ -191,7 +191,7 @@ PROVIDERS = {
 }
 
 
-def get_provider(model_id: str, reasoning: bool = False, reasoning_max_token: int = 1024):
+def get_provider(model_id: str, reasoning: bool = False, reasoning_max_token: int = 4000):
     arr = model_id.split(".")
     if len(arr) == 2:
         provider, model_name = arr  # meta、mistral……

@@ -42,7 +42,7 @@ class AnthropicLLM(BaseLLM):
         super()._update_costs(usage, model)
 
     def get_choice_text(self, resp: Message) -> str:
-        if len(resp.content) > 0:
+        if len(resp.content) > 1:
             self.reasoning_content = resp.content[0].thinking
             text = resp.content[1].text
         else:
