@@ -1,7 +1,7 @@
 import json
 from typing import Optional, Union
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.configs.llm_config import LLMType
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.logs import logger
@@ -9,8 +9,6 @@ from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
-
-config = Config.default()
 
 OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 

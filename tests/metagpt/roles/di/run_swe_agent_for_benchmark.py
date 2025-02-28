@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles.di.engineer2 import Engineer2
@@ -15,7 +15,6 @@ from metagpt.tools.libs.editor import Editor
 from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.swe_agent_commands.swe_agent_utils import load_hf_dataset
 
-config = Config.default()
 # Specify by yourself
 TEST_REPO_DIR = METAGPT_ROOT / "data" / "test_repo"
 DATA_DIR = METAGPT_ROOT / "data/hugging_face"

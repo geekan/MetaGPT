@@ -12,7 +12,7 @@ import openai
 import pytest
 from pydantic import BaseModel
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.learn.text_to_image import text_to_image
 from metagpt.tools.metagpt_text_to_image import MetaGPTText2Image
 from metagpt.tools.openai_text_to_image import OpenAIText2Image
@@ -26,7 +26,6 @@ async def test_text_to_image(mocker):
     mocker.patch.object(OpenAIText2Image, "text_2_image", return_value=b"mock OpenAIText2Image")
     mocker.patch.object(S3, "cache", return_value="http://mock/s3")
 
-    config = Config.default()
     assert config.metagpt_tti_url
 
     data = await text_to_image("Panda emoji", size_type="512x512", config=config)
@@ -51,7 +50,6 @@ async def test_openai_text_to_image(mocker):
     mock_post.return_value.__aenter__.return_value = mock_response
     mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/0.png")
 
-    config = Config.default()
     config.metagpt_tti_url = None
     assert config.get_openai_llm()
 
