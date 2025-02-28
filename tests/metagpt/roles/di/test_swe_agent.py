@@ -1,22 +1,17 @@
 import pytest
 
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.roles.di.swe_agent import SWEAgent
+from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.schema import Message
 from metagpt.tools.libs.terminal import Bash
-from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.roles.di.team_leader import TeamLeader
 
 
 @pytest.fixture
 def env():
     test_env = MGXEnv()
     tl = TeamLeader()
-    test_env.add_roles(
-        [
-            tl,
-            SWEAgent()
-        ]
-    )
+    test_env.add_roles([tl, SWEAgent()])
     return test_env
 
 
