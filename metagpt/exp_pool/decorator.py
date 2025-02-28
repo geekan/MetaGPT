@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.exp_pool.context_builders import BaseContextBuilder, SimpleContextBuilder
 from metagpt.exp_pool.manager import ExperienceManager, get_exp_manager
 from metagpt.exp_pool.perfect_judges import BasePerfectJudge, SimplePerfectJudge
@@ -60,8 +60,6 @@ def exp_cache(
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         @functools.wraps(func)
         async def get_or_create(args: Any, kwargs: Any) -> ReturnType:
-            config = Config.default()
-
             if not config.exp_pool.enabled:
                 rsp = func(*args, **kwargs)
                 return await rsp if asyncio.iscoroutine(rsp) else rsp

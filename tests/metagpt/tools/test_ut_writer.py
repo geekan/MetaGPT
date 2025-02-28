@@ -20,11 +20,9 @@ from openai.types.chat.chat_completion_message_tool_call import (
     Function,
 )
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.const import API_QUESTIONS_PATH, UT_PY_PATH
 from metagpt.tools.ut_writer import YFT_PROMPT_PREFIX, UTGenerator
-
-config = Config.default()
 
 
 class TestUTWriter:

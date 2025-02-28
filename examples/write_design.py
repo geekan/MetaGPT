@@ -1,10 +1,10 @@
 import asyncio
 
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.roles.architect import Architect
-from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.schema import Message
 from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.schema import Message
 
 
 async def main():

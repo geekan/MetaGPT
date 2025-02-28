@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of repair_llm_raw_output
 
-from metagpt.config2 import Config
-
-config = Config.default()
+from metagpt.config2 import config
 
 """
 CONFIG.repair_llm_output should be True before retry_parse_json_text imported.

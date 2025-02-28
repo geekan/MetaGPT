@@ -13,11 +13,10 @@ from semantic_kernel.connectors.ai.open_ai.services.open_ai_chat_completion impo
     OpenAIChatCompletion,
 )
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 
 
 def make_sk_kernel():
-    config = Config.default()
     kernel = sk.Kernel()
     if llm := config.get_azure_llm():
         kernel.add_chat_service(

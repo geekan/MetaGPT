@@ -10,7 +10,7 @@
 import pytest
 from azure.cognitiveservices.speech import ResultReason, SpeechSynthesizer
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.learn.text_to_speech import text_to_speech
 from metagpt.tools.iflytek_tts import IFlyTekTTS
 from metagpt.utils.s3 import S3
@@ -19,7 +19,6 @@ from metagpt.utils.s3 import S3
 @pytest.mark.asyncio
 async def test_azure_text_to_speech(mocker):
     # mock
-    config = Config.default()
     config.iflytek_api_key = None
     config.iflytek_api_secret = None
     config.iflytek_app_id = None
@@ -47,7 +46,6 @@ async def test_azure_text_to_speech(mocker):
 @pytest.mark.asyncio
 async def test_iflytek_text_to_speech(mocker):
     # mock
-    config = Config.default()
     config.azure_tts_subscription_key = None
     config.azure_tts_region = None
     mocker.patch.object(IFlyTekTTS, "synthesize_speech", return_value=None)

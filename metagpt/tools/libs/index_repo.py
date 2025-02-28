@@ -11,7 +11,7 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.schema import NodeWithScore
 from pydantic import BaseModel, Field, model_validator
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
@@ -142,7 +142,6 @@ class IndexRepo(BaseModel):
             return flat_nodes
 
         if not self.embedding:
-            config = Config.default()
             if self.model:
                 config.embedding.model = self.model
             factory = RAGEmbeddingFactory(config)

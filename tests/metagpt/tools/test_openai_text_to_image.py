@@ -11,15 +11,13 @@ import openai
 import pytest
 from pydantic import BaseModel
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.llm import LLM
 from metagpt.tools.openai_text_to_image import (
     OpenAIText2Image,
     oas3_openai_text_to_image,
 )
 from metagpt.utils.s3 import S3
-
-config = Config.default()
 
 
 @pytest.mark.asyncio

@@ -12,10 +12,8 @@ from pathlib import Path
 import pytest
 from azure.cognitiveservices.speech import ResultReason, SpeechSynthesizer
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.tools.azure_tts import AzureTTS
-
-config = Config.default()
 
 
 @pytest.mark.asyncio
