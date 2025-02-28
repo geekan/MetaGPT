@@ -12,7 +12,7 @@ from llama_index.core.llms import (
 from llama_index.core.llms.callbacks import llm_completion_callback
 from pydantic import Field
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.token_counter import TOKEN_MAX
@@ -41,7 +41,6 @@ class RAGLLM(CustomLLM):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        config = Config.default()
         if context_window < 0:
             context_window = TOKEN_MAX.get(config.llm.model, DEFAULT_CONTEXT_WINDOW)
 

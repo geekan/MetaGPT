@@ -4,7 +4,7 @@
 import json
 from pathlib import Path
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.provider.openai_api import OpenAILLM as GPTAPI
 from metagpt.utils.common import awrite
 
@@ -282,7 +282,6 @@ class UTGenerator:
         """Choose based on different calling methods"""
         result = ""
         if self.chatgpt_method == "API":
-            config = Config.default()
             result = await GPTAPI(config.get_openai_llm()).aask_code(messages=messages)
 
         return result

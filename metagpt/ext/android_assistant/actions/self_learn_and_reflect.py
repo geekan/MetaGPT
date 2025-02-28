@@ -6,7 +6,7 @@ import ast
 from pathlib import Path
 
 from metagpt.actions.action import Action
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
@@ -80,7 +80,6 @@ class SelfLearnAndReflect(Action):
     async def run_self_learn(
         self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        config = Config.default()
         extra_config = config.extra
         screenshot_path: Path = env.observe(
             EnvObsParams(obs_type=EnvObsType.GET_SCREENSHOT, ss_name=f"{round_count}_before", local_save_dir=task_dir)

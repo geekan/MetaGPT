@@ -31,7 +31,7 @@ from llama_index.core.schema import (
     TransformComponent,
 )
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.rag.factories import (
     get_index,
     get_rag_embedding,
@@ -400,7 +400,6 @@ class SimpleEngine(RetrieverQueryEngine):
             dict[file_type: BaseReader]
         """
         file_extractor: dict[str:BaseReader] = {}
-        config = Config.default()
         if config.omniparse.base_url:
             pdf_parser = OmniParse(
                 api_key=config.omniparse.api_key,

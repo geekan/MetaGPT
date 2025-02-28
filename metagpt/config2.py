@@ -178,3 +178,4 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
 
 
 _CONFIG_CACHE = {}
+config = Config.default()

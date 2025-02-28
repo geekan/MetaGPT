@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 from metagpt.actions.action import Action
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.ext.android_assistant.actions.parse_record_an import RECORD_PARSE_NODE
 from metagpt.ext.android_assistant.prompts.operation_prompt import (
     long_press_doc_template,
@@ -45,7 +45,6 @@ class ParseRecord(Action):
             path.mkdir(parents=True, exist_ok=True)
 
         task_desc = self.task_desc_path.read_text()
-        config = Config.default()
         extra_config = config.extra
 
         with open(self.record_path, "r") as record_file:

@@ -7,7 +7,7 @@ from pathlib import Path
 import cv2
 
 from metagpt.actions.action import Action
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
@@ -55,7 +55,6 @@ class ManualRecord(Action):
         self.task_desc_path.write_text(task_desc)
 
         step = 0
-        config = Config.default()
         extra_config = config.extra
         while True:
             step += 1

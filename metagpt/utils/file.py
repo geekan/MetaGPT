@@ -13,7 +13,7 @@ from typing import Optional, Tuple, Union
 import aiofiles
 from fsspec.implementations.memory import MemoryFileSystem as _MemoryFileSystem
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils import read_docx
 from metagpt.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
@@ -190,7 +190,6 @@ class File:
 
     @staticmethod
     async def _read_omniparse_config() -> Tuple[str, int]:
-        config = Config.default()
         if config.omniparse and config.omniparse.base_url:
             return config.omniparse.base_url, config.omniparse.timeout
         return "", 0
