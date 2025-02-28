@@ -6,7 +6,7 @@ import ast
 from pathlib import Path
 
 from metagpt.actions.action import Action
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.environment.android.const import ADB_EXEC_FAIL
 from metagpt.environment.android.env_space import (
@@ -101,6 +101,7 @@ next action. You should always prioritize these documented elements for interact
         grid_on: bool,
         env: AndroidEnv,
     ):
+        config = Config.default()
         extra_config = config.extra
         for path in [task_dir, docs_dir]:
             path.mkdir(parents=True, exist_ok=True)

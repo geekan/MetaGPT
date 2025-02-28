@@ -9,7 +9,7 @@ from typing import Optional
 from pydantic import Field
 
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.const import EXAMPLE_PATH
 from metagpt.ext.android_assistant.actions.manual_record import ManualRecord
 from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
@@ -38,7 +38,7 @@ class AndroidAssistant(Role):
 
     def __init__(self, **data):
         super().__init__(**data)
-
+        config = Config.default()
         self._watch([UserRequirement, AndroidActionOutput])
         extra_config = config.extra
         self.task_desc = extra_config.get("task_desc", "Just explore any app in this phone!")
