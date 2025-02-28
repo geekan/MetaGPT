@@ -9,7 +9,7 @@ from pathlib import Path
 
 import typer
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.ext.android_assistant.roles.android_assistant import AndroidAssistant
 from metagpt.team import Team
@@ -41,7 +41,6 @@ def startup(
     ),
     device_id: str = typer.Option(default="emulator-5554", help="The Android device_id"),
 ):
-    config = Config.default()
     config.extra = {
         "stage": stage,
         "mode": mode,

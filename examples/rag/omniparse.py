@@ -1,6 +1,6 @@
 import asyncio
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.const import EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.parsers import OmniParse
@@ -11,8 +11,6 @@ TEST_DOCX = EXAMPLE_DATA_PATH / "omniparse/test01.docx"
 TEST_PDF = EXAMPLE_DATA_PATH / "omniparse/test02.pdf"
 TEST_VIDEO = EXAMPLE_DATA_PATH / "omniparse/test03.mp4"
 TEST_AUDIO = EXAMPLE_DATA_PATH / "omniparse/test04.mp3"
-
-config = Config.default()
 
 
 async def omniparse_client_example():

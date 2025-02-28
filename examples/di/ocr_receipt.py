@@ -12,7 +12,6 @@ async def main():
     Image path: {image_path}.
     NOTE: The environments for Paddle and PaddleOCR are all ready and has been fully installed."""
     di = DataInterpreter(react_mode="react")
-    print(requirement)
     await di.run(requirement)
 
 
