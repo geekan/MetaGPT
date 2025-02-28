@@ -8,18 +8,19 @@
         distribution feature for message handling.
 """
 import uuid
+from pathlib import Path
 
 import pytest
 
 from metagpt.actions import WritePRD
+from metagpt.actions.di.run_command import RunCommand
 from metagpt.const import PRDS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Architect
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, awrite
 from tests.metagpt.roles.mock import MockMessages
-from pathlib import Path
-from metagpt.actions.di.run_command import RunCommand
+
 
 @pytest.mark.asyncio
 async def test_architect(context):
