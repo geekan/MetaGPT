@@ -9,6 +9,7 @@
 """
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,9 +20,8 @@ from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.utils.git_repository import ChangeType
-from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 from metagpt.utils.project_repo import ProjectRepo
-from types import SimpleNamespace
+from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
 @pytest.mark.asyncio
