@@ -13,7 +13,9 @@ from metagpt.logs import logger
 
 async def ask_and_print(question: str, llm: LLM, system_prompt) -> str:
     logger.info(f"Q: {question}")
-    rsp = await llm.aask(question, system_msgs=[system_prompt])
+    rsp = await llm.aask(question, system_msgs=[system_prompt], stream=True)
+    if llm.reasoning_content:
+        logger.info(f"A reasoning: {llm.reasoning_content}")
     logger.info(f"A: {rsp}")
     return rsp
 
