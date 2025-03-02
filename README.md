@@ -75,6 +75,8 @@ pip install --upgrade metagpt
 # or `git clone https://github.com/geekan/MetaGPT && cd MetaGPT && pip install --upgrade -e .`
 ```
 
+**Install [node](https://nodejs.org/en/download) and [pnpm](https://pnpm.io/installation#using-npm) before actual use.**
+
 For detailed installation guidance, please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
  or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
