@@ -150,7 +150,7 @@ class ToolRecommender(BaseModel):
                 repair_llm_raw_output(output=ranked_tools, req_keys=[None], repair_type=RepairType.JSON)
             )
         except json.JSONDecodeError:
-            ranked_tools = await self.llm.aask(msg=JSON_REPAIR_PROMPT.format(json_data=rsp))
+            ranked_tools = await LLM().aask(msg=JSON_REPAIR_PROMPT.format(json_data=rsp))
             ranked_tools = json.loads(CodeParser.parse_code(block=None, lang="json", text=ranked_tools))
         except Exception:
             tb = traceback.format_exc()

@@ -55,6 +55,7 @@ Note:
 26. Engineer2.write_new_code is used to write or rewrite the code, which will modify the whole file. Editor.edit_file_by_replace is used to edit a small part of the file.
 27. Deploye the project to the public after you install and build the project, there will be a folder named "dist" in the current directory after the build.
 28. Use Engineer2.write_new_code to rewrite the whole file when you fail to use Editor.edit_file_by_replace more than three times.
+29. Just continue the work, if the template path does not exits.
 """.format(
     vue_template_path=VUE_TEMPLATE_PATH.resolve().absolute(),
     react_template_path=REACT_TEMPLATE_PATH.resolve().absolute(),
