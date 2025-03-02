@@ -127,8 +127,9 @@ class RoleZero(Role):
             "Plan.replace_task": self.planner.plan.replace_task,
             "RoleZero.ask_human": self.ask_human,
             "RoleZero.reply_to_human": self.reply_to_human,
-            "SearchEnhancedQA.run": SearchEnhancedQA().run,
         }
+        if self.config.enable_search:
+            self.tool_execution_map["SearchEnhancedQA.run"] = SearchEnhancedQA().run
         self.tool_execution_map.update(
             {
                 f"Browser.{i}": getattr(self.browser, i)

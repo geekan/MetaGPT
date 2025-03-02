@@ -7,7 +7,6 @@ from pathlib import Path
 import typer
 
 from metagpt.const import CONFIG_ROOT
-from metagpt.utils.common import any_to_str
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -31,10 +30,10 @@ def generate_repo(
     from metagpt.context import Context
     from metagpt.roles import (
         Architect,
-        Engineer,
+        DataAnalyst,
+        Engineer2,
         ProductManager,
-        ProjectManager,
-        QaEngineer,
+        TeamLeader,
     )
     from metagpt.team import Team
 
@@ -45,19 +44,22 @@ def generate_repo(
         company = Team(context=ctx)
         company.hire(
             [
+                TeamLeader(),
                 ProductManager(),
                 Architect(),
-                ProjectManager(),
+                Engineer2(),
+                # ProjectManager(),
+                DataAnalyst(),
             ]
         )
 
-        if implement or code_review:
-            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
-
-        if run_tests:
-            company.hire([QaEngineer()])
-            if n_round < 8:
-                n_round = 8  # If `--run-tests` is enabled, at least 8 rounds are required to run all QA actions.
+        # if implement or code_review:
+        #     company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+        #
+        # if run_tests:
+        #     company.hire([QaEngineer()])
+        #     if n_round < 8:
+        #         n_round = 8  # If `--run-tests` is enabled, at least 8 rounds are required to run all QA actions.
     else:
         stg_path = Path(recover_path)
         if not stg_path.exists() or not str(stg_path).endswith("team"):
@@ -67,8 +69,7 @@ def generate_repo(
         idea = company.idea
 
     company.invest(investment)
-    company.run_project(idea, send_to=any_to_str(ProductManager))
-    asyncio.run(company.run(n_round=n_round))
+    asyncio.run(company.run(n_round=n_round, idea=idea))
 
     return ctx.kwargs.get("project_path")
 

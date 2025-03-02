@@ -63,6 +63,7 @@ class Config(CLIParams, YamlModel):
 
     # Tool Parameters
     search: SearchConfig = SearchConfig()
+    enable_search: bool = False
     browser: BrowserConfig = BrowserConfig()
     mermaid: MermaidConfig = MermaidConfig()
 
