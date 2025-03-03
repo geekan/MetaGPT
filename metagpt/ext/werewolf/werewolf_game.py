@@ -3,7 +3,7 @@ from typing import Any, Optional
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.context import Context
 from metagpt.environment.werewolf.werewolf_env import WerewolfEnv
-from metagpt.ext.werewolf.schema import WwMessage
+from metagpt.ext.werewolf.schema import WwMessage, WwJsonEncoder
 from metagpt.team import Team
 
 
@@ -14,6 +14,7 @@ class WerewolfGame(Team):
 
     def __init__(self, context: Context = None, **data: Any):
         super(Team, self).__init__(**data)
+        self.json_encoder = WwJsonEncoder
         ctx = context or Context()
         if not self.env:
             self.env = WerewolfEnv(context=ctx)

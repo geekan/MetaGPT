@@ -125,7 +125,7 @@ class DataUtils:
         return {"round": round, "score": score, "avg_cost": avg_cost, "total_cost": total_cost, "time": now}
 
     def save_results(self, json_file_path: str, data: list):
-        write_json_file(json_file_path, data, encoding="utf-8", indent=4)
+        write_json_file(json_file_path, data, encoding="utf-8", indent=4, cls=NumpyJSONEncoder)
 
     def _load_scores(self, path=None, mode="Graph"):
         if mode == "Graph":
@@ -147,3 +147,30 @@ class DataUtils:
         self.top_scores.sort(key=lambda x: x["score"], reverse=True)
 
         return self.top_scores
+
+class NumpyJSONEncoder(json.JSONEncoder):
+    """customized JSON encoder for numpy data type
+    
+    features:
+    1. support numpy array serialization (automatically convert to list)
+    2. support numpy scalar type (int32, float64, etc.) serialization
+    3. keep the original data type precision
+    4. compatible with regular JSON data types
+    """
+    def default(self, obj):
+        """override the default serialize method"""
+        
+        # handle numpy array type
+        if isinstance(obj, np.ndarray):
+            return {
+                '__ndarray__': obj.tolist(),  # 转换为Python列表
+                'dtype': str(obj.dtype),      # 保留数据类型信息
+                'shape': obj.shape           # 保留数组形状
+            }
+        
+        # handle numpy scalar type
+        elif isinstance(obj, np.generic):
+            return obj.item()  # convert to python native type
+        
+        # handle other type using default method
+        return super().default(obj)
