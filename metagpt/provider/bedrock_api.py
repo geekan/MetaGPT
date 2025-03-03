@@ -23,7 +23,9 @@ class BedrockLLM(BaseLLM):
     def __init__(self, config: LLMConfig):
         self.config = config
         self.__client = self.__init_client("bedrock-runtime")
-        self.__provider = get_provider(self.config.model)
+        self.__provider = get_provider(
+            self.config.model, reasoning=self.config.reasoning, reasoning_max_token=self.config.reasoning_max_token
+        )
         self.cost_manager = CostManager(token_costs=BEDROCK_TOKEN_COSTS)
         if self.config.model in NOT_SUPPORT_STREAM_MODELS:
             logger.warning(f"model {self.config.model} doesn't support streaming output!")
@@ -102,7 +104,11 @@ class BedrockLLM(BaseLLM):
     # However,aioboto3 doesn't support invoke model
 
     def get_choice_text(self, rsp: dict) -> str:
-        return self.__provider.get_choice_text(rsp)
+        rsp = self.__provider.get_choice_text(rsp)
+        if isinstance(rsp, dict):
+            self.reasoning_content = rsp.get("reasoning_content")
+            rsp = rsp.get("content")
+        return rsp
 
     async def acompletion(self, messages: list[dict]) -> dict:
         request_body = self.__provider.get_request_body(messages, self._const_kwargs)
@@ -133,10 +139,16 @@ class BedrockLLM(BaseLLM):
     async def _get_stream_response_body(self, stream_response) -> List[str]:
         def collect_content() -> str:
             collected_content = []
+            collected_reasoning_content = []
             for event in stream_response["body"]:
-                chunk_text = self.__provider.get_choice_text_from_stream(event)
-                collected_content.append(chunk_text)
-                log_llm_stream(chunk_text)
+                reasoning, chunk_text = self.__provider.get_choice_text_from_stream(event)
+                if reasoning:
+                    collected_reasoning_content.append(chunk_text)
+                else:
+                    collected_content.append(chunk_text)
+                    log_llm_stream(chunk_text)
+            if collected_reasoning_content:
+                self.reasoning_content = "".join(collected_reasoning_content)
             return collected_content
 
         loop = asyncio.get_running_loop()

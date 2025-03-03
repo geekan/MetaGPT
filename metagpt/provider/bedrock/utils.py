@@ -48,6 +48,9 @@ SUPPORT_STREAM_MODELS = {
     "anthropic.claude-3-opus-20240229-v1:0": 4096,
     # Claude 3.5 Sonnet
     "anthropic.claude-3-5-sonnet-20240620-v1:0": 8192,
+    # Claude 3.7 Sonnet
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0": 131072,
+    "anthropic.claude-3-7-sonnet-20250219-v1:0": 131072,
     # Command Text
     # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command.html
     "cohere.command-text-v14": 4096,
@@ -131,20 +134,6 @@ def messages_to_prompt_llama3(messages: list[dict]) -> str:
 
     if role != "assistant":
         prompt += "<|start_header_id|>assistant<|end_header_id|>"
-
-    return prompt
-
-
-def messages_to_prompt_claude2(messages: list[dict]) -> str:
-    GENERAL_TEMPLATE = "\n\n{role}: {content}"
-    prompt = ""
-    for message in messages:
-        role = message.get("role", "")
-        content = message.get("content", "")
-        prompt += GENERAL_TEMPLATE.format(role=role, content=content)
-
-    if role != "assistant":
-        prompt += "\n\nAssistant:"
 
     return prompt
 

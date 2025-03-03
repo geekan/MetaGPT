@@ -144,6 +144,6 @@ class FireworksCostManager(CostManager):
         cost = (prompt_tokens * token_costs["prompt"] + completion_tokens * token_costs["completion"]) / 1000000
         self.total_cost += cost
         logger.info(
-            f"Total running cost: ${self.total_cost:.4f}"
+            f"Total running cost: ${self.total_cost:.4f}, "
             f"Current cost: ${cost:.4f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
         )
