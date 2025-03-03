@@ -39,7 +39,7 @@ async def test_write_prd_an(mocker):
         requirements=NEW_REQUIREMENT_SAMPLE,
         old_prd=PRD_SAMPLE,
     )
-    node = await REFINED_PRD_NODE.fill(prompt, llm)
+    node = await REFINED_PRD_NODE.fill(req=prompt, llm=llm)
 
     assert "Refined Requirements" in node.instruct_content.model_dump()
     assert "Refined Product Goals" in node.instruct_content.model_dump()

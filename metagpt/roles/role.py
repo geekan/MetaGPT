@@ -23,26 +23,30 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
+from typing import Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
+from metagpt.base import BaseEnvironment, BaseRole
+from metagpt.const import MESSAGE_ROUTE_TO_SELF
 from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
-from metagpt.schema import Message, MessageQueue, SerializationMixin
+from metagpt.schema import (
+    AIMessage,
+    Message,
+    MessageQueue,
+    SerializationMixin,
+    Task,
+    TaskResult,
+)
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
-from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
-
-if TYPE_CHECKING:
-    from metagpt.environment import Environment  # noqa: F401
-
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -91,7 +95,7 @@ class RoleContext(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
-    env: "Environment" = Field(default=None, exclude=True)  # # avoid circular import
+    env: BaseEnvironment = Field(default=None, exclude=True)  # # avoid circular import
     # TODO judge if ser&deser
     msg_buffer: MessageQueue = Field(
         default_factory=MessageQueue, exclude=True
@@ -117,14 +121,8 @@ class RoleContext(BaseModel):
     def history(self) -> list[Message]:
         return self.memory.get()
 
-    @classmethod
-    def model_rebuild(cls, **kwargs):
-        from metagpt.environment.base_env import Environment  # noqa: F401
 
-        super().model_rebuild(**kwargs)
-
-
-class Role(SerializationMixin, ContextMixin, BaseModel):
+class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
@@ -135,6 +133,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     constraints: str = ""
     desc: str = ""
     is_human: bool = False
+    enable_memory: bool = (
+        True  # Stateless, atomic roles, or roles that use external storage can disable this to save memory.
+    )
 
     role_id: str = ""
     states: list[str] = []
@@ -153,6 +154,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
+    observe_all_msg_from_buffer: bool = False  # whether to save all msgs from buffer to memory for role's awareness
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
@@ -170,7 +172,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self.llm.cost_manager = self.context.cost_manager
-        if not self.rc.watch:
+        # if observe_all_msg_from_buffer, we should not use cause_by to select messages but observe all
+        if not self.observe_all_msg_from_buffer:
             self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
@@ -186,29 +189,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if value:
             value.context = self.context
         self.rc.todo = value
-
-    @property
-    def git_repo(self):
-        """Git repo"""
-        return self.context.git_repo
-
-    @git_repo.setter
-    def git_repo(self, value):
-        self.context.git_repo = value
-
-    @property
-    def src_workspace(self):
-        """Source workspace under git repo"""
-        return self.context.src_workspace
-
-    @src_workspace.setter
-    def src_workspace(self, value):
-        self.context.src_workspace = value
-
-    @property
-    def project_repo(self) -> ProjectRepo:
-        project_repo = ProjectRepo(self.context.git_repo)
-        return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
 
     @property
     def prompt_schema(self):
@@ -247,10 +227,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return self
 
     def _init_action(self, action: Action):
-        if not action.private_llm:
-            action.set_llm(self.llm, override=True)
-        else:
-            action.set_llm(self.llm, override=False)
+        action.set_context(self.context)
+        override = not action.private_config
+        action.set_llm(self.llm, override=override)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):
@@ -326,7 +305,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         logger.debug(f"actions={self.actions}, state={state}")
         self.set_todo(self.actions[self.rc.state] if state >= 0 else None)
 
-    def set_env(self, env: "Environment"):
+    def set_env(self, env: BaseEnvironment):
         """Set the environment in which the role works. The role can talk to the environment and can also receive
         messages by observing."""
         self.rc.env = env
@@ -403,22 +382,21 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         response = await self.rc.todo.run(self.rc.history)
         if isinstance(response, (ActionOutput, ActionNode)):
-            msg = Message(
+            msg = AIMessage(
                 content=response.content,
                 instruct_content=response.instruct_content,
-                role=self._setting,
                 cause_by=self.rc.todo,
                 sent_from=self,
             )
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response or "", role=self.profile, cause_by=self.rc.todo, sent_from=self)
+            msg = AIMessage(content=response or "", cause_by=self.rc.todo, sent_from=self)
         self.rc.memory.add(msg)
 
         return msg
 
-    async def _observe(self, ignore_memory=False) -> int:
+    async def _observe(self) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = []
@@ -427,12 +405,17 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if not news:
             news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        old_messages = [] if ignore_memory else self.rc.memory.get()
-        self.rc.memory.add_batch(news)
-        # Filter out messages of interest.
+        old_messages = [] if not self.enable_memory else self.rc.memory.get()
+        # Filter in messages of interest.
         self.rc.news = [
             n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
         ]
+        if self.observe_all_msg_from_buffer:
+            # save all new messages from the buffer into memory, the role may not react to them but can be aware of them
+            self.rc.memory.add_batch(news)
+        else:
+            # only save messages of interest into memory
+            self.rc.memory.add_batch(self.rc.news)
         self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
 
         # Design Rules:
@@ -447,9 +430,19 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not msg:
             return
+        if MESSAGE_ROUTE_TO_SELF in msg.send_to:
+            msg.send_to.add(any_to_str(self))
+            msg.send_to.remove(MESSAGE_ROUTE_TO_SELF)
+        if not msg.sent_from or msg.sent_from == MESSAGE_ROUTE_TO_SELF:
+            msg.sent_from = any_to_str(self)
+        if all(to in {any_to_str(self), self.name} for to in msg.send_to):  # Message to myself
+            self.put_message(msg)
+            return
         if not self.rc.env:
             # If env does not exist, do not publish the message
             return
+        if isinstance(msg, AIMessage) and not msg.agent:
+            msg.with_agent(self._setting)
         self.rc.env.publish_message(msg)
 
     def put_message(self, message):
@@ -464,11 +457,11 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
+        rsp = AIMessage(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
-            todo = await self._think()
-            if not todo:
+            has_todo = await self._think()
+            if not has_todo:
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
@@ -495,6 +488,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             await self.planner.process_task_result(task_result)
 
         rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+        rsp.role = "assistant"
+        rsp.sent_from = self._setting
 
         self.rc.memory.add(rsp)  # add to persistent memory
 
@@ -523,6 +518,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         else:
             raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
+        if isinstance(rsp, AIMessage):
+            rsp.with_agent(self._setting)
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:
@@ -593,6 +590,3 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if self.actions:
             return any_to_name(self.actions[0])
         return ""
-
-
-RoleContext.model_rebuild()

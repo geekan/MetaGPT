@@ -13,7 +13,7 @@ from metagpt.utils.mermaid import MMC1, MMC2
 IMPLEMENTATION_APPROACH = ActionNode(
     key="Implementation approach",
     expected_type=str,
-    instruction="Analyze the difficult points of the requirements, select the appropriate open-source framework",
+    instruction="Analyze the difficult points of the requirements, select the appropriate open-source framework.",
     example="We will ...",
 )
 
@@ -33,8 +33,8 @@ PROJECT_NAME = ActionNode(
 FILE_LIST = ActionNode(
     key="File list",
     expected_type=List[str],
-    instruction="Only need relative paths. ALWAYS write a main.py or app.py here",
-    example=["main.py", "game.py"],
+    instruction="Only need relative paths. Succinctly designate the correct entry file for your project based on the programming language: use main.js for JavaScript, main.py for Python, and so on for other languages.",
+    example=["a.js", "b.py", "c.css", "d.html"],
 )
 
 REFINED_FILE_LIST = ActionNode(

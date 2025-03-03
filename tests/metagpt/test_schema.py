@@ -9,13 +9,15 @@
 """
 
 import json
+from typing import Annotated
 
 import pytest
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
+from metagpt.const import SERDESER_PATH, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.schema import (
     AIMessage,
     CodeSummarizeContext,
@@ -23,6 +25,7 @@ from metagpt.schema import (
     Message,
     MessageQueue,
     Plan,
+    SerializationMixin,
     SystemMessage,
     Task,
     UMLClassAttribute,
@@ -348,6 +351,113 @@ class TestPlan:
         plan = Plan(goal="Test", tasks=[task1, task2])
         plan._update_current_task()
         assert plan.current_task_id == "2"
+
+
+@pytest.mark.parametrize(
+    ("content", "key_descriptions"),
+    [
+        (
+            """
+Traceback (most recent call last):
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/main.py", line 38, in <module>
+    Main().main()
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/main.py", line 28, in main
+    self.user_interface.draw()
+  File "/Users/iorishinier/github/MetaGPT/workspace/game_2048_1/game_2048/user_interface.py", line 16, in draw
+    if grid[i][j] != 0:
+TypeError: 'Grid' object is not subscriptable
+        """,
+            {
+                "filename": "the string type of the path name of the source code where the bug resides",
+                "line": "the integer type of the line error occurs",
+                "function_name": "the string type of the function name the error occurs in",
+                "code": "the string type of the codes where the error occurs at",
+                "info": "the string type of the error information",
+            },
+        ),
+        (
+            "将代码提交到github上的iorisa/repo1的branch1分支，发起pull request ，合并到master分支。",
+            {
+                "repo_name": "the string type of github repo to create pull",
+                "head": "the string type of github branch to be pushed",
+                "base": "the string type of github branch to merge the changes into",
+            },
+        ),
+    ],
+)
+async def test_parse_resources(context, content: str, key_descriptions):
+    msg = Message(content=content)
+    llm = context.llm_with_cost_manager_from_llm_config(context.config.llm)
+    result = await msg.parse_resources(llm=llm, key_descriptions=key_descriptions)
+    assert result
+    assert result.get("resources")
+    for k in key_descriptions.keys():
+        assert k in result
+
+
+@pytest.mark.parametrize(("name", "value"), [("c1", {"age": 10, "name": "Alice"}), ("", {"path": __file__})])
+def test_create_instruct_value(name, value):
+    obj = Message.create_instruct_value(kvs=value, class_name=name)
+    assert obj.model_dump() == value
+
+
+class TestUserModel(SerializationMixin, BaseModel):
+    name: str
+    value: int
+
+
+class TestUserModelWithExclude(TestUserModel):
+    age: Annotated[int, Field(exclude=True)]
+
+
+class TestSerializationMixin:
+    @pytest.fixture
+    def mock_write_json_file(self, mocker):
+        return mocker.patch("metagpt.schema.write_json_file")
+
+    @pytest.fixture
+    def mock_read_json_file(self, mocker):
+        return mocker.patch("metagpt.schema.read_json_file")
+
+    @pytest.fixture
+    def mock_user_model(self):
+        return TestUserModel(name="test", value=42)
+
+    def test_serialize(self, mock_write_json_file, mock_user_model):
+        file_path = "test.json"
+
+        mock_user_model.serialize(file_path)
+
+        mock_write_json_file.assert_called_once_with(file_path, mock_user_model.model_dump())
+
+    def test_deserialize(self, mock_read_json_file):
+        file_path = "test.json"
+        data = {"name": "test", "value": 42}
+        mock_read_json_file.return_value = data
+
+        model = TestUserModel.deserialize(file_path)
+
+        mock_read_json_file.assert_called_once_with(file_path)
+        assert model == TestUserModel(**data)
+
+    def test_serialize_with_exclude(self, mock_write_json_file):
+        model = TestUserModelWithExclude(name="test", value=42, age=10)
+        file_path = "test.json"
+
+        model.serialize(file_path)
+
+        expected_data = {
+            "name": "test",
+            "value": 42,
+            "__module_class_name": "tests.metagpt.test_schema.TestUserModelWithExclude",
+        }
+
+        mock_write_json_file.assert_called_once_with(file_path, expected_data)
+
+    def test_get_serialization_path(self):
+        expected_path = str(SERDESER_PATH / "TestUserModel.json")
+
+        assert TestUserModel.get_serialization_path() == expected_path
 
 
 if __name__ == "__main__":

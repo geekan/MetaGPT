@@ -14,7 +14,6 @@ from typing import Optional, Set, Tuple
 import aiofiles
 
 from metagpt.actions import Action
-from metagpt.config2 import config
 from metagpt.const import (
     AGGREGATION,
     COMPOSITION,
@@ -40,7 +39,7 @@ class RebuildClassView(Action):
 
     graph_db: Optional[GraphRepository] = None
 
-    async def run(self, with_messages=None, format=config.prompt_schema):
+    async def run(self, with_messages=None, format=None):
         """
         Implementation of `Action`'s `run` method.
 
@@ -48,6 +47,7 @@ class RebuildClassView(Action):
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
         """
+        format = format if format else self.config.prompt_schema
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=Path(self.i_context))

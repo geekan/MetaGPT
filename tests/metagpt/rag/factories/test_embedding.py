@@ -1,5 +1,6 @@
 import pytest
 
+from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType
 from metagpt.configs.llm_config import LLMType
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
@@ -12,7 +13,10 @@ class TestRAGEmbeddingFactory:
 
     @pytest.fixture
     def mock_config(self, mocker):
-        return mocker.patch("metagpt.rag.factories.embedding.config")
+        config = Config.default().model_copy(deep=True)
+        default = mocker.patch("metagpt.config2.Config.default")
+        default.return_value = config
+        return config
 
     @staticmethod
     def mock_openai_embedding(mocker):

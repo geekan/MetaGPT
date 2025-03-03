@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import traceback
 from typing import Any
 
 import numpy as np
@@ -9,11 +10,13 @@ from rank_bm25 import BM25Okapi
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.prompts.di.role_zero import JSON_REPAIR_PROMPT
 from metagpt.schema import Plan
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_data_type import Tool
 from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.utils.common import CodeParser
+from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
 
 TOOL_INFO_PROMPT = """
 ## Capabilities
@@ -61,6 +64,10 @@ class ToolRecommender(BaseModel):
     @field_validator("tools", mode="before")
     @classmethod
     def validate_tools(cls, v: list[str]) -> dict[str, Tool]:
+        # If `v` is already a dictionary (e.g., during deserialization), return it as is.
+        if isinstance(v, dict):
+            return v
+
         # One can use special symbol ["<all>"] to indicate use of all registered tools
         if v == ["<all>"]:
             return TOOL_REGISTRY.get_all_tools()
@@ -101,11 +108,13 @@ class ToolRecommender(BaseModel):
 
         return ranked_tools
 
-    async def get_recommended_tool_info(self, **kwargs) -> str:
+    async def get_recommended_tool_info(self, fixed: list[str] = None, **kwargs) -> str:
         """
         Wrap recommended tools with their info in a string, which can be used directly in a prompt.
         """
         recommended_tools = await self.recommend_tools(**kwargs)
+        if fixed:
+            recommended_tools.extend([self.tools[tool_name] for tool_name in fixed if tool_name in self.tools])
         if not recommended_tools:
             return ""
         tool_schemas = {tool.name: tool.schemas for tool in recommended_tools}
@@ -131,9 +140,30 @@ class ToolRecommender(BaseModel):
             available_tools=available_tools,
             topk=topk,
         )
-        rsp = await LLM().aask(prompt)
-        rsp = CodeParser.parse_code(block=None, text=rsp)
-        ranked_tools = json.loads(rsp)
+        rsp = await LLM().aask(prompt, stream=False)
+
+        # 临时方案，待role zero的版本完成可将本注释内的代码直接替换掉
+        # -------------开始---------------
+        try:
+            ranked_tools = CodeParser.parse_code(block=None, lang="json", text=rsp)
+            ranked_tools = json.loads(
+                repair_llm_raw_output(output=ranked_tools, req_keys=[None], repair_type=RepairType.JSON)
+            )
+        except json.JSONDecodeError:
+            ranked_tools = await LLM().aask(msg=JSON_REPAIR_PROMPT.format(json_data=rsp))
+            ranked_tools = json.loads(CodeParser.parse_code(block=None, lang="json", text=ranked_tools))
+        except Exception:
+            tb = traceback.format_exc()
+            print(tb)
+
+        # 为了对LLM不按格式生成进行容错
+        if isinstance(ranked_tools, dict):
+            ranked_tools = list(ranked_tools.values())[0]
+        # -------------结束---------------
+
+        if not isinstance(ranked_tools, list):
+            logger.warning(f"Invalid rank result: {ranked_tools}, will use the recalled tools instead.")
+            ranked_tools = list(available_tools.keys())
 
         valid_tools = validate_tool_names(ranked_tools)
 

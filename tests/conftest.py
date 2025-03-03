@@ -12,7 +12,6 @@ import logging
 import os
 import re
 import uuid
-from pathlib import Path
 from typing import Callable
 
 import aiohttp.web
@@ -23,7 +22,6 @@ from metagpt.context import Context as MetagptContext
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
-from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
 from tests.mock.mock_httplib2 import MockHttplib2Response
@@ -149,13 +147,14 @@ def loguru_caplog(caplog):
 @pytest.fixture(scope="function")
 def context(request):
     ctx = MetagptContext()
-    ctx.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
-    ctx.repo = ProjectRepo(ctx.git_repo)
+    repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
+    ctx.config.project_path = str(repo.workdir)
 
     # Destroy git repo at the end of the test session.
     def fin():
-        if ctx.git_repo:
-            ctx.git_repo.delete_repository()
+        if ctx.config.project_path:
+            git_repo = GitRepository(ctx.config.project_path)
+            git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
@@ -247,14 +246,16 @@ def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, sear
 
 @pytest.fixture
 def http_server():
-    async def handler(request):
-        return aiohttp.web.Response(
-            text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-            <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
-            content_type="text/html",
-        )
+    async def start(handler=None):
+        if handler is None:
 
-    async def start():
+            async def handler(request):
+                return aiohttp.web.Response(
+                    text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+                    <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
+                    content_type="text/html",
+                )
+
         server = aiohttp.web.Server(handler)
         runner = aiohttp.web.ServerRunner(server)
         await runner.setup()
@@ -277,6 +278,6 @@ def mermaid_mocker(aiohttp_mocker, mermaid_rsp_cache):
 @pytest.fixture
 def git_dir():
     """Fixture to get the unittest directory."""
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir = DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}"
     git_dir.mkdir(parents=True, exist_ok=True)
     return git_dir

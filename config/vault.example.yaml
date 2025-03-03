@@ -1,0 +1,48 @@
+# Usage:
+# 1. Get value.
+# >>> from metagpt.tools.libs.env import get_env
+# >>> access_token = await get_env(key="access_token", app_name="github")
+# >>> print(access_token)
+# YOUR_ACCESS_TOKEN
+#
+# 2. Get description for LLM understanding.
+# >>> from metagpt.tools.libs.env import get_env_description
+# >>> descriptions = await get_env_description
+# >>> for k, desc in descriptions.items():
+# >>>     print(f"{key}:{desc}")
+# await get_env(key="access_token", app_name="github"):Get github access token
+# await get_env(key="access_token", app_name="gitlab"):Get gitlab access token
+# ...
+
+vault:
+  github:
+    values:
+      access_token: "YOUR_ACCESS_TOKEN"
+    descriptions:
+      access_token: "Get github access token"
+  gitlab:
+    values:
+      access_token: "YOUR_ACCESS_TOKEN"
+    descriptions:
+      access_token: "Get gitlab access token"
+  iflytek_tts:
+    values:
+      api_id: "YOUR_APP_ID"
+      api_key: "YOUR_API_KEY"
+      api_secret: "YOUR_API_SECRET"
+    descriptions:
+      api_id: "Get the API ID of IFlyTek Text to Speech"
+      api_key: "Get the API KEY of IFlyTek Text to Speech"
+      api_secret: "Get the API SECRET of IFlyTek Text to Speech"
+  azure_tts:
+    values:
+      subscription_key: "YOUR_SUBSCRIPTION_KEY"
+      region: "YOUR_REGION"
+    descriptions:
+      subscription_key: "Get the subscription key of Azure Text to Speech."
+      region: "Get the region of Azure Text to Speech."
+  default: # All key-value pairs whose app name is an empty string are placed below
+    values:
+      proxy: "YOUR_PROXY"
+    descriptions:
+      proxy: "Get proxy for tools like requests, playwright, selenium, etc."

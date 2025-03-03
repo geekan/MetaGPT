@@ -198,8 +198,9 @@ class FileRepository:
         :type dependencies: List[str], optional
         """
 
-        await self.save(filename=doc.filename, content=doc.content, dependencies=dependencies)
+        doc = await self.save(filename=doc.filename, content=doc.content, dependencies=dependencies)
         logger.debug(f"File Saved: {str(doc.filename)}")
+        return doc
 
     async def save_pdf(self, doc: Document, with_suffix: str = ".md", dependencies: List[str] = None):
         """Save a Document instance as a PDF file.
@@ -216,8 +217,9 @@ class FileRepository:
         """
         m = json.loads(doc.content)
         filename = Path(doc.filename).with_suffix(with_suffix) if with_suffix is not None else Path(doc.filename)
-        await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
+        doc = await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
         logger.debug(f"File Saved: {str(filename)}")
+        return doc
 
     async def delete(self, filename: Path | str):
         """Delete a file from the file repository.

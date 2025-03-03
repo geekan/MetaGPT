@@ -13,7 +13,6 @@ from llama_index.core.llms.callbacks import llm_completion_callback
 from pydantic import Field
 
 from metagpt.config2 import config
-from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.token_counter import TOKEN_MAX
@@ -28,9 +27,33 @@ class RAGLLM(CustomLLM):
     """
 
     model_infer: BaseLLM = Field(..., description="The MetaGPT's LLM.")
-    context_window: int = config.llm.context_length or TOKEN_MAX.get(config.llm.model, DEFAULT_CONTEXT_WINDOW)
-    num_output: int = config.llm.max_token
-    model_name: str = config.llm.model
+    context_window: int = -1
+    num_output: int = -1
+    model_name: str = ""
+
+    def __init__(
+        self,
+        model_infer: BaseLLM,
+        context_window: int = -1,
+        num_output: int = -1,
+        model_name: str = "",
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        if context_window < 0:
+            context_window = TOKEN_MAX.get(config.llm.model, DEFAULT_CONTEXT_WINDOW)
+
+        if num_output < 0:
+            num_output = config.llm.max_token
+
+        if not model_name:
+            model_name = config.llm.model
+
+        self.model_infer = model_infer
+        self.context_window = context_window
+        self.num_output = num_output
+        self.model_name = model_name
 
     @property
     def metadata(self) -> LLMMetadata:
@@ -56,4 +79,6 @@ class RAGLLM(CustomLLM):
 
 def get_rag_llm(model_infer: BaseLLM = None) -> RAGLLM:
     """Get llm that can be used by LlamaIndex."""
+    from metagpt.llm import LLM
+
     return RAGLLM(model_infer=model_infer or LLM())

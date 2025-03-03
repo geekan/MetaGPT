@@ -45,7 +45,7 @@ class WriteTest(Action):
         code_rsp = await self._aask(prompt)
 
         try:
-            code = CodeParser.parse_code(block="", text=code_rsp)
+            code = CodeParser.parse_code(text=code_rsp)
         except Exception:
             # Handle the exception if needed
             logger.error(f"Can't parse the code: {code_rsp}")

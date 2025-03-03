@@ -6,12 +6,13 @@
 @File    : text_to_embedding.py
 @Desc    : Text-to-Embedding skill, which provides text-to-embedding functionality.
 """
-import metagpt.config2
+from typing import Optional
+
 from metagpt.config2 import Config
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 
 
-async def text_to_embedding(text, model="text-embedding-ada-002", config: Config = metagpt.config2.config):
+async def text_to_embedding(text, model="text-embedding-ada-002", config: Optional[Config] = None):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -19,6 +20,7 @@ async def text_to_embedding(text, model="text-embedding-ada-002", config: Config
     :param config: OpenAI config with API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
     :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
     """
+    config = config if config else Config.default()
     openai_api_key = config.get_openai_llm().api_key
     proxy = config.get_openai_llm().proxy
     return await oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key, proxy=proxy)

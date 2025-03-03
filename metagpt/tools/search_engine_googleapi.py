@@ -26,6 +26,8 @@ class GoogleAPIWrapper(BaseModel):
 
     api_key: str
     cse_id: str
+    discovery_service_url: Optional[str] = None
+
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
     proxy: Optional[str] = None
@@ -56,7 +58,7 @@ class GoogleAPIWrapper(BaseModel):
 
     @property
     def google_api_client(self):
-        build_kwargs = {"developerKey": self.api_key}
+        build_kwargs = {"developerKey": self.api_key, "discoveryServiceUrl": self.discovery_service_url}
         if self.proxy:
             parse_result = urlparse(self.proxy)
             proxy_type = parse_result.scheme

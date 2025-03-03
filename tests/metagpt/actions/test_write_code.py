@@ -26,12 +26,7 @@ from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPL
 
 def setup_inc_workdir(context, inc: bool = False):
     """setup incremental workdir for testing"""
-    context.src_workspace = context.git_repo.workdir / "src"
-    if inc:
-        context.config.inc = inc
-        context.repo.old_workspace = context.repo.git_repo.workdir / "old"
-        context.config.project_path = "old"
-
+    context.config.inc = inc
     return context
 
 
@@ -110,7 +105,7 @@ async def test_write_refined_code(context, git_dir):
 
     # old_workspace contains the legacy code
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
-        filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
+        filename="game.py", content=CodeParser.parse_code(text=REFINED_CODE_INPUT_SAMPLE)
     )
 
     ccontext = CodingContext(

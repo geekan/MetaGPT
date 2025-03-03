@@ -6,7 +6,7 @@
 @File    : search_engine_serpapi.py
 """
 import warnings
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import aiohttp
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -24,6 +24,7 @@ class SerpAPIWrapper(BaseModel):
             "hl": "en",
         }
     )
+    url: str = "https://serpapi.com/search"
     aiosession: Optional[aiohttp.ClientSession] = None
     proxy: Optional[str] = None
 
@@ -49,22 +50,18 @@ class SerpAPIWrapper(BaseModel):
     async def results(self, query: str, max_results: int) -> dict:
         """Use aiohttp to run query through SerpAPI and return the results async."""
 
-        def construct_url_and_params() -> Tuple[str, Dict[str, str]]:
-            params = self.get_params(query)
-            params["source"] = "python"
-            params["num"] = max_results
-            params["output"] = "json"
-            url = "https://serpapi.com/search"
-            return url, params
+        params = self.get_params(query)
+        params["source"] = "python"
+        params["num"] = max_results
+        params["output"] = "json"
 
-        url, params = construct_url_and_params()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, proxy=self.proxy) as response:
+                async with session.get(self.url, params=params, proxy=self.proxy) as response:
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get(url, params=params, proxy=self.proxy) as response:
+            async with self.aiosession.get(self.url, params=params, proxy=self.proxy) as response:
                 response.raise_for_status()
                 res = await response.json()
 

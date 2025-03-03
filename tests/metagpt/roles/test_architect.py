@@ -8,10 +8,12 @@
         distribution feature for message handling.
 """
 import uuid
+from pathlib import Path
 
 import pytest
 
-from metagpt.actions import WriteDesign, WritePRD
+from metagpt.actions import WritePRD
+from metagpt.actions.di.run_command import RunCommand
 from metagpt.const import PRDS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Architect
@@ -24,18 +26,18 @@ from tests.metagpt.roles.mock import MockMessages
 async def test_architect(context):
     # Prerequisites
     filename = uuid.uuid4().hex + ".json"
-    await awrite(context.repo.workdir / PRDS_FILE_REPO / filename, data=MockMessages.prd.content)
+    await awrite(Path(context.config.project_path) / PRDS_FILE_REPO / filename, data=MockMessages.prd.content)
 
     role = Architect(context=context)
     rsp = await role.run(with_message=Message(content="", cause_by=WritePRD))
     logger.info(rsp)
     assert len(rsp.content) > 0
-    assert rsp.cause_by == any_to_str(WriteDesign)
+    assert rsp.cause_by == any_to_str(RunCommand)
 
     # test update
     rsp = await role.run(with_message=Message(content="", cause_by=WritePRD))
     assert rsp
-    assert rsp.cause_by == any_to_str(WriteDesign)
+    assert rsp.cause_by == any_to_str(RunCommand)
     assert len(rsp.content) > 0
 
 

@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 from metagpt.config2 import config
 from metagpt.configs.llm_config import LLMType
+from metagpt.const import LLM_API_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
@@ -22,7 +23,7 @@ class MockLLM(OriginalLLM):
         self.rsp_cache: dict = {}
         self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=LLM_API_TIMEOUT) -> str:
         """Overwrite original acompletion_text to cancel retry"""
         if stream:
             resp = await self._achat_completion_stream(messages, timeout=timeout)
@@ -37,7 +38,7 @@ class MockLLM(OriginalLLM):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
-        timeout=3,
+        timeout=LLM_API_TIMEOUT,
         stream=True,
     ) -> str:
         if system_msgs:
@@ -56,7 +57,7 @@ class MockLLM(OriginalLLM):
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
-    async def original_aask_batch(self, msgs: list, timeout=3) -> str:
+    async def original_aask_batch(self, msgs: list, timeout=LLM_API_TIMEOUT) -> str:
         """A copy of metagpt.provider.base_llm.BaseLLM.aask_batch, we can't use super().aask because it will be mocked"""
         context = []
         for msg in msgs:
@@ -83,8 +84,8 @@ class MockLLM(OriginalLLM):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
-        timeout=3,
-        stream=True,
+        timeout=LLM_API_TIMEOUT,
+        stream=False,
     ) -> str:
         # used to identify it a message has been called before
         if isinstance(msg, list):
@@ -98,7 +99,7 @@ class MockLLM(OriginalLLM):
         rsp = await self._mock_rsp(msg_key, self.original_aask, msg, system_msgs, format_msgs, images, timeout, stream)
         return rsp
 
-    async def aask_batch(self, msgs: list, timeout=3) -> str:
+    async def aask_batch(self, msgs: list, timeout=LLM_API_TIMEOUT) -> str:
         msg_key = "#MSG_SEP#".join([msg if isinstance(msg, str) else msg.content for msg in msgs])
         rsp = await self._mock_rsp(msg_key, self.original_aask_batch, msgs, timeout)
         return rsp

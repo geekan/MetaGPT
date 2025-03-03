@@ -14,7 +14,7 @@ import requests
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-from metagpt.const import SD_OUTPUT_FILE_REPO, SOURCE_ROOT
+from metagpt.const import SD_OUTPUT_FILE_REPO, SD_URL, SOURCE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 
@@ -68,7 +68,7 @@ class SDEngine:
         Args:
             sd_url (str, optional): URL of the stable diffusion service. Defaults to "".
         """
-        self.sd_url = sd_url
+        self.sd_url = SD_URL if not sd_url else sd_url
         self.sd_t2i_url = f"{self.sd_url}/sdapi/v1/txt2img"
         # Define default payload settings for SD API
         self.payload = payload
@@ -76,12 +76,12 @@ class SDEngine:
 
     def construct_payload(
         self,
-        prompt,
-        negtive_prompt=default_negative_prompt,
-        width=512,
-        height=512,
-        sd_model="galaxytimemachinesGTM_photoV20",
-    ):
+        prompt: object,
+        negtive_prompt: object = default_negative_prompt,
+        width: object = 512,
+        height: object = 512,
+        sd_model: object = "galaxytimemachinesGTM_photoV20",
+    ) -> object:
         """Modify and set the API parameters for image generation.
 
         Args:

@@ -10,7 +10,12 @@ from metagpt.utils.repo_to_markdown import repo_to_markdown
 
 @pytest.mark.parametrize(
     ["repo_path", "output"],
-    [(Path(__file__).parent.parent, Path(__file__).parent.parent.parent / f"workspace/unittest/{uuid.uuid4().hex}.md")],
+    [
+        (
+            Path(__file__).parent.parent.parent,
+            Path(__file__).parent / f"../../../workspace/unittest/{uuid.uuid4().hex}.md",
+        ),
+    ],
 )
 @pytest.mark.asyncio
 async def test_repo_to_markdown(repo_path: Path, output: Path):

@@ -20,6 +20,37 @@ embedding:
   embed_batch_size: 100
   dimensions: # output dimension of embedding model
 
+# Role's custom configuration
+roles:
+  - role: "ProductManager" # role's className or role's role_id
+    llm:
+      api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      proxy: "YOUR_PROXY"  # for LLM API requests
+      model: "gpt-4-turbo-1106"
+  - role: "Architect"
+    llm:
+      api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      proxy: "YOUR_PROXY"  # for LLM API requests
+      model: "gpt-35-turbo"
+  - role: "ProjectManager"
+    llm:
+      api_type: "azure"
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      api_version: "YOUR_API_VERSION"
+      model: "gpt-4-1106"
+  - role: "Engineer"
+    llm:
+      api_type: "azure"
+      base_url: "YOUR_BASE_URL"
+      api_key: "YOUR_API_KEY"
+      api_version: "YOUR_API_VERSION"
+      model: "gpt-35-turbo-1106"
+
 repair_llm_output: true  # when the output is not a valid json, try to repair it
 
 proxy: "YOUR_PROXY"  # for tools like requests, playwright, selenium, etc.
@@ -50,6 +81,21 @@ s3:
   secure: false
   bucket: "test"
 
+exp_pool:
+  enabled: false
+  enable_read: false 
+  enable_write: false
+  persist_path: .chroma_exp_data # The directory.
+  retrieval_type: bm25 # Default is `bm25`, can be set to `chroma` for vector storage, which requires setting up embedding.
+  use_llm_ranker: true # Default is `true`, it will use LLM Reranker to get better result.
+  collection_name: experience_pool  # When `retrieval_type` is `chroma`, `collection_name` is the collection name in chromadb.
+
+role_zero:
+  enable_longterm_memory: false # Whether to use long-term memory. Default is `false`.
+  longterm_memory_persist_path: .role_memory_data # The directory to save data.
+  memory_k: 200 # The capacity of short-term memory.
+  similarity_top_k: 5 # The number of long-term memories to retrieve.
+  use_llm_ranker: false # Whether to use LLM Reranker to get better result. Default is `false`.
 
 azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
 azure_tts_region: "eastus"
@@ -81,5 +127,3 @@ models:
 #    # timeout: 600 # Optional. If set to 0, default value is 300.
 #    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 #    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
-
-agentops_api_key: "YOUR_AGENTOPS_API_KEY" # get key from https://app.agentops.ai/settings/projects

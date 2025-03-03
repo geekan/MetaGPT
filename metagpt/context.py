@@ -5,11 +5,12 @@
 @Author  : alexanderwu
 @File    : context.py
 """
+from __future__ import annotations
+
 import os
-from pathlib import Path
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig, LLMType
@@ -20,8 +21,6 @@ from metagpt.utils.cost_manager import (
     FireworksCostManager,
     TokenCostManager,
 )
-from metagpt.utils.git_repository import GitRepository
-from metagpt.utils.project_repo import ProjectRepo
 
 
 class AttrDict(BaseModel):
@@ -62,11 +61,8 @@ class Context(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     kwargs: AttrDict = AttrDict()
-    config: Config = Config.default()
+    config: Config = Field(default_factory=Config.default)
 
-    repo: Optional[ProjectRepo] = None
-    git_repo: Optional[GitRepository] = None
-    src_workspace: Optional[Path] = None
     cost_manager: CostManager = CostManager()
 
     _llm: Optional[BaseLLM] = None
@@ -110,7 +106,6 @@ class Context(BaseModel):
             Dict[str, Any]: A dictionary containing serialized data.
         """
         return {
-            "workdir": str(self.repo.workdir) if self.repo else "",
             "kwargs": {k: v for k, v in self.kwargs.__dict__.items()},
             "cost_manager": self.cost_manager.model_dump_json(),
         }
@@ -123,13 +118,6 @@ class Context(BaseModel):
         """
         if not serialized_data:
             return
-        workdir = serialized_data.get("workdir")
-        if workdir:
-            self.git_repo = GitRepository(local_path=workdir, auto_init=True)
-            self.repo = ProjectRepo(self.git_repo)
-            src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
-            if src_workspace.exists():
-                self.src_workspace = src_workspace
         kwargs = serialized_data.get("kwargs")
         if kwargs:
             for k, v in kwargs.items():

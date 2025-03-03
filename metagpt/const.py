@@ -12,12 +12,6 @@ import metagpt
 def get_metagpt_package_root():
     """Get the root directory of the installed package."""
     package_root = Path(metagpt.__file__).parent.parent
-    for i in (".git", ".project_root", ".gitignore"):
-        if (package_root / i).exists():
-            break
-    else:
-        package_root = Path.cwd()
-
     logger.info(f"Package root set to {str(package_root)}")
     return package_root
 
@@ -32,6 +26,12 @@ def get_metagpt_root():
     else:
         # Fallback to package root if no environment variable is set
         project_root = get_metagpt_package_root()
+        for i in (".git", ".project_root", ".gitignore"):
+            if (project_root / i).exists():
+                break
+        else:
+            project_root = Path.cwd()
+
     return project_root
 
 
@@ -65,6 +65,11 @@ SKILL_DIRECTORY = SOURCE_ROOT / "skills"
 TOOL_SCHEMA_PATH = METAGPT_ROOT / "metagpt/tools/schemas"
 TOOL_LIBS_PATH = METAGPT_ROOT / "metagpt/tools/libs"
 
+# TEMPLATE PATH
+TEMPLATE_FOLDER_PATH = METAGPT_ROOT / "template"
+VUE_TEMPLATE_PATH = TEMPLATE_FOLDER_PATH / "vue_template"
+REACT_TEMPLATE_PATH = TEMPLATE_FOLDER_PATH / "react_template"
+
 # REAL CONSTS
 
 MEM_TTL = 24 * 30 * 3600
@@ -75,6 +80,8 @@ MESSAGE_ROUTE_CAUSE_BY = "cause_by"
 MESSAGE_META_ROLE = "role"
 MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
+MESSAGE_ROUTE_TO_SELF = "<self>"  # Add this tag to replace `ActionOutput`
+
 
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
@@ -97,12 +104,13 @@ TEST_OUTPUTS_FILE_REPO = "test_outputs"
 CODE_SUMMARIES_FILE_REPO = "docs/code_summary"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summary"
 RESOURCES_FILE_REPO = "resources"
-SD_OUTPUT_FILE_REPO = "resources/sd_output"
+SD_OUTPUT_FILE_REPO = DEFAULT_WORKSPACE_ROOT
 GRAPH_REPO_FILE_REPO = "docs/graph_repo"
 VISUAL_GRAPH_REPO_FILE_REPO = "resources/graph_db"
 CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+SD_URL = "http://172.31.0.51:49094"
 
 DEFAULT_LANGUAGE = "English"
 DEFAULT_MAX_TOKENS = 1500
@@ -129,3 +137,28 @@ AGGREGATION = "Aggregate"
 # Timeout
 USE_CONFIG_TIMEOUT = 0  # Using llm.timeout configuration.
 LLM_API_TIMEOUT = 300
+
+# Assistant alias
+ASSISTANT_ALIAS = "response"
+
+# Markdown
+MARKDOWN_TITLE_PREFIX = "## "
+
+# Reporter
+METAGPT_REPORTER_DEFAULT_URL = os.environ.get("METAGPT_REPORTER_URL", "")
+
+# Metadata defines
+AGENT = "agent"
+IMAGES = "images"
+
+# SWE agent
+SWE_SETUP_PATH = get_metagpt_package_root() / "metagpt/tools/swe_agent_commands/setup_default.sh"
+
+# experience pool
+EXPERIENCE_MASK = "<experience>"
+
+# TeamLeader's name
+TEAMLEADER_NAME = "Mike"
+
+DEFAULT_MIN_TOKEN_COUNT = 10000
+DEFAULT_MAX_TOKEN_COUNT = 100000000

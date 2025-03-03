@@ -29,3 +29,9 @@ GENERAL_FUNCTION_SCHEMA = {
 # tool_choice value for general_function_schema
 # https://platform.openai.com/docs/api-reference/chat/create#chat-create-tool_choice
 GENERAL_TOOL_CHOICE = {"type": "function", "function": {"name": "execute"}}
+
+
+MULTI_MODAL_MODELS = [
+    "gpt-4o",
+    "gpt-4o-mini",
+]

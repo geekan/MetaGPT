@@ -12,9 +12,9 @@ import json
 import re
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
-from metagpt.config2 import config
+from metagpt.config2 import Config as _Config
 from metagpt.const import DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
 from metagpt.logs import logger
 from metagpt.provider import MetaGPTLLM
@@ -32,6 +32,12 @@ class BrainMemory(BaseModel):
     last_talk: Optional[str] = None
     cacheable: bool = True
     llm: Optional[BaseLLM] = Field(default=None, exclude=True)
+    config: Optional[_Config] = None
+
+    @field_validator("config")
+    @classmethod
+    def set_default_config(cls, config):
+        return config if config else _Config.default()
 
     class Config:
         arbitrary_types_allowed = True
@@ -54,9 +60,8 @@ class BrainMemory(BaseModel):
         texts = [m.content for m in self.knowledge]
         return "\n".join(texts)
 
-    @staticmethod
-    async def loads(redis_key: str) -> "BrainMemory":
-        redis = Redis(config.redis)
+    async def loads(self, redis_key: str) -> "BrainMemory":
+        redis = Redis(self.config.redis)
         if not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
@@ -70,7 +75,7 @@ class BrainMemory(BaseModel):
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
         if not self.is_dirty:
             return
-        redis = Redis(config.redis)
+        redis = Redis(self.config.redis)
         if not redis_key:
             return False
         v = self.model_dump_json()
@@ -140,7 +145,7 @@ class BrainMemory(BaseModel):
             return text
         summary = await self._summarize(text=text, max_words=max_words, keep_language=keep_language, limit=limit)
         if summary:
-            await self.set_history_summary(history_summary=summary, redis_key=config.redis_key)
+            await self.set_history_summary(history_summary=summary, redis_key=self.config.redis_key)
             return summary
         raise ValueError(f"text too long:{text_length}")
 
@@ -164,7 +169,7 @@ class BrainMemory(BaseModel):
         msgs.reverse()
         self.history = msgs
         self.is_dirty = True
-        await self.dumps(redis_key=config.redis.key)
+        await self.dumps(redis_key=self.config.redis.key)
         self.is_dirty = False
 
         return BrainMemory.to_metagpt_history_format(self.history)
@@ -181,7 +186,7 @@ class BrainMemory(BaseModel):
 
         summary = await self.summarize(llm=llm, max_words=500)
 
-        language = config.language
+        language = self.config.language
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
         summaries = [summary, command]
         msg = "\n".join(summaries)

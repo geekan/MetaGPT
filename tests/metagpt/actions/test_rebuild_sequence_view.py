@@ -61,7 +61,7 @@ async def test_rebuild(context, mocker):
     ],
 )
 def test_get_full_filename(root, pathname, want):
-    res = RebuildSequenceView._get_full_filename(root=root, pathname=pathname)
+    res = RebuildSequenceView.get_full_filename(root=root, pathname=pathname)
     assert res == want
 
 

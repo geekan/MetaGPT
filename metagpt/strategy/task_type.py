@@ -9,6 +9,7 @@ from metagpt.prompts.task_type import (
     IMAGE2WEBPAGE_PROMPT,
     MODEL_EVALUATE_PROMPT,
     MODEL_TRAIN_PROMPT,
+    WEB_SCRAPING_PROMPT,
 )
 
 
@@ -62,10 +63,15 @@ class TaskType(Enum):
     WEBSCRAPING = TaskTypeDef(
         name="web scraping",
         desc="For scraping data from web pages.",
+        guidance=WEB_SCRAPING_PROMPT,
     )
     EMAIL_LOGIN = TaskTypeDef(
         name="email login",
         desc="For logging to an email.",
+    )
+    DEVELOP_SOFTWARE = TaskTypeDef(
+        name="develop software",
+        desc="SOP related to develop software such as Writes a PRD, Writes a design, Writes a project plan and Writes code to implement designed features according to the project plan",
     )
 
     @property

@@ -2,8 +2,10 @@
 
 import json
 import os
-from typing import Any, Optional, Union
+from pathlib import Path
+from typing import Any, List, Optional, Set, Union
 
+import fsspec
 from llama_index.core import SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
@@ -39,7 +41,12 @@ from metagpt.rag.factories import (
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
 from metagpt.rag.parsers import OmniParse
-from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
+from metagpt.rag.retrievers.base import (
+    DeletableRAGRetriever,
+    ModifiableRAGRetriever,
+    PersistableRAGRetriever,
+    QueryableRAGRetriever,
+)
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
     BaseIndexConfig,
@@ -78,6 +85,7 @@ class SimpleEngine(RetrieverQueryEngine):
             callback_manager=callback_manager,
         )
         self._transformations = transformations or self._default_transformations()
+        self._filenames = set()
 
     @classmethod
     def from_docs(
@@ -89,6 +97,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
     ) -> "SimpleEngine":
         """From docs.
 
@@ -102,13 +111,14 @@ class SimpleEngine(RetrieverQueryEngine):
             llm: Must supported by llama index. Default OpenAI.
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
+            fs: File system to use.
         """
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
         file_extractor = cls._get_file_extractor()
         documents = SimpleDirectoryReader(
-            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor, fs=fs
         ).load_data()
         cls._fix_document_metadata(documents)
 
@@ -150,7 +160,7 @@ class SimpleEngine(RetrieverQueryEngine):
         if not objs and any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
             raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
-        nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
+        nodes = cls.get_obj_nodes(objs)
 
         return cls._from_nodes(
             nodes=nodes,
@@ -193,11 +203,11 @@ class SimpleEngine(RetrieverQueryEngine):
         self._try_reconstruct_obj(nodes)
         return nodes
 
-    def add_docs(self, input_files: list[str]):
+    def add_docs(self, input_files: List[Union[str, Path]]):
         """Add docs to retriever. retriever must has add_nodes func."""
         self._ensure_retriever_modifiable()
 
-        documents = SimpleDirectoryReader(input_files=input_files).load_data()
+        documents = SimpleDirectoryReader(input_files=[str(i) for i in input_files]).load_data()
         self._fix_document_metadata(documents)
 
         nodes = run_transformations(documents, transformations=self._transformations)
@@ -207,7 +217,7 @@ class SimpleEngine(RetrieverQueryEngine):
         """Adds objects to the retriever, storing each object's original form in metadata for future reference."""
         self._ensure_retriever_modifiable()
 
-        nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
+        nodes = self.get_obj_nodes(objs)
         self._save_nodes(nodes)
 
     def persist(self, persist_dir: Union[str, os.PathLike], **kwargs):
@@ -215,6 +225,65 @@ class SimpleEngine(RetrieverQueryEngine):
         self._ensure_retriever_persistable()
 
         self._persist(str(persist_dir), **kwargs)
+
+    def count(self) -> int:
+        """Count."""
+        self._ensure_retriever_queryable()
+
+        return self.retriever.query_total_count()
+
+    def clear(self, **kwargs):
+        """Clear."""
+        self._ensure_retriever_deletable()
+
+        return self.retriever.clear(**kwargs)
+
+    def delete_docs(self, input_files: List[Union[str, Path]]):
+        """Delete documents from the index and document store.
+
+        Args:
+            input_files (List[Union[str, Path]]): A list of file paths or file names to be deleted.
+
+        Raises:
+            NotImplementedError: If the method is not implemented.
+        """
+        exists_filenames = set()
+        filenames = {str(i) for i in input_files}
+        for doc_id, info in self.retriever._index.ref_doc_info.items():
+            if info.metadata.get("file_path") in filenames:
+                exists_filenames.add(doc_id)
+
+        for doc_id in exists_filenames:
+            self.retriever._index.delete_ref_doc(doc_id, delete_from_docstore=True)
+
+    @staticmethod
+    def get_obj_nodes(objs: Optional[list[RAGObject]] = None) -> list[ObjectNode]:
+        """Converts a list of RAGObjects to a list of ObjectNodes."""
+
+        return [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
+
+    @classmethod
+    def _from_nodes(
+        cls,
+        nodes: list[BaseNode],
+        transformations: Optional[list[TransformComponent]] = None,
+        embed_model: BaseEmbedding = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ) -> "SimpleEngine":
+        embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
+        llm = llm or get_rag_llm()
+
+        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
+        rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
+
+        return cls(
+            retriever=retriever,
+            node_postprocessors=rankers,
+            response_synthesizer=get_response_synthesizer(llm=llm),
+            transformations=transformations,
+        )
 
     @classmethod
     def _from_nodes(
@@ -264,6 +333,12 @@ class SimpleEngine(RetrieverQueryEngine):
     def _ensure_retriever_persistable(self):
         self._ensure_retriever_of_type(PersistableRAGRetriever)
 
+    def _ensure_retriever_queryable(self):
+        self._ensure_retriever_of_type(QueryableRAGRetriever)
+
+    def _ensure_retriever_deletable(self):
+        self._ensure_retriever_of_type(DeletableRAGRetriever)
+
     def _ensure_retriever_of_type(self, required_type: BaseRetriever):
         """Ensure that self.retriever is required_type, or at least one of its components, if it's a SimpleHybridRetriever.
 
@@ -310,6 +385,10 @@ class SimpleEngine(RetrieverQueryEngine):
     @staticmethod
     def _default_transformations():
         return [SentenceSplitter()]
+
+    @property
+    def filenames(self) -> Set[str]:
+        return self._filenames
 
     @staticmethod
     def _get_file_extractor() -> dict[str:BaseReader]:

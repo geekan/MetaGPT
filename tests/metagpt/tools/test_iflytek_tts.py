@@ -7,14 +7,13 @@
 """
 import pytest
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.tools.iflytek_tts import IFlyTekTTS, oas3_iflytek_tts
 
 
 @pytest.mark.asyncio
 async def test_iflytek_tts(mocker):
     # mock
-    config = Config.default()
     config.azure_tts_subscription_key = None
     config.azure_tts_region = None
     mocker.patch.object(IFlyTekTTS, "synthesize_speech", return_value=None)

@@ -9,13 +9,15 @@
         2. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
 """
 import re
+from typing import Optional
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.common import CodeParser
+from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -47,6 +49,8 @@ Now you should start rewriting the code:
 
 class DebugError(Action):
     i_context: RunCodeContext = Field(default_factory=RunCodeContext)
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     async def run(self, *args, **kwargs) -> str:
         output_doc = await self.repo.test_outputs.get(filename=self.i_context.output_filename)
@@ -59,9 +63,7 @@ class DebugError(Action):
             return ""
 
         logger.info(f"Debug and rewrite {self.i_context.test_filename}")
-        code_doc = await self.repo.with_src_path(self.context.src_workspace).srcs.get(
-            filename=self.i_context.code_filename
-        )
+        code_doc = await self.repo.srcs.get(filename=self.i_context.code_filename)
         if not code_doc:
             return ""
         test_doc = await self.repo.tests.get(filename=self.i_context.test_filename)
@@ -70,6 +72,6 @@ class DebugError(Action):
         prompt = PROMPT_TEMPLATE.format(code=code_doc.content, test_code=test_doc.content, logs=output_detail.stderr)
 
         rsp = await self._aask(prompt)
-        code = CodeParser.parse_code(block="", text=rsp)
+        code = CodeParser.parse_code(text=rsp)
 
         return code

@@ -22,7 +22,6 @@ from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.schema import Message
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -73,7 +72,7 @@ class GeminiLLM(BaseLLM):
     def _system_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "parts": [msg]}
 
-    def format_msg(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    def format_msg(self, messages: Union[str, "Message", list[dict], list["Message"], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
         from metagpt.schema import Message
 

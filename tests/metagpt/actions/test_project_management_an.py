@@ -42,7 +42,7 @@ async def test_project_management_an(mocker):
     root.instruct_content.model_dump = mock_task_json
     mocker.patch("metagpt.actions.project_management_an.PM_NODE.fill", return_value=root)
 
-    node = await PM_NODE.fill(dict_to_markdown(REFINED_DESIGN_JSON), llm)
+    node = await PM_NODE.fill(req=dict_to_markdown(REFINED_DESIGN_JSON), llm=llm)
 
     assert "Logic Analysis" in node.instruct_content.model_dump()
     assert "Task list" in node.instruct_content.model_dump()
@@ -59,7 +59,7 @@ async def test_project_management_an_inc(mocker):
     mocker.patch("metagpt.actions.project_management_an.REFINED_PM_NODE.fill", return_value=root)
 
     prompt = NEW_REQ_TEMPLATE.format(old_task=TASK_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON))
-    node = await REFINED_PM_NODE.fill(prompt, llm)
+    node = await REFINED_PM_NODE.fill(req=prompt, llm=llm)
 
     assert "Refined Logic Analysis" in node.instruct_content.model_dump()
     assert "Refined Task list" in node.instruct_content.model_dump()

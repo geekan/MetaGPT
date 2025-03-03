@@ -7,8 +7,9 @@
 """
 import re
 from pathlib import Path
+from typing import Optional
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.config2 import Config
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, encode_image
@@ -36,11 +37,11 @@ class GPTvGenerator:
     It utilizes a vision model to analyze the layout from an image and generate webpage codes accordingly.
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Config] = None):
         """Initialize GPTvGenerator class with default values from the configuration."""
-        from metagpt.config2 import config
         from metagpt.llm import LLM
 
+        config = config if config else Config.default()
         self.llm = LLM(llm_config=config.get_openai_llm())
         self.llm.model = "gpt-4-vision-preview"
 
@@ -84,12 +85,12 @@ class GPTvGenerator:
             Path: The path of the saved webpages.
         """
         # Create a folder called webpages in the workspace directory to store HTML, CSS, and JavaScript files
-        webpages_path = DEFAULT_WORKSPACE_ROOT / "webpages" / save_folder_name
+        webpages_path = Config.default().workspace.path / "webpages" / save_folder_name
         logger.info(f"code will be saved at {webpages_path}")
         webpages_path.mkdir(parents=True, exist_ok=True)
 
         index_path = webpages_path / "index.html"
-        index_path.write_text(CodeParser.parse_code(block=None, text=webpages, lang="html"))
+        index_path.write_text(CodeParser.parse_code(text=webpages, lang="html"))
 
         extract_and_save_code(folder=webpages_path, text=webpages, pattern="styles?.css", language="css")
 
@@ -102,5 +103,5 @@ def extract_and_save_code(folder, text, pattern, language):
     word = re.search(pattern, text)
     if word:
         path = folder / word.group(0)
-        code = CodeParser.parse_code(block=None, text=text, lang=language)
+        code = CodeParser.parse_code(text=text, lang=language)
         path.write_text(code, encoding="utf-8")

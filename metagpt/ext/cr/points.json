@@ -1,0 +1,656 @@
+[
+    {
+        "id": 1,
+        "text": "Avoid unused temporary variables",
+        "language": "Java",
+        "detail": "Defect type: Avoid unused temporary variables; Corresponding Fixer: UnusedLocalVariableFixer; Fix solution: Delete unused temporary variables",
+        "yes_example": "Examples of being judged as 'avoid unused temporary variables'",
+        "no_example": "Examples that cannot be judged as 'avoiding unused temporary variables'\n<Example1>\npublic void setTransientVariablesLocal(Map<String, Object> transientVariables) {\n    throw new UnsupportedOperationException(\"No execution active, no variables can be set\");\n}\nThis code's 'transientVariables' is a function parameter rather than a temporary variable. Although 'transientVariables' is not used or referenced, this cannot be judged as 'avoiding unused temporary variables'\n</Example1>\n\n<Example2>\npublic class TriggerCmd extends NeedsActiveExecutionCmd<Object> {\n  protected Map<String, Object> transientVariables;\n  public TriggerCmd(Map<String, Object> transientVariables) {\n    this.transientVariables = transientVariables;\n  }\n}\nIn the above code, 'transientVariables' is not a temporary variable; it is a class attribute and is used in the constructor, so this cannot be judged as 'avoiding unused temporary variables'\n</Example2>"
+    },
+    {
+        "id": 2,
+        "text": "Do not use System.out.println to print",
+        "language": "Java",
+        "detail": "Defect type: Do not use System.out.println to print; Corresponding Fixer: SystemPrintlnFixer; Fixing solution: Comment out the System.out.println code",
+        "yes_example": "Example of being judged as 'Do not use System.out.println for printing'",
+        "no_example": "Examples that cannot be judged as 'Do not use System.out.println to print'\n<Example1>\nthrow new IllegalStateException(\"There is no authenticated user, we need a user authenticated to find tasks\");\nThe above code is throwing an exception, not using 'System.out.print', so this cannot be judged as 'Do not use System.out.println to print'\n</Example1>"
+    },
+    {
+        "id": 3,
+        "text": "Avoid unused formal parameters in functions",
+        "language": "Java",
+        "detail": "Defect type: Avoid unused formal parameters in functions; Fix solution: Ignore",
+        "yes_example": "Examples of being judged as 'avoiding unused formal parameters' in functions\n\n<Example1>\npublic void setTransientVariablesLocal(Map<String, Object> transientVariables) {\n    throw new UnsupportedOperationException(\"No execution active, no variables can be set\");\n}In this code, the formal parameter \"transientVariables\" does not appear in the function body, so this is judged as 'avoiding unused formal parameters'\n</Example1>\n\n<Example2>\nprotected void modifyFetchPersistencePackageRequest(PersistencePackageRequest ppr, Map<String, String> pathVars) {}\nIn this code, the formal parameters \"ppr\" and \"pathVars\" do not appear in the function body, so this is judged as 'avoiding unused formal parameters'\n</Example2>",
+        "no_example": "Examples that cannot be judged as 'avoiding unused parameters in functions'\n<Example1>\npublic String processFindForm(@RequestParam(value = \"pageNo\", defaultValue = \"1\") int pageNo) {\n\tlastName = owner.getLastName();\n\treturn addPaginationModel(pageNo, paginationModel, lastName, ownersResults);\n}In this code, the parameter 'pageNo' is used within the current function 'processFindForm' in the statement 'return addPaginationModel(pageNo, paginationModel, lastName, ownersResults);', although pageNo is not used for logical calculations, it is used as a parameter in a function call to another function, so this cannot be judged as 'avoiding unused parameters in functions'\n</Example1>\n<Example2>\npublic void formatDate(Date date) {\n\tSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n\tSystem.out.println(\"Formatted date: \" + sdf.format(date));\n}In this code, the parameter 'date' is referenced in the statement 'System.out.println(\"Formatted date: \" + sdf.format(date))', so this cannot be judged as 'avoiding unused parameters in functions'\n</Example2>"
+    },
+    {
+        "id": 4,
+        "text": "if statement block cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: if statement block cannot be empty; Corresponding Fixer: EmptyIfStmtFixer; Fixing solution: delete the if statement block or handle the logic appropriately or comment to explain why it is empty",
+        "yes_example": "Examples of being judged as 'if statement block cannot be empty'\n<Example1>\npublic void emptyIfStatement() {\n\tif (getSpecialties().isEmpty()) {\n\t}\n}\nThis code's if statement block is empty, so it is judged as 'if statement block cannot be empty'\n</Example1>\n\n<Example2>\npublic void judgePersion() {\n\tif (persion != null) {\n\t\t// judge persion if not null\n\t}\n}\nAlthough this code's if statement block has content, the '// judge persion if not null' is just a code comment, and there is no actual logic code inside the if statement block, so it is judged as 'if statement block cannot be empty'\n</Example2>",
+        "no_example": "Example that cannot be judged as 'if statement block cannot be empty'"
+    },
+    {
+        "id": 5,
+        "text": "Loop body cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: loop body cannot be empty; Corresponding Fixer: EmptyStatementNotInLoopFixer; Repair solution: delete the corresponding while, for, foreach loop body or add appropriate logical processing or comment explaining why it is empty",
+        "yes_example": "Examples of being judged as 'Loop body cannot be empty'\n<Example1>\npublic void emptyLoopBody() {\n\tfor (Specialty specialty : getSpecialties()) {\n\t}\n}\nThis code's for loop body is empty, so it is judged as 'Loop body cannot be empty'\n</Example1>\n\n<Example2>\npublic void emptyLoopBody() {\n\twhile (True) {\n\t\t// this is a code example\n\t}\n}\nThe while loop body in this code is not empty, but the content is just a code comment with no logical content, so it is judged as 'Loop body cannot be empty'\n</Example2>\n\n<Example3>\npublic void emptyLoopBody() {\n\twhile (True) {\n\t\t\n\t}\n}\nThe while loop body in this code is empty, so it is judged as 'Loop body cannot be empty'\n</Example3>",
+        "no_example": "Example that cannot be judged as 'loop body cannot be empty'\n<Example1>\npublic void emptyLoopBody() {\n\tfor (Specialty specialty : getSpecialties()) {\n\t\ta = 1;\n\t\tif (a == 1) {\n\t\t\tretrun a;\n\t\t}\n\t}\n}\nThe content of the for loop in the above code is not empty, and the content is not entirely code comments, so this cannot be judged as 'loop body cannot be empty'\n</Example1>"
+    },
+    {
+        "id": 6,
+        "text": "Avoid using printStackTrace(), and instead use logging to record.",
+        "language": "Java",
+        "detail": "Defect type: Avoid using printStackTrace(), should use logging to record; Repair solution: Use logging to record",
+        "yes_example": "Example of being judged as 'Avoid using printStackTrace(), should use logging to record'",
+        "no_example": "### Example that cannot be judged as 'avoid using printStackTrace(), should use logging to record'\n<Example1>\npublic void usePrintStackTrace() {\n\ttry {\n\t\tthrow new Exception(\"Fake exception\");\n\t} catch (Exception e) {\n\t\tlogging.info(\"info\");\n\t}\n}\nThis code uses logging in the catch statement, so it cannot be judged as 'avoid using printStackTrace(), should use logging to record'\n</Example1>"
+    },
+    {
+        "id": 7,
+        "text": "The catch block cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: catch block cannot be empty; Corresponding Fixer: EmptyCatchBlockFixer; Fix solution: Add a comment inside the catch block",
+        "yes_example": "Examples of being judged as 'catch block cannot be empty'\n\n<Example1>\n\ntry {\n    int[] array = new int[5];\n    int number = array[10];\n} catch (ArrayIndexOutOfBoundsException e) {\n    \n}\nThis code has an empty catch block, so it is judged as 'catch block cannot be empty'\n</Example1>\n\n<Example2>\n\ntry {\n    String str = null;\n    str.length();\n} catch (NullPointerException e) {\n   \n}\nThis code has an empty catch block, so it is judged as 'catch block cannot be empty'\n</Example2>\n\n<Example3>\npublic class EmptyCatchExample {\n    public static void main(String[] args) {\n        try {\n            // Attempt to divide by zero to trigger an exception\n            int result = 10 / 0;\n        } catch (ArithmeticException e) {\n         \n        }\n    }\n}\nThis code has an empty catch block, so it is judged as 'catch block cannot be empty'\n</Example3>\n\n<Example4>\n\ntry {\n    FileReader file = new FileReader(\"nonexistentfile.txt\");\n} catch (FileNotFoundException e) {\n    \n}\nThis code has an empty catch block, so it is judged as 'catch block cannot be empty'\n</Example4>\n\n<Example5>\n\ntry {\n    Object obj = \"string\";\n    Integer num = (Integer) obj;\n} catch (ClassCastException e) {\n\t\n}\nThis code has an empty catch block, so it is judged as 'catch block cannot be empty'\n</Example5>",
+        "no_example": "Examples that cannot be judged as 'catch block cannot be empty'\n<Example1>\npersionNum = 1\ntry {\n\treturn True;\n} catch (Exception e) {\n\t// If the number of people is 1, return false\n\tif (persionNum == 1){\n\t\treturn False;\n\t}\n}This catch statement is not empty, so it cannot be judged as 'catch block cannot be empty'\n</Example1>\n\n<Example2>\ntry {\n\tthrow new Exception(\"Fake exception\");\n} catch (Exception e) {\n\te.printStackTrace();\n}Although this catch statement only has 'e.printStackTrace();', it is indeed not empty, so it cannot be judged as 'catch block cannot be empty'\n</Example2>"
+    },
+    {
+        "id": 8,
+        "text": "Avoid unnecessary tautologies/contradictions",
+        "language": "Java",
+        "detail": "Defect type: Avoid unnecessary true/false judgments; Corresponding Fixer: UnconditionalIfStatement Fixer; Fixing solution: Delete true/false judgment logic",
+        "yes_example": "Examples of being judged as 'avoiding unnecessary always true/always false judgments'",
+        "no_example": "Examples that cannot be judged as 'avoiding unnecessary always true/always false judgments'"
+    },
+    {
+        "id": 9,
+        "text": "In a switch statement, default must be placed at the end",
+        "language": "Java",
+        "detail": "Defect type: The default in switch must be placed at the end; Corresponding Fixer: DefaultLabelNotLastInSwitchStmtFixer; Fixing solution: Place default at the end in switch",
+        "yes_example": "Example of being judged as 'default in switch must be placed at the end'",
+        "no_example": "Example that cannot be judged as 'the default in switch must be placed at the end'"
+    },
+    {
+        "id": 10,
+        "text": "Comparison of String without using equals() function",
+        "language": "Java",
+        "detail": "Defect type: Not using the equals() function to compare Strings; Corresponding Fixer: UnSynStaticDateFormatter Fixer; Fix solution: Use the equals() function to compare Strings",
+        "yes_example": "Examples of being judged as 'not using the equals() function to compare Strings'\n\n<Example1>\nif (existingPet != null && existingPet.getName() == petName) {\n    result.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}\nIn this code, both existingPet.getName() and petName are strings, but the comparison in the if statement uses == instead of equals() to compare the strings, so this is judged as 'not using the equals() function to compare Strings'.\n</Example1>\n\n<Example2>\nString isOk = \"ok\";\nif (\"ok\" == isOk) {\n    result.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}\nIn this code, isOk is a string, but in the if statement, it is compared with \"ok\" using ==, not using equals() to compare the strings, it should use \"ok\".equals(isOk), so this is judged as 'not using the equals() function to compare Strings'.\n</Example2>\n\n<Example3>\nString str1 = \"Hello\";\nString str2 = \"Hello\";\nif (str1 == str2) {\n    System.out.println(\"str1 and str2 reference the same object\");\n} else {\n    System.out.println(\"str1 and str2 reference different objects\");\n}\nIn this code, if (str1 == str2) uses == to compare str1 and str2, not using equals() to compare the strings, it should use str1.equals(str2), so this is judged as 'not using the equals() function to compare Strings'.\n</Example3>\n\n<Example4>\nString str = \"This is string\";\nif (str == \"This is not str\") {\n    return str;\n}\nIn this code, if (str == \"This is not str\") uses == to compare the strings, not using equals() to compare the strings, it should use \"This is not str\".equals(str), so this is judged as 'not using the equals() function to compare Strings'.\n</Example4>",
+        "no_example": "Examples that cannot be judged as 'not using the equals() function to compare Strings'\n\n<Example1>\nif (PROPERTY_VALUE_YES.equalsIgnoreCase(readWriteReqNode))\n  formProperty.setRequired(true);\nIn this code, both PROPERTY_VALUE_YES and readWriteReqNode are strings. The comparison between PROPERTY_VALUE_YES and readWriteReqNode in the if statement uses equalsIgnoreCase (case-insensitive string comparison), which is also in line with using the equals() function to compare Strings. Therefore, this cannot be judged as 'not using the equals() function to compare Strings'\n</Example1>\n\n<Example2>\nString isOk = \"ok\";\nif (\"ok\".equals(isOk)) {\n\tresult.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}In this code, isOk is a string. In the if statement, the comparison with \"ok\" uses the equals() function to compare Strings, so this cannot be judged as 'not using the equals() function to compare Strings'\n</Example2>"
+    },
+    {
+        "id": 11,
+        "text": "Prohibit the direct use of string output for exceptions in logs, please use placeholders to pass the exception object",
+        "language": "Java",
+        "detail": "Defect type: Do not directly output exceptions as strings in logs, use placeholders to pass the exception object; Corresponding Fixer: ConcatExceptionFixer; Fix solution: Use placeholders to pass the exception object",
+        "yes_example": "Example of being judged as 'Prohibited to directly output exceptions using string in logs, please use placeholders to pass exception objects'\n<Example1>\ntry {\n  listenersNode = objectMapper.readTree(listenersNode.asText());\n} catch (Exception e) {\n  LOGGER.info(\"Listeners node can not be read\", e);\n}In this code, the log output content is directly concatenated using the string \"Listeners node can not be read\". When outputting exceptions in logs, placeholders should be used to output exception information, rather than directly concatenating strings. Therefore, this is judged as 'Prohibited to directly output exceptions using string in logs, please use placeholders to pass exception objects'.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'Prohibited to directly output exceptions using string in logs, please use placeholders to pass exception objects':\n\n<Example1>\nPerson person = personService.getPerson(1);\nif (person == null) {\n    LOGGER.error(PERSION_NOT_EXIT);\n}\nIn this code, PERSION_NOT_EXIT is a user-defined exception constant representing that the person does not exist, and it does not directly use the string 'person not exit' for concatenation, so this cannot be judged as 'Prohibited to directly output exceptions using string in logs, please use placeholders to pass exception objects'.\n<Example1>\n\n<Example2>\ntry {\n  a = a + 1;\n} catch (Exception e) {\n  Person person = personService.getPerson(1);\n  LOGGER.info(person);\n}\nIn this code, the log output does not directly use string concatenation, but rather uses the Person object for output, so this cannot be judged as 'Prohibited to directly output exceptions using string in logs, please use placeholders to pass exception objects'.\n</Example2>"
+    },
+    {
+        "id": 12,
+        "text": "The finally block cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: finally block cannot be empty; Corresponding Fixer: EmptyFinallyBlockFixer; Fix solution: Delete the empty finally block",
+        "yes_example": "Examples of being judged as 'finally block cannot be empty'\n\n<Example1>\n\ntry {\n    Persion persion = persionService.getPersion(1);\n    return persion;\n} finally {\n    \n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example1>\n\n<Example2>\n\ntry {\n    System.out.println(\"Inside try block\");\n} finally {\n    // Empty finally block with no statements, this is a defect\n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example2>\n\n<Example3>\n\ntry {\n    int result = 10 / 0;\n} catch (ArithmeticException e) {\n    e.printStackTrace();\n} finally {\n    \n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example3>\n\n<Example4>\n\ntry {\n    String str = null;\n    System.out.println(str.length());\n} catch (NullPointerException e) {\n    e.printStackTrace();\n} finally {\n    \n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example4>\n\n<Example5>\n\ntry {\n    int[] array = new int[5];\n    int number = array[10];\n} catch (ArrayIndexOutOfBoundsException e) {\n    e.printStackTrace();\n} finally {\n    // Finally block with only comments\n    // This is an empty finally block\n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example5>\n\n<Example6>\n\ntry {\n    FileReader file = new FileReader(\"nonexistentfile.txt\");\n} catch (FileNotFoundException e) {\n    e.printStackTrace();\n} finally {\n    // Finally block with only empty lines\n    \n}\nThis code has an empty finally block, so it is judged as 'finally block cannot be empty'\n\n</Example6>",
+        "no_example": "Example that cannot be judged as 'finally block cannot be empty'\n<Example1>\npublic void getPersion() {\n\ttry {\n\t\tPersion persion = persionService.getPersion(1);\n\t\tif (persion != null){\n\t\t\treturn persion;\n\t\t}\n\t} finally {\n\t\treturn null;\n\t}\n}\nThis code's finally block contains non-comment content 'return null;', so this cannot be judged as 'finally block cannot be empty'\n</Example1>"
+    },
+    {
+        "id": 13,
+        "text": "try block cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: try block cannot be empty; Corresponding Fixer: EmptyTryBlockFixer; Fix solution: Delete the entire try statement",
+        "yes_example": "Examples of being judged as 'try block cannot be empty'\n<Example1>\npublic void getPersion() {\n\ttry {\n\n\t}\n\treturn null;\n}This code's try block is empty, so it is judged as 'try block cannot be empty'\n</Example1>\n\n<Example2>\npublic void demoFinallyBlock() {\n\ttry {\n\n\t} finally {\n\t\treturn null;\n\t}\n}This code's try block is empty, so it is judged as 'try block cannot be empty'\n</Example2>\n\n<Example3>\ntry {\n    \n} catch (Exception e) {\n    e.printStackTrace();\n}This code's try block is empty, so it is judged as 'try block cannot be empty'\n</Example3>\n\n<Example4>\ntry {\n    // try block with only comments\n\t\n} catch (Exception e) {\n    e.printStackTrace();\n}This code's try block contains only comments and blank lines, which can also be considered as having no content in the try block, so it is judged as 'try block cannot be empty'\n</Example4>",
+        "no_example": "### Example that cannot be judged as 'try block cannot be empty'\n<Example1>\ntry {\n\ta = a + 1;\n} catch (Exception e) {\n\te.printStackTrace();\n}\nThis code snippet contains non-comment content 'return null;' in the try block, so it cannot be judged as 'try block cannot be empty'\n</Example1>"
+    },
+    {
+        "id": 14,
+        "text": "Avoid unnecessary NULL or null checks on objects",
+        "language": "Java",
+        "detail": "Defect type: Avoid unnecessary NULL or null checks on objects; Corresponding Fixer: LogicalOpNpeFixer; Fix solution: Remove the logic of unnecessary NULL checks on objects",
+        "yes_example": "Examples of being judged as 'avoiding unnecessary NULL or null checks':",
+        "no_example": "Example that cannot be judged as 'avoiding unnecessary NULL or null checks'\n<Example1>\nCat cat = catService.get(1);\nif (cat != null){\n\tretrun cat;\n}In this code, the object 'cat' is obtained through the service and it is uncertain whether it is null or not, so the condition 'cat != null' in the if statement is necessary, therefore this cannot be judged as 'avoiding unnecessary NULL or null checks'\n</Example1>"
+    },
+    {
+        "id": 15,
+        "text": "Avoid return in finally block",
+        "language": "Java",
+        "detail": "Defect type: Avoid return in finally block; Repair solution: No need for repair",
+        "yes_example": "Example judged as 'avoid return in finally block'",
+        "no_example": "Example that cannot be judged as 'avoiding return in finally block'\n<Example1>\npublic void getPersion() {\n\ttry {\n\t\tPersion persion = persionService.getPersion(1);\n\t\tif (persion != null){ \n\t\t\treturn persion;\n\t\t}\n\t} finally {\n\t\tLOGGER.info(PERSION_NOT_EXIT);\n\t}\n}\nThis code's finally block does not contain 'return', so it cannot be judged as 'avoiding return in finally block'\n</Example1>"
+    },
+    {
+        "id": 16,
+        "text": "Avoid empty static initialization",
+        "language": "Java",
+        "detail": "Defect type: Avoid empty static initialization; Corresponding Fixer: EmptyInitializerFixer; Fix solution: Delete the entire empty initialization block",
+        "yes_example": "Examples of being judged as 'Avoid empty static initialization'",
+        "no_example": "Example that cannot be judged as 'avoiding empty static initialization'\n<Example1>\npublic class Cat {\n\tstatic {\n\t\t// Static initialization block\n\t\tcat = null;\n\t}\n}\nThis code has a static block with content, not empty, and the static initialization block contains non-commented code with actual logic, so this cannot be judged as 'avoiding empty static initialization'\n</Example1>"
+    },
+    {
+        "id": 17,
+        "text": "Avoid risks of improper use of calendar",
+        "language": "Java",
+        "detail": "Defect type: Avoid improper usage risks of calendar classes; Fix solution: Use LocalDate from the java.time package in Java 8 and above",
+        "yes_example": "Examples of being judged as 'avoiding improper use of calendar class risks'\n<Example1>\nprivate static final Calendar calendar = new GregorianCalendar(2020, Calendar.JANUARY, 1);\nThe Calendar and GregorianCalendar in this code are not thread-safe, so this is judged as 'avoiding improper use of calendar class risks'\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'avoiding improper use of calendar class risks'"
+    },
+    {
+        "id": 18,
+        "text": "To convert a collection to an array, you must use the toArray(T[] array) method of the collection, passing in an array of the exact same type, with a size equal to list.size()",
+        "language": "Java",
+        "detail": "Defect type: When converting a collection to an array, you must use the toArray(T[] array) method of the collection, passing an array of the exact same type, with a size equal to list.size(); Corresponding Fixer: ClassCastExpWithToArrayFixer; Repair solution: Use the toArray(T[] array) method of the collection, and pass an array of the exact same type",
+        "yes_example": "Example judged as 'When converting a collection to an array, you must use the collection's toArray(T[] array) method, passing an array of exactly the same type, with the size being list.size()'",
+        "no_example": "Example that cannot be judged as 'using the method of converting a collection to an array, you must use the toArray(T[] array) of the collection, passing in an array of exactly the same type, and the size is list.size()':"
+    },
+    {
+        "id": 19,
+        "text": "Prohibit the use of NULL or null for comparison in equals()",
+        "language": "Java",
+        "detail": "Defect type: Prohibit using NULL or null for comparison in equals(); Corresponding Fixer: EqualsNullFixer; Fixing solution: Use Object's null check function for comparison",
+        "yes_example": "Examples of being judged as 'Prohibited to use NULL or null for comparison in equals()'",
+        "no_example": "Examples that cannot be judged as 'prohibiting the use of NULL or null for comparison in equals()'"
+    },
+    {
+        "id": 20,
+        "text": "switch statement block cannot be empty",
+        "language": "Java",
+        "detail": "Defect type: switch statement block cannot be empty; Corresponding Fixer: EmptySwitchStatementsFix; Fix solution: Delete the entire empty switch statement block",
+        "yes_example": "Examples of being judged as 'switch statement block cannot be empty'\n<Example1>\nswitch (number) {\n    \n}This code is a switch statement block, but it contains no content, so it is judged as 'switch statement block cannot be empty'\n</Example1>\n\n<Example2>\nswitch (number) {\n    // This is a switch statement block\n}This code is a switch statement block, which contains content, but the content is only comments without actual logic, so it is judged as 'switch statement block cannot be empty'\n</Example2>",
+        "no_example": "Example that cannot be judged as 'switch statement block cannot be empty'\n<Example1>\nswitch (number) {\n\tcase 1:\n\t\tSystem.out.println(\"Number one\");\n\t\tbreak;\n\tdefault:\n\t\tSystem.out.println(\"This is the default block, which is incorrectly placed here.\");\n\t\tbreak;\n}\nThis code is a switch statement block that contains content, and the content includes non-commented code with actual logic, so it cannot be judged as 'switch statement block cannot be empty'.\n</Example1>"
+    },
+    {
+        "id": 21,
+        "text": "When performing type coercion, no spaces are needed between the right parenthesis and the coercion value.",
+        "detail": "Defect type: When performing type coercion, no space is required between the right parenthesis and the coercion value; Fix solution: When performing type coercion, no space is required between the right parenthesis and the coercion value.",
+        "language": "Java",
+        "yes_example": "Examples judged as 'When performing type casting, no space is needed between the closing parenthesis and the cast value'",
+        "no_example": "Examples that cannot be judged as 'When performing type coercion, no spaces are required between the right parenthesis and the coercion value'"
+    },
+    {
+        "id": 22,
+        "text": "Method parameters must have a space after the comma when defined and passed",
+        "detail": "Defect type: In the definition and passing of method parameters, a space must be added after the comma for multiple parameters; Repair solution: In the definition and passing of method parameters, a space must be added after the comma for multiple parameters.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'Method parameters must have a space after the comma when defined and passed'",
+        "no_example": "Examples that cannot be judged as 'Method parameters must have a space after the comma both in definition and when passed'"
+    },
+    {
+        "id": 23,
+        "text": "Prohibit the use of the BigDecimal(double) constructor to convert a double value to a BigDecimal object",
+        "detail": "Defect type: Do not use the constructor BigDecimal(double) to convert a double value to a BigDecimal object; Repair solution: It is recommended to use the valueOf method of BigDecimal.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'Prohibited to use the constructor BigDecimal(double) to convert a double value to a BigDecimal object'",
+        "no_example": "Examples that cannot be considered as 'prohibiting the use of the BigDecimal(double) constructor to convert a double value to a BigDecimal object'"
+    },
+    {
+        "id": 24,
+        "text": "No extra semicolons allowed",
+        "detail": "Defect type: extra semicolon; Fix solution: remove extra semicolon",
+        "yes_example": "Example of being judged as 'cannot have extra semicolons'",
+        "no_example": "Examples that cannot be judged as 'cannot have extra semicolons'\n<Example1>\nwhile (True) {\n\ta = a + 1;\n\tbreak;\n}This code requires every semicolon, so it can be judged as 'cannot have extra semicolons'\n</Example1>"
+    },
+    {
+        "id": 25,
+        "text": "Non-thread-safe SimpleDateFormat usage must be synchronized at the function or code block level",
+        "detail": "Defect type: Non-thread-safe SimpleDateFormat usage; Fix solution: Add synchronized modifier at the function or code block level or use other thread-safe methods",
+        "yes_example": "Example of 'Non-thread-safe SimpleDateFormat usage, must be used with synchronized at the function or block level'",
+        "no_example": "Example that cannot be judged as 'Unsafe use of SimpleDateFormat, which must be used at the function or code block level with synchronized':\n<Example1>\npublic synchronized void formatDate(Date date) {\n\tSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n\tSystem.out.println(\"Formatted date: \" + sdf.format(date));\n}\nThis code is protected by a synchronized block on the function 'formatDate', ensuring thread safety, so it cannot be judged as 'Unsafe use of SimpleDateFormat, which must be used at the function or code block level with synchronized'.\n</Example1>"
+    },
+    {
+        "id": 26,
+        "text": "Naming does not follow the camel case specification. Class names should use UpperCamelCase style, while method names, parameter names, member variables, and local variables should all use lowerCamelCase style.",
+        "detail": "Defect type: Not following camel case naming convention; Fix solution: Class names should use UpperCamelCase style, method names, parameter names, member variables, and local variables should use lowerCamelCase style.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'not following the camel case naming convention'\n<Example1>\npublic class myClass {\n    private int MyVariable;\n    public void MyMethod() {}\n}\nThis code does not follow the camel case naming convention for class names, member variables, and method names, so it is judged as a naming convention issue.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'not following the camel case naming convention'\n<Example1>\npublic class MyClass {\n    private int myVariable;\n    public void myMethod() {}\n}\nThe class name, member variable, and method name in this code all follow the camel case naming convention, so it cannot be judged as a naming convention issue.\n</Example1>"
+    },
+    {
+        "id": 27,
+        "text": "Abstract class names start with Abstract or Base; exception class names end with Exception; test class names begin with the name of the class they are testing and end with Test",
+        "detail": "Defect type: Naming convention; Solution: Abstract class names should start with Abstract or Base, exception class names should end with Exception, and test class names should start with the name of the class they are testing and end with Test.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'naming conventions'\n<Example1>\npublic class MyAbstractClass {}\npublic class MyExceptionClass {}\npublic class TestMyClass {}\nThe naming of the abstract class, exception class, and test class in this code does not conform to the conventions, so it is judged as a naming convention issue.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'naming conventions'"
+    },
+    {
+        "id": 28,
+        "text": "Avoid adding the 'is' prefix to any boolean type variables in POJO classes",
+        "detail": "Defect type: Naming convention; Fix solution: Do not prefix boolean variables in POJO classes with 'is'.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'naming convention' issues\n<Example1>\npublic class User {\n    private boolean isActive;\n}\nIn this code, the boolean type variable has the 'is' prefix, so it is judged as a naming convention issue.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'naming conventions'"
+    },
+    {
+        "id": 29,
+        "text": "Eliminate completely non-standard English abbreviations to avoid confusion when interpreting them.",
+        "detail": "Defect type: Naming conventions; Solution: Avoid using non-standard English abbreviations to ensure code readability.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'naming conventions'\n<Example1>\npublic class CfgMgr {\n    private int cnt;\n}\nIn this code, the class name and variable name use non-standard English abbreviations, so they are judged as naming convention issues.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'naming conventions'"
+    },
+    {
+        "id": 30,
+        "text": "Avoid using magic characters and numbers, they should be declared as constants",
+        "detail": "Defect type: Avoid using magic characters and numbers, they should be declared as constants; Fix solution: Define magic values as constants.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'avoiding magic characters and numbers, should be declared as constants'",
+        "no_example": "Examples that cannot be judged as 'avoiding magic characters and numbers, should be declared as constants'"
+    },
+    {
+        "id": 31,
+        "text": "When assigning values to long or Long, use uppercase L after the number, not lowercase l. The suffix for floating-point numbers should be uppercase D or F.",
+        "detail": "Defect type: Code specification; Repair solution: Use uppercase L when assigning values to long or Long, and use uppercase D or F as suffixes for floating-point type values.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'code specification'",
+        "no_example": "Examples that cannot be judged as 'code specification'"
+    },
+    {
+        "id": 32,
+        "text": "If the curly braces are empty, simply write {} without line breaks or spaces inside the braces; if it is a non-empty code block, then: 1) Do not line break before the left curly brace. 2) Line break after the left curly brace. 3) Line break before the right curly brace. 4) Do not line break after the right curly brace if there is code like 'else' following it; the right curly brace indicating termination must be followed by a line break.",
+        "detail": "Defect type: code formatting; Fix solution: follow the curly brace usage standard.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'code format'",
+        "no_example": "Examples that cannot be judged as 'code format' issues\n<Example 1>\npublic class BracketExample {\n    public void method() {\n        if (true) {\n            // do something\n        }\n    }\n}\nThe use of curly braces in this code is in accordance with the standards, so it cannot be judged as a code format issue.\n</Example 1>"
+    },
+    {
+        "id": 33,
+        "text": "No space is needed between the left parenthesis and the adjacent character; no space is needed between the right parenthesis and the adjacent character; and a space is required before the left brace.",
+        "detail": "Defect type: code formatting; Fix solution: follow the usage rules for brackets and spaces.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'code format'\n<Example1>\npublic class SpaceExample {\n    public void method (){\n    }\n}\nThe use of brackets and spaces in this code does not conform to the standard, so it is judged as a code format issue.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'code specification'\n<Example1>\npublic class SpaceExample {\n    public void method() {}\n}\nThis code uses brackets and spaces in accordance with the specification, so it cannot be judged as a code format issue.\n</Example1>"
+    },
+    {
+        "id": 34,
+        "text": "Reserved words such as if / for / while / switch / do must be separated from the parentheses on both sides by spaces.",
+        "detail": "Defect type: code format; Fix solution: add spaces between reserved words and parentheses.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'code specification'\n<Example1>\npublic class KeywordExample {\n    public void method() {\n        if(true) {\n        }\n    }\n}\nIn this code, there is no space between the if keyword and the parentheses, so it is judged as a code formatting issue.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'code specification'"
+    },
+    {
+        "id": 35,
+        "text": "All value comparisons between integer wrapper class objects should be done using the equals method",
+        "detail": "Defect type: Code specification; Repair solution: Use the equals method for value comparison between integer wrapper class objects.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'code specification'",
+        "no_example": "### Example that cannot be judged as 'code specification'\n<Example1>\npublic class IntegerComparison {\n    public void compare() {\n        Integer a = 100;\n        Integer b = 100;\n        if (a.equals(b)) {\n        }\n    }\n}\nIn this code, the equals method is used to compare integer wrapper class objects, so it cannot be judged as a code specification issue.\n</Example1>"
+    },
+    {
+        "id": 36,
+        "text": "For comparing BigDecimal values, the compareTo() method should be used instead of the equals() method.",
+        "detail": "Defect type: The equality comparison of BigDecimal should use the compareTo() method instead of the equals() method; Fix solution: Use the compareTo() method for comparison.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'For BigDecimal equality comparison, the compareTo() method should be used instead of the equals() method'\n<Example1>\nBigDecimal a = new BigDecimal(\"1.0\");\nBigDecimal b = new BigDecimal(\"1.00\");\nif (a.equals(b)) {\n    // This code will return false because the equals() method compares precision\n}\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'For BigDecimal equality comparison, the compareTo() method should be used instead of the equals() method'"
+    },
+    {
+        "id": 37,
+        "text": "Prohibit having both isXxx() and getXxx() methods for the same attribute xxx in a POJO class.",
+        "detail": "Defect type: Duplicate getter methods in POJO class; Fix solution: Ensure only one getter method exists.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'Prohibited to have both isXxx() and getXxx() methods for the corresponding attribute xxx in a POJO class'",
+        "no_example": "Examples that cannot be judged as 'Prohibiting the existence of both isXxx() and getXxx() methods for the corresponding attribute xxx in a POJO class'"
+    },
+    {
+        "id": 38,
+        "text": "When formatting dates, use the lowercase 'y' uniformly to represent the year in the pattern.",
+        "detail": "Defect type: date formatting error; Fix solution: use lowercase y to represent the year.",
+        "language": "Java",
+        "yes_example": "Example judged as 'When formatting dates, use lowercase y for the year in the pattern'",
+        "no_example": "Examples that cannot be judged as 'When formatting dates, use lowercase y for the year in the pattern'"
+    },
+    {
+        "id": 39,
+        "text": "Prohibited from using in any part of the program: 1) java.sql.Date 2) java.sql.Time 3) java.sql.Timestamp.",
+        "detail": "Defect type: used date classes from the java.sql package; Fix solution: use date classes from the java.time package.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as \"Prohibited from using in any part of the program: 1) java.sql.Date 2) java.sql.Time 3) java.sql.Timestamp\"",
+        "no_example": "Examples that cannot be judged as 'Prohibited to use in any part of the program: 1) java.sql.Date 2) java.sql.Time 3) java.sql.Timestamp'"
+    },
+    {
+        "id": 40,
+        "text": "Determine if all elements within a collection are empty using the isEmpty() method, rather than using the size() == 0 approach.",
+        "detail": "Defect type: Incorrect method for checking empty collection; Fix solution: Use isEmpty() method.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'To determine if all elements within a collection are empty, use the isEmpty() method instead of the size() == 0 approach'\n<Example1>\nList<String> list = new ArrayList<>();\nif (list.size() == 0) {\n    // Empty logic\n}\n</Example1>",
+        "no_example": "Examples that cannot be considered as 'judging whether all elements within a set are empty using the isEmpty() method instead of the size() == 0 approach'"
+    },
+    {
+        "id": 41,
+        "text": "Whenever you override equals, you must also override hashCode.",
+        "detail": "Defect type: hashCode method not overridden; Fix solution: Override both equals and hashCode methods.",
+        "language": "Java",
+        "yes_example": "An example where it is judged that 'if you override equals, you must also override hashCode'",
+        "no_example": "An example where it cannot be judged as 'Whenever you override equals, you must also override hashCode'"
+    },
+    {
+        "id": 42,
+        "text": "When using the Map methods keySet() / values() / entrySet() to return a collection object, you cannot perform element addition operations on it, otherwise a UnsupportedOperationException will be thrown.",
+        "detail": "Defect type: Adding operations to the collections returned by keySet() / values() / entrySet() of a Map; Repair solution: Avoid adding operations to these collections.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'When using the Map methods keySet() / values() / entrySet() to return a collection object, you cannot perform element addition operations on it, otherwise a UnsupportedOperationException exception will be thrown'",
+        "no_example": "Example that cannot be judged as 'When using the methods keySet() / values() / entrySet() of Map to return a collection object, it is not allowed to perform element addition operations on it, otherwise a UnsupportedOperationException will be thrown'"
+    },
+    {
+        "id": 43,
+        "text": "Do not perform element removal / addition operations within a foreach loop. Use the iterator method for removing elements. If concurrent operations are required, the iterator must be synchronized.",
+        "detail": "Defect type: performing remove / add operations on elements within a foreach loop; Repair solution: use iterator to perform remove operations on elements.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'Do not perform element remove / add operations within a foreach loop. Use the iterator method for removing elements; if concurrent operations are required, the iterator must be synchronized.'",
+        "no_example": "Example that cannot be judged as 'Do not perform element remove / add operations inside a foreach loop. Use the iterator method for removing elements. If concurrent operations are required, the iterator should be synchronized.'\n<Example1>\nList<String> list = new ArrayList<>(Arrays.asList(\"a\", \"b\", \"c\"));\nIterator<String> iterator = list.iterator();\nwhile (iterator.hasNext()) {\n    String s = iterator.next();\n    if (s.equals(\"a\")) {\n        iterator.remove();\n    }\n}\n</Example1>"
+    },
+    {
+        "id": 44,
+        "text": "Class, class attributes, and class methods must use Javadoc specifications for comments, using the format /** content */, and must not use the // xxx format.",
+        "detail": "Defect type: Comments do not conform to Javadoc standards; Solution: Use Javadoc-compliant comment format.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'class, class attribute, class method annotations must use Javadoc specification, using the format /** content */, not using the // xxx method'",
+        "no_example": "Examples that cannot be judged as 'Class, class attribute, and class method comments must follow the Javadoc specification, using the /** content */ format, not the // xxx format'"
+    },
+    {
+        "id": 45,
+        "text": "All abstract methods (including methods in interfaces) must be annotated with Javadoc comments",
+        "detail": "Defect type: All abstract methods (including methods in interfaces) must be annotated with Javadoc; Repair solution: Add Javadoc comments to all abstract methods (including methods in interfaces), in addition to the return value, parameter exception description, it must also indicate what the method does and what function it implements.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'All abstract methods (including methods in interfaces) must be annotated with Javadoc'",
+        "no_example": "Example that cannot be judged as 'all abstract methods (including methods in interfaces) must be annotated with Javadoc comments'"
+    },
+    {
+        "id": 46,
+        "text": "Usage guidelines for single-line and multi-line comments within methods",
+        "detail": "Defect type: Improper use of comments; Repair solution: Single-line comments inside the method, start a new line above the commented statement, use // for comments. Multi-line comments inside the method use /* */ comments, and pay attention to aligning with the code.",
+        "language": "Java",
+        "yes_example": "### Examples of being judged as 'Improper Use of Comments'\n<Example1>\npublic void exampleMethod() {\n    int a = 1; // Initialize variable a\n    int b = 2; /* Initialize variable b */\n}\nThe single-line and multi-line comments in this code are not used according to the standard, so they are judged as improper use of comments.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'improper use of comments'\n<Example1>\npublic void exampleMethod() {\n    // Initialize variable a\n    int a = 1;\n    /*\n     * Initialize variable b\n     */\n    int b = 2;\n}\nThis code uses single-line and multi-line comments according to the standard, so it cannot be judged as improper use of comments.\n</Example1>"
+    },
+    {
+        "id": 47,
+        "text": "All enumeration type fields must have comments",
+        "detail": "Defect type: Enumeration type field lacks comments; Fix plan: Add comments to all enumeration type fields to explain the purpose of each data item.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'Enumeration type field lacks comments'\n<Example1>\npublic enum Status {\n    ACTIVE,\n    INACTIVE\n}\nThe enumeration type fields in this code are not commented, so they are judged as lacking comments for enumeration type fields.\n</Example1>",
+        "no_example": "Examples that cannot be judged as 'missing comments for enum fields'\n<Example1>\npublic enum Status {\n    /**\n     * Active status\n     */\n    ACTIVE,\n    /**\n     * Inactive status\n     */\n    INACTIVE\n}\nThis code has comments for the enum fields, so it cannot be judged as missing comments for enum fields.\n</Example1>"
+    },
+    {
+        "id": 48,
+        "text": "The finally block must close resource objects and stream objects.",
+        "detail": "Defect type: resource objects and stream objects are not closed in the finally block; Fix solution: Close resource objects and stream objects in the finally block, and use try-catch for exceptions.",
+        "language": "Java",
+        "yes_example": "Example of being judged as 'resource object, stream object not closed in finally block'",
+        "no_example": "Examples that cannot be judged as 'resource objects, stream objects not closed in the finally block'"
+    },
+    {
+        "id": 49,
+        "text": "Constant names should be in all uppercase, with words separated by underscores.",
+        "detail": "Defect type: Constant naming is not standardized; Fix solution: Constant names should be all uppercase, words separated by underscores, and strive for complete and clear semantic expression, do not be afraid of long names.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'Constant names should be in all uppercase, with words separated by underscores'",
+        "no_example": "Examples that cannot be judged as 'constant names should be all uppercase, with words separated by underscores'"
+    },
+    {
+        "id": 50,
+        "text": "Spaces are required on both sides of any binary or ternary operator.",
+        "detail": "Defect type: Lack of space around operators; Fix solution: Any binary or ternary operator should have a space on both sides.",
+        "language": "Java",
+        "yes_example": "Examples of being judged as 'Any binary or ternary operator must have spaces on both sides'",
+        "no_example": "Examples that cannot be judged as 'any binary, ternary operator needs a space on both sides'"
+    },
+    {
+        "id": 51,
+        "text": "Avoid using from <module> import *",
+        "detail": "Defect type: Avoid using 'from <module> import *', importing everything can cause naming conflicts; Solution: Each sub-dependency used should be imported separately.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'avoid using from <module> import *'",
+        "no_example": "Examples that cannot be judged as 'avoid using from <module> import *'"
+    },
+    {
+        "id": 52,
+        "text": "Avoid using the __import__() function to dynamically import modules",
+        "detail": "Defect type: Avoid using __import__() function to dynamically import modules; Repair solution: Use standard import statements.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'dynamically importing modules using the __import__() function'",
+        "no_example": "Examples that cannot be judged as 'dynamically importing modules using the __import__() function'"
+    },
+    {
+        "id": 53,
+        "text": "Import statements are not grouped in the order of standard library imports, related third-party imports, and local application/library specific imports.",
+        "detail": "Defect type: Import statements are not grouped in the order of standard library imports, related third-party imports, and local application/library specific imports; Solution: Group import statements in order.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'import statements not grouped in the order of standard library imports, related third-party imports, and local application/library specific imports'",
+        "no_example": "Example that cannot be judged as 'import statements not grouped in the order of standard library imports, related third-party imports, local application/library specific imports'"
+    },
+    {
+        "id": 54,
+        "text": "Avoid unused function parameters",
+        "detail": "Defect type: Avoid unused function parameters; Fix solution: Remove unused function parameters.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'avoid unused function parameters'",
+        "no_example": "Examples that cannot be judged as 'avoiding unused function parameters'"
+    },
+    {
+        "id": 55,
+        "text": "Use is not None to check if a variable is not None",
+        "detail": "Defect type: Not using 'is not None' to check if a variable is not None; Fix solution: Use 'is not None' to check.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'not using is not None to check if a variable is not None'",
+        "no_example": "Examples that cannot be judged as 'not using is not None to check if a variable is not None'"
+    },
+    {
+        "id": 56,
+        "text": "Avoid using == or != to compare the equivalence of object instances",
+        "detail": "Defect type: Using == or != to compare object instances for equivalence; Fix solution: Should use equals for comparison.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'using == or != to compare the equivalence of object instances'",
+        "no_example": "Examples that cannot be judged as 'using == or != to compare the equivalence of object instances'"
+    },
+    {
+        "id": 57,
+        "text": "Avoid using single-letter variable names, use descriptive variable names",
+        "detail": "Defect type: Avoid using single-letter variable names, use descriptive variable names; Fix solution: Use descriptive variable names.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'avoid using single-letter variable names, use descriptive variable names'",
+        "no_example": "Examples that cannot be judged as 'avoid using single-letter variable names, use descriptive variable names'"
+    },
+    {
+        "id": 58,
+        "text": "Constant names use all uppercase letters and separate words with underscores",
+        "detail": "Defect type: Constant naming does not use all uppercase letters or does not use underscores to separate; Repair solution: Use all uppercase letters for constant naming and separate with underscores.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'Constant naming not using all uppercase letters and separated by underscores'",
+        "no_example": "Examples that cannot be judged as 'constant naming not using all uppercase letters and separated by underscores'"
+    },
+    {
+        "id": 59,
+        "text": "Class names should use camel case (CamelCase)",
+        "detail": "Defect type: Class name not using camel case; Repair solution: Use camel case for class names.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'class name not using CamelCase'",
+        "no_example": "Examples that cannot be judged as 'class name not using CamelCase'"
+    },
+    {
+        "id": 60,
+        "text": "Try to use the with statement to manage resources as much as possible",
+        "detail": "Defect type: Not using the with statement to manage resources; Fix solution: Use the with statement to manage resources.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'not using the with statement to manage resources'",
+        "no_example": "Examples that cannot be judged as 'not using the with statement to manage resources'"
+    },
+    {
+        "id": 61,
+        "text": "Avoid using except or generic Exception to catch all exceptions, specify the exception type instead.",
+        "detail": "Defect type: catch all exceptions; Fix solution: specify specific exception types.",
+        "language": "Python",
+        "yes_example": "Examples judged as 'catching all exceptions using except:' and 'throwing a generic Exception exception'",
+        "no_example": "Example that cannot be judged as 'using except: to catch all exceptions'"
+    },
+    {
+        "id": 62,
+        "text": "Avoid manual string concatenation whenever possible",
+        "detail": "Defect type: manual string concatenation; Fix solution: use formatted strings or join method.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'manual string concatenation'",
+        "no_example": "Examples that cannot be judged as 'manual string concatenation'"
+    },
+    {
+        "id": 63,
+        "text": "Avoid using magic characters and numbers, should be declared as constants",
+        "detail": "Defect type: Using magic characters and numbers; Fix solution: Declare them as constants.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'having magic characters and numbers'",
+        "no_example": "Examples that cannot be judged as 'containing magic characters and numbers'"
+    },
+    {
+        "id": 64,
+        "text": "Boolean variable judgment does not require explicit comparison",
+        "detail": "Defect type: explicit comparison of boolean variables; fix solution: directly use boolean variables for judgment.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'explicit comparison of boolean variables'",
+        "no_example": "Examples that cannot be judged as 'explicit comparison of boolean variables'"
+    },
+    {
+        "id": 65,
+        "text": "Avoid using type() to check object types",
+        "detail": "Defect type: Avoid using type() to check object type; Fix solution: Use isinstance() function.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'avoid using type() to check object type'",
+        "no_example": "Examples that cannot be judged as 'avoid using type() to check object type'"
+    },
+    {
+        "id": 66,
+        "text": "Avoid using os.system() to call external commands",
+        "detail": "Defect type: Using os.system() to call external commands; Fix solution: Use the subprocess module.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using os.system() to call external commands'\n<Example1>os.system('ls -l')</Example1>\n<Example2>os.system('ls -l')</Example2>",
+        "no_example": "Examples that cannot be judged as 'using os.system() to call external commands'"
+    },
+    {
+        "id": 67,
+        "text": "Create read-only properties using the @property decorator instead of modifying properties",
+        "detail": "Defect type: Creating modifiable properties using the @property decorator; Fix solution: Only use the @property decorator to create read-only properties.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using the @property decorator to create modifiable attributes'",
+        "no_example": "Examples that cannot be judged as 'using the @property decorator to create a modifiable attribute'"
+    },
+    {
+        "id": 68,
+        "text": "When using indexing or slicing, do not add spaces inside the brackets or colons.",
+        "detail": "Defect type: adding spaces inside brackets or colons for indexing or slicing; Repair solution: remove spaces inside brackets or colons.",
+        "language": "Python",
+        "yes_example": "Examples judged as 'using spaces inside brackets or colons when using indexing or slicing'",
+        "no_example": "Examples that cannot be judged as 'adding spaces inside brackets or colons when using indexes or slices'"
+    },
+    {
+        "id": 69,
+        "text": "Do not add a space before a comma, semicolon, or colon, but add a space after them",
+        "detail": "Defect type: adding a space before a comma, semicolon, or colon, or not adding a space after them; Fix solution: do not add a space before a comma, semicolon, or colon, but add a space after them.",
+        "language": "Python",
+        "yes_example": "Examples judged as 'adding a space before a comma, semicolon, or colon, or not adding a space after them'",
+        "no_example": "Examples that cannot be judged as 'adding a space before a comma, semicolon, or colon, or not adding a space after them'"
+    },
+    {
+        "id": 70,
+        "text": "For binary operators, there should be spaces on both sides",
+        "detail": "Defect type: no spaces around binary operators; Fix solution: add spaces around binary operators",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'no space around binary operator'",
+        "no_example": "Examples that cannot be judged as 'no space on both sides of the binary operator'"
+    },
+    {
+        "id": 71,
+        "text": "Avoid using Python keywords as variable or function names",
+        "detail": "Defect type: Using Python keywords as variable names or function names; Repair solution: Use non-keyword names.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using Python keywords as variable names or function names'",
+        "no_example": "Examples that cannot be judged as 'using Python keywords as variable names or function names'\n<Example1>def my_function():\n    pass</Example1>\n<Example2>number = 5</Example2>"
+    },
+    {
+        "id": 72,
+        "text": "Avoid using special characters as variable names/method names/class names, such as $ or @",
+        "detail": "Defect type: Using special characters as variable names/method names/class names; Repair solution: Use legal variable names.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using special characters as variable names/method names/class names, such as $ or @'",
+        "no_example": "Examples that cannot be judged as 'using special characters as variable names/method names/class names, such as $ or @'"
+    },
+    {
+        "id": 73,
+        "text": "Avoid using raise to rethrow the current exception, as it will lose the original stack trace.",
+        "detail": "Defect type: Re-raise the current exception using raise; Fix solution: Use the raise ... from ... syntax.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'avoid using raise to rethrow the current exception, as it will lose the original stack trace'",
+        "no_example": "Examples that cannot be judged as 'avoid using raise to rethrow the current exception, as it will lose the original stack trace'"
+    },
+    {
+        "id": 74,
+        "text": "Avoid using pass in except block, as it will catch and ignore the exception",
+        "detail": "Defect type: using pass in except block; Fix solution: handle the exception or log the error.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using pass in except block'",
+        "no_example": "Examples that cannot be judged as 'using pass in an except block'"
+    },
+    {
+        "id": 75,
+        "text": "Avoid using assert statements to perform important runtime checks",
+        "detail": "Defect type: Using assert statements for important runtime checks; Fix solution: Use explicit condition checks and exception handling.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'using assert statements to perform important runtime checks'",
+        "no_example": "Examples that cannot be judged as 'using assert statements to perform important runtime checks'"
+    },
+    {
+        "id": 76,
+        "text": "Avoid using eval() and exec(), these functions may bring security risks",
+        "detail": "Defect type: Use of eval() and exec() functions; Repair solution: Use secure alternatives.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using eval() and exec()'\n<Example1>\n eval('print(1)') \n</Example1>\n<Example2> \n exec('a = 1') \n</Example2>",
+        "no_example": "Examples that cannot be judged as 'using eval() and exec()'\n<Example1>\ncompiled_code = compile('print(1)', '<string>', 'exec')\nexec(compiled_code)\n</Example1>"
+    },
+    {
+        "id": 77,
+        "text": "Avoid using sys.exit(), use exceptions to control program exit instead.",
+        "detail": "Defect type: Avoid using sys.exit(), should use exceptions to control program exit; Repair solution: Use exceptions to control program exit.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'avoid using sys.exit(), should use exceptions to control program exit'",
+        "no_example": "Examples that cannot be judged as 'avoid using sys.exit(), should use exceptions to control program exit'"
+    },
+    {
+        "id": 78,
+        "text": "Avoid using time.sleep() for thread synchronization, and instead use synchronization primitives such as locks or events.",
+        "detail": "Defect type: Using time.sleep() for thread synchronization; Fix solution: Use synchronization primitives.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using time.sleep() for thread synchronization'",
+        "no_example": "Examples that cannot be judged as 'using time.sleep() for thread synchronization'"
+    },
+    {
+        "id": 79,
+        "text": "Avoid exceeding 79 characters per line of code",
+        "detail": "Defect type: Avoid exceeding 79 characters per line of code; Fix solution: Format long lines of code into multiple lines.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'avoiding more than 79 characters per line of code'",
+        "no_example": "Examples that cannot be judged as 'each line of code should not exceed 79 characters'"
+    },
+    {
+        "id": 80,
+        "text": "Functions and class definitions at the module level are separated by two blank lines, and method definitions within a class are separated by one blank line",
+        "detail": "Defect type: There is no separation of two blank lines between function and class definitions at the module level, and no separation of one blank line between method definitions within the class; Solution: Add blank lines according to the specification.",
+        "language": "Python",
+        "yes_example": "Example of being judged as 'Functions at the module level are not separated by two blank lines, and method definitions within a class are not separated by one blank line'",
+        "no_example": "Examples that cannot be judged as 'There is no two blank lines between module-level function and class definitions, and no one blank line between method definitions inside a class'"
+    },
+    {
+        "id": 81,
+        "text": "Use lowercase letters and underscores to separate variable and function names",
+        "detail": "Defect type: Variable and function naming do not conform to the lowercase letters and underscore separation method; Repair solution: Use lowercase letters and underscore separation method for naming.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'not using lowercase letters and underscores to separate variable and function names'",
+        "no_example": "Examples that cannot be judged as 'naming variables and functions without using lowercase letters and underscores to separate them'"
+    },
+    {
+        "id": 82,
+        "text": "It is not allowed to use the print() function to record logs, use the logging module, etc. to record logs",
+        "detail": "Defect type: Using the print() function to log; Fix solution: Use the logging module to log.",
+        "language": "Python",
+        "yes_example": "Examples of being judged as 'using the print() function to log'",
+        "no_example": "Examples that cannot be considered as 'using the print() function to log'"
+    }
+]

@@ -7,7 +7,7 @@
 """
 import json
 import warnings
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import aiohttp
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -17,6 +17,7 @@ class SerperWrapper(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     api_key: str
+    url: str = "https://google.serper.dev/search"
     payload: dict = Field(default_factory=lambda: {"page": 1, "num": 10})
     aiosession: Optional[aiohttp.ClientSession] = None
     proxy: Optional[str] = None
@@ -33,6 +34,7 @@ class SerperWrapper(BaseModel):
                 "To use serper search engine, make sure you provide the `api_key` when constructing an object. You can obtain "
                 "an API key from https://serper.dev/."
             )
+
         return values
 
     async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
@@ -46,20 +48,16 @@ class SerperWrapper(BaseModel):
     async def results(self, queries: list[str], max_results: int = 8) -> dict:
         """Use aiohttp to run query through Serper and return the results async."""
 
-        def construct_url_and_payload_and_headers() -> Tuple[str, Dict[str, str]]:
-            payloads = self.get_payloads(queries, max_results)
-            url = "https://google.serper.dev/search"
-            headers = self.get_headers()
-            return url, payloads, headers
+        payloads = self.get_payloads(queries, max_results)
+        headers = self.get_headers()
 
-        url, payloads, headers = construct_url_and_payload_and_headers()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+                async with session.post(self.url, data=payloads, headers=headers, proxy=self.proxy) as response:
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+            async with self.aiosession.post(self.url, data=payloads, headers=headers, proxy=self.proxy) as response:
                 response.raise_for_status()
                 res = await response.json()
 

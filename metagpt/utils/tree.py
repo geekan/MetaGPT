@@ -27,14 +27,15 @@
 """
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 from typing import Callable, Dict, List
 
 from gitignore_parser import parse_gitignore
 
+from metagpt.tools.libs.shell import shell_execute
 
-def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = False) -> str:
+
+async def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = False) -> str:
     """
     Recursively traverses the directory structure and prints it out in a tree-like format.
 
@@ -80,7 +81,7 @@ def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = Fal
     """
     root = Path(root).resolve()
     if run_command:
-        return _execute_tree(root, gitignore)
+        return await _execute_tree(root, gitignore)
 
     git_ignore_rules = parse_gitignore(gitignore) if gitignore else None
     dir_ = {root.name: _list_children(root=root, git_ignore_rules=git_ignore_rules)}
@@ -129,12 +130,7 @@ def _add_line(rows: List[str]) -> List[str]:
     return rows
 
 
-def _execute_tree(root: Path, gitignore: str | Path) -> str:
+async def _execute_tree(root: Path, gitignore: str | Path) -> str:
     args = ["--gitfile", str(gitignore)] if gitignore else []
-    try:
-        result = subprocess.run(["tree"] + args + [str(root)], capture_output=True, text=True, check=True)
-        if result.returncode != 0:
-            raise ValueError(f"tree exits with code {result.returncode}")
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        raise e
+    stdout, _, _ = await shell_execute(["tree"] + args + [str(root)])
+    return stdout

@@ -6,13 +6,16 @@
 @Modified By: mashenquan, 2023/12/5. Archive the summarization content of issue discovery for use in WriteCode.
 """
 from pathlib import Path
+from typing import Optional
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from metagpt.utils.common import get_markdown_code_block_type
+from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -90,6 +93,8 @@ flowchart TB
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
     i_context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
+    repo: Optional[ProjectRepo] = Field(default=None, exclude=True)
+    input_args: Optional[BaseModel] = Field(default=None, exclude=True)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):
@@ -101,11 +106,10 @@ class SummarizeCode(Action):
         design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
         task_pathname = Path(self.i_context.task_filename)
         task_doc = await self.repo.docs.task.get(filename=task_pathname.name)
-        src_file_repo = self.repo.with_src_path(self.context.src_workspace).srcs
         code_blocks = []
         for filename in self.i_context.codes_filenames:
-            code_doc = await src_file_repo.get(filename)
-            code_block = f"```python\n{code_doc.content}\n```\n-----"
+            code_doc = await self.repo.srcs.get(filename)
+            code_block = f"```{get_markdown_code_block_type(filename)}\n{code_doc.content}\n```\n---\n"
             code_blocks.append(code_block)
         format_example = FORMAT_EXAMPLE
         prompt = PROMPT_TEMPLATE.format(

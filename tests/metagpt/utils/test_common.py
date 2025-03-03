@@ -29,6 +29,8 @@ from metagpt.utils.common import (
     awrite,
     check_cmd_exists,
     concat_namespace,
+    extract_and_encode_images,
+    extract_image_paths,
     import_class_inst,
     parse_recipient,
     print_members,
@@ -213,6 +215,24 @@ class TestGetProjectRoot:
         await awrite(filename=pathname, data=content, encoding="gb2312")
         data = await aread(filename=pathname, encoding="utf-8")
         assert data == content
+
+
+def test_extract_image_paths():
+    content = """
+    Here are some image paths /home/user/images/photo1.jpg /home/user/images/photo2.png
+    # /absolute/path/to/image.gif"""
+    assert extract_image_paths(content) == [
+        "/home/user/images/photo1.jpg",
+        "/home/user/images/photo2.png",
+        "/absolute/path/to/image.gif",
+    ]
+
+    content = "no image path"
+    assert not extract_image_paths(content)
+
+
+def test_extract_and_encode_images():
+    assert not extract_and_encode_images("a non-existing.jpg")
 
 
 if __name__ == "__main__":

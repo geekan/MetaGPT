@@ -578,7 +578,7 @@ class WriteCodeAN(Action):
 
     async def run(self, context):
         self.llm.system_prompt = "You are an outstanding engineer and can implement any code"
-        return await WRITE_MOVE_NODE.fill(context=context, llm=self.llm, schema="json")
+        return await WRITE_MOVE_NODE.fill(req=context, llm=self.llm, schema="json")
 
 
 async def main():

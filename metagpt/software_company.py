@@ -4,11 +4,9 @@
 import asyncio
 from pathlib import Path
 
-import agentops
 import typer
 
 from metagpt.const import CONFIG_ROOT
-from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -26,21 +24,18 @@ def generate_repo(
     reqa_file="",
     max_auto_summarize_code=0,
     recover_path=None,
-) -> ProjectRepo:
+):
     """Run the startup logic. Can be called from CLI or other Python scripts."""
     from metagpt.config2 import config
     from metagpt.context import Context
     from metagpt.roles import (
         Architect,
-        Engineer,
+        DataAnalyst,
+        Engineer2,
         ProductManager,
-        ProjectManager,
-        QaEngineer,
+        TeamLeader,
     )
     from metagpt.team import Team
-
-    if config.agentops_api_key != "":
-        agentops.init(config.agentops_api_key, tags=["software_company"])
 
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
     ctx = Context(config=config)
@@ -49,19 +44,22 @@ def generate_repo(
         company = Team(context=ctx)
         company.hire(
             [
+                TeamLeader(),
                 ProductManager(),
                 Architect(),
-                ProjectManager(),
+                Engineer2(),
+                # ProjectManager(),
+                DataAnalyst(),
             ]
         )
 
-        if implement or code_review:
-            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
-
-        if run_tests:
-            company.hire([QaEngineer()])
-            if n_round < 8:
-                n_round = 8  # If `--run-tests` is enabled, at least 8 rounds are required to run all QA actions.
+        # if implement or code_review:
+        #     company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+        #
+        # if run_tests:
+        #     company.hire([QaEngineer()])
+        #     if n_round < 8:
+        #         n_round = 8  # If `--run-tests` is enabled, at least 8 rounds are required to run all QA actions.
     else:
         stg_path = Path(recover_path)
         if not stg_path.exists() or not str(stg_path).endswith("team"):
@@ -71,13 +69,9 @@ def generate_repo(
         idea = company.idea
 
     company.invest(investment)
-    company.run_project(idea)
-    asyncio.run(company.run(n_round=n_round))
+    asyncio.run(company.run(n_round=n_round, idea=idea))
 
-    if config.agentops_api_key != "":
-        agentops.end_session("Success")
-
-    return ctx.repo
+    return ctx.kwargs.get("project_path")
 
 
 @app.command("", help="Start a new project.")

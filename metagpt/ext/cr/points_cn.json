@@ -1,0 +1,656 @@
+[
+  {
+    "id": 1,
+    "text": "避免未使用的临时变量",
+    "language": "Java",
+    "detail": "缺陷类型：避免未使用的临时变量；对应Fixer：UnusedLocalVariableFixer；修复方案：删除未使用的临时变量",
+    "yes_example": "### 被判定为\"避免未使用的临时变量\"的例子\n<例子1>\npublic String initCreationForm(Map<String, Object> model) {\n\t\tOwner owner = new Owner();\n\t\tmodel.put(\"owner\", owner);\n\t\tint unusedVar = 10;\n\t\treturn VIEWS_OWNER_CREATE_OR_UPDATE_FORM;\n\t}\n上述代码中unusedVar变量未被使用，所以这个被判定为\"避免未使用的临时变量\"\n</例子1>\n<例子2>\nint unusedVariable = 10;\nSystem.out.println(\"Hello, World!\");\n这段代码的变量\"unusedVariable\"未被使用或者引用，所以这个不能判定为\"避免未使用的临时变量\"\n</例子2>",
+    "no_example": "### 不能被判定为\"避免未使用的临时变量\"的例子\n<例子1>\npublic void setTransientVariablesLocal(Map<String, Object> transientVariables) {\nthrow new UnsupportedOperationException(\"No execution active, no variables can be set\");\n}\n这段代码的\"transientVariables\"是函数参数而不是临时变量，虽然transientVariables没有被使用或者引用，但是这个也不能判定为\"避免未使用的临时变量\"\n</例子1>\n\n<例子2>\npublic class TriggerCmd extends NeedsActiveExecutionCmd<Object> {\n  protected Map<String, Object> transientVariables;\n  public TriggerCmd(Map<String, Object> transientVariables) {\n    this.transientVariables = transientVariables;\n  }\n}\n上述代码中transientVariables不属于临时变量，它是类属性，且它在构造函数中被使用，所以这个不能被判定为\"避免未使用的临时变量\"\n</例子2>"
+  },
+  {
+    "id": 2,
+    "text": "不要使用 System.out.println 去打印",
+    "language": "Java",
+    "detail": "缺陷类型：不要使用 System.out.println 去打印；对应Fixer：SystemPrintlnFixer；修复方案：注释System.out.println代码",
+    "yes_example": "### 被判定为\"不要使用 System.out.println 去打印\"的例子\n<例子1>\nSystem.out.println(\"Initializing new owner form.\");\n上述代码使用了\"System.out.println\"进行打印，所以这个被判定为\"不要使用 System.out.println 去打印\"\n</例子1>",
+    "no_example": "### 不能被判定为\"不要使用 System.out.println 去打印\"的例子\n<例子1>\nthrow new IllegalStateException(\"There is no authenticated user, we need a user authenticated to find tasks\");\n上述代码是抛出异常的代码，没有使用\"System.out.print\"，所以这个不能被判定为\"不要使用 System.out.println 去打印\"\n</例子1>"
+  },
+  {
+    "id": 3,
+    "text": "避免函数中未使用的形参",
+    "language": "Java",
+    "detail": "缺陷类型：避免函数中未使用的形参；修复方案：忽略",
+    "yes_example": "### 被判定为\"避免函数中未使用的形参\"的例子\n<例子1>\npublic void setTransientVariablesLocal(Map<String, Object> transientVariables) {\n    throw new UnsupportedOperationException(\"No execution active, no variables can be set\");\n}这段代码中的形参\"transientVariables\"未在函数体内出现，所以这个被判定为\"避免函数中未使用的形参\"\n</例子1>\n\n<例子2>\nprotected void modifyFetchPersistencePackageRequest(PersistencePackageRequest ppr, Map<String, String> pathVars) {}\n这段代码中的形参\"ppr\"和\"pathVars\"未在函数体内出现，所以这个被判定为\"避免函数中未使用的形参\"\n</例子2>",
+    "no_example": "### 不能被判定为\"避免函数中未使用的形参\"的例子\n<例子1>\npublic String processFindForm(@RequestParam(value = \"pageNo\", defaultValue = \"1\") int pageNo) {\n\tlastName = owner.getLastName();\n\treturn addPaginationModel(pageNo, paginationModel, lastName, ownersResults);\n}这段代码中的形参\"pageNo\"在当前函数'processFindForm'内被'return addPaginationModel(pageNo, paginationModel, lastName, ownersResults);'这一句被使用，虽然pageNo没有被用于逻辑计算，但作为了函数调用其他函数的参数使用了，所以这个不能被判定为\"避免函数中未使用的形参\"\n</例子1>\n<例子2>\npublic void formatDate(Date date) {\n\tSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n\tSystem.out.println(\"Formatted date: \" + sdf.format(date));\n}这段代码中的形参date在System.out.println(\"Formatted date: \" + sdf.format(date))这一句中被引用到，所以这个不能被判定为\"避免函数中未使用的形参\"\n</例子2>"
+  },
+  {
+    "id": 4,
+    "text": "if语句块不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：if 语句块不能为空；对应Fixer：EmptyIfStmtFixer；修复方案：删除if语句块 或 适当的逻辑处理 或 注释说明为何为空",
+    "yes_example": "### 被判定为\"if语句块不能为空\"的例子\n<例子1>\npublic void emptyIfStatement() {\n\tif (getSpecialties().isEmpty()) {\n\t}\n}这段代码中的if语句块内容是空的，所以这个被判定为\"if语句块不能为空\"\n</例子1>\n\n<例子2>\npublic void judgePersion() {\n\tif (persion != null) {\n\t\t// judge persion if not null\n\t}\n}\n这段代码中的if语句块虽然有内容，但是\"// judge persion if not null\"只是代码注释，if语句块内并没有实际的逻辑代码，所以这个被判定为\"if语句块不能为空\"\n</例子2>",
+    "no_example": "### 不能被判定为\"if语句块不能为空\"的例子\n<例子1>\npublic void judgePersion() {\n\tif (persion != null) {\n\t\treturn 0;\n\t}\n}这段代码中的if语句块里有内容，且里面有非注释代码的逻辑代码\"return 0;\"，所以这个不能被判定为\"if语句块不能为空\"\n</例子1>"
+  },
+  {
+    "id": 5,
+    "text": "循环体不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：循环体不能为空；对应Fixer：EmptyStatementNotInLoopFixer；修复方案：删除对应while、for、foreach 循环体 或 添加适当的逻辑处理或者注释说明为何为空",
+    "yes_example": "### 被判定为\"循环体不能为空\"的例子\n<例子1>\npublic void emptyLoopBody() {\n\tfor (Specialty specialty : getSpecialties()) {\n\t}\n}这段代码中的for循环体的内容是空的，所以这个被判定为\"循环体不能为空\"\n</例子1>\n\n<例子2>\npublic void emptyLoopBody() {\n\twhile (True) {\n\t\t// this is a code example\n\t}\n}这段代码中的while循环体的内容虽然不是空的，但内容只是代码注释，无逻辑内容，所以这个被判定为\"循环体不能为空\"\n</例子2>\n\n<例子3>\npublic void emptyLoopBody() {\n\twhile (True) {\n\t\t\n\t}\n}这段代码中的while循环体内容是空的，所以这个被判定为\"循环体不能为空\"\n</例子3>",
+    "no_example": "### 不能被判定为\"循环体不能为空\"的例子\n<例子1>\npublic void emptyLoopBody() {\n\tfor (Specialty specialty : getSpecialties()) {\n\t\ta = 1;\n\t\tif (a == 1) {\n\t\t\tretrun a;\n\t\t}\n\t}\n}上述代码的for循环体的内容不为空，且内容不全是代码注释，所以这个不能被判定为\"循环体不能为空\"\n</例子1>"
+  },
+  {
+    "id": 6,
+    "text": "避免使用 printStackTrace()，应该使用日志的方式去记录",
+    "language": "Java",
+    "detail": "缺陷类型：避免使用 printStackTrace()，应该使 用日志的方式去记录；修复方案：用日志的方式去记录",
+    "yes_example": "### 被判定为\"避免使用 printStackTrace()，应该使用日志的方式去记录\"的例子\n<例子1>\npublic void usePrintStackTrace() {\n\ttry {\n\t\tthrow new Exception(\"Fake exception\");\n\t} catch (Exception e) {\n\t\te.printStackTrace();\n\t}\n}这段代码中的catch语句中使用了printStackTrace()，所以这个被判定为\"避免使用 printStackTrace()，应该使用日志的方式去记录\"\n</例子1>",
+    "no_example": "### 不能被判定为\"避免使用 printStackTrace()，应该使用日志的方式去记录\"的例子\n<例子1>\npublic void usePrintStackTrace() {\n\ttry {\n\t\tthrow new Exception(\"Fake exception\");\n\t} catch (Exception e) {\n\t\tlogging.info(\"info\");\n\t}\n}这段代码的catch语句中使用的是日志记录的方式，所以这个不能被判定为\"避免使用 printStackTrace()，应该使用日志的方式去记录\"\n</例子1>"
+  },
+  {
+    "id": 7,
+    "text": "catch 语句块不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：catch 语句块不能为空；对应Fixer：EmptyCatchBlockFixer；修复方案：在catch里面添加注释",
+    "yes_example": "### 被判定为\"catch语句块不能为空\"的例子\n<例子1>\ntry {\n    int[] array = new int[5];\n    int number = array[10];\n} catch (ArrayIndexOutOfBoundsException e) {\n    \n}\n这段代码中的catch语句中没有内容，所以这个被判定为\"catch语句块不能为空\"\n</例子1>\n\n<例子2>\ntry {\n    String str = null;\n    str.length();\n} catch (NullPointerException e) {\n   \n}这段代码中的catch语句中没有内容，所以这个被判定为\"catch语句块不能为空\"\n</例子2>\n\n<例子3>\npublic class EmptyCatchExample {\n    public static void main(String[] args) {\n        try {\n            // 尝试除以零引发异常\n            int result = 10 / 0;\n        } catch (ArithmeticException e) {\n         \n        }\n    }\n}这段代码中的catch语句中没有内容，所以这个被判定为\"catch语句块不能为空\"\n</例子3>\n<例子4>\ntry {\n    FileReader file = new FileReader(\"nonexistentfile.txt\");\n} catch (FileNotFoundException e) {\n    \n}这段代码中的catch语句中没有内容，所以这个被判定为\"catch语句块不能为空\"\n</例子4>\n<例子5>\ntry {\n    Object obj = \"string\";\n    Integer num = (Integer) obj;\n} catch (ClassCastException e) {\n\t\n}这段代码中的catch语句中没有内容，所以这个被判定为\"catch语句块不能为空\"\n</例子5>",
+    "no_example": "### 不能被判定为\"catch语句块不能为空\"的例子\n<例子1>\npersionNum = 1\ntry {\n\treturn True;\n} catch (Exception e) {\n\t// 如果人数为1则返回false\n\tif (persionNum == 1){\n\t\treturn False;\n\t}\n}这段代码的catch语句中不为空，所以不能把这个被判定为\"catch语句块不能为空\"\n</例子1>\n\n<例子2>\ntry {\n\tthrow new Exception(\"Fake exception\");\n} catch (Exception e) {\n\te.printStackTrace();\n}这段代码的catch语句中虽然只有\"e.printStackTrace();\"但确实不为空，所以不能把这个被判定为\"catch语句块不能为空\"\n</例子2>"
+  },
+  {
+    "id": 8,
+    "text": "避免不必要的永真/永假判断",
+    "language": "Java",
+    "detail": "缺陷类型：避免不必要的永真/永假判断；对应Fixer：UnconditionalIfStatement Fixer；修复方案：删除永真/永假判断逻辑",
+    "yes_example": "### 被判定为\"避免不必要的永真/永假判断\"的例子\n<例子1>\npublic void someMethod() {\n\twhile (true) {\n\t}\n}这段代码中的\"while (true)\"是一个使用true做判断条件，但是没有循环结束标记，所以这个被判定为\"避免不必要的永真/永假判断\"\n</例子1>\n\n<例子2>\nif (true) {\n\tSystem.out.println(\"This is always true\");\n}这段代码中的\"if (true)\"是一个使用true条件做条件，但是没有循环结束标记，所以这个被判定为\"避免不必要的永真/永假判断\"\n</例子2>\n\n<例子3>\na = 1;\nwhile(a > 0){\n\ta = a + 1\n}这段代码初始化a=1，是大于0的，while循环体的逻辑是每次加1，那么判断条件a > 0会永远是真的，不会退出循环，所以这个被判定为\"避免不必要的永真/永假判断\"\n<例子3>",
+    "no_example": "### 不能被判定为\"避免不必要的永真/永假判断\"的例子\n<例子1>\na = 0;\nwhile (a < 5) {\n\ta = a + 1;\n}这段代码中的a<5是一个判断，当执行了5次while语句中的逻辑a=a+1之后，a会满足a < 5，就会退出循环，所以这个能被判定为\"避免不必要的永真/永假判断\"\n</例子1>"
+  },
+  {
+    "id": 9,
+    "text": "switch 中 default 必须放在最后",
+    "language": "Java",
+    "detail": "缺陷类型：switch 中 default 必须放在最后；对应Fixer：DefaultLabelNotLastInSwitchStmtFixer；修复方案：switch 中 default 放在最后",
+    "yes_example": "### 被判定为\"switch 中 default 必须放在最后\"的例子\n<例子1>\nswitch (number) {\n\tdefault:\n\t\tSystem.out.println(\"This is the default block, which is incorrectly placed here.\");\n\t\tbreak;\n\tcase 1:\n\t\tSystem.out.println(\"Number one\");\n\t\tbreak;\n\tcase 2:\n\t\tSystem.out.println(\"Number two\");\n\t\tbreak;\n}这段代码是一个switch语句，但是里面的default没有放在最后，所以这个被判定为\"switch 中 default 必须放在最后\"\n</例子1>",
+    "no_example": "### 不能被判定为\"switch 中 default 必须放在最后\"的例子\n<例子1>\nswitch (number) {\ncase 3:\n\tSystem.out.println(\"Number one\");\n\tbreak;\ncase 4:\n\tSystem.out.println(\"Number two\");\n\tbreak;\ndefault:\n\tSystem.out.println(\"This is the default block, which is incorrectly placed here.\");\n\tbreak;\n}这段代码是一个switch语句且里面的default放在了最后，所以这个不能被判定为\"switch 中 default 必须放在最后\"\n</例子1>"
+  },
+  {
+    "id": 10,
+    "text": "未使用equals()函数对 String 作比较",
+    "language": "Java",
+    "detail": "缺陷类型：未使用equals()函数对 String 作比较；对应Fixer：UnSynStaticDateFormatter Fixer；修复方案：使用equals()函数对 String 作比较",
+    "yes_example": "### 被判定为\"未使用equals()函数对 String 作比较\"的例子\n<例子1>\nif (existingPet != null && existingPet.getName() == petName) {\n\tresult.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}这段代码中所涉及的existingPet.getName()和petName均是字符串，但是在if语句里做比较的时候使用了==而没有使用equals()对string做比较，所以这个被判定为\"未使用equals()函数对 String 作比较\"\n</例子1>\n\n<例子2>\nString isOk = \"ok\";\nif (\"ok\" == isOk) {\n\tresult.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}这段代码中的isOk是个字符串，但在if判断中与\"ok\"比较的时候使用的是==，未使用equals()对string做比较，应该使用\"ok\".equals(isOk)，所以这个被判定为\"未使用equals()函数对 String 作比较\"\n</例子2>\n\n<例子3>\nString str1 = \"Hello\";\nString str2 = \"Hello\";\nif (str1 == str2) {\n\tSystem.out.println(\"str1 和 str2 引用相同\");\n} else {\n\tSystem.out.println(\"str1 和 str2 引用不同\");\n}\n这段代码中的if (str1 == str2) 使用了==进行str1和str2的比较，未使用equals()对string做比较，应该使用str1.equals(str2)，所以这个被判定为\"未使用equals()函数对 String 作比较\"\n</例子3>\n\n<例子4>\nString str = \"This is string\";\nif (str == \"This is not str\") {\n\treturn str;\n}这段代码中的if (str == \"This is not str\")使用了==进行字符串比较，未使用equals()对string做比较，\"This is not str\".equals(str)，所以这个被判定为\"未使用equals()函数对 String 作比较\"\n</例子4>",
+    "no_example": "### 不能被判定为\"未使用equals()函数对 String 作比较\"的例子\n<例子1>\nif (PROPERTY_VALUE_YES.equalsIgnoreCase(readWriteReqNode))\n  formProperty.setRequired(true);\n这段代码中的PROPERTY_VALUE_YES和readWriteReqNode均是字符串，在if语句里比较PROPERTY_VALUE_YES和readWriteReqNode的使用的是equalsIgnoreCase（字符串比较忽略大小写），所以equalsIgnoreCase也是符合使用equals()函数对 String 作比较的，所以这个不能被判定为\"未使用equals()函数对 String 作比较\"\n</例子1>\n\n<例子2>\nString isOk = \"ok\";\nif (\"ok\".equals(isOk)) {\n\tresult.rejectValue(\"name\", \"duplicate\", \"already exists\");\n}这段代码中的isOk是个字符串，在if判断中与\"ok\"比较的时候使用的是equals()对string做比较，所以这个不能被判定为\"未使用equals()函数对 String 作比较\"\n</例子2>"
+  },
+  {
+    "id": 11,
+    "text": "禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象",
+    "language": "Java",
+    "detail": "缺陷类型：禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象 输出异常；对应Fixer：ConcatExceptionFixer；修复方案：使用占位符传递异常对象",
+    "yes_example": "### 被判定为\"禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象\"的例子\n<例子1>\ntry {\n  listenersNode = objectMapper.readTree(listenersNode.asText());\n} catch (Exception e) {\n  LOGGER.info(\"Listeners node can not be read\", e);\n}这段代码中日志输出内容内容是直接使用字符串\"Listeners node can not be read\"拼接，日志输出异常时，应使用占位符输出异常信息，而不是直接使用字符串拼接，所以这个被判定为\"禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象\"\n</例子1>",
+    "no_example": "### 不能被判定为\"禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象\"的例子\n<例子1>\nPersion persion = persionService.getPersion(1);\nif (persion == null){\n\tLOGGER.error(PERSION_NOT_EXIT);\n}这段代码中的PERSION_NOT_EXIT是一个用户自定义的异常常量，代表persion不存在，没有直接使用字符串\"persion not exit\"拼接，所以这个不能被判定为\"禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象\"\n<例子1>\n\n<例子2>\ntry {\n  a = a + 1;\n} catch (Exception e) {\n  Persion persion = persionService.getPersion(1);\n  LOGGER.info(persion);\n}这段代码中输出日志没有直接使用字符串拼接，而是使用的Persion对象输出，所以这个不能被判定为\"禁止在日志中直接使用字符串输出异常，请使用占位符传递异常对象\"\n</例子2>"
+  },
+  {
+    "id": 12,
+    "text": "finally 语句块不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：finally 语句块不能为空；对应Fixer：EmptyFinallyBlockFixer；修复方案：删除空 finally 语句块",
+    "yes_example": "### 被判定为\"finally 语句块不能为空\"的例子\n<例子1>\ntry {\n\tPersion persion = persionService.getPersion(1);\n\treturn persion;\n} finally {\n\t\n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子1>\n\n<例子2>\ntry {\n\tSystem.out.println(\"Inside try block\");\n} finally {\n\t// 空的finally块，没有任何语句，这是一个缺陷\n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子2>\n\n<例子3>\ntry {\n    int result = 10 / 0;\n} catch (ArithmeticException e) {\n    e.printStackTrace();\n} finally {\n    \n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子3>\n\n<例子4>\ntry {\n    String str = null;\n    System.out.println(str.length());\n} catch (NullPointerException e) {\n    e.printStackTrace();\n} finally {\n    \n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子4>\n\n<例子5>\ntry {\n    int[] array = new int[5];\n    int number = array[10];\n} catch (ArrayIndexOutOfBoundsException e) {\n    e.printStackTrace();\n} finally {\n    // 只有注释的 finally 语句块\n    // 这是一个空的 finally 块\n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子5>\n\n<例子6>\ntry {\n    FileReader file = new FileReader(\"nonexistentfile.txt\");\n} catch (FileNotFoundException e) {\n    e.printStackTrace();\n} finally {\n    // 只有空行的 finally 语句块\n    \n}这段代码中的finally语句块内没有内容，所以这个被判定为\"finally 语句块不能为空\"\n</例子6>",
+    "no_example": "### 不能被判定为\"finally 语句块不能为空\"的例子\n<例子1>\npublic void getPersion() {\n\ttry {\n\t\tPersion persion = persionService.getPersion(1);\n\t\tif (persion != null){ \n\t\t\treturn persion;\n\t\t}\n\t} finally {\n\t\treturn null;\n\t}\n}这段代码中的finally语句块中有非注释意外的内容\"return null;\"，所以这个不能被判定为\"finally 语句块不能为空\"\n</例子1>"
+  },
+  {
+    "id": 13,
+    "text": "try 语句块不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：try 语句块不能为空；对应Fixer：EmptyTryBlockFixer；修复方案：删除整个 try 语句",
+    "yes_example": "### 被判定为\"try 语句块不能为空\"的例子\n<例子1>\npublic void getPersion() {\n\ttry {\n\n\t}\n\treturn null;\n}这段代码中的try语句块内没有内容，所以这个被判定为\"try 语句块不能为空\"\n</例子1>\n\n<例子2>\npublic void demoFinallyBlock() {\n\ttry {\n\n\t} finally {\n\t\treturn null;\n\t}\n}这段代码中的try语句块内没有内容，所以这个被判定为\"try 语句块不能为空\"\n</例子2>\n\n<例子3>\ntry {\n    \n} catch (Exception e) {\n    e.printStackTrace();\n}这段代码中的try语句块内没有内容，所以这个被判定为\"try 语句块不能为空\"\n</例子3>\n\n<例子4>\ntry {\n    // 只有注释的 try 语句块\n\t\n} catch (Exception e) {\n    e.printStackTrace();\n}这段代码中的try语句块内只有注释和空行，也可以认定为这种情况是try语句块内没有内容，所以这个被判定为\"try 语句块不能为空\"\n</例子4>",
+    "no_example": "### 不能被判定为\"try 语句块不能为空\"的例子\n<例子1>\ntry {\n\ta = a + 1;\n} catch (Exception e) {\n\te.printStackTrace();\n}\n这段代码中的try语句块中有非注释意外的内容\"return null;\"，所以这个不能被判定为\"try 语句块不能为空\"\n</例子1>"
+  },
+  {
+    "id": 14,
+    "text": "避免对象进行不必要的 NULL或者null 检查",
+    "language": "Java",
+    "detail": "缺陷类型：避免对象进行不必要的 NULL或者null 检查；对应Fixer：LogicalOpNpeFixer；修复方案：删除对对象不必要的 NULL 检查的逻辑",
+    "yes_example": "### 被判定为\"避免对象进行不必要的 NULL或者null 检查\"的例子\n<例子1>\na = \"dog\";\nif (a != null){\n\treturn a;\n}这段代码中的对象a已经是确定的值\"dog\"，所以if条件句的判断\"a != null\"是不必要的，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子1>\n\n<例子2>\nif (authenticatedUserId != null && !authenticatedUserId.isEmpty() && userGroupManager!=null){\n\treturn authenticatedUserId;\n}这段代码中的\"authenticatedUserId != null\"和\"!authenticatedUserId.isEmpty()\"都是对\"authenticatedUserId\"的空判断，重复了，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子2>\n\n<例子3>\nList<Integer> list = new ArrayList<>();\nif (list != null) {\n    list.add(1);\n}这段代码中的list已经被初始化，不需要进行 null 检查，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子3>\n\n<例子4>\nif (this.type != null && this.type.getName() != null) {\n\tSystem.out.println(\"Type name is not null\");\n}这段代码中的对象type已经检查过非null，再次检查getName()是否为null是不必要的，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n\n</例子4>\n\n<例子5>\nif (\"dog\".equals(null)){\n\treturn a;\n}这段代码中的\"dog\"是个确定的字符串，不需要进行null 检查，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子5>\n\n<例子6>\nInteger num = 10;\nif (num != null) {\n    System.out.println(num);\n}这段代码中的num 已经被初始化，不需要进行 null 检查，所以这个被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子6>",
+    "no_example": "### 不能被判定为\"避免对象进行不必要的 NULL或者null 检查\"的例子\n<例子1>\nCat cat = catService.get(1);\nif (cat != null){\n\tretrun cat;\n}这段代码中的对象\"cat\"是通过service获取到的，不确定是否为空，所以if条件句的判断的\"cat != null\"是必要的，所以这个不能被判定为\"避免对象进行不必要的 NULL或者null 检查\"\n</例子1>"
+  },
+  {
+    "id": 15,
+    "text": "避免 finally 块中出现 return",
+    "language": "Java",
+    "detail": "缺陷类型：避免 finally 块中出现 return；修复方案：无需修复",
+    "yes_example": "### 被判定为\"避免 finally 块中出现 return\"的例子\n<例子1>\npublic void getPersion() {\n\ttry {\n\t\tPersion persion = persionService.getPersion(1);\n\t\tif (persion != null){ \n\t\t\treturn persion;\n\t\t}\n\t} finally {\n\t\treturn null;\n\t}\n}这段代码中的finally语句块内容包含\"return\"，所以这个被判定为\"避免 finally 块中出现 return\"\n</例子1>",
+    "no_example": "### 不能被判定为\"避免 finally 块中出现 return\"的例子\n<例子1>\npublic void getPersion() {\n\ttry {\n\t\tPersion persion = persionService.getPersion(1);\n\t\tif (persion != null){ \n\t\t\treturn persion;\n\t\t}\n\t} finally {\n\t\tLOGGER.info(PERSION_NOT_EXIT);\n\t}\n}这段代码中的finally语句块中内容不包含\"return\"，所以这个不能被判定为\"避免 finally 块中出现 return\"\n</例子1>"
+  },
+  {
+    "id": 16,
+    "text": "避免空的 static 初始化",
+    "language": "Java",
+    "detail": "缺陷类型：避免空的 static 初始化；对应Fixer：EmptyInitializerFixer；修复方案：删除整个空初始化块",
+    "yes_example": "### 被判定为\"避免空的 static 初始化\"的例子\n<例子1>\npublic class PetValidator implements Validator {\n\tstatic {\n\n\t}\n}这段代码中的static语句块没有内容，是空的，所以这个被判定为\"避免空的 static 初始化\"\n</例子1>\n\n<例子2>\npublic class Persion {\n\tstatic {\n\t\t// 初始化的静态块\n\t}\n}这段代码中的static语句块是有内容的，不是空的，但是static初始化语句块中只有注释代码，没有实际的逻辑，所以这个被判定为\"避免空的 static 初始化\"\n</例子2>",
+    "no_example": "### 不能被判定为\"避免空的 static 初始化\"的例子\n<例子1>\npublic class Cat {\n\tstatic {\n\t\t// 初始化的静态块\n\t\tcat = null;\n\t}\n}这段代码中的static语句块是有内容的，不是空的，且static初始化语句块中有非注释代码，有实际的逻辑，所以这个不能被判定为\"避免空的 static 初始化\"\n</例子1>"
+  },
+  {
+    "id": 17,
+    "text": "避免日历类用法不当风险",
+    "language": "Java",
+    "detail": "缺陷类型：避免日历类用法不当风险；修复方案：使用Java 8 及以上版本中的 java.time 包的LocalDate",
+    "yes_example": "### 被判定为\"避免日历类用法不当风险\"的例子\n<例子1>\nprivate static final Calendar calendar = new GregorianCalendar(2020, Calendar.JANUARY, 1);\n这段代码中的Calendar和GregorianCalendar是线程不安全的，所以这个被判定为\"避免日历类用法不当风险\"\n</例子1>",
+    "no_example": "### 不能被判定为\"避免日历类用法不当风险\"的例子\n<例子1>\nprivate static final LocalDate calendar = LocalDate.of(2020, 1, 1);\n这段代码中的LocalDate使用的是Java 8 及以上版本中的 java.time 包，LocalDate 是不可变的并且是线程安全的，不会有线程安全和性能方面的问题，所以这个不能被判定为\"避免日历类用法不当风险\"\n</例子1>"
+  },
+  {
+    "id": 18,
+    "text": "使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()",
+    "language": "Java",
+    "detail": "缺陷类型：使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()；对应Fixer：ClassCastExpWithToArrayF ixer；修复方案：使用集合的toArray(T[]array)，且传入的是类型完全一样的数组",
+    "yes_example": "### 被判定为\"使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()\"的例子\n<例子1>\nList<String> stringList = new ArrayList<>();\nstringList.add(\"Apple\");\nstringList.add(\"Banana\");\nObject[] objectArray = stringList.toArray(new Object[5]);\n这段代码使用集合转数组的方法的时候使用了toArray(new Object[5])，但是传入的数组类型不一致，所以这个被判定为\"使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()\"\n</例子1>",
+    "no_example": "### 不能被判定为\"使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()\"的例子\n<例子1>\nList<String> stringList = new ArrayList<>();\nstringList.add(\"Apple\");\nstringList.add(\"Banana\");\nString[] stringArray = stringList.toArray(new String[stringList.size()]);\n这段代码使用集合转数组的方法的时候使用了toArray(new String[stringList.size()])，传入的是类型完全一样的数组，所以这个不能被判定为\"使用集合转数组的方法，必须使用集合的toArray(T[]array)，传入的是类型完全一样的数组，大小就是list.size()\"\n</例子1>"
+  },
+  {
+    "id": 19,
+    "text": "禁止在 equals()中使用 NULL或者null 做比较",
+    "language": "Java",
+    "detail": "缺陷类型：禁止在 equals()中使用 NULL或者null 做比较；对应Fixer：EqualsNullFixer；修复方案：使用Object的判空函数 做比较",
+    "yes_example": "### 被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"的例子\n<例子1>\nif (\"test\".equals(null)) {\n\tSystem.out.println(\"test\");\n}这段代码中if条件中的代码\"test\".equals(null)使用equals()函数与null进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子1>\n\n<例子2>\nif (!rangeValues[1].equals(\"null\")) {\n\tmaxValue = new BigDecimal(rangeValues[1]);\n}这段代码中if条件中的代码!rangeValues[1].equals(\"null\")使用equals()函数与Nnull进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子2>\n\n<例子3>\nString str1 = \"example\";\nif (str1.equals(\"null\")) {\n    System.out.println(\"str1 is null\");\n}这段代码中if条件中的代码str1.equals(null)使用equals()函数与null进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子3>\n\n<例子4>\nString str3 = \"example\";\nif (str3 != null && str3.equals(\"null\")) {\n    System.out.println(\"str3 is null\");\n}这段代码中if条件中的代码str3.equals(\"null\")使用equals()函数与\"null\"进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子4>\n\n<例子5>\nInteger num1 = 10;\nif (num1.equals(null)) {\n    System.out.println(\"num1 is null\");\n}这段代码中if条件中的代码num1.equals(null)使用equals()函数与\"null\"进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子5>\n\n<例子6>\nObject obj = new Object();\nif (obj.equals(null)) {\n    System.out.println(\"obj is null\");\n}这段代码中if条件中的代码obj.equals(null)使用equals()函数与\"null\"进行了比较，所以这个被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子6>",
+    "no_example": "### 不能被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"的例子\n<例子1>\na = \"test\";\nif (a.equals(\"test\")) {\n\tSystem.out.println(\"test\");\n}这段代码中if条件中的代码a.equals(\"test\")使用equals()函数与\"test\"进行了比较，所以这个不能被判定为\"禁止在 equals()中使用 NULL或者null 做比较\"\n</例子1>"
+  },
+  {
+    "id": 20,
+    "text": "switch 语句块不能为空",
+    "language": "Java",
+    "detail": "缺陷类型：switch 语句块不能为空；对应Fixer：EmptySwitchStatementsFix；修复方案：删除整个空 switch 语句块",
+    "yes_example": "### 被判定为\"switch 语句块不能为空\"的例子\n<例子1>\nswitch (number) {\n\t\n}这段代码是一个switch语句块，但是里面没有内容，所以这个被判定为\"switch 语句块不能为空\"\n</例子1>\n\n<例子2>\nswitch (number) {\n\t// 这是一个switch语句块\n}这段代码是一个switch语句块，里面虽然有内容，但是内容仅仅是注释内容，没有实际的逻辑，所以这个被判定为\"switch 语句块不能为空\"\n</例子2>",
+    "no_example": "### 不能被判定为\"switch 语句块不能为空\"的例子\n<例子1>\nswitch (number) {\n\tcase 1:\n\t\tSystem.out.println(\"Number one\");\n\t\tbreak;\n\tdefault:\n\t\tSystem.out.println(\"This is the default block, which is incorrectly placed here.\");\n\t\tbreak;\n}这段代码是一个switch语句块，里面有内容，而且内容里有非注释的代码，有实际的逻辑，所以这个不能被判定为\"switch 语句块不能为空\"\n</例子1>"
+  },
+  {
+    "id": 21,
+    "text": "在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开",
+    "detail": "缺陷类型：在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开；修复方案：在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int) 3.0;\n</例子1>\n<例子2>\nint b = (int) 4.0;\n</例子2>\n<例子3>\nlong a = (long) 5;\n</例子3>\n<例子4>\nstring a = (string) 3.5;\n</例子4>\n<例子5>\nPersion a = (Persion) \"zhangsan\";\n</例子5>",
+    "no_example": "### 不能被判定为\"在进行类型强制转换时，右括号与强制转换值之间不需要任何空格隔开\"的例子\n<例子1>\nint a = (int)3.0;\n</例子1>"
+  },
+  {
+    "id": 22,
+    "text": "方法参数在定义和传入时，多个参数逗号后面必须加空格",
+    "detail": "缺陷类型：方法参数在定义和传入时，多个参数逗号后面必须加空格；修复方案：方法参数在定义和传入时，多个参数逗号后面必须加空格。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a,int b,int c) {}\n</例子1>",
+    "no_example": "### 不能被判定为\"方法参数在定义和传入时，多个参数逗号后面必须加空格\"的例子\n<例子1>\npublic void exampleMethod(int a, int b, int c) {}\n</例子1>"
+  },
+  {
+    "id": 23,
+    "text": "禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象",
+    "detail": "缺陷类型：禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象；修复方案：推荐使用 BigDecimal 的 valueOf 方法。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = new BigDecimal(0.1);\n</例子1>",
+    "no_example": "### 不能被判定为\"禁止使用构造方法 BigDecimal(double) 的方式把 double 值转化为 BigDecimal 对象\"的例子\n<例子1>\nBigDecimal bd = BigDecimal.valueOf(0.1);\n</例子1>"
+  },
+  {
+    "id": 24,
+    "text": "不能有多余的分号",
+    "detail": "缺陷类型：多余的分号；修复方案：删除多余的分号",
+    "yes_example": "### 被判定为\"不能有多余的分号\"的例子\n<例子1>\npublic void trigger(String executionId, Map<String, Object> processVariables) {\n    commandExecutor.execute(new TriggerCmd(executionId, processVariables));\n}\n;\na = 1;\nb = 2;\nsum = a + b;\n这段代码中包含一个多余的分号\";\"，所以这个被判定为\"不能有多余的分号\"\n</例子1>",
+    "no_example": "### 不能被判定为\"不能有多余的分号\"的例子\n<例子1>\nwhile (True) {\n\ta = a + 1;\n\tbreak;\n}这段代码每个分号都是必须要的，所以这个能被判定为\"不能有多余的分号\"\n</例子1>"
+  },
+  {
+    "id": 25,
+    "text": "非线程安全的 SimpleDateFormat 使用，必须在函数或代码块级别使用synchronized",
+    "detail": "缺陷类型：非线程安全的 SimpleDateFormat 使用；修复方案：在函数或代码块级别加上synchronized修饰 或 使用其他线程安全的方式",
+    "yes_example": "### 被判定为\"非线程安全的 SimpleDateFormat 使用，必须在函数或代码块级别使用synchronized\"的例子\n<例子1>\npublic void formatDate(Date date) {\n\tSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n\tSystem.out.println(\"Formatted date: \" + sdf.format(date));\n}这段代码中的函数formatDate在未使用synchronized同步修饰的情况下使用了SimpleDateFormat，这是线程不安全的，所以这个被判定为\"非线程安全的 SimpleDateFormat 使用，必须在函数或代码块级别使用synchronized\"\n</例子1>",
+    "no_example": "### 不能被判定为\"非线程安全的 SimpleDateFormat 使用，必须在函数或代码块级别使用synchronized\"的例子\n<例子1>\npublic synchronized void formatDate(Date date) {\n\tSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n\tSystem.out.println(\"Formatted date: \" + sdf.format(date));\n}这段代码是在synchronized同步块对函数'formatDate'进行保护，保证了线程安全，所以这个不能被判定为\"非线程安全的 SimpleDateFormat 使用，必须在函数或代码块级别使用synchronized\"\n</例子1>"
+  },
+  {
+    "id": 26,
+    "text": "未按驼峰命名规范进行命名，类名使用驼峰式UpperCamelCase风格, 方法名、参数名、成员变量、局部变量都统一使用lowerCamelCase风格",
+    "detail": "缺陷类型：未按驼峰命名规范进行命名；修复方案：类名使用UpperCamelCase风格，方法名、参数名、成员变量、局部变量使用lowerCamelCase风格。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"未按驼峰命名规范进行命名\"的例子\n<例子1>\npublic class myClass {\n    private int MyVariable;\n    public void MyMethod() {}\n}\n这段代码中的类名、成员变量和方法名没有遵循驼峰命名法，所以被判定为命名规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"未按驼峰命名规范进行命名\"的例子\n<例子1>\npublic class MyClass {\n    private int myVariable;\n    public void myMethod() {}\n}\n这段代码中的类名、成员变量和方法名都遵循了驼峰命名法，所以不能被判定为命名规范问题。\n</例子1>"
+  },
+  {
+    "id": 27,
+    "text": "抽象类命名使用 Abstract 或 Base 开头；异常类命名使用 Exception 结尾，测试类命名以它要测试的类的名称开始，以 Test 结尾",
+    "detail": "缺陷类型：命名规范；修复方案：抽象类命名使用 Abstract 或 Base 开头，异常类命名使用 Exception 结尾，测试类命名以它要测试的类的名称开始，以 Test 结尾。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"命名规范\"的例子\n<例子1>\npublic class MyAbstractClass {}\npublic class MyExceptionClass {}\npublic class TestMyClass {}\n这段代码中的抽象类、异常类和测试类的命名不符合规范，所以被判定为命名规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"命名规范\"的例子\n<例子1>\npublic abstract class AbstractMyClass {}\npublic class MyCustomException extends Exception {}\npublic class MyClassTest {}\n这段代码中的抽象类、异常类和测试类的命名都符合规范，所以不能被判定为命名规范问题。\n</例子1>"
+  },
+  {
+    "id": 28,
+    "text": "POJO 类中的任何布尔类型的变量，避免加\"is\" 前缀",
+    "detail": "缺陷类型：命名规范；修复方案：POJO 类中的布尔类型变量不要加 is 前缀。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"命名规范\"的例子\n<例子1>\npublic class User {\n    private boolean isActive;\n}\n这段代码中的布尔类型变量加了 is 前缀，所以被判定为命名规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"命名规范\"的例子\n<例子1>\npublic class User {\n    private boolean active;\n}\n这段代码中的布尔类型变量没有加 is 前缀，所以不能被判定为命名规范问题。\n</例子1>"
+  },
+  {
+    "id": 29,
+    "text": "杜绝完全不规范的英文缩写，避免望文不知义。",
+    "detail": "缺陷类型：命名规范；修复方案：避免使用不规范的英文缩写，确保代码可读性。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"命名规范\"的例子\n<例子1>\npublic class CfgMgr {\n    private int cnt;\n}\n这段代码中的类名和变量名使用了不规范的英文缩写，所以被判定为命名规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"命名规范\"的例子\n<例子1>\npublic class ConfigManager {\n    private int count;\n}\n这段代码中的类名和变量名没有使用不规范的英文缩写，所以不能被判定为命名规范问题。\n</例子1>"
+  },
+  {
+    "id": 30,
+    "text": "避免出现魔法字符和数字，应声明为常量",
+    "detail": "缺陷类型：避免出现魔法字符和数字，应声明为常量；修复方案：将魔法值定义为常量。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"避免出现魔法字符和数字，应声明为常量\"的例子\n<例子1>\npublic class MagicNumberExample {\n    public void calculate() {\n        int result = 42 * 2;\n    }\n}\n这段代码中直接使用了魔法值 42，所以被判定为代码规范问题。\n</例子1>\n<例子2>\npublic class MagicNumberExample {\n    public void calculate() {\n        String result = \"This is a result\";\n    }\n}\n这段代码中直接使用了魔法值 \"This is a result\"，所以被判定为代码规范问题。\n</例子2>",
+    "no_example": "### 不能被判定为\"避免出现魔法字符和数字，应声明为常量\"的例子\n<例子1>\npublic class MagicNumberExample {\n    private static final int MULTIPLIER = 42;\n    public void calculate() {\n        int result = MULTIPLIER * 2;\n    }\n}\n这段代码中将魔法值定义为了常量，所以不能被判定为代码规范问题。\n</例子1>"
+  },
+  {
+    "id": 31,
+    "text": "long 或 Long 赋值时，数值后使用大写 L，不能是小写 l，浮点数类型的数值后缀统一为大写的 D 或 F",
+    "detail": "缺陷类型：代码规范；修复方案：long 或 Long 赋值时使用大写 L，浮点数类型的数值后缀使用大写的 D 或 F。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"代码规范\"的例子\n<例子1>\npublic class NumberExample {\n    private long value = 1000l;\n    private double pi = 3.14d;\n}\n这段代码中使用了小写的 l 和 d，所以被判定为代码规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"代码规范\"的例子\n<例子1>\npublic class NumberExample {\n    private long value = 1000L;\n    private double pi = 3.14D;\n}\n这段代码中使用了大写的 L 和 D，所以不能被判定为代码规范问题。\n</例子1>"
+  },
+  {
+    "id": 32,
+    "text": "如果大括号内为空，简洁地写成{}即可，大括号中间无需换行和空格；如果是非空代码块，则：1）左大括号前不换行。2）左大括号后换行。3）右大括号前换行。4）右大括号后还有 else 等代码则不换行；表示终止的右大括号后必须换行。",
+    "detail": "缺陷类型：代码格式；修复方案：遵循大括号的使用规范。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"代码格式\"的例子\n<例子1>\npublic class BracketExample{public void method(){\n        if (true) {\n        }}\n}\n这段代码中的大括号使用不符合规范，所以被判定为代码格式问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"代码格式\"的例子\n<例子1>\npublic class BracketExample {\n    public void method() {\n        if (true) {\n            // do something\n        }\n    }\n}\n这段代码中的大括号使用符合规范，所以不能被判定为代码格式问题。\n</例子1>"
+  },
+  {
+    "id": 33,
+    "text": "左小括号和右边相邻字符之间不需要空格；右小括号和左边相邻字符之间也不需要空格；而左大括号前需要加空格。",
+    "detail": "缺陷类型：代码格式；修复方案：遵循括号和空格的使用规范。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"代码格式\"的例子\n<例子1>\npublic class SpaceExample {\n    public void method (){\n    }\n}\n这段代码中的括号和空格使用不符合规范，所以被判定为代码格式问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"代码规范\"的例子\n<例子1>\npublic class SpaceExample {\n    public void method() {}\n}\n这段代码中的括号和空格使用符合规范，所以不能被判定为代码格式问题。\n</例子1>"
+  },
+  {
+    "id": 34,
+    "text": "if / for / while / switch / do 等保留字与左右括号之间都必须加空格。",
+    "detail": "缺陷类型：代码格式；修复方案：保留字与左右括号之间加空格。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"代码规范\"的例子\n<例子1>\npublic class KeywordExample {\n    public void method() {\n        if(true) {\n        }\n    }\n}\n这段代码中的 if 关键字与括号之间没有空格，所以被判定为代码格式问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"代码规范\"的例子\n<例子1>\npublic class KeywordExample {\n    public void method() {\n        if (true) {\n        }\n    }\n}\n这段代码中的 if 关键字与括号之间有空格，所以不能被判定为代码格式问题。\n</例子1>"
+  },
+  {
+    "id": 35,
+    "text": "所有整型包装类对象之间值的比较，全部使用 equals 方法比较",
+    "detail": "缺陷类型：代码规范；修复方案：整型包装类对象之间的值比较使用 equals 方法。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"代码规范\"的例子\n<例子1>\npublic class IntegerComparison {\n    public void compare() {\n        Integer a = 100;\n        Integer b = 100;\n        if (a == b) {\n        }\n    }\n}\n这段代码中使用了 == 比较整型包装类对象，所以被判定为代码规范问题。\n</例子1>",
+    "no_example": "### 不能被判定为\"代码规范\"的例子\n<例子1>\npublic class IntegerComparison {\n    public void compare() {\n        Integer a = 100;\n        Integer b = 100;\n        if (a.equals(b)) {\n        }\n    }\n}\n这段代码中使用了 equals 方法比较整型包装类对象，所以不能被判定为代码规范问题。\n</例子1>"
+  },
+  {
+    "id": 36,
+    "text": "BigDecimal 的等值比较应使用 compareTo() 方法，而不是 equals() 方法。",
+    "detail": "缺陷类型：BigDecimal 的等值比较应使用 compareTo() 方法，而不是 equals() 方法；修复方案：使用 compareTo() 方法进行比较。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"BigDecimal 的等值比较应使用 compareTo() 方法，而不是 equals() 方法\"的例子\n<例子1>\nBigDecimal a = new BigDecimal(\"1.0\");\nBigDecimal b = new BigDecimal(\"1.00\");\nif (a.equals(b)) {\n    // 这段代码会返回 false，因为 equals() 方法会比较精度\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"BigDecimal 的等值比较应使用 compareTo() 方法，而不是 equals() 方法\"的例子\n<例子1>\nBigDecimal a = new BigDecimal(\"1.0\");\nBigDecimal b = new BigDecimal(\"1.00\");\nif (a.compareTo(b) == 0) {\n    // 这段代码会返回 true，因为 compareTo() 方法只比较数值\n}\n</例子1>"
+  },
+  {
+    "id": 37,
+    "text": "禁止在 POJO 类中，同时存在对应属性 xxx 的 isXxx() 和 getXxx() 方法。",
+    "detail": "缺陷类型：POJO 类中存在重复的 getter 方法；修复方案：确保只存在一个 getter 方法。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"禁止在 POJO 类中，同时存在对应属性 xxx 的 isXxx() 和 getXxx() 方法\"的例子\n<例子1>\npublic class User {\n    private boolean active;\n    public boolean isActive() {\n        return active;\n    }\n    public boolean getActive() {\n        return active;\n    }\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"禁止在 POJO 类中，同时存在对应属性 xxx 的 isXxx() 和 getXxx() 方法\"的例子\n<例子1>\npublic class User {\n    private int age;\n    public int getAge() {\n        return age;\n    }\n}\n</例子1>"
+  },
+  {
+    "id": 38,
+    "text": "日期格式化时，传入 pattern 中表示年份统一使用小写的 y。",
+    "detail": "缺陷类型：日期格式化错误；修复方案：使用小写的 y 表示年份。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"日期格式化时，传入 pattern 中表示年份统一使用小写的 y\"的例子\n<例子1>\nSimpleDateFormat sdf = new SimpleDateFormat(\"YYYY-MM-dd\");\n</例子1>",
+    "no_example": "### 不能被判定为\"日期格式化时，传入 pattern 中表示年份统一使用小写的 y\"的例子\n<例子1>\nSimpleDateFormat sdf = new SimpleDateFormat(\"yyyy-MM-dd\");\n</例子1>"
+  },
+  {
+    "id": 39,
+    "text": "禁止在程序任何地方中使用：1）java.sql.Date 2）java.sql.Time 3）java.sql.Timestamp。",
+    "detail": "缺陷类型：使用了 java.sql 包中的日期类；修复方案：使用 java.time 包中的日期类。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"禁止在程序任何地方中使用：1）java.sql.Date 2）java.sql.Time 3）java.sql.Timestamp\"的例子\n<例子1>\njava.sql.Date sqlDate = new java.sql.Date(System.currentTimeMillis());\n</例子1>",
+    "no_example": "### 不能被判定为\"禁止在程序任何地方中使用：1）java.sql.Date 2）java.sql.Time 3）java.sql.Timestamp\"的例子\n<例子1>\njava.time.LocalDate localDate = java.time.LocalDate.now();\n</例子1>"
+  },
+  {
+    "id": 40,
+    "text": "判断所有集合内部的元素是否为空，使用 isEmpty() 方法，而不是 size() == 0 的方式。",
+    "detail": "缺陷类型：集合判空方式错误；修复方案：使用 isEmpty() 方法。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"判断所有集合内部的元素是否为空，使用 isEmpty() 方法，而不是 size() == 0 的方式\"的例子\n<例子1>\nList<String> list = new ArrayList<>();\nif (list.size() == 0) {\n    // 判空逻辑\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"判断所有集合内部的元素是否为空，使用 isEmpty() 方法，而不是 size() == 0 的方式\"的例子\n<例子1>\nList<String> list = new ArrayList<>();\nif (list.isEmpty()) {\n    // 判空逻辑\n}\n</例子1>"
+  },
+  {
+    "id": 41,
+    "text": "只要重写 equals，就必须重写 hashCode。",
+    "detail": "缺陷类型：未重写 hashCode 方法；修复方案：同时重写 equals 和 hashCode 方法。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"只要重写 equals，就必须重写 hashCode\"的例子\n<例子1>\npublic class User {\n    private String name;\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (o == null || getClass() != o.getClass()) return false;\n        User user = (User) o;\n        return Objects.equals(name, user.name);\n    }\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"只要重写 equals，就必须重写 hashCode\"的例子\n<例子1>\npublic class User {\n    private String name;\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (o == null || getClass() != o.getClass()) return false;\n        User user = (User) o;\n        return Objects.equals(name, user.name);\n    }\n    @Override\n    public int hashCode() {\n        return Objects.hash(name);\n    }\n}\n</例子1>"
+  },
+  {
+    "id": 42,
+    "text": "使用 Map 的方法 keySet() / values() / entrySet() 返回集合对象时，不可以对其进行添加元素操作，否则会抛出 UnsupportedOperationException 异常。",
+    "detail": "缺陷类型：对 Map 的 keySet() / values() / entrySet() 返回的集合进行添加操作；修复方案：避免对这些集合进行添加操作。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"使用 Map 的方法 keySet() / values() / entrySet() 返回集合对象时，不可以对其进行添加元素操作，否则会抛出 UnsupportedOperationException 异常\"的例子\n<例子1>\nMap<String, String> map = new HashMap<>();\nmap.put(\"key1\", \"value1\");\nSet<String> keys = map.keySet();\nkeys.add(\"key2\");\n</例子1>",
+    "no_example": "### 不能被判定为\"使用 Map 的方法 keySet() / values() / entrySet() 返回集合对象时，不可以对其进行添加元素操作，否则会抛出 UnsupportedOperationException 异常\"的例子\n<例子1>\nMap<String, String> map = new HashMap<>();\nmap.put(\"key1\", \"value1\");\nSet<String> keys = map.keySet();\n// 不进行添加操作\n</例子1>"
+  },
+  {
+    "id": 43,
+    "text": "不要在 foreach 循环里进行元素的 remove / add 操作。remove 元素请使用 iterator 方式，如果并发操作，需要对 iterator",
+    "detail": "缺陷类型：在 foreach 循环中进行元素的 remove / add 操作；修复方案：使用 iterator 进行元素的 remove 操作。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"不要在 foreach 循环里进行元素的 remove / add 操作。remove 元素请使用 iterator 方式，如果并发操作，需要对 iterator\"的例子\n<例子1>\nList<String> list = new ArrayList<>(Arrays.asList(\"a\", \"b\", \"c\"));\nfor (String s : list) {\n    if (s.equals(\"a\")) {\n        list.remove(s);\n    }\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"不要在 foreach 循环里进行元素的 remove / add 操作。remove 元素请使用 iterator 方式，如果并发操作，需要对 iterator\"的例子\n<例子1>\nList<String> list = new ArrayList<>(Arrays.asList(\"a\", \"b\", \"c\"));\nIterator<String> iterator = list.iterator();\nwhile (iterator.hasNext()) {\n    String s = iterator.next();\n    if (s.equals(\"a\")) {\n        iterator.remove();\n    }\n}\n</例子1>"
+  },
+  {
+    "id": 44,
+    "text": "类、类属性、类方法的注释必须使用 Javadoc 规范，使用 /** 内容 */ 格式，不得使用 // xxx方式。",
+    "detail": "缺陷类型：注释不符合 Javadoc 规范；修复方案：使用 Javadoc 规范的注释格式。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"类、类属性、类方法的注释必须使用 Javadoc 规范，使用 /** 内容 */ 格式，不得使用 // xxx方式\"的例子\n<例子1>\npublic class Example {\n    // 这是一个类注释\n    private String name;\n    // 这是一个属性注释\n    public String getName() {\n        return name;\n    }\n    // 这是一个方法注释\n}\n</例子1>",
+    "no_example": "### 不能被判定为\"类、类属性、类方法的注释必须使用 Javadoc 规范，使用 /** 内容 */ 格式，不得使用 // xxx方式\"的例子\n<例子1>\n/**\n * 这是一个类注释\n */\npublic class Example {\n    /**\n     * 这是一个属性注释\n     */\n    private String name;\n    /**\n     * 这是一个方法注释\n     */\n    public String getName() {\n        return name;\n    }\n}\n</例子1>"
+  },
+  {
+    "id": 45,
+    "text": "所有的抽象方法（包括接口中的方法）必须要用 Javadoc 注释",
+    "detail": "缺陷类型：所有的抽象方法（包括接口中的方法）必须要用 Javadoc 注释；修复方案：为所有的抽象方法（包括接口中的方法）添加 Javadoc 注释，除了返回值、参数异常说明外，还必须指出该方法做什么事情，实现什么功能。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"所有的抽象方法（包括接口中的方法）必须要用 Javadoc 注释\"的例子\n<例子1>\npublic interface MyInterface {\n    void doSomething();\n}\n这段代码中的接口方法 doSomething() 没有 Javadoc 注释，所以被判定为缺少 Javadoc 注释。\n</例子1>",
+    "no_example": "### 不能被判定为\"所有的抽象方法（包括接口中的方法）必须要用 Javadoc 注释\"的例子\n<例子1>\n/**\n * 执行某个操作\n * @param param 参数说明\n * @return 返回值说明\n * @throws Exception 异常说明\n */\npublic interface MyInterface {\n    void doSomething(String param) throws Exception;\n}\n这段代码中的接口方法 doSomething() 有完整的 Javadoc 注释，所以不能被判定为缺少 Javadoc 注释。\n</例子1>"
+  },
+  {
+    "id": 46,
+    "text": "方法内部单行注释和多行注释的使用规范",
+    "detail": "缺陷类型：注释使用不规范；修复方案：方法内部单行注释，在被注释语句上方另起一行，使用 // 注释。方法内部多行注释使用 /* */注释，注意与代码对齐。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"注释使用不规范\"的例子\n<例子1>\npublic void exampleMethod() {\n    int a = 1; // 初始化变量a\n    int b = 2; /* 初始化变量b */\n}\n这段代码中的单行注释和多行注释没有按照规范使用，所以被判定为注释使用不规范。\n</例子1>",
+    "no_example": "### 不能被判定为\"注释使用不规范\"的例子\n<例子1>\npublic void exampleMethod() {\n    // 初始化变量a\n    int a = 1;\n    /*\n     * 初始化变量b\n     */\n    int b = 2;\n}\n这段代码中的单行注释和多行注释按照规范使用，所以不能被判定为注释使用不规范。\n</例子1>"
+  },
+  {
+    "id": 47,
+    "text": "所有的枚举类型字段必须要有注释",
+    "detail": "缺陷类型：枚举类型字段缺少注释；修复方案：为所有的枚举类型字段添加注释，说明每个数据项的用途。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"枚举类型字段缺少注释\"的例子\n<例子1>\npublic enum Status {\n    ACTIVE,\n    INACTIVE\n}\n这段代码中的枚举类型字段没有注释，所以被判定为枚举类型字段缺少注释。\n</例子1>",
+    "no_example": "### 不能被判定为\"枚举类型字段缺少注释\"的例子\n<例子1>\npublic enum Status {\n    /**\n     * 活跃状态\n     */\n    ACTIVE,\n    /**\n     * 非活跃状态\n     */\n    INACTIVE\n}\n这段代码中的枚举类型字段有注释，所以不能被判定为枚举类型字段缺少注释。\n</例子1>"
+  },
+  {
+    "id": 48,
+    "text": "finally 块必须对资源对象、流对象进行关闭",
+    "detail": "缺陷类型：资源对象、流对象未在 finally 块中关闭；修复方案：在 finally 块中对资源对象、流对象进行关闭，有异常也要做 try-catch。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"资源对象、流对象未在 finally 块中关闭\"的例子\n<例子1>\npublic void readFile() {\n    FileInputStream fis = null;\n    try {\n        fis = new FileInputStream(\"file.txt\");\n        // 读取文件内容\n    } catch (IOException e) {\n        e.printStackTrace();\n    }\n}\n这段代码中的 FileInputStream 对象没有在 finally 块中关闭，所以被判定为资源对象、流对象未在 finally 块中关闭。\n</例子1>",
+    "no_example": "### 不能被判定为\"资源对象、流对象未在 finally 块中关闭\"的例子\n<例子1>\npublic void readFile() {\n    FileInputStream fis = null;\n    try {\n        fis = new FileInputStream(\"file.txt\");\n        // 读取文件内容\n    } catch (IOException e) {\n        e.printStackTrace();\n    } finally {\n        if (fis != null) {\n            try {\n                fis.close();\n            } catch (IOException e) {\n                e.printStackTrace();\n            }\n        }\n    }\n}\n这段代码中的 FileInputStream 对象在 finally 块中关闭，所以不能被判定为资源对象、流对象未在 finally 块中关闭。\n</例子1>"
+  },
+  {
+    "id": 49,
+    "text": "常量命名应该全部大写，单词间用下划线隔开",
+    "detail": "缺陷类型：常量命名不规范；修复方案：常量命名应该全部大写，单词间用下划线隔开，力求语义表达完整清楚，不要嫌名字长。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"常量命名应该全部大写，单词间用下划线隔开\"的例子\n<例子1>\npublic static final int maxCount = 100;\n</例子1>",
+    "no_example": "### 不能被判定为\"常量命名应该全部大写，单词间用下划线隔开\"的例子\n<例子1>\npublic static final int MAX_COUNT = 100;\n</例子1>"
+  },
+  {
+    "id": 50,
+    "text": "任何二目、三目运算符的左右两边都需要加一个空格",
+    "detail": "缺陷类型：运算符两边缺少空格；修复方案：任何二目、三目运算符的左右两边都需要加一个空格。",
+    "language": "Java",
+    "yes_example": "### 被判定为\"任何二目、三目运算符的左右两边都需要加一个空格\"的例子\n<例子1>\nint a=b+c;\n</例子1>",
+    "no_example": "### 不能被判定为\"任何二目、三目运算符的左右两边都需要加一个空格\"的例子\n<例子1>\nint a = b + c;\n</例子1>"
+  },
+  {
+    "id": 51,
+    "text": "避免使用from <module> import *",
+    "detail": "缺陷类型：避免使用from <module> import *，导入所有内容会造成命名冲突；修复方案：每个使用到的子依赖需分别导入。",
+    "language": "Python",
+    "yes_example": "### 被判定为\"避免使用from <module> import *\"的例子\n<例子1>from math import * \n</例子1>",
+    "no_example": "### 不能被判定为\"避免使用from <module> import *\"的例子\n<例子1>from math import sqrt, pi \n</例子1>"
+  },
+  {
+    "id": 52,
+    "text": "避免使用__import__()函数动态导入模块",
+    "detail": "缺陷类型：避免使用__import__()函数动态导入模块；修复方案：使用标准的import语句。",
+    "language": "Python",
+    "yes_example": "### 被判定为\"使用__import__()函数动态导入模块\"的例子\n<例子1>module = __import__('math') \n</例子1>",
+    "no_example": "### 不能被判定为\"使用__import__()函数动态导入模块\"的例子\n<例子1>import math \n</例子1>"
+  },
+  {
+    "id": 53,
+    "text": "导入语句未按标准库导入、相关第三方导入、本地应用/库特定导入的顺序分组",
+    "detail": "缺陷类型：导入语句未按标准库导入、相关第三方导入、本地应用/库特定导入的顺序分组；修复方案：按顺序分组导入语句。",
+    "language": "Python",
+    "yes_example": "### 被判定为'导入语句未按标准库导入、相关第三方导入、本地应用/库特定导入的顺序分组'的例子\n<例子1>\nimport numpy as np\nimport os\nimport sys\nfrom my_local_module import my_function\n在这个样例中，先导入了第三方库，然后导入了标准库。\n</例子1>\n<例子2>\nfrom my_project import my_local_function\nimport datetime\nimport requests\n在这个样例中，先导入了本地模块，然后导入了标准库。\n</例子2>\n<例子3>\nimport os\nfrom my_project.local_module import some_function\nimport pandas as pd\nimport sys\nfrom another_local_module import another_function\nimport math\n在这个样例中，导入语句完全混乱，没有遵循任何顺序。\n</例子3>\n<例子4>\nimport os\nimport requests\nimport sys\nimport numpy as np\nfrom local_package import local_module\n在这个样例中，导入标准库和第三方库交替进行。\n</例子4>",
+    "no_example": "### 不能被判定为'导入语句未按标准库导入、相关第三方导入、本地应用/库特定导入的顺序分组'的例子\n<例子1>import os \n\n import requests \n\n import mymodule \n</例子1>"
+  },
+  {
+    "id": 54,
+    "text": "避免未使用的函数形参",
+    "detail": "缺陷类型：避免未使用的函数形参；修复方案：移除未使用的函数形参。",
+    "language": "Python",
+    "yes_example": "### 被判定为'避免未使用的函数形参'的例子\n<例子1>def func(a, b): \n    return a</例子1>\n<例子2>def start_game(unused_param): \npuzzle = Puzzle() \npuzzle.solve()</例子2>\n<例子3>def make_move(self, board):\npass \n</例子3>\n<例子4>def move(self, direction):\npass \n</例子4>",
+    "no_example": "### 不能被判定为'避免未使用的函数形参'的例子\n<例子1>def func(a): \n    return a</例子1>"
+  },
+  {
+    "id": 55,
+    "text": "使用is not None来检查一个变量是否不是None",
+    "detail": "缺陷类型：未使用is not None来检查一个变量是否不是None；修复方案：使用is not None来检查。",
+    "language": "Python",
+    "yes_example": "### 被判定为'未使用is not None来检查一个变量是否不是None'的例子\n<例子1>if variable != None:\n    pass</例子1>",
+    "no_example": "### 不能被判定为'未使用is not None来检查一个变量是否不是None'的例子\n<例子1>if variable is not None:\n    pass</例子1>"
+  },
+  {
+    "id": 56,
+    "text": "避免使用==或!=来比较对象实例的等价性",
+    "detail": "缺陷类型：使用==或!=来比较对象实例的等价性；修复方案：应使用equals比较。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用==或!=来比较对象实例的等价性'的例子\n<例子1>obj1 = MyClass() \n obj2 = MyClass() if obj1 == obj2: \n    pass\n</例子1>",
+    "no_example": "### 不能被判定为'使用==或!=来比较对象实例的等价性'的例子\n<例子1>obj1 = MyClass() \n obj2 = MyClass() if obj1.equals(obj2): \n    pass\n</例子1>\n<例子2>obj1 = 21 \n obj2 = 22 \n if obj1.equals(obj2):\n    pass</例子2>"
+  },
+  {
+    "id": 57,
+    "text": "避免使用单字母变量名，使用描述性变量名",
+    "detail": "缺陷类型：避免使用单字母变量名，使用描述性变量名；修复方案：使用描述性变量名。",
+    "language": "Python",
+    "yes_example": "### 被判定为'避免使用单字母变量名，使用描述性变量名'的例子\n<例子1>x = 10 \n</例子1>\n<例子2>y = 10 \n</例子2>",
+    "no_example": "### 不能被判定为'避免使用单字母变量名，使用描述性变量名'的例子\n<例子1>count = 10 \n</例子1>"
+  },
+  {
+    "id": 58,
+    "text": "常量命名使用全大写字母，并用下划线分隔",
+    "detail": "缺陷类型：常量命名未使用全大写字母或未用下划线分隔；修复方案：常量命名使用全大写字母，并用下划线分隔。",
+    "language": "Python",
+    "yes_example": "### 被判定为'常量命名未使用全大写字母，并用下划线分隔'的例子\n<例子1>pi = 3.14159</例子1>",
+    "no_example": "### 不能被判定为'常量命名未使用全大写字母，并用下划线分隔'的例子\n<例子1>PI = 3.14159</例子1>\n<例子2>max_size = 1 \n max_size += 1</例子2>"
+  },
+  {
+    "id": 59,
+    "text": "类名应使用驼峰式命名（CamelCase）",
+    "detail": "缺陷类型：类名未使用驼峰式命名；修复方案：类名使用驼峰式命名。",
+    "language": "Python",
+    "yes_example": "### 被判定为'类名未使用驼峰式命名（CamelCase）'的例子\n<例子1>class my_class: \n    pass</例子1>\n<例子2>class my_class:  \n def solve(self):\n pass</例子2>",
+    "no_example": "### 不能被判定为'类名未使用驼峰式命名（CamelCase）'的例子\n<例子1>class MyClass: \n    pass</例子1>"
+  },
+  {
+    "id": 60,
+    "text": "尽量使用with语句来管理资源",
+    "detail": "缺陷类型：未使用with语句来管理资源；修复方案：使用with语句来管理资源。",
+    "language": "Python",
+    "yes_example": "### 被判定为'未使用with语句来管理资源'的例子\n<例子1>file = open('file.txt', 'r') \n content = file.read() \n file.close()</例子1>",
+    "no_example": "### 不能被判定为'未使用with语句来管理资源'的例子\n<例子1>with open('file.txt', 'r') as file: \n    content = file.read()</例子1>"
+  },
+  {
+    "id": 61,
+    "text": "避免使用except 或 通用的Exception来捕获所有异常，应该指定异常类型",
+    "detail": "缺陷类型：捕获所有异常；修复方案：指定具体的异常类型。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用except:来捕获所有异常'的例子\n<例子1>try: \n    # some code \n except: \n    handle_error()</例子1>\n### 被判定为'抛出通用的Exception异常'的例子\n<例子2>\n try:\n    process_data(data) \n except: \n    raise Exception('An error occurred') \n </例子2>",
+    "no_example": "### 不能被判定为'使用except:来捕获所有异常'的例子\n<例子1>try: \n    # some code \n except ValueError: \n    handle_value_error()</例子1>"
+  },
+  {
+    "id": 62,
+    "text": "尽量避免手动拼接字符串",
+    "detail": "缺陷类型：手动拼接字符串；修复方案：使用格式化字符串或join方法。",
+    "language": "Python",
+    "yes_example": "### 被判定为'手动拼接字符串'的例子\n<例子1>\n name = 'John' \n greeting = 'Hello, ' + name + '!' \n</例子1> \n <例子2>greeting = '2048' + 'game' \n</例子2> \n <例子3>pygame.display.set_caption('贪吃蛇' + '游戏')</例子3>",
+    "no_example": "### 不能被判定为'手动拼接字符串'的例子\n<例子1>\n name = 'John' \n greeting = f'Hello, {name}!' \n</例子1>"
+  },
+  {
+    "id": 63,
+    "text": "避免出现魔法字符和数字，应声明为常量",
+    "detail": "缺陷类型：使用魔法字符和数字；修复方案：将其声明为常量。",
+    "language": "Python",
+    "yes_example": "### 被判定为'出现魔法字符和数字'的例子\n<例子1>\n if status == 1: \n    print('Active')' \n</例子1>\n<例子2>\n self.board = [[0] * 4 for _ in range(4)] \n self.score = 0</例子2>\n<例子3>\ndef __init__(self, width=10, height=10, mines=15):\n</例子3>\n<例子4>\nx, y = event.x // 20, event.y // 20\n</例子4>\n<例子5>\nraise ValueError(\"余额不足\")\n</例子5>\n<例子6>\ntransfer(bank, \"123\", \"456\", 200)\n</例子6>\n<例子7>\nbank.add_account(Account(\"123\", 1000))\n</例子7>",
+    "no_example": "### 不能被判定为'出现魔法字符和数字'的例子\n<例子1>\n ACTIVE_STATUS = 1 \n if status == ACTIVE_STATUS:\n    print(ACTIVE_STATUS)' \n</例子1>"
+  },
+  {
+    "id": 64,
+    "text": "boolean变量判断无需显式比较",
+    "detail": "缺陷类型：显式比较boolean变量；修复方案：直接使用boolean变量进行判断。",
+    "language": "Python",
+    "yes_example": "### 被判定为'显式比较boolean变量'的例子\n<例子1>flag = True \n if flag == True: \n    print('Flag is true')</例子1>\n<例子2>if self.game.is_game_over() == True: \n return</例子2><例子3>if self.canvas.drawings ==True:</例子3>",
+    "no_example": "### 不能被判定为'显式比较boolean变量'的例子\n<例子1>flag = True \n if flag: \n    print('Flag is true') \n</例子1>"
+  },
+  {
+    "id": 65,
+    "text": "避免使用type()检查对象类型",
+    "detail": "缺陷类型：避免使用type()检查对象类型；修复方案：使用isinstance()函数。",
+    "language": "Python",
+    "yes_example": "### 被判定为'避免使用type()检查对象类型'的例子\n<例子1>\n if type(obj) == list: \n    print('obj is a list')</例子1>",
+    "no_example": "### 不能被判定为'避免使用type()检查对象类型'的例子\n<例子1>\n if isinstance(obj, list): \n    print('obj is a list') \n</例子1>"
+  },
+  {
+    "id": 66,
+    "text": "避免使用os.system()来调用外部命令",
+    "detail": "缺陷类型：使用os.system()调用外部命令；修复方案：使用subprocess模块。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用os.system()来调用外部命令'的例子\n<例子1>os.system('ls -l')</例子1>\n<例子2>os.system('ls -l')</例子2>",
+    "no_example": "### 不能被判定为'使用os.system()来调用外部命令'的例子\n<例子1>import subprocess \n subprocess.run(['ls', '-l'])</例子1>"
+  },
+  {
+    "id": 67,
+    "text": "只使用@property装饰器创建只读属性，而非修改属性",
+    "detail": "缺陷类型：使用@property装饰器创建可修改属性；修复方案：只使用@property装饰器创建只读属性。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用@property装饰器来创建可修改属性'的例子\n<例子1>@property \n    def value(self, new_value): \n        self._value = new_value</例子1>\n<例子2>@property \n    def game_over(self): \n        return self._is_game_over() \n def _is_game_over(self): \n pass</例子2>",
+    "no_example": "### 不能被判定为'使用@property装饰器来创建可修改属性'的例子\n<例子1>@property \n    def value(self): \n        return self._value</例子1>\n<例子2>@property \n    def __str__(self): \n        return 'Maze Game State'</例子2>"
+  },
+  {
+    "id": 68,
+    "text": "在使用索引或切片时，不要在方括号或冒号内加空格",
+    "detail": "缺陷类型：在索引或切片的方括号或冒号内加空格；修复方案：去掉方括号或冒号内的空格。",
+    "language": "Python",
+    "yes_example": "### 被判定为'在使用索引或切片时，在方括号或冒号内加空格'的例子\n<例子1>list = [1, 2, 3, 4] \n sublist = list[ 1 : 3 ]</例子1>\n<例子2>start_point = self.canvas.drawings[  -1] </例子2>\n<例子3>if head[ 0] < 0 or head[ 0] >= GRID_WIDTH or head[ 1] < 0 or head[ 1] >= GRID_HEIGHT:</例子3>\n<例子4>for segment in self.snake[ 1:]:</例子4>",
+    "no_example": "### 不能被判定为'在使用索引或切片时，在方括号或冒号内加空格'的例子\n<例子1>list = [1, 2, 3, 4] \n sublist = list[1:3]</例子1>"
+  },
+  {
+    "id": 69,
+    "text": "在逗号、分号或冒号前不要加空格，但在它们之后要加空格",
+    "detail": "缺陷类型：在逗号、分号或冒号前加空格或在它们之后不加空格；修复方案：在逗号、分号或冒号前不要加空格，但在它们之后要加空格。",
+    "language": "Python",
+    "yes_example": "### 被判定为'在逗号、分号或冒号前加空格，或没在它们之后加空格'的例子\n<例子1>if x == 4 : \n print(x , y)</例子1>\n<例子2>if event.keysym == 'Up' or event.keysym == 'Down' or event.keysym == 'Left' or event.keysym == 'Right' :</例子2>\n<例子3>x ,y = 1 ,2</例子3>\n<例子4>def on_key_press(self , event)  :</例子4>\n<例子5>elif event.keysym == 'Down' ; </例子5>\n<例子6>def update_status(self ,message: str) : \n pass </例子6>",
+    "no_example": "### 不能被判定为'在逗号、分号或冒号前加空格，或没在它们之后加空格'的例子\n<例子1>if x == 4: \n print(x, y)</例子1>"
+  },
+  {
+    "id": 70,
+    "text": "对于二元操作符，两边都应有空格",
+    "detail": "缺陷类型：二元操作符两边没有空格；修复方案：在二元操作符两边加空格",
+    "language": "Python",
+    "yes_example": "### 被判定为'二元操作符两边没有空格'的例子\n<例子1>a=b+1</例子1>",
+    "no_example": "### 不能被判定为'二元操作符两边没有空格'的例子\n<例子1>a = b + 1</例子1>\n<例子2>label = tk.Label(self.root, text=str(cell), bg='white')</例子2>\n<例子3>label.grid(row=i, column=j)</例子3>"
+  },
+  {
+    "id": 71,
+    "text": "避免使用Python关键字作为变量名或函数名",
+    "detail": "缺陷类型：使用Python关键字作为变量名或函数名；修复方案：使用非关键字的名称。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用Python关键字作为变量名或函数名'的例子\n<例子1>def class(): \n    pass</例子1>\n<例子2>for = 5</例子2>\n<例子3>def if(self): </例子3>",
+    "no_example": "### 不能被判定为'使用Python关键字作为变量名或函数名'的例子\n<例子1>def my_function(): \n    pass</例子1>\n<例子2>number = 5</例子2>"
+  },
+  {
+    "id": 72,
+    "text": "避免使用特殊字符作为变量名/方法名/类名，例如$或@",
+    "detail": "缺陷类型：使用特殊字符作为变量名/方法名/类名；修复方案：使用合法的变量名。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用特殊字符作为变量名/方法名/类名，例如$或@'的例子\n<例子1>my$var = 10</例子1>\n<例子2>@var = 20</例子2>\n<例子3>def add_score@(self, points): \n self.score += points</例子3>\n<例子4>class @MyClass: \n pass</例子4>\n<例子5>def mine@(self):</例子5>",
+    "no_example": "### 不能被判定为'使用特殊字符作为变量名/方法名/类名，例如$或@'的例子\n<例子1>my_var = 10</例子1>\n<例子2>var_20 = 20</例子2>"
+  },
+  {
+    "id": 73,
+    "text": "避免使用raise来重新抛出当前的异常，这会丢失原始的栈跟踪",
+    "detail": "缺陷类型：使用raise重新抛出当前异常；修复方案：使用raise ... from ...语法。",
+    "language": "Python",
+    "yes_example": "### 被判定为'避免使用raise来重新抛出当前的异常，这会丢失原始的栈跟踪'的例子\n<例子1>\n try: \n    1 / 0 \n except ZeroDivisionError: \n    raise SomeException('新的异常信息')\n</例子1>\n<例子2>\ntry:\n    db.get_data()\nexcept ValueError as e:\n    raise ValueError(\"Something went wrong!\")\n</例子2>\n<例子3>\ntry:\n\traise Exception(\"形状添加失败\")\nexcept Exception as e:\n\tpass\n</例子3>",
+    "no_example": "### 不能被判定为'避免使用raise来重新抛出当前的异常，这会丢失原始的栈跟踪'的例子\n<例子1>\n try: \n    1 / 0 \n except ZeroDivisionError as e: \n    raise RuntimeError('Error occurred') from e \n</例子1>\n<例子2>\n try: \n    1 / 0 \n except ZeroDivisionError as e: \n\tlogger.error(e)\n    raise \n</例子2>"
+  },
+  {
+    "id": 74,
+    "text": "避免在except块中使用pass，这会捕获并忽略异常",
+    "detail": "缺陷类型：在except块中使用pass；修复方案：处理异常或记录日志。",
+    "language": "Python",
+    "yes_example": "### 被判定为'在except块中使用pass'的例子\n<例子1>\n try: \n    1 / 0 \n except ZeroDivisionError: \n    pass \n </例子1>\n<例子2>\n try: \n    1 / 0 \n except ZeroDivisionError: \n    pass \n</例子2>",
+    "no_example": "### 不能被判定为'在except块中使用pass'的例子\n<例子1>\n try: \n    1 / 0 \n except ZeroDivisionError as e: \n    logging.error('Error occurred: %s', e) \n</例子1>"
+  },
+  {
+    "id": 75,
+    "text": "避免使用assert语句来执行重要的运行时检查",
+    "detail": "缺陷类型：使用assert语句执行重要的运行时检查；修复方案：使用显式的条件检查和异常处理。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用assert语句来执行重要的运行时检查'的例子\n<例子1>\n def divide(a, b): \n    assert b != 0 \n    return a / b \n</例子1>",
+    "no_example": "### 不能被判定为'使用assert语句来执行重要的运行时检查'的例子\n<例子1>\n def divide(a, b): \n    if b == 0: \n        raise ValueError('b cannot be zero') \n    return a / b \n</例子1>"
+  },
+  {
+    "id": 76,
+    "text": "避免使用eval()和exec()，这些函数可能会带来安全风险",
+    "detail": "缺陷类型：使用eval()和exec()函数；修复方案：使用安全的替代方案。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用eval()和exec()'的例子\n<例子1>\n eval('print(1)') \n</例子1>\n<例子2> \n exec('a = 1') \n</例子2>",
+    "no_example": "### 不能被判定为'使用eval()和exec()'的例子\n<例子1>\n compiled_code = compile('print(1)', '<string>', 'exec') \n exec(compiled_code) \n</例子1>"
+  },
+  {
+    "id": 77,
+    "text": "避免使用sys.exit()，应使用异常来控制程序的退出",
+    "detail": "缺陷类型：避免使用sys.exit()，应使用异常来控制程序的退出；修复方案：使用异常来控制程序的退出。",
+    "language": "Python",
+    "yes_example": "### 被判定为'避免使用sys.exit()，应使用异常来控制程序的退出'的例子\n<例子1>\n import sys\nsys.exit(1)\n</例子1>\n<例子2>\n import sys \n sys.exit()\n</例子2>\n<例子3>\nif event.type == pygame.QUIT:\n\tpygame.quit()\n\texit()\n</例子3>\n<例子4>\n import sys \n sys.exit('退出程序'))\n</例子4>",
+    "no_example": "### 不能被判定为'避免使用sys.exit()，应使用异常来控制程序的退出'的例子\n<例子1>\n raise SystemExit(1)\n</例子1>"
+  },
+  {
+    "id": 78,
+    "text": "避免使用time.sleep()进行线程同步，应使用同步原语，如锁或事件",
+    "detail": "缺陷类型：使用time.sleep()进行线程同步；修复方案：使用同步原语。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用time.sleep()进行线程同步'的例子\n<例子1>\n import time \n\n def worker(): \n    time.sleep(1) \n</例子1>\n<例子2>\n import time \n\n time.sleep(1) \n</例子2>",
+    "no_example": "### 不能被判定为'使用time.sleep()进行线程同步'的例子\n<例子1>\n import threading \n\n event = threading.Event() \n\n def worker(): \n    event.wait()\n</例子1>"
+  },
+  {
+    "id": 79,
+    "text": "每行代码避免超过79个字符",
+    "detail": "缺陷类型：每行代码避免超过79个字符；修复方案：将长行代码格式化为多行。",
+    "language": "Python",
+    "yes_example": "### 被判定为'每行代码避免超过79个字符'的例子\n<例子1>\n print('This is a very long line of code that exceeds the 79 characters limit........') \n</例子1>",
+    "no_example": "### 不能被判定为'每行代码避免超过79个字符'的例子\n<例子1>\n print('This is a very long line of code that exceeds the 79 characters limit' + \n      ' but it is split into two lines')\n</例子1>"
+  },
+  {
+    "id": 80,
+    "text": "模块级别的函数和类定义之间用两个空行分隔，类内部的方法定义之间用一个空行分隔",
+    "detail": "缺陷类型：模块级别的函数和类定义之间没有用两个空行分隔，类内部的方法定义之间没有用一个空行分隔；修复方案：按照规范添加空行。",
+    "language": "Python",
+    "yes_example": "### 被判定为'模块级别的函数和类定义之间没用两个空行分隔，类内部的方法定义之间没用一个空行分隔'的例子\n<例子1>\n def func1(): \n    pass \n def func2(): \n    pass \n</例子1>\n<例子2>\n class MyClass: \n    def method1(self): \n        pass \n    def method2(self): \n        pass \n</例子2>",
+    "no_example": "### 不能被判定为'模块级别的函数和类定义之间没用两个空行分隔，类内部的方法定义之间没用一个空行分隔'的例子\n<例子1>\n def func1(): \n    pass \n\n\n def func2(): \n    pass \n</例子1>\n<例子2>\n class MyClass: \n    def method1(self): \n        pass \n\n    def method2(self): \n        pass \n</例子2>"
+  },
+  {
+    "id": 81,
+    "text": "使用小写字母和下划线分隔的方式命名变量和函数名",
+    "detail": "缺陷类型：变量和函数命名不符合小写字母和下划线分隔的方式；修复方案：使用小写字母和下划线分隔的方式命名。",
+    "language": "Python",
+    "yes_example": "### 被判定为'未使用小写字母和下划线分隔的方式命名变量和函数'的例子\n<例子1>\n def myFunction(): \n    pass \n</例子1>\n<例子2>\n myVariable = 10 \n</例子2>\n<例子3>\n def Calculatesquareroot(self, x): \n    return 1 \n</例子3>",
+    "no_example": "### 不能被判定为'未使用小写字母和下划线分隔的方式命名变量和函数'的例子\n<例子1>\n def my_function(): \n    pass \n</例子1>\n<例子2>\n my_variable = 10 \n</例子2>"
+  },
+  {
+    "id": 82,
+    "text": "不允许使用print()函数来记录日志，使用logging模块等来记录日志",
+    "detail": "缺陷类型：使用print()函数记录日志；修复方案：使用logging模块记录日志。",
+    "language": "Python",
+    "yes_example": "### 被判定为'使用print()函数来记录日志'的例子\n<例子1>\n print('Error occurred') \n</例子1>\n<例子2>\n print('打印的日志字符串内容') \n</例子2>\n<例子3>\n task = 'xxx' \n print(task) \n</例子3>\n<例子4>\n print(1)\n</例子4>",
+    "no_example": "### 不能被判定为'使用print()函数来记录日志'的例子\n<例子1>\n import logging \n logging.error('Error occurred') \n</例子1>"
+  }
+]

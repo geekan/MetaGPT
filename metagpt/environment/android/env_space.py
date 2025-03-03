@@ -10,7 +10,7 @@ import numpy.typing as npt
 from gymnasium import spaces
 from pydantic import ConfigDict, Field, field_validator
 
-from metagpt.environment.base_env_space import (
+from metagpt.base.base_env_space import (
     BaseEnvAction,
     BaseEnvActionType,
     BaseEnvObsParams,

@@ -1,5 +1,4 @@
 import mimetypes
-import os
 from pathlib import Path
 from typing import Union
 
@@ -190,7 +189,7 @@ class OmniParseClient:
             # Do not verify if only byte data is provided
             return
 
-        file_ext = os.path.splitext(verify_file_path)[1].lower()
+        file_ext = Path(verify_file_path).suffix.lower()
         if file_ext not in allowed_file_extensions:
             raise ValueError(f"Not allowed {file_ext} File extension must be one of {allowed_file_extensions}")
 
@@ -219,7 +218,7 @@ class OmniParseClient:
             Returns bytes if only_bytes is True, otherwise returns a tuple (filename, file_bytes, mime_type).
         """
         if isinstance(file_input, (str, Path)):
-            filename = os.path.basename(str(file_input))
+            filename = Path(file_input).name
             file_bytes = await aread_bin(file_input)
 
             if only_bytes:
