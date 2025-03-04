@@ -14,17 +14,17 @@ class SimpleHybridRetriever(RAGRetriever):
         self.retrievers: list[RAGRetriever] = retrievers
         super().__init__()
 
-    async def _aretrieve(self, query: QueryType, **kwargs):
+    async def _aretrieve(self, query_bundle: QueryType, **kwargs):
         """Asynchronously retrieves and aggregates search results from all configured retrievers.
 
-        This method queries each retriever in the `retrievers` list with the given query and
+        This method queries each retriever in the `retrievers` list with the given query_bundle and
         additional keyword arguments. It then combines the results, ensuring that each node is
         unique, based on the node's ID.
         """
         all_nodes = []
         for retriever in self.retrievers:
             # Prevent retriever changing query
-            query_copy = copy.deepcopy(query)
+            query_copy = copy.deepcopy(query_bundle)
             nodes = await retriever.aretrieve(query_copy, **kwargs)
             all_nodes.extend(nodes)
 

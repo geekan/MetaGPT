@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any, Optional, Union
 
-from llama_index.core import SimpleDirectoryReader
+from llama_index.core import Settings, SimpleDirectoryReader
 from llama_index.core.callbacks.base import CallbackManager
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.embeddings.mock_embed_model import MockEmbedding
@@ -89,6 +89,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        build_graph: bool = False,
     ) -> "SimpleEngine":
         """From docs.
 
@@ -102,6 +103,7 @@ class SimpleEngine(RetrieverQueryEngine):
             llm: Must supported by llama index. Default OpenAI.
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
+            build_graph: Whether to build a graph from scratch. Default False.
         """
         if not input_dir and not input_files:
             raise ValueError("Must provide either `input_dir` or `input_files`.")
@@ -122,6 +124,7 @@ class SimpleEngine(RetrieverQueryEngine):
             llm=llm,
             retriever_configs=retriever_configs,
             ranker_configs=ranker_configs,
+            build_graph=build_graph,
         )
 
     @classmethod
@@ -133,6 +136,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        build_graph: bool = False,
     ) -> "SimpleEngine":
         """From objs.
 
@@ -143,6 +147,7 @@ class SimpleEngine(RetrieverQueryEngine):
             llm: Must supported by llama index. Default OpenAI.
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
+            build_graph: Whether to build a graph from scratch. Default False.
         """
         objs = objs or []
         retriever_configs = retriever_configs or []
@@ -159,6 +164,7 @@ class SimpleEngine(RetrieverQueryEngine):
             llm=llm,
             retriever_configs=retriever_configs,
             ranker_configs=ranker_configs,
+            build_graph=build_graph,
         )
 
     @classmethod
@@ -178,16 +184,16 @@ class SimpleEngine(RetrieverQueryEngine):
         """Inplement tools.SearchInterface"""
         return await self.aquery(content)
 
-    def retrieve(self, query: QueryType) -> list[NodeWithScore]:
-        query_bundle = QueryBundle(query) if isinstance(query, str) else query
+    def retrieve(self, query_bundle: QueryType) -> list[NodeWithScore]:
+        query_bundle = QueryBundle(query_bundle) if isinstance(query_bundle, str) else query_bundle
 
         nodes = super().retrieve(query_bundle)
         self._try_reconstruct_obj(nodes)
         return nodes
 
-    async def aretrieve(self, query: QueryType) -> list[NodeWithScore]:
+    async def aretrieve(self, query_bundle: QueryType) -> list[NodeWithScore]:
         """Allow query to be str."""
-        query_bundle = QueryBundle(query) if isinstance(query, str) else query
+        query_bundle = QueryBundle(query_bundle) if isinstance(query_bundle, str) else query_bundle
 
         nodes = await super().aretrieve(query_bundle)
         self._try_reconstruct_obj(nodes)
@@ -225,11 +231,16 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
+        build_graph: bool = False,
     ) -> "SimpleEngine":
         embed_model = cls._resolve_embed_model(embed_model, retriever_configs)
         llm = llm or get_rag_llm()
+        Settings.llm = llm
+        Settings.embed_model = embed_model
 
-        retriever = get_retriever(configs=retriever_configs, nodes=nodes, embed_model=embed_model)
+        retriever = get_retriever(
+            configs=retriever_configs, nodes=nodes, embed_model=embed_model, build_graph=build_graph
+        )
         rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
 
         return cls(
@@ -248,6 +259,7 @@ class SimpleEngine(RetrieverQueryEngine):
         ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         llm = llm or get_rag_llm()
+        Settings.llm = llm
 
         retriever = get_retriever(configs=retriever_configs, index=index)  # Default index.as_retriever
         rankers = get_rankers(configs=ranker_configs, llm=llm)  # Default []
