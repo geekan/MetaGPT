@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : self-host open llm model with ollama which isn't openai-api-compatible
+# @Modified by : mashenquan. Tested with llama 3.2, https://www.ollama.com/library/llama3.2;
+#               nomic-embed-text, https://www.ollama.com/library/nomic-embed-text
 
 import json
 from enum import Enum, auto
-from typing import AsyncGenerator, Optional, Tuple
+from typing import AsyncGenerator, List, Optional, Tuple
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import USE_CONFIG_TIMEOUT
@@ -38,7 +40,21 @@ class OllamaMessageBase:
         raise NotImplementedError
 
     def decode(self, response: OpenAIResponse) -> dict:
-        return json.loads(response.data.decode("utf-8"))
+        data = response.data.decode("utf-8")
+        rsp = {}
+        content = ""
+        for val in data.splitlines():
+            if not val:
+                continue
+            m = json.loads(val)
+            if "embedding" in m:
+                return m
+            content += m.get("message", {}).get("content", "")
+            rsp.update(m)
+        if "message" not in rsp:
+            rsp["message"] = {}
+        rsp["message"]["content"] = content
+        return rsp
 
     def get_choice(self, to_choice_dict: dict) -> str:
         raise NotImplementedError
@@ -204,16 +220,14 @@ class OllamaLLM(BaseLLM):
     def _llama_api_inuse(self) -> OllamaMessageAPI:
         return OllamaMessageAPI.CHAT
 
-    @property
-    def _llama_api_kwargs(self) -> dict:
-        return {"options": {"temperature": 0.3}, "stream": self.config.stream}
-
     def __init_ollama(self, config: LLMConfig):
         assert config.base_url, "ollama base url is required!"
         self.model = config.model
         self.pricing_plan = self.model
         ollama_message = OllamaMessageMeta.get_message(self._llama_api_inuse)
-        self.ollama_message = ollama_message(model=self.model, **self._llama_api_kwargs)
+        options = {"temperature": config.temperature}
+        self.ollama_message = ollama_message(model=self.model, options=options)
+        self.ollama_stream = ollama_message(model=self.model, options=options, stream=True)
 
     def get_usage(self, resp: dict) -> dict:
         return {"prompt_tokens": resp.get("prompt_eval_count", 0), "completion_tokens": resp.get("eval_count", 0)}
@@ -225,12 +239,7 @@ class OllamaLLM(BaseLLM):
             params=self.ollama_message.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
         )
-        if isinstance(resp, AsyncGenerator):
-            return await self._processing_openai_response_async_generator(resp)
-        elif isinstance(resp, OpenAIResponse):
-            return self._processing_openai_response(resp)
-        else:
-            raise ValueError
+        return self._processing_openai_response(resp)
 
     def get_choice_text(self, rsp):
         return self.ollama_message.get_choice(rsp)
@@ -241,17 +250,12 @@ class OllamaLLM(BaseLLM):
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
-            url=self.ollama_message.api_suffix,
-            params=self.ollama_message.apply(messages=messages),
+            url=self.ollama_stream.api_suffix,
+            params=self.ollama_stream.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
             stream=True,
         )
-        if isinstance(resp, AsyncGenerator):
-            return await self._processing_openai_response_async_generator(resp)
-        elif isinstance(resp, OpenAIResponse):
-            return self._processing_openai_response(resp)
-        else:
-            raise ValueError
+        return await self._processing_openai_response_async_generator(resp)
 
     def _processing_openai_response(self, openai_resp: OpenAIResponse):
         resp = self.ollama_message.decode(openai_resp)
@@ -263,10 +267,10 @@ class OllamaLLM(BaseLLM):
         collected_content = []
         usage = {}
         async for raw_chunk in ag_openai_resp:
-            chunk = self.ollama_message.decode(raw_chunk)
+            chunk = self.ollama_stream.decode(raw_chunk)
 
             if not chunk.get("done", False):
-                content = self.ollama_message.get_choice(chunk)
+                content = self.ollama_stream.get_choice(chunk)
                 collected_content.append(content)
                 log_llm_stream(content)
             else:
@@ -285,10 +289,6 @@ class OllamaGenerate(OllamaLLM):
     def _llama_api_inuse(self) -> OllamaMessageAPI:
         return OllamaMessageAPI.GENERATE
 
-    @property
-    def _llama_api_kwargs(self) -> dict:
-        return {"options": {"temperature": 0.3}, "stream": self.config.stream}
-
 
 @register_provider(LLMType.OLLAMA_EMBEDDINGS)
 class OllamaEmbeddings(OllamaLLM):
@@ -297,14 +297,10 @@ class OllamaEmbeddings(OllamaLLM):
         return OllamaMessageAPI.EMBEDDINGS
 
     @property
-    def _llama_api_kwargs(self) -> dict:
-        return {"options": {"temperature": 0.3}}
-
-    @property
     def _llama_embedding_key(self) -> str:
         return "embedding"
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> List[float]:
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
             url=self.ollama_message.api_suffix,
@@ -313,7 +309,7 @@ class OllamaEmbeddings(OllamaLLM):
         )
         return self.ollama_message.decode(resp)[self._llama_embedding_key]
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> List[float]:
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     def get_choice_text(self, rsp):
