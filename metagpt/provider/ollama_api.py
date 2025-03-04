@@ -218,10 +218,31 @@ class OllamaLLM(BaseLLM):
     def get_usage(self, resp: dict) -> dict:
         return {"prompt_tokens": resp.get("prompt_eval_count", 0), "completion_tokens": resp.get("eval_count", 0)}
 
+    def _get_api_url(self, suffix: str) -> str:
+        """
+        Ensure the API URL is correctly formed by handling both direct Ollama URLs and third-party wrappers.
+        For direct Ollama, the URL should be: base_url + /api + suffix
+        For wrappers, we need to check if /api is already in the base_url
+        """
+        base_url = self.config.base_url.rstrip('/')
+        
+        # If base_url already ends with /api, just append the suffix
+        if base_url.endswith('/api'):
+            return f"{base_url}{suffix}"
+        
+        # If base_url contains /api/ somewhere in the middle (like in a wrapper URL)
+        # we should just append the suffix directly
+        if '/api/' in base_url:
+            return f"{base_url}{suffix}"
+            
+        # For standard Ollama URL, insert /api before the suffix
+        return f"{base_url}/api{suffix}"
+        
     async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
+        api_url = self._get_api_url(self.ollama_message.api_suffix)
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
-            url=self.ollama_message.api_suffix,
+            url=api_url,
             params=self.ollama_message.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
         )
@@ -239,9 +260,10 @@ class OllamaLLM(BaseLLM):
         return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
 
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+        api_url = self._get_api_url(self.ollama_message.api_suffix)
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
-            url=self.ollama_message.api_suffix,
+            url=api_url,
             params=self.ollama_message.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
             stream=True,
@@ -305,9 +327,10 @@ class OllamaEmbeddings(OllamaLLM):
         return "embedding"
 
     async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> dict:
+        api_url = self._get_api_url(self.ollama_message.api_suffix)
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
-            url=self.ollama_message.api_suffix,
+            url=api_url,
             params=self.ollama_message.apply(messages=messages),
             request_timeout=self.get_timeout(timeout),
         )
