@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : self-host open llm model with ollama which isn't openai-api-compatible
-# @Modified by : mashenquan. Tested with llama 3.2, https://www.ollama.com/library/llama3.2
+# @Modified by : mashenquan. Tested with llama 3.2, https://www.ollama.com/library/llama3.2;
+#               nomic-embed-text, https://www.ollama.com/library/nomic-embed-text
 
 import json
 from enum import Enum, auto
