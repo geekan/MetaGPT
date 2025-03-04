@@ -113,7 +113,11 @@ def get_split_dataset_path(dataset_name, config):
     datasets_dir = config["datasets_dir"]
     if dataset_name in config["datasets"]:
         dataset = config["datasets"][dataset_name]
-        data_path = os.path.join(datasets_dir, dataset["dataset"])
+        # Check whether `dataset["dataset"]` is already the suffix of `datasets_dir`. If it isn't, perform path concatenation.
+        if datasets_dir.rpartition("/")[-1] == dataset["dataset"]:
+            data_path = datasets_dir
+        else:
+            data_path = Path(datasets_dir) / dataset["dataset"]
         split_datasets = {
             "train": os.path.join(data_path, "split_train.csv"),
             "dev": os.path.join(data_path, "split_dev.csv"),
