@@ -25,6 +25,9 @@ from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postp
 from metagpt.utils.common import OutputParser, general_after_log
 from metagpt.utils.human_interaction import HumanInteraction
 from metagpt.utils.sanitize import sanitize
+from metagpt.logs import logger
+from metagpt.provider.human_provider import HumanProvider
+from metagpt.configs.llm_config import LLMConfig
 
 
 class ReviewMode(Enum):
@@ -152,11 +155,13 @@ class ActionNode:
     # Action Output
     content: str
     instruct_content: BaseModel
+    problematic_json_history = [] # Store problematic JSON for feedback
 
     # For ActionGraph
     prevs: List["ActionNode"]  # previous nodes
     nexts: List["ActionNode"]  # next nodes
-
+    human_provider : Optional[HumanProvider] = None
+        
     def __init__(
         self,
         key: str,
@@ -176,6 +181,7 @@ class ActionNode:
         self.schema = schema
         self.prevs = []
         self.nexts = []
+        self.human_provider = HumanProvider(LLMConfig())
 
     def __str__(self):
         return (
@@ -432,22 +438,79 @@ class ActionNode:
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
         timeout=USE_CONFIG_TIMEOUT,
-    ) -> (str, BaseModel):
+    ) -> tuple[str, BaseModel]:
         """Use ActionOutput to wrap the output of aask"""
-        content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
-        logger.debug(f"llm raw output:\n{content}")
-        output_class = self.create_model_class(output_class_name, output_data_mapping)
+        self.problematic_json_history = []
+        state = 'llm'
+        original_prompt = prompt
+        content = ""
+        while True:
+            if state=='llm':
+                content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
+                state = 'autohumanprompt'   
+            elif state=='autohumanprompt':
+                # check self instance whether it's write code and development
+                if self.key=='WriteCodePlanAndChange':
+                    # fix most common failures
+                    prompt='only focus on 1 goal for now. gen json with fields of "Incremental Change" and "Development Plan" json should be wrapped in [CONTENT][/CONTENT], nothing else. The incremental change should be exactly one code patch in a list of string. and dev plan is also a list of string. take care of json syntax, double quotes, escape chars. problematic json as follows:'+','.join(self.problematic_json_history)
+                    content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
+                elif self.key=='WP_ISSUE_TYPE':
+                    prompt = original_prompt+'only focus on 1 goal for now. gen json with fields of "issue_type" json should be wrapped in [CONTENT][/CONTENT], nothing else. The incremental change should be exactly one code patch in a list of string. and dev plan is also a list of string. take care of json syntax, double quotes, escape chars. problematic json as follows:'+','.join(self.problematic_json_history)
+                    content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
+                else:
+                    # other cases
+                    state='humanprompt'    
+            if state=='humanprompt':
+                content = await self.involve_humanprompt_intervention(content, self.problematic_json_history, original_prompt, system_msgs=system_msgs, images=images, timeout=timeout)
+                state = 'human'
+            elif state== 'human':
+                content = await self.involve_human_intervention(content, self.problematic_json_history, original_prompt, system_msgs=system_msgs, images=images, timeout=timeout)
+            logger.debug(f"llm raw output:\n{content}")
+            output_class = self.create_model_class(output_class_name, output_data_mapping)
+            parsed_data = ""
+            if schema == "json":
+                try:
+                    parsed_data = llm_output_postprocess(
+                        output=content, schema=output_class.model_json_schema(), req_key=f"[/{TAG}]"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to parse JSON content: {str(e)}")
+                    self.problematic_json_history.append(content+str(e)+"please notice any common problem for llm gened json, e.g. escape double quote issues")  # Store problematic JSON and error message
+            else:  # using markdown parser
+                parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+        
+            logger.debug(f"parsed_data:\n{parsed_data}")
+        
+            try:
+                instruct_content = output_class(**parsed_data)
+                return content, instruct_content
+            except Exception as e:
+                # 如果解析失败，则使用 humanprompt 进行修正
+                logger.warning(f"Failed to parse data into {output_class_name} class: {str(e)}")
+                #prompt = await self.involve_humanprompt_intervention(content, self.problematic_json_history, original_prompt, system_msgs=system_msgs, images=images, timeout=timeout)
+    
+    async def involve_humanprompt_intervention(self, 
+        content: str, problematic_json_history: list, 
+        original_prompt:str,
+        images: Optional[Union[str, list[str]]] = None,
+        system_msgs: Optional[list[str]] = None,
+        timeout=USE_CONFIG_TIMEOUT):
+        """Involve human intervention when all retries fail."""
+        logger.error("All attempts to parse JSON content failed. Involving human prompt intervention.")
+        humanprompt_response = self.human_provider.ask(content)
+        content = await self.llm.aask(humanprompt_response+f" take care double quotes in json response, and escape chars.output wrapped inside [CONTENT][/CONTENT] like previous example. nothing else. problem json:{','.join(problematic_json_history)}", system_msgs, images=images, timeout=timeout)
+        return content
 
-        if schema == "json":
-            parsed_data = llm_output_postprocess(
-                output=content, schema=output_class.model_json_schema(), req_key=f"[/{TAG}]"
-            )
-        else:  # using markdown parser
-            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-
-        logger.debug(f"parsed_data:\n{parsed_data}")
-        instruct_content = output_class(**parsed_data)
-        return content, instruct_content
+    async def involve_human_intervention(self, 
+        content: str, problematic_json_history: list, 
+        original_prompt:str,
+        images: Optional[Union[str, list[str]]] = None,
+        system_msgs: Optional[list[str]] = None,
+        timeout=USE_CONFIG_TIMEOUT):
+        """Involve human intervention when all retries fail."""
+        logger.error("All attempts to parse JSON content failed. Involving human intervention.")
+        human_response = self.human_provider.ask(content)
+        return human_response
 
     def get(self, key):
         return self.instruct_content.model_dump()[key]

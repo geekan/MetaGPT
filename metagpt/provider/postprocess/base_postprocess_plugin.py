@@ -44,7 +44,14 @@ class BasePostProcessPlugin(object):
     def run_retry_parse_json_text(self, content: str) -> Union[dict, list]:
         """inherited class can re-implement the function"""
         # logger.info(f"extracted json CONTENT from output:\n{content}")
-        parsed_data = retry_parse_json_text(output=content)  # should use output=content
+        import tolerantjson as tjson
+        try:
+            parsed_data = retry_parse_json_text(output=content)  # should use output=content
+        except:
+            try:
+                parsed_data = tjson.tolerate(content)
+            except:
+                parsed_data = tjson.tolerate(content[8:-14])
         return parsed_data
 
     def run(self, output: str, schema: dict, req_key: str = "[/CONTENT]") -> Union[dict, list]:
