@@ -47,25 +47,43 @@ class BaseLLM(ABC):
     def __init__(self, config: LLMConfig):
         pass
 
-    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, Union[str, dict]]:
+    def _user_msg(
+        self,
+        msg: str,
+        images: Optional[Union[str, dict[str, str], list[str | dict[str, str]]]] = None,
+    ) -> dict[str, Union[str, dict]]:
         if images:
             # as gpt-4v, chat with image
             return self._user_msg_with_imgs(msg, images)
         else:
             return {"role": "user", "content": msg}
 
-    def _user_msg_with_imgs(self, msg: str, images: Optional[Union[str, list[str]]]):
+    def _user_msg_with_imgs(
+        self,
+        msg: str,
+        images: Union[str, dict[str, str], list[str | dict[str, str]]],
+    ):
         """
         images: can be list of http(s) url or base64
         """
-        if isinstance(images, str):
+        if isinstance(images, str) or isinstance(images, dict):
             images = [images]
         content = [{"type": "text", "text": msg}]
         for image in images:
+            # image_info should be a dict like this:
+            # {'url': str, 'detail': 'high' | 'low' | 'auto'}
+            # (Ref: https://platform.openai.com/docs/guides/vision/low-or-high-fidelity-image-understanding)
+            if isinstance(image, str):
+                image_info = {"url": image}
+            elif isinstance(image, dict):
+                image_info = image.copy()
+            else:
+                raise NotImplementedError
             # image url or image base64
-            url = image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
+            if not image_info["url"].startswith("http"):
+                image_info["url"] = f"data:image/jpeg;base64,{image_info['url']}"
             # it can with multiple-image inputs
-            content.append({"type": "image_url", "image_url": {"url": url}})
+            content.append({"type": "image_url", "image_url": image_info})
         return {"role": "user", "content": content}
 
     def _assistant_msg(self, msg: str) -> dict[str, str]:
@@ -130,7 +148,7 @@ class BaseLLM(ABC):
         msg: Union[str, list[dict[str, str]]],
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
-        images: Optional[Union[str, list[str]]] = None,
+        images: Optional[Union[str, dict[str, str], list[str | dict[str, str]]]] = None,
         timeout=USE_CONFIG_TIMEOUT,
         stream=None,
     ) -> str:
