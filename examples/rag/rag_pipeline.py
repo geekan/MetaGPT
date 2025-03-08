@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.logs import logger
 from metagpt.rag.engines import SimpleEngine
+from metagpt.rag.query_analysis.hyde import HyDEQuery
+from metagpt.rag.query_analysis.simple_query_transformer import SimpleQueryTransformer
 from metagpt.rag.schema import (
     ChromaIndexConfig,
     ChromaRetrieverConfig,
@@ -22,7 +24,7 @@ LLM_TIP = "If you not sure, just answer I don't know."
 
 DOC_PATH = EXAMPLE_DATA_PATH / "rag/writer.txt"
 QUESTION = f"What are key qualities to be a good writer? {LLM_TIP}"
-
+QUESTION2 = "What are the key factors in maintaining high productivity?"
 TRAVEL_DOC_PATH = EXAMPLE_DATA_PATH / "rag/travel.txt"
 TRAVEL_QUESTION = f"What does Bob like? {LLM_TIP}"
 
@@ -212,9 +214,31 @@ class RAGExample:
         answer = await engine.aquery(TRAVEL_QUESTION)
         self._print_query_result(answer)
 
+    async def use_hyde(self):
+        """This example show how to use HyDE: HyDE enhances search results by generating Hypothetical doc(virtual
+        article), for more details please refer to the paper: http://arxiv.org/abs/2212.10496
+        Query Result:
+        Bob likes traveling.
+        """
+
+        self._print_title("Use HyDE to analysis query")
+        # 1.  save docs
+        engine = SimpleEngine.from_docs(input_files=[DOC_PATH])
+        # 2. Initialize HyDE query analysis method
+        hyde_query = HyDEQuery()
+        # 3. Add HyDE to the engine
+        hyde_query_engine = SimpleQueryTransformer(engine, hyde_query)
+        answer = await hyde_query_engine.aquery(QUESTION2)
+        self._print_query_result(answer)
+
+        self._print_title("No use HyDE to analysis query")
+        answer = await engine.aquery(QUESTION2)
+
+        self._print_query_result(answer)
+
     @staticmethod
     def _print_title(title):
-        logger.info(f"{'#'*30} {title} {'#'*30}")
+        logger.info(f"{'#' * 30} {title} {'#' * 30}")
 
     @staticmethod
     def _print_retrieve_result(result):
@@ -254,6 +278,7 @@ async def main():
     await e.init_objects()
     await e.init_and_query_chromadb()
     await e.init_and_query_es()
+    await e.use_hyde()
 
 
 if __name__ == "__main__":

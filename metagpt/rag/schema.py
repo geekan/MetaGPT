@@ -45,12 +45,15 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
     @model_validator(mode="after")
     def check_dimensions(self):
         if self.dimensions == 0:
-            self.dimensions = config.embedding.dimensions or self._embedding_type_to_dimensions.get(
-                config.embedding.api_type, 1536
+            self.dimensions = config.rag.embedding.dimensions or self._embedding_type_to_dimensions.get(
+                config.rag.embedding.api_type, 1536
             )
-            if not config.embedding.dimensions and config.embedding.api_type not in self._embedding_type_to_dimensions:
+            if (
+                not config.rag.embedding.dimensions
+                and config.rag.embedding.api_type not in self._embedding_type_to_dimensions
+            ):
                 logger.warning(
-                    f"You didn't set dimensions in config when using {config.embedding.api_type}, default to 1536"
+                    f"You didn't set dimensions in config when using {config.rag.embedding.api_type}, default to 1536"
                 )
 
         return self

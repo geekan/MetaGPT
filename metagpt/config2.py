@@ -12,15 +12,16 @@ from typing import Dict, Iterable, List, Literal, Optional
 from pydantic import BaseModel, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
-from metagpt.configs.embedding_config import EmbeddingConfig
 from metagpt.configs.file_parser_config import OmniParseConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.configs.mermaid_config import MermaidConfig
+from metagpt.configs.rag_config import RAGConfig
 from metagpt.configs.redis_config import RedisConfig
 from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
+from MetaGPT.metagpt.configs.rag_config import RAGConfig
 from metagpt.utils.yaml_model import YamlModel
 
 
@@ -49,12 +50,10 @@ class Config(CLIParams, YamlModel):
     # Key Parameters
     llm: LLMConfig
 
-    # RAG Embedding
-    embedding: EmbeddingConfig = EmbeddingConfig()
-
+    # RAG
+    rag: RAGConfig = RAGConfig()
     # omniparse
     omniparse: OmniParseConfig = OmniParseConfig()
-
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
@@ -73,7 +72,6 @@ class Config(CLIParams, YamlModel):
     workspace: WorkspaceConfig = WorkspaceConfig()
     enable_longterm_memory: bool = False
     code_review_k_times: int = 2
-    agentops_api_key: str = ""
 
     # Will be removed in the future
     metagpt_tti_url: str = ""

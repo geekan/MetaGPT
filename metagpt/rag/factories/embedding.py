@@ -40,8 +40,8 @@ class RAGEmbeddingFactory(GenericFactory):
         If the embedding type is not specified, for backward compatibility, it checks if the LLM API type is either OPENAI or AZURE.
         Raise TypeError if embedding type not found.
         """
-        if config.embedding.api_type:
-            return config.embedding.api_type
+        if config.rag.embedding.api_type:
+            return config.rag.embedding.api_type
 
         if config.llm.api_type in [LLMType.OPENAI, LLMType.AZURE]:
             return config.llm.api_type
@@ -50,8 +50,8 @@ class RAGEmbeddingFactory(GenericFactory):
 
     def _create_openai(self) -> OpenAIEmbedding:
         params = dict(
-            api_key=config.embedding.api_key or config.llm.api_key,
-            api_base=config.embedding.base_url or config.llm.base_url,
+            api_key=config.rag.embedding.api_key or config.llm.api_key,
+            api_base=config.rag.embedding.base_url or config.llm.base_url,
         )
 
         self._try_set_model_and_batch_size(params)
@@ -60,9 +60,9 @@ class RAGEmbeddingFactory(GenericFactory):
 
     def _create_azure(self) -> AzureOpenAIEmbedding:
         params = dict(
-            api_key=config.embedding.api_key or config.llm.api_key,
-            azure_endpoint=config.embedding.base_url or config.llm.base_url,
-            api_version=config.embedding.api_version or config.llm.api_version,
+            api_key=config.rag.embedding.api_key or config.llm.api_key,
+            azure_endpoint=config.rag.embedding.base_url or config.llm.base_url,
+            api_version=config.rag.embedding.api_version or config.llm.api_version,
         )
 
         self._try_set_model_and_batch_size(params)
@@ -71,8 +71,8 @@ class RAGEmbeddingFactory(GenericFactory):
 
     def _create_gemini(self) -> GeminiEmbedding:
         params = dict(
-            api_key=config.embedding.api_key,
-            api_base=config.embedding.base_url,
+            api_key=config.rag.embedding.api_key,
+            api_base=config.rag.embedding.base_url,
         )
 
         self._try_set_model_and_batch_size(params)
@@ -81,7 +81,7 @@ class RAGEmbeddingFactory(GenericFactory):
 
     def _create_ollama(self) -> OllamaEmbedding:
         params = dict(
-            base_url=config.embedding.base_url,
+            base_url=config.rag.embedding.base_url,
         )
 
         self._try_set_model_and_batch_size(params)
@@ -90,11 +90,11 @@ class RAGEmbeddingFactory(GenericFactory):
 
     def _try_set_model_and_batch_size(self, params: dict):
         """Set the model_name and embed_batch_size only when they are specified."""
-        if config.embedding.model:
-            params["model_name"] = config.embedding.model
+        if config.rag.embedding.model:
+            params["model_name"] = config.rag.embedding.model
 
-        if config.embedding.embed_batch_size:
-            params["embed_batch_size"] = config.embedding.embed_batch_size
+        if config.rag.embedding.embed_batch_size:
+            params["embed_batch_size"] = config.rag.embedding.embed_batch_size
 
     def _raise_for_key(self, key: Any):
         raise ValueError(f"The embedding type is currently not supported: `{type(key)}`, {key}")
