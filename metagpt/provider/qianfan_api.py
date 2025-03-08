@@ -4,13 +4,15 @@
 import copy
 import os
 
+from typing import Optional
+
 import qianfan
 from qianfan import ChatCompletion
 from qianfan.resources.typing import JsonBody
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.cost_manager import CostManager
@@ -18,7 +20,7 @@ from metagpt.utils.token_counter import (
     QIANFAN_ENDPOINT_TOKEN_COSTS,
     QIANFAN_MODEL_TOKEN_COSTS,
 )
-
+from metagpt.utils.format import ResponseFormat
 
 @register_provider(LLMType.QIANFAN)
 class QianFanLLM(BaseLLM):
@@ -106,20 +108,26 @@ class QianFanLLM(BaseLLM):
     def get_choice_text(self, resp: JsonBody) -> str:
         return resp.get("result", "")
 
-    def completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
-        resp = self.aclient.do(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout)
+    def completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> JsonBody:
+        if response_format and self.config.api_type.value in response_format:
+            response_format = response_format[self.config.api_type.value]
+        resp = self.aclient.do(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout, response_format=response_format)
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
-    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
-        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout)
+    async def _achat_completion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> JsonBody:
+        if response_format and self.config.api_type.value in response_format:
+            response_format = response_format[self.config.api_type.value]
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False), request_timeout=timeout, response_format=response_format)
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
-    async def acompletion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> JsonBody:
-        return await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+    async def acompletion(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> JsonBody:
+        return await self._achat_completion(messages, timeout=self.get_timeout(timeout), response_format=response_format)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT, response_format: Optional[ResponseFormat] = None) -> str:
+        if response_format and self.config.api_type.value in response_format:
+            logger.warning(f"QianFan API does not support streaming response format: {response_format[self.config.api_type.value]}")
         resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True), request_timeout=timeout)
         collected_content = []
         usage = {}
