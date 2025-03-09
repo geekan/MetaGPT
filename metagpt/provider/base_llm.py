@@ -45,6 +45,16 @@ class BaseLLM(ABC):
     model: Optional[str] = None  # deprecated
     pricing_plan: Optional[str] = None
 
+    _reasoning_content: Optional[str] = None  # content from reasoning mode
+
+    @property
+    def reasoning_content(self):
+        return self._reasoning_content
+
+    @reasoning_content.setter
+    def reasoning_content(self, value: str):
+        self._reasoning_content = value
+
     @abstractmethod
     def __init__(self, config: LLMConfig):
         pass
@@ -216,7 +226,10 @@ class BaseLLM(ABC):
 
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""
-        return rsp.get("choices")[0]["message"]["content"]
+        message = rsp.get("choices")[0]["message"]
+        if "reasoning_content" in message:
+            self.reasoning_content = message["reasoning_content"]
+        return message["content"]
 
     def get_choice_delta_text(self, rsp: dict) -> str:
         """Required to provide the first text of stream choice"""

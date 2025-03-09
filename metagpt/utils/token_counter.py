@@ -72,6 +72,7 @@ TOKEN_COSTS = {
     "claude-3-5-sonnet-20240620": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
     "claude-3-haiku-20240307": {"prompt": 0.00025, "completion": 0.00125},
+    "claude-3-7-sonnet-20250219": {"prompt": 0.003, "completion": 0.015},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
     "openai/gpt-4": {"prompt": 0.03, "completion": 0.06},  # start, for openrouter
@@ -92,9 +93,16 @@ TOKEN_COSTS = {
     "openai/o1-preview": {"prompt": 0.015, "completion": 0.06},
     "openai/o1-mini": {"prompt": 0.003, "completion": 0.012},
     "anthropic/claude-3-opus": {"prompt": 0.015, "completion": 0.075},
+    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
+    "anthropic/claude-3.7-sonnet": {"prompt": 0.003, "completion": 0.015},
+    "anthropic/claude-3.7-sonnet:beta": {"prompt": 0.003, "completion": 0.015},
+    "anthropic/claude-3.7-sonnet:thinking": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
     "google/gemini-pro-1.5": {"prompt": 0.0025, "completion": 0.0075},  # for openrouter, end
-    "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
-    "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek-chat": {"prompt": 0.00027, "completion": 0.0011},
+    "deepseek-coder": {"prompt": 0.00027, "completion": 0.0011},
+    "deepseek-reasoner": {"prompt": 0.00055, "completion": 0.0022},
     # For ark model https://www.volcengine.com/docs/82379/1099320
     "doubao-lite-4k-240515": {"prompt": 0.000043, "completion": 0.000086},
     "doubao-lite-32k-240515": {"prompt": 0.000043, "completion": 0.000086},

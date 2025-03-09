@@ -150,6 +150,14 @@ class OpenAIResponse:
         h = self._headers.get("Openai-Processing-Ms")
         return None if h is None else round(float(h))
 
+    def decode_asjson(self) -> Optional[dict]:
+        bstr = self.data.strip()
+        if bstr.startswith(b"{") and bstr.endswith(b"}"):
+            bstr = bstr.decode("utf-8")
+        else:
+            bstr = parse_stream_helper(bstr)
+        return json.loads(bstr) if bstr else None
+
 
 def _build_api_url(url, query):
     scheme, netloc, path, base_query, fragment = urlsplit(url)
@@ -547,13 +555,6 @@ class APIRequestor:
         }
         try:
             result = await session.request(**request_kwargs)
-            # log_info(
-            #     "LLM API response",
-            #     path=abs_url,
-            #     response_code=result.status,
-            #     processing_ms=result.headers.get("LLM-Processing-Ms"),
-            #     request_id=result.headers.get("X-Request-Id"),
-            # )
             return result
         except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
             raise openai.APITimeoutError("Request timed out") from e
