@@ -14,10 +14,10 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.actions import UserRequirement
-from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
+from metagpt.const import SERDESER_PATH
 from metagpt.context import Context
 from metagpt.environment import Environment
+from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -40,12 +40,15 @@ class Team(BaseModel):
     env: Optional[Environment] = None
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
+    use_mgx: bool = Field(default=True)
 
     def __init__(self, context: Context = None, **data: Any):
         super(Team, self).__init__(**data)
         ctx = context or Context()
-        if not self.env:
+        if not self.env and not self.use_mgx:
             self.env = Environment(context=ctx)
+        elif not self.env and self.use_mgx:
+            self.env = MGXEnv(context=ctx)
         else:
             self.env.context = ctx  # The `env` object is allocated by deserialization
         if "roles" in data:
@@ -101,10 +104,7 @@ class Team(BaseModel):
         self.idea = idea
 
         # Human requirement.
-        self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
-            peekable=False,
-        )
+        self.env.publish_message(Message(content=idea))
 
     def start_project(self, idea, send_to: str = ""):
         """

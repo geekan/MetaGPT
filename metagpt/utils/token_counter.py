@@ -12,13 +12,11 @@ ref5: https://ai.google.dev/models/gemini
 """
 import anthropic
 import tiktoken
-from openai.types import CompletionUsage
-from openai.types.chat import ChatCompletionChunk
 
 from metagpt.logs import logger
-from metagpt.utils.ahttp_client import apost
 
 TOKEN_COSTS = {
+    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-0301": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-0613": {"prompt": 0.0015, "completion": 0.002},
@@ -76,6 +74,15 @@ TOKEN_COSTS = {
     "claude-3-haiku-20240307": {"prompt": 0.00025, "completion": 0.00125},
     "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
     "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
+    "openai/gpt-4": {"prompt": 0.03, "completion": 0.06},  # start, for openrouter
+    "openai/gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
+    "openai/gpt-4o": {"prompt": 0.005, "completion": 0.015},
+    "openai/gpt-4o-2024-05-13": {"prompt": 0.005, "completion": 0.015},
+    "openai/gpt-4o-mini": {"prompt": 0.00015, "completion": 0.0006},
+    "openai/gpt-4o-mini-2024-07-18": {"prompt": 0.00015, "completion": 0.0006},
+    "google/gemini-flash-1.5": {"prompt": 0.00025, "completion": 0.00075},
+    "deepseek/deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
+    "deepseek/deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},  # end, for openrouter
     "yi-large": {"prompt": 0.0028, "completion": 0.0028},
     "microsoft/wizardlm-2-8x22b": {"prompt": 0.00108, "completion": 0.00108},  # for openrouter, start
     "meta-llama/llama-3-70b-instruct": {"prompt": 0.008, "completion": 0.008},
@@ -85,7 +92,6 @@ TOKEN_COSTS = {
     "openai/o1-preview": {"prompt": 0.015, "completion": 0.06},
     "openai/o1-mini": {"prompt": 0.003, "completion": 0.012},
     "anthropic/claude-3-opus": {"prompt": 0.015, "completion": 0.075},
-    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
     "google/gemini-pro-1.5": {"prompt": 0.0025, "completion": 0.0075},  # for openrouter, end
     "deepseek-chat": {"prompt": 0.00014, "completion": 0.00028},
     "deepseek-coder": {"prompt": 0.00014, "completion": 0.00028},
@@ -276,6 +282,18 @@ TOKEN_MAX = {
     "claude-3-haiku-20240307": 200000,
     "yi-34b-chat-0205": 4000,
     "yi-34b-chat-200k": 200000,
+    "openai/gpt-4": 8192,  # start, for openrouter
+    "openai/gpt-4-turbo": 128000,
+    "openai/gpt-4o": 128000,
+    "openai/gpt-4o-2024-05-13": 128000,
+    "openai/gpt-4o-mini": 128000,
+    "openai/gpt-4o-mini-2024-07-18": 128000,
+    "google/gemini-flash-1.5": 2800000,
+    "deepseek/deepseek-coder": 128000,
+    "deepseek/deepseek-chat": 128000,  # end, for openrouter
+    "deepseek-chat": 128000,
+    "deepseek-coder": 128000,
+    "deepseek-ai/DeepSeek-Coder-V2-Instruct": 32000,  # siliconflow
     "yi-large": 16385,
     "microsoft/wizardlm-2-8x22b": 65536,
     "meta-llama/llama-3-70b-instruct": 8192,
@@ -287,8 +305,6 @@ TOKEN_MAX = {
     "anthropic/claude-3-opus": 200000,
     "anthropic/claude-3.5-sonnet": 200000,
     "google/gemini-pro-1.5": 4000000,
-    "deepseek-chat": 32768,
-    "deepseek-coder": 16385,
     "doubao-lite-4k-240515": 4000,
     "doubao-lite-32k-240515": 32000,
     "doubao-lite-128k-240515": 128000,
@@ -380,7 +396,7 @@ SPARK_TOKENS = {
 }
 
 
-def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
+def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     if "claude" in model:
         # rough estimation for models newer than claude-2.1
@@ -431,10 +447,10 @@ def count_input_tokens(messages, model="gpt-3.5-turbo-0125"):
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif "gpt-3.5-turbo" == model:
         logger.info("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125.")
-        return count_input_tokens(messages, model="gpt-3.5-turbo-0125")
+        return count_message_tokens(messages, model="gpt-3.5-turbo-0125")
     elif "gpt-4" == model:
         logger.info("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
-        return count_input_tokens(messages, model="gpt-4-0613")
+        return count_message_tokens(messages, model="gpt-4-0613")
     elif "open-llm-model" == model:
         """
         For self-hosted open_llm api, they include lots of different models. The message tokens calculation is
@@ -500,16 +516,4 @@ def get_max_completion_tokens(messages: list[dict], model: str, default: int) ->
     """
     if model not in TOKEN_MAX:
         return default
-    return TOKEN_MAX[model] - count_input_tokens(messages) - 1
-
-
-async def get_openrouter_tokens(chunk: ChatCompletionChunk) -> CompletionUsage:
-    """refs to https://openrouter.ai/docs#querying-cost-and-stats"""
-    url = f"https://openrouter.ai/api/v1/generation?id={chunk.id}"
-    resp = await apost(url=url, as_json=True)
-    tokens_prompt = resp.get("tokens_prompt", 0)
-    completion_tokens = resp.get("tokens_completion", 0)
-    usage = CompletionUsage(
-        prompt_tokens=tokens_prompt, completion_tokens=completion_tokens, total_tokens=tokens_prompt + completion_tokens
-    )
-    return usage
+    return TOKEN_MAX[model] - count_message_tokens(messages, model) - 1

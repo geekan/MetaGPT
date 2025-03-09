@@ -12,7 +12,7 @@ from metagpt.actions.action_node import ActionNode
 REQUIRED_PACKAGES = ActionNode(
     key="Required packages",
     expected_type=Optional[List[str]],
-    instruction="Provide required third-party packages in requirements.txt format.",
+    instruction="Provide required packages The response language should correspond to the context and requirements.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
 
@@ -27,7 +27,9 @@ LOGIC_ANALYSIS = ActionNode(
     key="Logic Analysis",
     expected_type=List[List[str]],
     instruction="Provide a list of files with the classes/methods/functions to be implemented, "
-    "including dependency analysis and imports.",
+    "including dependency analysis and imports."
+    "Ensure consistency between System Design and Logic Analysis; the files must match exactly. "
+    "If the file is written in Vue or React, use Tailwind CSS for styling.",
     example=[
         ["game.py", "Contains Game class and ... functions"],
         ["main.py", "Contains main function, from game import Game"],

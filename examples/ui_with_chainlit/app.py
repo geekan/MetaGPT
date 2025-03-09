@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import chainlit as cl
 from init_setup import ChainlitEnv
 
@@ -67,8 +69,8 @@ async def startup(message: cl.Message) -> None:
 
     await company.run(n_round=5)
 
-    workdir = company.env.context.git_repo.workdir
-    files = company.env.context.git_repo.get_files(workdir)
+    workdir = Path(company.env.context.config.project_path)
+    files = [file.name for file in workdir.iterdir() if file.is_file()]
     files = "\n".join([f"{workdir}/{file}" for file in files if not file.startswith(".git")])
 
     await cl.Message(

@@ -6,21 +6,29 @@
 @File    : mermaid.py
 """
 import base64
+from typing import List, Optional
 
 from aiohttp import ClientError, ClientSession
 
 from metagpt.logs import logger
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix):
-    """suffix: png/svg
-    :param mermaid_code: mermaid code
-    :param output_file_without_suffix: output filename without suffix
-    :return: 0 if succeed, -1 if failed
+async def mermaid_to_file(mermaid_code, output_file_without_suffix, suffixes: Optional[List[str]] = None):
+    """Convert Mermaid code to various file formats.
+
+    Args:
+        mermaid_code (str): The Mermaid code to be converted.
+        output_file_without_suffix (str): The output file name without the suffix.
+        width (int, optional): The width of the output image. Defaults to 2048.
+        height (int, optional): The height of the output image. Defaults to 2048.
+        suffixes (Optional[List[str]], optional): The file suffixes to generate. Supports "png", "pdf", and "svg". Defaults to ["png"].
+
+    Returns:
+        int: 0 if the conversion is successful, -1 if the conversion fails.
     """
     encoded_string = base64.b64encode(mermaid_code.encode()).decode()
-
-    for suffix in ["svg", "png"]:
+    suffixes = suffixes or ["png"]
+    for suffix in suffixes:
         output_file = f"{output_file_without_suffix}.{suffix}"
         path_type = "svg" if suffix == "svg" else "img"
         url = f"https://mermaid.ink/{path_type}/{encoded_string}"

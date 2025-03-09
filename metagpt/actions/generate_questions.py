@@ -22,4 +22,4 @@ class GenerateQuestions(Action):
     name: str = "GenerateQuestions"
 
     async def run(self, context) -> ActionNode:
-        return await QUESTIONS.fill(context=context, llm=self.llm)
+        return await QUESTIONS.fill(req=context, llm=self.llm)

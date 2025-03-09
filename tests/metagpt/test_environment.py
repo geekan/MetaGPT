@@ -11,17 +11,45 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions import UserRequirement
+from metagpt.actions.prepare_documents import PrepareDocuments
+from metagpt.context import Context
 from metagpt.environment import Environment
 from metagpt.logs import logger
-from metagpt.roles import Architect, ProductManager, Role
-from metagpt.schema import Message
+from metagpt.roles import (
+    Architect,
+    Engineer,
+    ProductManager,
+    ProjectManager,
+    QaEngineer,
+    Role,
+)
+from metagpt.schema import Message, UserMessage
+from metagpt.utils.common import any_to_str, is_send_to
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("../data/serdeser_storage")
 
 
+class MockEnv(Environment):
+    def publish_message(self, message: Message, peekable: bool = True) -> bool:
+        logger.info(f"{message.metadata}:{message.content}")
+        consumers = []
+        for role, addrs in self.member_addrs.items():
+            if is_send_to(message, addrs):
+                role.put_message(message)
+                consumers.append(role)
+        if not consumers:
+            logger.warning(f"Message no recipients: {message.dump()}")
+        if message.cause_by in [any_to_str(UserRequirement), any_to_str(PrepareDocuments)]:
+            assert len(consumers) == 1
+
+        return True
+
+
 @pytest.fixture
 def env():
-    return Environment()
+    context = Context()
+    context.kwargs.tag = __file__
+    return MockEnv(context=context)
 
 
 def test_add_role(env: Environment):
@@ -54,10 +82,57 @@ async def test_publish_and_process_message(env: Environment):
 
     env.add_roles([product_manager, architect])
 
-    env.publish_message(Message(role="User", content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement))
+    env.publish_message(UserMessage(content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement, send_to=product_manager))
     await env.run(k=2)
-    logger.info(f"{env.history=}")
-    assert len(env.history) > 10
+    logger.info(f"{env.history}")
+    assert len(env.history.storage) == 0
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("content", "send_to"),
+    [
+        ("snake game", any_to_str(ProductManager)),
+        (
+            "Rewrite the PRD file of the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game', add 'moving enemy' to the original requirement",
+            any_to_str(ProductManager),
+        ),
+        (
+            "Add 'random moving enemy, and dispears after 10 seconds' design to the project at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            any_to_str(Architect),
+        ),
+        (
+            'Rewrite the tasks file of the project at "/Users/iorishinier/github/MetaGPT/workspace/snake_game"',
+            any_to_str(ProjectManager),
+        ),
+        (
+            "src filename  is 'game.py', Uncaught SyntaxError: Identifier 'Position' has already been declared (at game.js:1:1), the project at '/Users/iorishinier/github/bak/MetaGPT/workspace/snake_game'",
+            any_to_str(Engineer),
+        ),
+        (
+            "Rewrite the unit test of 'main.py' at '/Users/iorishinier/github/MetaGPT/workspace/snake_game'",
+            any_to_str(QaEngineer),
+        ),
+    ],
+)
+async def test_env(content, send_to):
+    context = Context()
+    env = MockEnv(context=context)
+    env.add_roles(
+        [
+            ProductManager(context=context),
+            Architect(context=context),
+            ProjectManager(context=context),
+            Engineer(n_borg=5, use_code_review=True, context=context),
+            QaEngineer(context=context, test_round_allowed=2),
+        ]
+    )
+    msg = UserMessage(content=content, send_to=send_to)
+    env.publish_message(msg)
+    while not env.is_idle:
+        await env.run()
+    pass
 
 
 if __name__ == "__main__":

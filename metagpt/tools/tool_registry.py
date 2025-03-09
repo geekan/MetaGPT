@@ -7,12 +7,12 @@
 """
 from __future__ import annotations
 
+import contextlib
 import inspect
 import os
 from collections import defaultdict
 from pathlib import Path
 
-import yaml
 from pydantic import BaseModel
 
 from metagpt.const import TOOL_SCHEMA_PATH
@@ -100,7 +100,9 @@ def register_tool(tags: list[str] = None, schema_path: str = "", **kwargs):
         if "metagpt" in file_path:
             # split to handle ../metagpt/metagpt/tools/... where only metapgt/tools/... is needed
             file_path = "metagpt" + file_path.split("metagpt")[-1]
-        source_code = inspect.getsource(cls)
+        source_code = ""
+        with contextlib.suppress(OSError):
+            source_code = inspect.getsource(cls)
 
         TOOL_REGISTRY.register_tool(
             tool_name=cls.__name__,
@@ -117,11 +119,8 @@ def register_tool(tags: list[str] = None, schema_path: str = "", **kwargs):
 
 
 def make_schema(tool_source_object, include, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)  # Create the necessary directories
     try:
         schema = convert_code_to_tool_schema(tool_source_object, include=include)
-        with open(path, "w", encoding="utf-8") as f:
-            yaml.dump(schema, f, sort_keys=False)
     except Exception as e:
         schema = {}
         logger.error(f"Fail to make schema: {e}")
@@ -137,8 +136,26 @@ def validate_tool_names(tools: list[str]) -> dict[str, Tool]:
         # if tool paths are provided, they will be registered on the fly
         if os.path.isdir(key) or os.path.isfile(key):
             valid_tools.update(register_tools_from_path(key))
-        elif TOOL_REGISTRY.has_tool(key):
-            valid_tools.update({key: TOOL_REGISTRY.get_tool(key)})
+        elif TOOL_REGISTRY.has_tool(key.split(":")[0]):
+            if ":" in key:
+                # handle class tools with methods specified, such as Editor:read,write
+                class_tool_name = key.split(":")[0]
+                method_names = key.split(":")[1].split(",")
+                class_tool = TOOL_REGISTRY.get_tool(class_tool_name)
+
+                methods_filtered = {}
+                for method_name in method_names:
+                    if method_name in class_tool.schemas["methods"]:
+                        methods_filtered[method_name] = class_tool.schemas["methods"][method_name]
+                    else:
+                        logger.warning(f"invalid method {method_name} under tool {class_tool_name}, skipped")
+                class_tool_filtered = class_tool.model_copy(deep=True)
+                class_tool_filtered.schemas["methods"] = methods_filtered
+
+                valid_tools.update({class_tool_name: class_tool_filtered})
+
+            else:
+                valid_tools.update({key: TOOL_REGISTRY.get_tool(key)})
         elif TOOL_REGISTRY.has_tool_tag(key):
             valid_tools.update(TOOL_REGISTRY.get_tools_by_tag(key))
         else:

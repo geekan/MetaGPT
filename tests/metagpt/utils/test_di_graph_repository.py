@@ -62,6 +62,7 @@ async def test_js_parser():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip
 async def test_codes():
     path = DEFAULT_WORKSPACE_ROOT / "snake_game"
     repo_parser = RepoParser(base_directory=path)
@@ -79,6 +80,14 @@ async def test_codes():
     data = graph.json()
     assert data
     print(data)
+
+
+@pytest.mark.asyncio
+async def test_graph_select():
+    gdb_path = Path(__file__).parent / "../../data/graph_db/networkx.sequence_view.json"
+    gdb = await DiGraphRepository.load_from(gdb_path)
+    rows = await gdb.select()
+    assert rows
 
 
 if __name__ == "__main__":

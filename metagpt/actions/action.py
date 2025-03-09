@@ -24,7 +24,6 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
-from metagpt.utils.project_repo import ProjectRepo
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
@@ -50,12 +49,6 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
             llm.cost_manager = data.llm.cost_manager
             data.llm = llm
         return data
-
-    @property
-    def repo(self) -> ProjectRepo:
-        if not self.context.repo:
-            self.context.repo = ProjectRepo(self.context.git_repo)
-        return self.context.repo
 
     @property
     def prompt_schema(self):
@@ -112,10 +105,15 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
         msgs = args[0]
         context = "## History Messages\n"
         context += "\n".join([f"{idx}: {i}" for idx, i in enumerate(reversed(msgs))])
-        return await self.node.fill(context=context, llm=self.llm)
+        return await self.node.fill(req=context, llm=self.llm)
 
     async def run(self, *args, **kwargs):
         """Run action"""
         if self.node:
             return await self._run_action_node(*args, **kwargs)
         raise NotImplementedError("The run method should be implemented in a subclass.")
+
+    def override_context(self):
+        """Set `private_context` and `context` to the same `Context` object."""
+        if not self.private_context:
+            self.private_context = self.context

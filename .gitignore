@@ -162,6 +162,8 @@ examples/graph_store.json
 examples/image__vector_store.json
 examples/index_store.json
 .chroma
+.chroma_exp_data
+.role_memory_data
 *~$*
 workspace/*
 tmp
@@ -189,6 +191,7 @@ cov.xml
 *-structure.json
 *.dot
 .python-version
+tests/data/requirements/*.jpg
 *.csv
 metagpt/ext/sela/results/*
 .chainlit/

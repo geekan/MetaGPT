@@ -45,7 +45,7 @@ async def test_write_code_plan_and_change_an(mocker, context, git_dir):
     await context.repo.docs.task.save(filename="2.json", content=json.dumps(REFINED_TASK_JSON))
 
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
-        filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
+        filename="game.py", content=CodeParser.parse_code(text=REFINED_CODE_INPUT_SAMPLE)
     )
 
     root = ActionNode.from_children(

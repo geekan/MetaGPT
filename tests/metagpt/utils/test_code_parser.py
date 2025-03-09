@@ -119,7 +119,7 @@ class TestCodeParser:
         assert "game.py" in result
 
     def test_parse_code(self, parser, text):
-        result = parser.parse_code("Task list", text, "python")
+        result = parser.parse_code(block="Task list", text=text, lang="python")
         print(result)
         assert "game.py" in result
 

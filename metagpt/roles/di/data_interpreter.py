@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from metagpt.actions.di.ask_review import ReviewConst
+# from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
 from metagpt.logs import logger
@@ -15,6 +15,7 @@ from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.task_type import TaskType
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.utils.common import CodeParser
+from metagpt.utils.report import ThoughtReporter
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -43,6 +44,7 @@ class DataInterpreter(Role):
     tool_recommender: ToolRecommender = None
     react_mode: Literal["plan_and_act", "react"] = "plan_and_act"
     max_react_loop: int = 10  # used for react mode
+    user_requirement: str = ""
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "Interpreter":
@@ -62,7 +64,7 @@ class DataInterpreter(Role):
 
     async def _think(self) -> bool:
         """Useful in 'react' mode. Use LLM to decide whether and what to do next."""
-        user_requirement = self.get_memories()[0].content
+        self.user_requirement = self.get_memories()[-1].content
         context = self.working_memory.get()
 
         if not context:
@@ -71,9 +73,10 @@ class DataInterpreter(Role):
             self._set_state(0)
             return True
 
-        prompt = REACT_THINK_PROMPT.format(user_requirement=user_requirement, context=context)
-        rsp = await self.llm.aask(prompt)
-        rsp_dict = json.loads(CodeParser.parse_code(block=None, text=rsp))
+        prompt = REACT_THINK_PROMPT.format(user_requirement=self.user_requirement, context=context)
+        async with ThoughtReporter(enable_llm_stream=True):
+            rsp = await self.llm.aask(prompt)
+        rsp_dict = json.loads(CodeParser.parse_code(text=rsp))
         self.working_memory.add(Message(content=rsp_dict["thoughts"], role="assistant"))
         need_action = rsp_dict["state"]
         self._set_state(0) if need_action else self._set_state(-1)
@@ -83,9 +86,10 @@ class DataInterpreter(Role):
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         code, _, _ = await self._write_and_exec_code()
-        return Message(content=code, role="assistant", cause_by=WriteAnalysisCode)
+        return Message(content=code, role="assistant", sent_from=self._setting, cause_by=WriteAnalysisCode)
 
     async def _plan_and_act(self) -> Message:
+        self._set_state(0)
         try:
             rsp = await super()._plan_and_act()
             await self.execute_code.terminate()
@@ -135,11 +139,11 @@ class DataInterpreter(Role):
             ### process execution result ###
             counter += 1
 
-            if not success and counter >= max_retry:
-                logger.info("coding failed!")
-                review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
-                if ReviewConst.CHANGE_WORDS[0] in review:
-                    counter = 0  # redo the task again with help of human suggestions
+            # if not success and counter >= max_retry:
+            #     logger.info("coding failed!")
+            #     review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
+            #     if ReviewConst.CHANGE_WORDS[0] in review:
+            #         counter = 0  # redo the task again with help of human suggestions
 
         return code, result, success
 
@@ -153,10 +157,8 @@ class DataInterpreter(Role):
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        user_requirement = self.get_memories()[0].content
-
         code = await todo.run(
-            user_requirement=user_requirement,
+            user_requirement=self.user_requirement,
             plan_status=plan_status,
             tool_info=tool_info,
             working_memory=self.working_memory.get(),

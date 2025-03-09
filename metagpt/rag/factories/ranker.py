@@ -38,6 +38,7 @@ class RankerFactory(ConfigBasedFactory):
 
     def _create_llm_ranker(self, config: LLMRankerConfig, **kwargs) -> LLMRerank:
         config.llm = self._extract_llm(config, **kwargs)
+
         return LLMRerank(**config.model_dump())
 
     def _create_colbert_ranker(self, config: ColbertRerankConfig, **kwargs) -> LLMRerank:

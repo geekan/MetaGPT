@@ -20,8 +20,7 @@ def convert_code_to_tool_schema(obj, include: list[str] = None) -> dict:
                 continue
             # method_doc = inspect.getdoc(method)
             method_doc = get_class_method_docstring(obj, name)
-            if method_doc:
-                schema["methods"][name] = function_docstring_to_schema(method, method_doc)
+            schema["methods"][name] = function_docstring_to_schema(method, method_doc)
 
     elif inspect.isfunction(obj):
         schema = function_docstring_to_schema(obj, docstring)
@@ -39,7 +38,7 @@ def convert_code_to_tool_schema_ast(code: str) -> list[dict]:
     return visitor.get_tool_schemas()
 
 
-def function_docstring_to_schema(fn_obj, docstring) -> dict:
+def function_docstring_to_schema(fn_obj, docstring="") -> dict:
     """
     Converts a function's docstring into a schema dictionary.
 

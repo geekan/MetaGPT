@@ -84,7 +84,7 @@ class TestSimpleEngine:
 
         # Assert
         mock_simple_directory_reader.assert_called_once_with(
-            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor
+            input_dir=input_dir, input_files=input_files, file_extractor=file_extractor, fs=None
         )
         mock_get_retriever.assert_called_once()
         mock_get_rankers.assert_called_once()

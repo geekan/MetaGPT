@@ -10,8 +10,8 @@ from typing import Any, Optional
 import requests
 from pydantic import ConfigDict, Field, model_validator
 
+from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.base_env import ExtEnv, mark_as_writeable
-from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.minecraft.const import (
     MC_CKPT_DIR,
     MC_CORE_INVENTORY_ITEMS,

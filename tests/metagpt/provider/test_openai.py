@@ -9,6 +9,7 @@ from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
+from metagpt.configs.compress_msg_config import CompressType
 from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -164,3 +165,63 @@ async def test_openai_acompletion(mocker):
     assert resp.usage == usage
 
     await llm_general_chat_funcs_test(llm, prompt, messages, resp_cont)
+
+
+def test_count_tokens():
+    llm = LLM()
+    llm.config.model = "gpt-4o"
+    messages = [
+        llm._system_msg("some system msg"),
+        llm._system_msg("some system message 2"),
+        llm._user_msg("user 1"),
+        llm._assistant_msg("assistant 1"),
+        llm._user_msg("user 1"),
+        llm._assistant_msg("assistant 2"),
+    ]
+    cnt = llm.count_tokens(messages)
+    assert cnt == 47
+
+
+def test_count_tokens_long():
+    llm = LLM()
+    llm.config.model = "gpt-4-0613"
+    test_msg_content = " ".join([str(i) for i in range(100000)])
+    messages = [
+        llm._system_msg("You are a helpful assistant"),
+        llm._user_msg(test_msg_content + " what's the first number you see?"),
+    ]
+    cnt = llm.count_tokens(messages)  # 299023, ~300k
+    assert 290000 <= cnt <= 300000
+
+    llm.config.model = "test_llm"  # a non-openai model, will use heuristics base count_tokens
+    cnt = llm.count_tokens(messages)  # 294474, ~300k, ~2% difference
+    assert 290000 <= cnt <= 300000
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_aask_long():
+    llm = LLM()
+    llm.config.model = "deepseek-ai/DeepSeek-Coder-V2-Instruct"  # deepseek-coder on siliconflow, limit 32k
+    llm.config.compress_type = CompressType.POST_CUT_BY_TOKEN
+    test_msg_content = " ".join([str(i) for i in range(100000)])  # corresponds to ~300k tokens
+    messages = [
+        llm._system_msg("You are a helpful assistant"),
+        llm._user_msg(test_msg_content + " what's the first number you see?"),
+    ]
+    await llm.aask(messages)  # should not fail with context truncated
+
+
+@pytest.mark.skip
+@pytest.mark.asyncio
+async def test_aask_long_no_compress():
+    llm = LLM()
+    llm.config.model = "deepseek-ai/DeepSeek-Coder-V2-Instruct"  # deepseek-coder on siliconflow, limit 32k
+    # Not specifying llm.config.compress_type will use default "", no compress
+    test_msg_content = " ".join([str(i) for i in range(100000)])  # corresponds to ~300k tokens
+    messages = [
+        llm._system_msg("You are a helpful assistant"),
+        llm._user_msg(test_msg_content + " what's the first number you see?"),
+    ]
+    with pytest.raises(Exception):
+        await llm.aask(messages)  # should fail

@@ -1,4 +1,10 @@
-INTERPRETER_SYSTEM_MSG = """As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook. Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function."""
+INTERPRETER_SYSTEM_MSG = """
+As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook.
+Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
+If you want to use shell command such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in notebook block.
+Don't write all codes in one response, each time, just write code for one step or current task.
+While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response.
+"""
 
 STRUCTUAL_PROMPT = """
 # User Requirement
@@ -22,7 +28,10 @@ your code
 ```
 """
 
-REFLECTION_SYSTEM_MSG = """You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation."""
+REFLECTION_SYSTEM_MSG = """
+You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation.
+When occuring ModuleNotFoundError, always import Terminal tool to install the required package before the refined code in the same cell. Such as `from metagpt.tools.libs.terminal import Terminal\nterminal = Terminal()\nawait terminal.run_command('pip install pandas')` before importing pandas.
+"""
 
 DEBUG_REFLECTION_EXAMPLE = '''
 [previous impl]:
