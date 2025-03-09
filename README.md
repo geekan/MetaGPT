@@ -165,8 +165,6 @@ To stay updated with the latest research and development, follow [@MetaGPT_](htt
 
 To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) in publications, please use the following BibTeX entries.   
 
-For more work, please refer to [Academic Work](academic_work.md).
-
 ```bibtex
 @inproceedings{hong2024metagpt,
       title={Meta{GPT}: Meta Programming for A Multi-Agent Collaborative Framework},
@@ -176,3 +174,5 @@ For more work, please refer to [Academic Work](academic_work.md).
       url={https://openreview.net/forum?id=VtmBAGCN7o}
 }
 ```
+
+For more work, please refer to [Academic Work](academic_work.md).
