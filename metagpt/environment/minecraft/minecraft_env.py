@@ -11,7 +11,7 @@ from typing import Any, Iterable
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from pydantic import ConfigDict, Field
 
-from metagpt.config2 import config as CONFIG
+from metagpt.config2 import Config
 from metagpt.environment.base_env import Environment
 from metagpt.environment.minecraft.const import MC_CKPT_DIR
 from metagpt.environment.minecraft.minecraft_ext_env import MinecraftExtEnv
@@ -82,7 +82,7 @@ class MinecraftEnv(MinecraftExtEnv, Environment):
             persist_dir=f"{MC_CKPT_DIR}/skill/vectordb",
         )
 
-        if CONFIG.resume:
+        if Config.default().resume:
             logger.info(f"Loading Action Developer from {MC_CKPT_DIR}/action")
             self.chest_memory = read_json_file(f"{MC_CKPT_DIR}/action/chest_memory.json")
 

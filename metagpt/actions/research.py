@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable, Optional, Union
+from datetime import datetime
+from typing import Any, Callable, Coroutine, Optional, Union
 
 from pydantic import TypeAdapter, model_validator
 
 from metagpt.actions import Action
-from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import OutputParser
+from metagpt.utils.parse_html import WebPage
 from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
 
 LANG_PROMPT = "Please respond in {language}."
@@ -43,9 +44,10 @@ COLLECT_AND_RANKURLS_PROMPT = """### Topic
 {results}
 
 ### Requirements
-Please remove irrelevant search results that are not related to the query or topic. Then, sort the remaining search results \
-based on the link credibility. If two results have equal credibility, prioritize them based on the relevance. Provide the
-ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
+Please remove irrelevant search results that are not related to the query or topic.
+If the query is time-sensitive or specifies a certain time frame, please also remove search results that are outdated or outside the specified time frame. Notice that the current time is {time_stamp}.
+Then, sort the remaining search results based on the link credibility. If two results have equal credibility, prioritize them based on the relevance.
+Provide the ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
 """
 
 WEB_BROWSE_AND_SUMMARIZE_PROMPT = """### Requirements
@@ -133,8 +135,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = config.llm.model
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, config.llm.max_token)
+        model_name = self.config.llm.model
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, self.config.llm.max_token)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -148,23 +150,27 @@ class CollectLinks(Action):
             ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
         return ret
 
-    async def _search_and_rank_urls(self, topic: str, query: str, num_results: int = 4) -> list[str]:
+    async def _search_and_rank_urls(
+        self, topic: str, query: str, num_results: int = 4, max_num_results: int = None
+    ) -> list[str]:
         """Search and rank URLs based on a query.
 
         Args:
             topic: The research topic.
             query: The search query.
             num_results: The number of URLs to collect.
+            max_num_results: The max number of URLs to collect.
 
         Returns:
             A list of ranked URLs.
         """
-        max_results = max(num_results * 2, 6)
-        results = await self.search_engine.run(query, max_results=max_results, as_string=False)
+        max_results = max_num_results or max(num_results * 2, 6)
+        results = await self._search_urls(query, max_results=max_results)
         if len(results) == 0:
             return []
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
-        prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results)
+        time_stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results, time_stamp=time_stamp)
         logger.debug(prompt)
         indices = await self._aask(prompt)
         try:
@@ -177,6 +183,15 @@ class CollectLinks(Action):
         if self.rank_func:
             results = self.rank_func(results)
         return [i["link"] for i in results[:num_results]]
+
+    async def _search_urls(self, query: str, max_results: int) -> list[dict[str, str]]:
+        """Use search_engine to get urls.
+
+        Returns:
+            e.g. [{"title": "...", "link": "...", "snippet", "..."}]
+        """
+
+        return await self.search_engine.run(query, max_results=max_results, as_string=False)
 
 
 class WebBrowseAndSummarize(Action):
@@ -204,6 +219,8 @@ class WebBrowseAndSummarize(Action):
         *urls: str,
         query: str,
         system_text: str = RESEARCH_BASE_SYSTEM,
+        use_concurrent_summarization: bool = False,
+        per_page_timeout: Optional[float] = None,
     ) -> dict[str, str]:
         """Run the action to browse the web and provide summaries.
 
@@ -212,18 +229,41 @@ class WebBrowseAndSummarize(Action):
             urls: Additional URLs to browse.
             query: The research question.
             system_text: The system text.
+            use_concurrent_summarization: Whether to concurrently summarize the content of the webpage by LLM.
+            per_page_timeout: The maximum time for fetching a single page in seconds.
 
         Returns:
             A dictionary containing the URLs as keys and their summaries as values.
         """
-        contents = await self.web_browser_engine.run(url, *urls)
-        if not urls:
-            contents = [contents]
+        contents = await self._fetch_web_contents(url, *urls, per_page_timeout=per_page_timeout)
 
-        summaries = {}
-        prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
-        for u, content in zip([url, *urls], contents):
-            content = content.inner_text
+        all_urls = [url] + list(urls)
+        summarize_tasks = [self._summarize_content(content, query, system_text) for content in contents]
+        summaries = await self._execute_summarize_tasks(summarize_tasks, use_concurrent_summarization)
+        result = {url: summary for url, summary in zip(all_urls, summaries) if summary}
+
+        return result
+
+    async def _fetch_web_contents(
+        self, url: str, *urls: str, per_page_timeout: Optional[float] = None
+    ) -> list[WebPage]:
+        """Fetch web contents from given URLs."""
+
+        contents = await self.web_browser_engine.run(url, *urls, per_page_timeout=per_page_timeout)
+
+        return [contents] if not urls else contents
+
+    async def _summarize_content(self, page: WebPage, query: str, system_text: str) -> str:
+        """Summarize web content."""
+        try:
+            prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
+
+            content = page.inner_text
+
+            if self._is_content_invalid(content):
+                logger.warning(f"Invalid content detected for URL {page.url}: {content[:10]}...")
+                return None
+
             chunk_summaries = []
             for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
                 logger.debug(prompt)
@@ -233,18 +273,33 @@ class WebBrowseAndSummarize(Action):
                 chunk_summaries.append(summary)
 
             if not chunk_summaries:
-                summaries[u] = None
-                continue
+                return None
 
             if len(chunk_summaries) == 1:
-                summaries[u] = chunk_summaries[0]
-                continue
+                return chunk_summaries[0]
 
             content = "\n".join(chunk_summaries)
             prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
             summary = await self._aask(prompt, [system_text])
-            summaries[u] = summary
-        return summaries
+            return summary
+        except Exception as e:
+            logger.error(f"Error summarizing content: {e}")
+            return None
+
+    def _is_content_invalid(self, content: str) -> bool:
+        """Check if the content is invalid based on specific starting phrases."""
+
+        invalid_starts = ["Fail to load page", "Access Denied"]
+
+        return any(content.strip().startswith(phrase) for phrase in invalid_starts)
+
+    async def _execute_summarize_tasks(self, tasks: list[Coroutine[Any, Any, str]], use_concurrent: bool) -> list[str]:
+        """Execute summarize tasks either concurrently or sequentially."""
+
+        if use_concurrent:
+            return await asyncio.gather(*tasks)
+
+        return [await task for task in tasks]
 
 
 class ConductResearch(Action):

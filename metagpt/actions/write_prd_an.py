@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : write_prd_an.py
 """
-from typing import List
+from typing import List, Union
 
 from metagpt.actions.action_node import ActionNode
 
@@ -19,8 +19,8 @@ LANGUAGE = ActionNode(
 PROGRAMMING_LANGUAGE = ActionNode(
     key="Programming Language",
     expected_type=str,
-    instruction="Python/JavaScript or other mainstream programming language.",
-    example="Python",
+    instruction="Mainstream programming language. If not specified in the requirements, use Vite, React, MUI, Tailwind CSS.",
+    example="Vite, React, MUI, Tailwind CSS",
 )
 
 ORIGINAL_REQUIREMENTS = ActionNode(
@@ -132,7 +132,7 @@ REQUIREMENT_ANALYSIS = ActionNode(
 
 REFINED_REQUIREMENT_ANALYSIS = ActionNode(
     key="Refined Requirement Analysis",
-    expected_type=List[str],
+    expected_type=Union[List[str], str],
     instruction="Review and refine the existing requirement analysis into a string list to align with the evolving needs of the project "
     "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
     "required for the refined project scope.",
@@ -165,7 +165,7 @@ ANYTHING_UNCLEAR = ActionNode(
     key="Anything UNCLEAR",
     expected_type=str,
     instruction="Mention any aspects of the project that are unclear and try to clarify them.",
-    example="",
+    example="Currently, all aspects of the project are clear.",
 )
 
 ISSUE_TYPE = ActionNode(

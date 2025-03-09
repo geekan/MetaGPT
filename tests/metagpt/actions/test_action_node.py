@@ -91,10 +91,10 @@ async def test_action_node_two_layer():
     assert node_b in root.children.values()
 
     # FIXME: ADD MARKDOWN SUPPORT. NEED TO TUNE MARKDOWN SYMBOL FIRST.
-    answer1 = await root.fill(context="what's the answer to 123+456?", schema="json", strgy="simple", llm=LLM())
+    answer1 = await root.fill(req="what's the answer to 123+456?", schema="json", strgy="simple", llm=LLM())
     assert "579" in answer1.content
 
-    answer2 = await root.fill(context="what's the answer to 123+456?", schema="json", strgy="complex", llm=LLM())
+    answer2 = await root.fill(req="what's the answer to 123+456?", schema="json", strgy="complex", llm=LLM())
     assert "579" in answer2.content
 
 
@@ -112,7 +112,7 @@ async def test_action_node_review():
     with pytest.raises(RuntimeError):
         _ = await node_a.review()
 
-    _ = await node_a.fill(context=None, llm=LLM())
+    _ = await node_a.fill(req=None, llm=LLM())
     setattr(node_a.instruct_content, key, "game snake")  # wrong content to review
 
     review_comments = await node_a.review(review_mode=ReviewMode.AUTO)
@@ -126,7 +126,7 @@ async def test_action_node_review():
     with pytest.raises(RuntimeError):
         _ = await node.review()
 
-    _ = await node.fill(context=None, llm=LLM())
+    _ = await node.fill(req=None, llm=LLM())
 
     review_comments = await node.review(review_mode=ReviewMode.AUTO)
     assert len(review_comments) == 1
@@ -151,7 +151,7 @@ async def test_action_node_revise():
     with pytest.raises(RuntimeError):
         _ = await node_a.review()
 
-    _ = await node_a.fill(context=None, llm=LLM())
+    _ = await node_a.fill(req=None, llm=LLM())
     setattr(node_a.instruct_content, key, "game snake")  # wrong content to revise
     revise_contents = await node_a.revise(revise_mode=ReviseMode.AUTO)
     assert len(revise_contents) == 1
@@ -164,7 +164,7 @@ async def test_action_node_revise():
     with pytest.raises(RuntimeError):
         _ = await node.revise()
 
-    _ = await node.fill(context=None, llm=LLM())
+    _ = await node.fill(req=None, llm=LLM())
     setattr(node.instruct_content, key, "game snake")
     revise_contents = await node.revise(revise_mode=ReviseMode.AUTO)
     assert len(revise_contents) == 1
@@ -257,7 +257,7 @@ async def test_action_node_with_image(mocker):
     invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")
     img_base64 = encode_image(invoice_path)
     mocker.patch("metagpt.provider.openai_api.OpenAILLM._cons_kwargs", _cons_kwargs)
-    node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
+    node = await invoice.fill(req="", llm=LLM(), images=[img_base64])
     assert node.instruct_content.invoice
 
 

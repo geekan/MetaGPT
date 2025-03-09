@@ -5,25 +5,25 @@
 import asyncio
 from abc import abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
+from typing import Any, Dict, Iterable, Optional, Set, Union
 
 from gymnasium import spaces
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
+from metagpt.base import BaseEnvironment, BaseRole
+from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.context import Context
 from metagpt.environment.api.env_api import (
     EnvAPIAbstract,
     ReadAPIRegistry,
     WriteAPIRegistry,
 )
-from metagpt.environment.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.logs import logger
+from metagpt.memory import Memory
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
-
-if TYPE_CHECKING:
-    from metagpt.roles.role import Role  # noqa: F401
+from metagpt.utils.git_repository import GitRepository
 
 
 class EnvType(Enum):
@@ -50,7 +50,7 @@ def mark_as_writeable(func):
     return func
 
 
-class ExtEnv(BaseModel):
+class ExtEnv(BaseEnvironment, BaseModel):
     """External Env to integrate actual game environment"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -129,9 +129,9 @@ class Environment(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, SerializeAsAny["Role"]] = Field(default_factory=dict, validate_default=True)
-    member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
-    history: str = ""  # For debug
+    roles: dict[str, SerializeAsAny[BaseRole]] = Field(default_factory=dict, validate_default=True)
+    member_addrs: Dict[BaseRole, Set] = Field(default_factory=dict, exclude=True)
+    history: Memory = Field(default_factory=Memory)  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
     def reset(
@@ -153,20 +153,20 @@ class Environment(ExtEnv):
         self.add_roles(self.roles.values())
         return self
 
-    def add_role(self, role: "Role"):
+    def add_role(self, role: BaseRole):
         """增加一个在当前环境的角色
         Add a role in the current environment
         """
-        self.roles[role.profile] = role
+        self.roles[role.name] = role
         role.set_env(self)
         role.context = self.context
 
-    def add_roles(self, roles: Iterable["Role"]):
+    def add_roles(self, roles: Iterable[BaseRole]):
         """增加一批在当前环境的角色
         Add a batch of characters in the current environment
         """
         for role in roles:
-            self.roles[role.profile] = role
+            self.roles[role.name] = role
 
         for role in roles:  # setup system message with roles
             role.context = self.context
@@ -190,7 +190,7 @@ class Environment(ExtEnv):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
-        self.history += f"\n{message}"  # For debug
+        self.history.add(message)  # For debug
 
         return True
 
@@ -201,19 +201,22 @@ class Environment(ExtEnv):
         for _ in range(k):
             futures = []
             for role in self.roles.values():
+                if role.is_idle:
+                    continue
                 future = role.run()
                 futures.append(future)
 
-            await asyncio.gather(*futures)
+            if futures:
+                await asyncio.gather(*futures)
             logger.debug(f"is idle: {self.is_idle}")
 
-    def get_roles(self) -> dict[str, "Role"]:
+    def get_roles(self) -> dict[str, BaseRole]:
         """获得环境内的所有角色
         Process all Role runs at once
         """
         return self.roles
 
-    def get_role(self, name: str) -> "Role":
+    def get_role(self, name: str) -> BaseRole:
         """获得环境内的指定角色
         get all the environment roles
         """
@@ -239,14 +242,6 @@ class Environment(ExtEnv):
         self.member_addrs[obj] = addresses
 
     def archive(self, auto_archive=True):
-        if auto_archive and self.context.git_repo:
-            self.context.git_repo.archive()
-
-    @classmethod
-    def model_rebuild(cls, **kwargs):
-        from metagpt.roles.role import Role  # noqa: F401
-
-        super().model_rebuild(**kwargs)
-
-
-Environment.model_rebuild()
+        if auto_archive and self.context.kwargs.get("project_path"):
+            git_repo = GitRepository(self.context.kwargs.project_path)
+            git_repo.archive()

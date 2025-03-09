@@ -38,7 +38,6 @@ class AndroidAssistant(Role):
 
     def __init__(self, **data):
         super().__init__(**data)
-
         self._watch([UserRequirement, AndroidActionOutput])
         extra_config = config.extra
         self.task_desc = extra_config.get("task_desc", "Just explore any app in this phone!")

@@ -34,7 +34,7 @@ from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
-    count_input_tokens,
+    count_message_tokens,
     count_output_tokens,
     get_max_completion_tokens,
 )
@@ -48,6 +48,9 @@ from metagpt.utils.token_counter import (
         LLMType.MOONSHOT,
         LLMType.MISTRAL,
         LLMType.YI,
+        LLMType.OPEN_ROUTER,
+        LLMType.DEEPSEEK,
+        LLMType.SILICONFLOW,
         LLMType.OPENROUTER,
     ]
 )
@@ -250,7 +253,7 @@ class OpenAILLM(BaseLLM):
             # The response content is `code``, but it appears in the content instead of the arguments.
             code_formats = "```"
             if message.content.startswith(code_formats) and message.content.endswith(code_formats):
-                code = CodeParser.parse_code(None, message.content)
+                code = CodeParser.parse_code(text=message.content)
                 return {"language": "python", "code": code}
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}
@@ -268,7 +271,7 @@ class OpenAILLM(BaseLLM):
             return usage
 
         try:
-            usage.prompt_tokens = count_input_tokens(messages, self.pricing_plan)
+            usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
             usage.completion_tokens = count_output_tokens(rsp, self.pricing_plan)
         except Exception as e:
             logger.warning(f"usage calculation failed: {e}")
@@ -315,3 +318,9 @@ class OpenAILLM(BaseLLM):
             img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
             imgs.append(decode_image(img_url_or_b64))
         return imgs
+
+    def count_tokens(self, messages: list[dict]) -> int:
+        try:
+            return count_message_tokens(messages, self.config.model)
+        except:
+            return super().count_tokens(messages)

@@ -13,9 +13,10 @@ from typing import Literal, Tuple
 
 import nbformat
 from nbclient import NotebookClient
-from nbclient.exceptions import CellTimeoutError, DeadKernelError
+from nbclient.exceptions import CellExecutionComplete, CellTimeoutError, DeadKernelError
+from nbclient.util import ensure_async
 from nbformat import NotebookNode
-from nbformat.v4 import new_code_cell, new_markdown_cell, new_output
+from nbformat.v4 import new_code_cell, new_markdown_cell, new_output, output_from_msg
 from rich.box import MINIMAL
 from rich.console import Console, Group
 from rich.live import Live
@@ -25,28 +26,78 @@ from rich.syntax import Syntax
 
 from metagpt.actions import Action
 from metagpt.logs import logger
+from metagpt.utils.report import NotebookReporter
+
+INSTALL_KEEPLEN = 500
+INI_CODE = """import warnings
+import logging
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.ERROR)
+warnings.filterwarnings('ignore')"""
+
+
+class RealtimeOutputNotebookClient(NotebookClient):
+    """Realtime output of Notebook execution."""
+
+    def __init__(self, *args, notebook_reporter=None, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.notebook_reporter = notebook_reporter or NotebookReporter()
+
+    async def _async_poll_output_msg(self, parent_msg_id: str, cell: NotebookNode, cell_index: int) -> None:
+        """Implement a feature to enable sending messages."""
+        assert self.kc is not None
+        while True:
+            msg = await ensure_async(self.kc.iopub_channel.get_msg(timeout=None))
+            await self._send_msg(msg)
+
+            if msg["parent_header"].get("msg_id") == parent_msg_id:
+                try:
+                    # Will raise CellExecutionComplete when completed
+                    self.process_message(msg, cell, cell_index)
+                except CellExecutionComplete:
+                    return
+
+    async def _send_msg(self, msg: dict):
+        msg_type = msg.get("header", {}).get("msg_type")
+        if msg_type not in ["stream", "error", "execute_result"]:
+            return
+
+        await self.notebook_reporter.async_report(output_from_msg(msg), "content")
 
 
 class ExecuteNbCode(Action):
     """execute notebook code block, return result to llm, and display it."""
 
     nb: NotebookNode
-    nb_client: NotebookClient
+    nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
     timeout: int = 600
 
-    def __init__(
-        self,
-        nb=nbformat.v4.new_notebook(),
-        timeout=600,
-    ):
+    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=600):
         super().__init__(
             nb=nb,
-            nb_client=NotebookClient(nb, timeout=timeout),
             timeout=timeout,
             console=Console(),
             interaction=("ipython" if self.is_ipython() else "terminal"),
+        )
+        self.reporter = NotebookReporter()
+        self.set_nb_client()
+        self.init_called = False
+
+    async def init_code(self):
+        if not self.init_called:
+            await self.run(INI_CODE)
+            self.init_called = True
+
+    def set_nb_client(self):
+        self.nb_client = RealtimeOutputNotebookClient(
+            self.nb,
+            timeout=self.timeout,
+            resources={"metadata": {"path": self.config.workspace.path}},
+            notebook_reporter=self.reporter,
+            coalesce_streams=True,
         )
 
     async def build(self):
@@ -82,7 +133,7 @@ class ExecuteNbCode(Action):
         # sleep 1s to wait for the kernel to be cleaned up completely
         await asyncio.sleep(1)
         await self.build()
-        self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
+        self.set_nb_client()
 
     def add_code_cell(self, code: str):
         self.nb.cells.append(new_code_cell(source=code))
@@ -106,7 +157,7 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: list[str], keep_len: int = 2000) -> Tuple[bool, str]:
+    def parse_outputs(self, outputs: list[str], keep_len: int = 5000) -> Tuple[bool, str]:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
         parsed_output, is_success = [], True
@@ -135,9 +186,12 @@ class ExecuteNbCode(Action):
                 is_success = False
 
             output_text = remove_escape_and_color_codes(output_text)
+            if is_success:
+                output_text = remove_log_and_warning_lines(output_text)
             # The useful information of the exception is at the end,
             # the useful information of normal output is at the begining.
-            output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
+            if "<!DOCTYPE html>" not in output_text:
+                output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
         return is_success, ",".join(parsed_output)
@@ -172,6 +226,8 @@ class ExecuteNbCode(Action):
         """set timeout for run code.
         returns the success or failure of the cell execution, and an optional error message.
         """
+        await self.reporter.async_report(cell, "content")
+
         try:
             await self.nb_client.async_execute_cell(cell, cell_index)
             return self.parse_outputs(self.nb.cells[-1].outputs)
@@ -193,29 +249,45 @@ class ExecuteNbCode(Action):
         """
         self._display(code, language)
 
-        if language == "python":
-            # add code to the notebook
-            self.add_code_cell(code=code)
+        async with self.reporter:
+            if language == "python":
+                # add code to the notebook
+                self.add_code_cell(code=code)
 
-            # build code executor
-            await self.build()
+                # build code executor
+                await self.build()
 
-            # run code
-            cell_index = len(self.nb.cells) - 1
-            success, outputs = await self.run_cell(self.nb.cells[-1], cell_index)
+                # run code
+                cell_index = len(self.nb.cells) - 1
+                success, outputs = await self.run_cell(self.nb.cells[-1], cell_index)
 
-            if "!pip" in code:
-                success = False
+                if "!pip" in code:
+                    success = False
+                    outputs = outputs[-INSTALL_KEEPLEN:]
+                elif "git clone" in code:
+                    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
+
+            elif language == "markdown":
+                # add markdown content to markdown cell in a notebook.
+                self.add_markdown_cell(code)
+                # return True, beacuse there is no execution failure for markdown cell.
+                outputs, success = code, True
+            else:
+                raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
+
+            file_path = self.config.workspace.path / "code.ipynb"
+            nbformat.write(self.nb, file_path)
+            await self.reporter.async_report(file_path, "path")
 
             return outputs, success
 
-        elif language == "markdown":
-            # add markdown content to markdown cell in a notebook.
-            self.add_markdown_cell(code)
-            # return True, beacuse there is no execution failure for markdown cell.
-            return code, True
-        else:
-            raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
+
+def remove_log_and_warning_lines(input_str: str) -> str:
+    delete_lines = ["[warning]", "warning:", "[cv]", "[info]"]
+    result = "\n".join(
+        [line for line in input_str.split("\n") if not any(dl in line.lower() for dl in delete_lines)]
+    ).strip()
+    return result
 
 
 def remove_escape_and_color_codes(input_str: str):

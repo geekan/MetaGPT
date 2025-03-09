@@ -18,9 +18,11 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
+import time
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
+from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
@@ -30,25 +32,36 @@ from pydantic import (
     ConfigDict,
     Field,
     PrivateAttr,
+    create_model,
     field_serializer,
     field_validator,
-    model_serializer,
-    model_validator,
 )
 
+from metagpt.base.base_serialization import BaseSerialization
 from metagpt.const import (
+    AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
-    PRDS_FILE_REPO,
+    SERDESER_PATH,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo
-from metagpt.utils.common import any_to_str, any_to_str_set, import_class
+from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import (
+    CodeParser,
+    any_to_str,
+    any_to_str_set,
+    aread,
+    import_class,
+    read_json_file,
+    write_json_file,
+)
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.report import TaskReporter
 from metagpt.utils.serialize import (
     actionoutout_schema_to_mapping,
     actionoutput_mapping_to_str,
@@ -56,66 +69,65 @@ from metagpt.utils.serialize import (
 )
 
 
-class SerializationMixin(BaseModel, extra="forbid"):
-    """
-    PolyMorphic subclasses Serialization / Deserialization Mixin
-    - First of all, we need to know that pydantic is not designed for polymorphism.
-    - If Engineer is subclass of Role, it would be serialized as Role. If we want to serialize it as Engineer, we need
-        to add `class name` to Engineer. So we need Engineer inherit SerializationMixin.
+class SerializationMixin(BaseSerialization):
+    @handle_exception
+    def serialize(self, file_path: str = None) -> str:
+        """Serializes the current instance to a JSON file.
 
-    More details:
-    - https://docs.pydantic.dev/latest/concepts/serialization/
-    - https://github.com/pydantic/pydantic/discussions/7008 discuss about avoid `__get_pydantic_core_schema__`
-    """
+        If an exception occurs, `handle_exception` will catch it and return `None`.
 
-    __is_polymorphic_base = False
-    __subclasses_map__ = {}
+        Args:
+            file_path (str, optional): The path to the JSON file where the instance will be saved. Defaults to None.
 
-    @model_serializer(mode="wrap")
-    def __serialize_with_class_type__(self, default_serializer) -> Any:
-        # default serializer, then append the `__module_class_name` field and return
-        ret = default_serializer(self)
-        ret["__module_class_name"] = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
-        return ret
+        Returns:
+            str: The path to the JSON file where the instance was saved.
+        """
 
-    @model_validator(mode="wrap")
+        file_path = file_path or self.get_serialization_path()
+
+        serialized_data = self.model_dump()
+
+        write_json_file(file_path, serialized_data, use_fallback=True)
+        logger.debug(f"{self.__class__.__qualname__} serialization successful. File saved at: {file_path}")
+
+        return file_path
+
     @classmethod
-    def __convert_to_real_type__(cls, value: Any, handler):
-        if isinstance(value, dict) is False:
-            return handler(value)
+    @handle_exception
+    def deserialize(cls, file_path: str = None) -> BaseModel:
+        """Deserializes a JSON file to an instance of cls.
 
-        # it is a dict so make sure to remove the __module_class_name
-        # because we don't allow extra keywords but want to ensure
-        # e.g Cat.model_validate(cat.model_dump()) works
-        class_full_name = value.pop("__module_class_name", None)
+        If an exception occurs, `handle_exception` will catch it and return `None`.
 
-        # if it's not the polymorphic base we construct via default handler
-        if not cls.__is_polymorphic_base:
-            if class_full_name is None:
-                return handler(value)
-            elif str(cls) == f"<class '{class_full_name}'>":
-                return handler(value)
-            else:
-                # f"Trying to instantiate {class_full_name} but this is not the polymorphic base class")
-                pass
+        Args:
+            file_path (str, optional): The path to the JSON file to read from. Defaults to None.
 
-        # otherwise we lookup the correct polymorphic type and construct that
-        # instead
-        if class_full_name is None:
-            raise ValueError("Missing __module_class_name field")
+        Returns:
+            An instance of the cls.
+        """
 
-        class_type = cls.__subclasses_map__.get(class_full_name, None)
+        file_path = file_path or cls.get_serialization_path()
 
-        if class_type is None:
-            # TODO could try dynamic import
-            raise TypeError("Trying to instantiate {class_full_name}, which has not yet been defined!")
+        data: dict = read_json_file(file_path)
 
-        return class_type(**value)
+        model = cls(**data)
+        logger.debug(f"{cls.__qualname__} deserialization successful. Instance created from file: {file_path}")
 
-    def __init_subclass__(cls, is_polymorphic_base: bool = False, **kwargs):
-        cls.__is_polymorphic_base = is_polymorphic_base
-        cls.__subclasses_map__[f"{cls.__module__}.{cls.__qualname__}"] = cls
-        super().__init_subclass__(**kwargs)
+        return model
+
+    @classmethod
+    def get_serialization_path(cls) -> str:
+        """Get the serialization path for the class.
+
+        This method constructs a file path for serialization based on the class name.
+        The default path is constructed as './workspace/storage/ClassName.json', where 'ClassName'
+        is the name of the class.
+
+        Returns:
+            str: The path to the serialization file.
+        """
+
+        return str(SERDESER_PATH / f"{cls.__qualname__}.json")
 
 
 class SimpleMessage(BaseModel):
@@ -154,6 +166,30 @@ class Document(BaseModel):
     def __repr__(self):
         return self.content
 
+    @classmethod
+    async def load(
+        cls, filename: Union[str, Path], project_path: Optional[Union[str, Path]] = None
+    ) -> Optional["Document"]:
+        """
+        Load a document from a file.
+
+        Args:
+            filename (Union[str, Path]): The path to the file to load.
+            project_path (Optional[Union[str, Path]], optional): The path to the project. Defaults to None.
+
+        Returns:
+            Optional[Document]: The loaded document, or None if the file does not exist.
+
+        """
+        if not filename or not Path(filename).exists():
+            return None
+        content = await aread(filename=filename)
+        doc = cls(content=content, filename=str(filename))
+        if project_path and Path(filename).is_relative_to(project_path):
+            doc.root_path = Path(filename).relative_to(project_path).parent
+            doc.filename = Path(filename).name
+        return doc
+
 
 class Documents(BaseModel):
     """A class representing a collection of documents.
@@ -185,16 +221,25 @@ class Documents(BaseModel):
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
+class Resource(BaseModel):
+    """Used by `Message`.`parse_resources`"""
+
+    resource_type: str  # the type of resource
+    value: str  # a string type of resource content
+    description: str  # explanation
+
+
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
     id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
-    content: str
+    content: str  # natural language for user or agent
     instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
     cause_by: str = Field(default="", validate_default=True)
     sent_from: str = Field(default="", validate_default=True)
     send_to: set[str] = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
+    metadata: Dict[str, Any] = Field(default_factory=dict)  # metadata for `content` and `instruct_content`
 
     @field_validator("id", mode="before")
     @classmethod
@@ -310,14 +355,75 @@ class Message(BaseModel):
             logger.error(f"parse json failed: {val}, error:{err}")
         return None
 
+    async def parse_resources(self, llm: "BaseLLM", key_descriptions: Dict[str, str] = None) -> Dict:
+        """
+        `parse_resources` corresponds to the in-context adaptation capability of the input of the atomic action,
+        which will be migrated to the context builder later.
+
+        Args:
+            llm (BaseLLM): The instance of the BaseLLM class.
+            key_descriptions (Dict[str, str], optional): A dictionary containing descriptions for each key,
+                if provided. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing parsed resources.
+
+        """
+        if not self.content:
+            return {}
+        content = f"## Original Requirement\n```text\n{self.content}\n```\n"
+        return_format = (
+            "Return a markdown JSON object with:\n"
+            '- a "resources" key contain a list of objects. Each object with:\n'
+            '  - a "resource_type" key explain the type of resource;\n'
+            '  - a "value" key containing a string type of resource content;\n'
+            '  - a "description" key explaining why;\n'
+        )
+        key_descriptions = key_descriptions or {}
+        for k, v in key_descriptions.items():
+            return_format += f'- a "{k}" key containing {v};\n'
+        return_format += '- a "reason" key explaining why;\n'
+        instructions = ['Lists all the resources contained in the "Original Requirement".', return_format]
+        rsp = await llm.aask(msg=content, system_msgs=instructions)
+        json_data = CodeParser.parse_code(text=rsp, lang="json")
+        m = json.loads(json_data)
+        m["resources"] = [Resource(**i) for i in m.get("resources", [])]
+        return m
+
+    def add_metadata(self, key: str, value: str):
+        self.metadata[key] = value
+
+    @staticmethod
+    def create_instruct_value(kvs: Dict[str, Any], class_name: str = "") -> BaseModel:
+        """
+        Dynamically creates a Pydantic BaseModel subclass based on a given dictionary.
+
+        Parameters:
+        - data: A dictionary from which to create the BaseModel subclass.
+
+        Returns:
+        - A Pydantic BaseModel subclass instance populated with the given data.
+        """
+        if not class_name:
+            class_name = "DM" + uuid.uuid4().hex[0:8]
+        dynamic_class = create_model(class_name, **{key: (value.__class__, ...) for key, value in kvs.items()})
+        return dynamic_class.model_validate(kvs)
+
+    def is_user_message(self) -> bool:
+        return self.role == "user"
+
+    def is_ai_message(self) -> bool:
+        return self.role == "assistant"
+
 
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="user")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="user", **kwargs)
 
 
 class SystemMessage(Message):
@@ -325,8 +431,9 @@ class SystemMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="system")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="system", **kwargs)
 
 
 class AIMessage(Message):
@@ -334,8 +441,17 @@ class AIMessage(Message):
     Facilitate support for OpenAI messages
     """
 
-    def __init__(self, content: str):
-        super().__init__(content=content, role="assistant")
+    def __init__(self, content: str, **kwargs):
+        kwargs.pop("role", None)
+        super().__init__(content=content, role="assistant", **kwargs)
+
+    def with_agent(self, name: str):
+        self.add_metadata(key=AGENT, value=name)
+        return self
+
+    @property
+    def agent(self) -> str:
+        return self.metadata.get(AGENT, "")
 
 
 class Task(BaseModel):
@@ -347,6 +463,7 @@ class Task(BaseModel):
     result: str = ""
     is_success: bool = False
     is_finished: bool = False
+    assignee: str = ""
 
     def reset(self):
         self.code = ""
@@ -355,8 +472,8 @@ class Task(BaseModel):
         self.is_finished = False
 
     def update_task_result(self, task_result: TaskResult):
-        self.code = task_result.code
-        self.result = task_result.result
+        self.code = self.code + "\n" + task_result.code
+        self.result = self.result + "\n" + task_result.result
         self.is_success = task_result.is_success
 
 
@@ -368,7 +485,17 @@ class TaskResult(BaseModel):
     is_success: bool
 
 
+@register_tool(
+    include_functions=[
+        "append_task",
+        "reset_task",
+        "replace_task",
+        "finish_current_task",
+    ]
+)
 class Plan(BaseModel):
+    """Plan is a sequence of tasks towards a goal."""
+
     goal: str
     context: str = ""
     tasks: list[Task] = []
@@ -441,19 +568,23 @@ class Plan(BaseModel):
 
     def reset_task(self, task_id: str):
         """
-        Clear code and result of the task based on task_id, and set the task as unfinished.
+        Reset a task based on task_id, i.e. set Task.is_finished=False and request redo. This also resets all tasks depending on it.
 
         Args:
             task_id (str): The ID of the task to be reset.
-
-        Returns:
-            None
         """
         if task_id in self.task_map:
             task = self.task_map[task_id]
             task.reset()
+            # reset all downstream tasks that are dependent on the reset task
+            for dep_task in self.tasks:
+                if task_id in dep_task.dependent_task_ids:
+                    # FIXME: if LLM generates cyclic tasks, this will result in infinite recursion
+                    self.reset_task(dep_task.task_id)
 
-    def replace_task(self, new_task: Task):
+        self._update_current_task()
+
+    def _replace_task(self, new_task: Task):
         """
         Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
 
@@ -476,7 +607,9 @@ class Plan(BaseModel):
             if new_task.task_id in task.dependent_task_ids:
                 self.reset_task(task.task_id)
 
-    def append_task(self, new_task: Task):
+        self._update_current_task()
+
+    def _append_task(self, new_task: Task):
         """
         Append a new task to the end of existing task sequences
 
@@ -486,7 +619,11 @@ class Plan(BaseModel):
         Returns:
             None
         """
-        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        # assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        if self.has_task_id(new_task.task_id):
+            logger.warning(
+                "Task already in current plan, should use replace_task instead. Overwriting the existing task."
+            )
 
         assert all(
             [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
@@ -501,12 +638,17 @@ class Plan(BaseModel):
         return task_id in self.task_map
 
     def _update_current_task(self):
+        self.tasks = self._topological_sort(self.tasks)
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
         current_task_id = ""
         for task in self.tasks:
             if not task.is_finished:
                 current_task_id = task.task_id
                 break
-        self.current_task_id = current_task_id  # all tasks finished
+        self.current_task_id = current_task_id
+        TaskReporter().report({"tasks": [i.model_dump() for i in self.tasks], "current_task_id": current_task_id})
 
     @property
     def current_task(self) -> Task:
@@ -523,6 +665,15 @@ class Plan(BaseModel):
             self.current_task.is_finished = True
             self._update_current_task()  # set to next task
 
+    def finish_all_tasks(self):
+        "Finish all tasks."
+        while self.current_task:
+            self.finish_current_task()
+
+    def is_plan_finished(self) -> bool:
+        """Check if all tasks are finished"""
+        return all(task.is_finished for task in self.tasks)
+
     def get_finished_tasks(self) -> list[Task]:
         """return all finished tasks in correct linearized order
 
@@ -530,6 +681,33 @@ class Plan(BaseModel):
             list[Task]: list of finished tasks
         """
         return [task for task in self.tasks if task.is_finished]
+
+    def append_task(
+        self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""
+    ):
+        """
+        Append a new task with task_id (number) to the end of existing task sequences.
+        If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list.
+        Note that the assignee should be the 'name' of the role.
+        """
+        new_task = Task(
+            task_id=task_id,
+            dependent_task_ids=dependent_task_ids,
+            instruction=instruction,
+            assignee=assignee,
+            task_type=task_type,
+        )
+        return self._append_task(new_task)
+
+    def replace_task(self, task_id: str, new_dependent_task_ids: list[str], new_instruction: str, new_assignee: str):
+        """Replace an existing task (can be current task) based on task_id, and reset all tasks depending on it."""
+        new_task = Task(
+            task_id=task_id,
+            dependent_task_ids=new_dependent_task_ids,
+            instruction=new_instruction,
+            assignee=new_assignee,
+        )
+        return self._replace_task(new_task)
 
 
 class MessageQueue(BaseModel):
@@ -671,32 +849,12 @@ class CodeSummarizeContext(BaseModel):
         return hash((self.design_filename, self.task_filename))
 
 
-class BugFixContext(BaseContext):
-    filename: str = ""
-
-
 class CodePlanAndChangeContext(BaseModel):
     requirement: str = ""
     issue: str = ""
     prd_filename: str = ""
     design_filename: str = ""
     task_filename: str = ""
-
-    @staticmethod
-    def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
-        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""), issue=kwargs.get("issue", ""))
-        for filename in filenames:
-            filename = Path(filename)
-            if filename.is_relative_to(PRDS_FILE_REPO):
-                ctx.prd_filename = filename.name
-                continue
-            if filename.is_relative_to(SYSTEM_DESIGN_FILE_REPO):
-                ctx.design_filename = filename.name
-                continue
-            if filename.is_relative_to(TASK_FILE_REPO):
-                ctx.task_filename = filename.name
-                continue
-        return ctx
 
 
 # mermaid class view
@@ -785,3 +943,34 @@ class UMLClassView(UMLClassMeta):
             method.return_type = i.return_args.type_
             class_view.methods.append(method)
         return class_view
+
+
+class BaseEnum(Enum):
+    """Base class for enums."""
+
+    def __new__(cls, value, desc=None):
+        """
+        Construct an instance of the enum member.
+
+        Args:
+            cls: The class.
+            value: The value of the enum member.
+            desc: The description of the enum member. Defaults to None.
+        """
+        if issubclass(cls, str):
+            obj = str.__new__(cls, value)
+        elif issubclass(cls, int):
+            obj = int.__new__(cls, value)
+        else:
+            obj = object.__new__(cls)
+        obj._value_ = value
+        obj.desc = desc
+        return obj
+
+
+class LongTermMemoryItem(BaseModel):
+    message: Message
+    created_at: Optional[float] = Field(default_factory=time.time)
+
+    def rag_key(self) -> str:
+        return self.message.content

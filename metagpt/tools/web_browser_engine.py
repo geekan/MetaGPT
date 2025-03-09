@@ -95,14 +95,14 @@ class WebBrowserEngine(BaseModel):
         return cls(**data, **kwargs)
 
     @overload
-    async def run(self, url: str) -> WebPage:
+    async def run(self, url: str, per_page_timeout: float = None) -> WebPage:
         ...
 
     @overload
-    async def run(self, url: str, *urls: str) -> list[WebPage]:
+    async def run(self, url: str, *urls: str, per_page_timeout: float = None) -> list[WebPage]:
         ...
 
-    async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
+    async def run(self, url: str, *urls: str, per_page_timeout: float = None) -> WebPage | list[WebPage]:
         """Runs the browser engine to load one or more web pages.
 
         This method is the implementation of the overloaded run signatures. It delegates the task
@@ -111,8 +111,9 @@ class WebBrowserEngine(BaseModel):
         Args:
             url: The URL of the first web page to load.
             *urls: Additional URLs of web pages to load, if any.
+            per_page_timeout: The maximum time for fetching a single page in seconds.
 
         Returns:
             A WebPage object if a single URL is provided, or a list of WebPage objects if multiple URLs are provided.
         """
-        return await self.run_func(url, *urls)
+        return await self.run_func(url, *urls, per_page_timeout=per_page_timeout)

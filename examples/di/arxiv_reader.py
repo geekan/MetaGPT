@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.tools.libs.web_scraping import view_page_element_to_scrape
 
 
 async def main():
@@ -10,7 +11,7 @@ async def main():
     prompt = f"""This is a collection of arxiv urls: '{urls}' .
 Record each article, remove duplicates by title (they may have multiple tags), filter out papers related to 
 large language model / agent / llm, print top 100 and visualize the word count of the titles"""
-    di = DataInterpreter(react_mode="react", tools=["scrape_web_playwright"])
+    di = DataInterpreter(react_mode="react", tools=[view_page_element_to_scrape.__name__])
 
     await di.run(prompt)
 

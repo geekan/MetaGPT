@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.config2 import Config
+from metagpt.config2 import config
 from metagpt.learn.text_to_embedding import text_to_embedding
 from metagpt.utils.common import aread
 
@@ -19,7 +19,6 @@ from metagpt.utils.common import aread
 @pytest.mark.asyncio
 async def test_text_to_embedding(mocker):
     # mock
-    config = Config.default()
     mock_post = mocker.patch("aiohttp.ClientSession.post")
     mock_response = mocker.AsyncMock()
     mock_response.status = 200

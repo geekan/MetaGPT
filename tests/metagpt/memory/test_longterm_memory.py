@@ -28,10 +28,6 @@ async def test_ltm_search(mocker):
     )
 
     role_id = "UTUserLtm(Product Manager)"
-    from metagpt.environment import Environment
-
-    Environment
-    RoleContext.model_rebuild()
     rc = RoleContext(watch={"metagpt.actions.add_requirement.UserRequirement"})
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)

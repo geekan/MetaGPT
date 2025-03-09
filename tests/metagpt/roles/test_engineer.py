@@ -9,6 +9,7 @@
 """
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,6 +20,7 @@ from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.utils.git_repository import ChangeType
+from metagpt.utils.project_repo import ProjectRepo
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
@@ -26,12 +28,19 @@ from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 async def test_engineer(context):
     # Prerequisites
     rqno = "20231221155954.json"
-    await context.repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
-    await context.repo.docs.prd.save(rqno, content=MockMessages.prd.content)
-    await context.repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
-    await context.repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
+    project_repo = ProjectRepo(context.config.project_path)
 
+    # 设置engineer
     engineer = Engineer(context=context)
+    engineer.repo = project_repo
+    engineer.input_args = SimpleNamespace(project_path=context.config.project_path)
+
+    # 使用project_repo保存所需文件
+    await project_repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
+    await project_repo.docs.prd.save(rqno, content=MockMessages.prd.content)
+    await project_repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
+    await project_repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
+
     rsp = await engineer.run(Message(content="", cause_by=WriteTasks))
 
     logger.info(rsp)
@@ -91,7 +100,7 @@ target_code = """task_list = [
 
 
 def test_parse_code():
-    code = CodeParser.parse_code("Task list", TASKS, lang="python")
+    code = CodeParser.parse_code(block="Task list", text=TASKS, lang="python")
     logger.info(code)
     assert isinstance(code, str)
     assert target_code == code

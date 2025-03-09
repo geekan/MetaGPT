@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -40,8 +41,16 @@ PLAN_STATUS = """
 ## Current Task
 {current_task}
 
+## Finished Section of Current Task
+### code
+```python
+{current_task_code}
+```
+### execution result
+{current_task_result}
+
 ## Task Guidance
-Write complete code for 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
+Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks' and 'Finished Section of Current Task', such as repeated import of packages, reading data, etc.
 Specifically, {guidance}
 """
 
@@ -119,7 +128,7 @@ class Planner(BaseModel):
         If human confirms the task result, then we deem the task completed, regardless of whether the code run succeeds;
         if auto mode, then the code run has to succeed for the task to be considered completed.
         """
-        auto_run = auto_run or self.auto_run
+        auto_run = auto_run if auto_run is not None else self.auto_run
         if not auto_run:
             context = self.get_useful_memories()
             review, confirmed = await AskReview().run(
@@ -157,8 +166,10 @@ class Planner(BaseModel):
 
         return context_msg + self.working_memory.get()
 
-    def get_plan_status(self) -> str:
+    def get_plan_status(self, exclude: List[str] = None) -> str:
         # prepare components of a plan status
+        exclude = exclude or []
+        exclude_prompt = "omit here"
         finished_tasks = self.plan.get_finished_tasks()
         code_written = [remove_comments(task.code) for task in finished_tasks]
         code_written = "\n\n".join(code_written)
@@ -170,9 +181,11 @@ class Planner(BaseModel):
 
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
-            code_written=code_written,
-            task_results=task_results,
+            code_written=code_written if "code" not in exclude else exclude_prompt,
+            task_results=task_results if "task_result" not in exclude else exclude_prompt,
             current_task=self.current_task.instruction,
+            current_task_code=self.current_task.code if "code" not in exclude else exclude_prompt,
+            current_task_result=self.current_task.result if "task_result" not in exclude else exclude_prompt,
             guidance=guidance,
         )
 
