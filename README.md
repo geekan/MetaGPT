@@ -1,10 +1,8 @@
 
+# MetaGPT: The Multi-Agent Framework
+
 <p align="center">
-  <picture>
-    <img alt="MetaGPT Library" src="docs/resources/MetaGPT-new-log-v2.png" height="80" style="max-width: 100%;">
-  </picture>
-  <br/>
-  <br/>
+<a href=""><img src="docs/resources/MetaGPT-new-log.png" alt="MetaGPT logo: Enable GPT to work in a software company, collaborating to tackle more complex tasks." width="150px"></a>
 </p>
 
 <p align="center">
