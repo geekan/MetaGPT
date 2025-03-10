@@ -30,7 +30,7 @@
 
 🚀 Mar. 10, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Week on @ProductHunt! 🏆
 
-🚀 Mar.  4, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Day on @ProductHunt! 🏆
+🚀 Mar. &nbsp; 4, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Day on @ProductHunt! 🏆
 
 🚀 Feb. 19, 2025: Today we are officially launching our natural language programming product: [MGX (MetaGPT X)](https://mgx.dev/) - the world's first AI agent development team. More details on [Twitter](https://x.com/MetaGPT_/status/1892199535130329356).
 
