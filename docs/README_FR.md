@@ -6,10 +6,10 @@
 </p>
 
 <p align="center">
-[ <a href="../README.md"> En </a> |
-<a href="README_CN.md"> 中 </a> |
-<b> Fr </b> |
-<a href="README_JA.md"> 日 </a> ]
+[ <a href="../README.md">En</a> |
+<a href="README_CN.md">中</a> |
+<b>Fr</b> |
+<a href="README_JA.md">日</a> ]
 <b>Assigner différents rôles aux GPTs pour former une entité collaborative capable de gérer des tâches complexes.</b>
 </p> 
 
