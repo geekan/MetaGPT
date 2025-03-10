@@ -10,25 +10,27 @@
 </p>
 
 <p align="center">
-<a href="docs/README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
-<a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
-<a href="docs/README_FR.md"><img src="https://img.shields.io/badge/document-French-blue.svg" alt="FR doc"></a>
-<a href="docs/README_JA.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-blue.svg" alt="JA doc"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-<a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
 <a href="https://discord.gg/DYn29wFk9z"><img src="https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat" alt="Discord Follow"></a>
 <a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+<a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
+   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
 </p>
 
-<p align="center">
-   <a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
-   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
-   <a href="https://huggingface.co/spaces/deepwisdom/MetaGPT-SoftwareCompany" target="_blank"><img alt="Hugging Face" src="https://img.shields.io/badge/%F0%9F%A4%97%20-Hugging%20Face-blue?color=blue&logoColor=white" /></a>
-</p>
+<h4 align="center">
+    <p>
+        <b>English</b> |
+        <a href="docs/README_CN.md">简体中文</a> |
+        <a href="docs/README_FR.md">Français</a> |
+        <a href="docs/README_JA.md">日本語</a>
+    </p>
+</h4>
 
 ## News
 
-🚀 Mar. 4, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Day on @ProductHunt! 🏆
+🚀 Mar. 10, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Week on @ProductHunt! 🏆
+
+🚀 Mar. &nbsp; 4, 2025: 🎉 [mgx.dev](https://mgx.dev/) is the #1 Product of the Day on @ProductHunt! 🏆
 
 🚀 Feb. 19, 2025: Today we are officially launching our natural language programming product: [MGX (MetaGPT X)](https://mgx.dev/) - the world's first AI agent development team. More details on [Twitter](https://x.com/MetaGPT_/status/1892199535130329356).
 

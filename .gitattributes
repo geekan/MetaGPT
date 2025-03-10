@@ -18,7 +18,6 @@
 *.zip binary
 *.bin binary
 
-
 # Preserve original line endings for specific document files
 *.doc text eol=crlf
 *.docx text eol=crlf
