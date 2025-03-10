@@ -5,6 +5,10 @@
 </p>
 
 <p align="center">
+[ <a href="../README.md"> En </a> |
+<b> 中 </b> |
+<a href="README_FR.md"> Fr </a> |
+<a href="README_JA.md"> 日 </a> ]
 <b>使 GPTs 组成软件公司，协作处理更复杂的任务</b>
 </p>
 
@@ -12,18 +16,7 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="https://discord.gg/DYn29wFk9z"><img src="https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat" alt="Discord Follow"></a>
 <a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
-<a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
-   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
 </p>
-
-<h4 align="center">
-    <p>
-        <a href="../README.md">English</a> |
-        <b>简体中文</b> |
-        <a href="README_FR.md">Français</a> |
-        <a href="README_JA.md">日本語</a>
-    </p>
-</h4>
 
 1. MetaGPT输入**一句话的老板需求**，输出**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
 2. MetaGPT内部包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程与精心调配的SOP

@@ -6,6 +6,10 @@
 </p>
 
 <p align="center">
+[ <b> En </b> |
+<a href="docs/README_CN.md"> 中 </a> |
+<a href="docs/README_FR.md"> Fr </a> |
+<a href="docs/README_JA.md"> 日 </a> ]
 <b>Assign different roles to GPTs to form a collaborative entity for complex tasks.</b>
 </p>
 
@@ -13,17 +17,10 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="https://discord.gg/DYn29wFk9z"><img src="https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat" alt="Discord Follow"></a>
 <a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
-<a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
-   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
 </p>
 
 <h4 align="center">
-    <p>
-        <b>English</b> |
-        <a href="docs/README_CN.md">简体中文</a> |
-        <a href="docs/README_FR.md">Français</a> |
-        <a href="docs/README_JA.md">日本語</a>
-    </p>
+    
 </h4>
 
 ## News
@@ -38,7 +35,7 @@
 
 🚀 Jan. 22, 2025: Our paper [AFlow: Automating Agentic Workflow Generation](https://openreview.net/forum?id=z5uVAKwmjf) accepted for **oral presentation (top 1.8%)** at ICLR 2025, **ranking #2** in the LLM-based Agent category.
 
-👉👉 [Earlier news](News.md) 
+👉👉 [Earlier news](docs/NEWS.md) 
 
 ## Software Company as Multi-Agent System
 
@@ -177,4 +174,4 @@ To cite [MetaGPT](https://openreview.net/forum?id=VtmBAGCN7o) in publications, p
 }
 ```
 
-For more work, please refer to [Academic Work](academic_work.md).
+For more work, please refer to [Academic Work](docs/ACADEMIC_WORK.md).
