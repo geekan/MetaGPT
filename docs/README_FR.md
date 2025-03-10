@@ -6,6 +6,10 @@
 </p>
 
 <p align="center">
+[ <a href="../README.md"> En </a> |
+<a href="README_CN.md"> 中 </a> |
+<b> Fr </b> |
+<a href="README_JA.md"> 日 </a> ]
 <b>Assigner différents rôles aux GPTs pour former une entité collaborative capable de gérer des tâches complexes.</b>
 </p> 
 
@@ -13,18 +17,7 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="https://discord.gg/DYn29wFk9z"><img src="https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat" alt="Discord Follow"></a>
 <a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
-<a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
-   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
 </p>
-
-<h4 align="center">
-    <p>
-        <a href="../README.md">English</a> |
-        <a href="README_CN.md">简体中文</a> |
-        <b>Français</b> |
-        <a href="README_JA.md">日本語</a>
-    </p>
-</h4>
 
 ## Nouveautés
 🚀 29 mars 2024:  La version [v0.8.0](https://github.com/geekan/MetaGPT/releases/tag/v0.8.0) a été publiée. Vous pouvez désormais utiliser le Data Interpreter ([arxiv](https://arxiv.org/abs/2402.18679), [example](https://docs.deepwisdom.ai/main/en/DataInterpreter/), [code](https://github.com/geekan/MetaGPT/tree/main/examples/di)) via l'importation du package PyPI. De plus, le module RAG (Génération Augmentée par Récupération) a été intégré, et plusieurs nouveaux modèles de LLMs sont désormais pris en charge.
