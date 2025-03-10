@@ -93,7 +93,6 @@ TOKEN_COSTS = {
     "openai/o1-preview": {"prompt": 0.015, "completion": 0.06},
     "openai/o1-mini": {"prompt": 0.003, "completion": 0.012},
     "anthropic/claude-3-opus": {"prompt": 0.015, "completion": 0.075},
-    "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet:beta": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet:thinking": {"prompt": 0.003, "completion": 0.015},
