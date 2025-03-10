@@ -18,10 +18,10 @@
 
 <h4 align="center">
     <p>
-        <a href="docs/README.md">English</a> |
+        <a href="../README.md">English</a> |
         <b>简体中文</b> |
-        <a href="docs/README_FR.md">Français</a> |
-        <a href="docs/README_JA.md">日本語</a>
+        <a href="README_FR.md">Français</a> |
+        <a href="README_JA.md">日本語</a>
     </p>
 </h4>
 
