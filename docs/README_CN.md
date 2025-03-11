@@ -74,7 +74,7 @@ docker run --rm \
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 - [官方演示视频](https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d)
 
-https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
+https://github.com/user-attachments/assets/888cb169-78c3-4a42-9d62-9d90ed3928c9
 
 ## 教程
 - 🗒 [在线文档](https://docs.deepwisdom.ai/main/zh/)
