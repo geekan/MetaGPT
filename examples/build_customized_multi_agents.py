@@ -12,6 +12,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
+from metagpt.roles.di.team_leader import TeamLeader
 
 
 def parse_code(rsp):
@@ -129,6 +130,7 @@ async def main(
     team = Team()
     team.hire(
         [
+            TeamLeader(),
             SimpleCoder(),
             SimpleTester(),
             SimpleReviewer(is_human=add_human),
