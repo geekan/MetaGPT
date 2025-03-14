@@ -11,8 +11,8 @@ from typing import Dict, List, Tuple
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from metagpt.ext.opt_code.optimized.aflow.HotpotQA.template.operator_an import *
-from metagpt.ext.opt_code.optimized.aflow.HotpotQA.template.op_prompt import *
+from metagpt.ext.opt_code.data.template.operator_an import *
+from metagpt.ext.opt_code.data.template.op_prompt import *
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.logs import logger

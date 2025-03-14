@@ -1,0 +1,15 @@
+{
+    "name": "04_titanic",
+    "description": "",
+    "target_col": "Survived",
+    "metadata": {
+        "NumberOfClasses": 2,
+        "NumberOfFeatures": 12,
+        "NumberOfInstances": 891,
+        "NumberOfInstancesWithMissingValues": 708,
+        "NumberOfMissingValues": 866,
+        "NumberOfNumericFeatures": 7,
+        "NumberOfSymbolicFeatures": 5
+    },
+    "df_head": " PassengerId  Survived  Pclass                                                Name    Sex  Age  SibSp  Parch           Ticket    Fare Cabin Embarked\n           1         0       3                             Braund, Mr. Owen Harris   male 22.0      1      0        A/5 21171  7.2500   NaN        S\n           2         1       1 Cumings, Mrs. John Bradley (Florence Briggs Thayer) female 38.0      1      0         PC 17599 71.2833   C85        C\n           3         1       3                              Heikkinen, Miss. Laina female 26.0      0      0 STON/O2. 3101282  7.9250   NaN        S\n           4         1       1        Futrelle, Mrs. Jacques Heath (Lily May Peel) female 35.0      1      0           113803 53.1000  C123        S\n           5         0       3                            Allen, Mr. William Henry   male 35.0      0      0           373450  8.0500   NaN        S"
+}
