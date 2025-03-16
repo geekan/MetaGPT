@@ -421,7 +421,7 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     if "claude" in model:
         num_tokens = count_claude_message_tokens(messages, model)
-        return num_tokens.input_tokens
+        return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
