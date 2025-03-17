@@ -373,6 +373,10 @@ BEDROCK_TOKEN_COSTS = {
     "anthropic.claude-3-haiku-20240307-v1:0:200k": {"prompt": 0.00025, "completion": 0.00125},
     # currently (2024-4-29) only available at US West (Oregon) AWS Region.
     "anthropic.claude-3-opus-20240229-v1:0": {"prompt": 0.015, "completion": 0.075},
+    "anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
     "cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.0015},
     "cohere.command-text-v14:7:4k": {"prompt": 0.0015, "completion": 0.0015},
     "cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0003},

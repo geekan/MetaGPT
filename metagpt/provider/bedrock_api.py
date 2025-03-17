@@ -130,6 +130,9 @@ class BedrockLLM(BaseLLM):
         collected_content = await self._get_stream_response_body(stream_response)
         log_llm_stream("\n")
         full_text = ("".join(collected_content)).lstrip()
+        if self.__provider.usage:
+            # if provider provide usage, update it
+            self._update_costs(self.__provider.usage, self.config.model)
         return full_text
 
     def _get_response_body(self, response) -> dict:
