@@ -98,7 +98,7 @@ extras_require["android_assistant"] = [
 
 setup(
     name="metagpt",
-    version="0.8.1",
+    version="1.0.0",
     description="The Multi-Agent Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",

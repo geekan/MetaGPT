@@ -68,8 +68,12 @@ class AnthropicProvider(BaseBedrockProvider):
             elif delta_type == "signature_delta":
                 completions = ""
             return reasoning, completions
-        else:
-            return False, ""
+        elif rsp_dict["type"] == "message_stop":
+            self.usage = {
+                "prompt_tokens": rsp_dict.get("amazon-bedrock-invocationMetrics", {}).get("inputTokenCount", 0),
+                "completion_tokens": rsp_dict.get("amazon-bedrock-invocationMetrics", {}).get("outputTokenCount", 0),
+            }
+        return False, ""
 
 
 class CohereProvider(BaseBedrockProvider):

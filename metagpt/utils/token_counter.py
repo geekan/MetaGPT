@@ -93,6 +93,8 @@ TOKEN_COSTS = {
     "openai/o1-preview": {"prompt": 0.015, "completion": 0.06},
     "openai/o1-mini": {"prompt": 0.003, "completion": 0.012},
     "anthropic/claude-3-opus": {"prompt": 0.015, "completion": 0.075},
+    "anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet:beta": {"prompt": 0.003, "completion": 0.015},
     "anthropic/claude-3.7-sonnet:thinking": {"prompt": 0.003, "completion": 0.015},
@@ -371,6 +373,10 @@ BEDROCK_TOKEN_COSTS = {
     "anthropic.claude-3-haiku-20240307-v1:0:200k": {"prompt": 0.00025, "completion": 0.00125},
     # currently (2024-4-29) only available at US West (Oregon) AWS Region.
     "anthropic.claude-3-opus-20240229-v1:0": {"prompt": 0.015, "completion": 0.075},
+    "anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-5-sonnet-20241022-v2:0": {"prompt": 0.003, "completion": 0.015},
+    "anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {"prompt": 0.003, "completion": 0.015},
     "cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.0015},
     "cohere.command-text-v14:7:4k": {"prompt": 0.0015, "completion": 0.0015},
     "cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0003},
@@ -403,15 +409,24 @@ SPARK_TOKENS = {
 }
 
 
+def count_claude_message_tokens(messages: list[dict], model: str) -> int:
+    # rough estimation for models newer than claude-2.1, needs api_key or auth_token
+    ac = anthropic.Client()
+    system_prompt = ""
+    new_messages = []
+    for msg in messages:
+        if msg.get("role") == "system":
+            system_prompt = msg.get("content")
+        else:
+            new_messages.append(msg)
+    num_tokens = ac.beta.messages.count_tokens(messages=new_messages, model=model, system=system_prompt)
+    return num_tokens.input_tokens
+
+
 def count_message_tokens(messages, model="gpt-3.5-turbo-0125"):
     """Return the number of tokens used by a list of messages."""
     if "claude" in model:
-        # rough estimation for models newer than claude-2.1
-        vo = anthropic.Client()
-        num_tokens = 0
-        for message in messages:
-            for key, value in message.items():
-                num_tokens += vo.count_tokens(str(value))
+        num_tokens = count_claude_message_tokens(messages, model)
         return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -500,8 +515,8 @@ def count_output_tokens(string: str, model: str) -> int:
         int: The number of tokens in the text string.
     """
     if "claude" in model:
-        vo = anthropic.Client()
-        num_tokens = vo.count_tokens(string)
+        messages = [{"role": "assistant", "content": string}]
+        num_tokens = count_claude_message_tokens(messages, model)
         return num_tokens
     try:
         encoding = tiktoken.encoding_for_model(model)
