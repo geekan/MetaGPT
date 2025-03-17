@@ -18,7 +18,7 @@ class MetaAgent(Role):
     async def initialize(self, kwargs):
         self.root_path = os.path.join(ROOT_PATH, self.task_name)
 
-        node = self.search_memory.initialize(kwargs, os.path.join(self.root_path, "nodes")) # TODO: Implement memory initialization
+        node = self.search_memory.initialize(kwargs, os.path.join(self.root_path, "sela", "nodes")) # TODO: Implement memory initialization
         await self.search_algorithm.initialize(node) # TODO: Implement search algorithm initialization, preparing the context of node
         results = await self.experimenter.initialize(node, kwargs, os.path.join(self.root_path, "roles")) # TODO: Implement experimentor initialization 
         self.search_memory.update_from_child(node, results)
@@ -31,7 +31,7 @@ class MetaAgent(Role):
                 node = await self.initialize(kwargs)
                 self.started_search = True
             else:
-                node = self.search_memory.select() # TODO: Implement memory selection
+                node = self.search_algorithm.select(self.search_memory) # TODO: Implement memory selection
                 if node.depth > 4: # TODO: 这里逻辑没改
                     break
 

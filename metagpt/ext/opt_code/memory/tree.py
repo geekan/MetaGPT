@@ -49,12 +49,12 @@ class Tree(ABC, BaseModel):
     def init_root_node(self, args):
         pass
 
-    @abstractmethod
-    def select(self) -> TreeNode:
-        """
-            Select a node from the memory to process.
-        """
-        pass
+    # @abstractmethod
+    # def select(self) -> TreeNode:
+    #     """
+    #         Select a node from the memory to process.
+    #     """
+    #     pass
 
     def update_from_child(self, node: TreeNode, results):
         """

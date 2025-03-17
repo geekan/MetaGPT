@@ -20,6 +20,31 @@ class AFlowSearch(TreeSearch):
         
         global_context["operators_description"] = operators_description
     
+    def select(self, memory):
+        k = memory.k_selected
+        if len(memory.node_list) <= k:
+            top_k_nodes = memory.node_list
+        else:
+            # Select Top 3 score
+            top_k_nodes = sorted(memory.node_list, key=lambda x: x.reward, reverse=True)[:k]
+
+        if memory.node_list[0] not in top_k_nodes:
+            top_k_nodes.append(memory.node_list[0])
+
+        def select_by_prob(items):
+            sorted_items = sorted(items, key=lambda x: x.reward, reverse=True)
+            scores = [item.reward for item in sorted_items]
+
+            # transform score to probabilities
+            probabilities = [np.exp(score) for score in scores]
+            probabilities = probabilities / np.sum(probabilities)
+
+            selected_index = np.random.choice(len(sorted_items), p=probabilities)
+
+            return sorted_items[selected_index]
+        
+        return select_by_prob(top_k_nodes)
+
     def _load_operator_description(self, id: int, operator_name: str, file_path: str) -> str:
         with open(file_path, "r") as f:
             operator_data = json.load(f)

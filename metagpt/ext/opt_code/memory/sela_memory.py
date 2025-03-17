@@ -73,11 +73,13 @@ class SelaNode(TreeNode):
         return self.reward / self.visit_count
     
     def get_predictions_path(self, split):
-        return os.path.join(self.state["node_dir"], f"Node-{self.id}-{split}_predictions.csv")
+        path = os.path.join(self.state["node_dir"], f"Node_{self.id}_{split}_predictions.csv")
+        print(path)
+        return path
 
     def get_and_move_predictions(self, split):
         if not os.path.exists(self.get_predictions_path(split)):
-            pred_path = os.path.join(self.state["work_dir"], self.state["task"], f"{split}_predictions.csv")
+            pred_path = os.path.join(self.state["work_dir"], f"{split}_predictions.csv")
             shutil.copy(pred_path, self.get_predictions_path(split))
             os.remove(pred_path)
         return pd.read_csv(self.get_predictions_path(split))
@@ -92,7 +94,7 @@ class SelaNode(TreeNode):
             self.get_and_move_predictions("test")
         return score_dict
 
-    def update(self, reward: dict, child_node=None, path="metagpt/ext/opt_code/optimized"):
+    def update(self, reward: dict, child_node=None, path=""):
         if child_node is not None:
             tmp_child_role = SelaRole().load_state(child_node)
             tmp_role = SelaRole().load_state(self)
@@ -131,20 +133,20 @@ class SelaMemory(Tree):
     def init_root_node(self, args):
         return SelaNode(id="0", state=args["state"], depth=0)
         
-    def select(self):
-        def uct(node: SelaNode):
-            n_visits = node.visit_count if node.visit_count else self.c_unvisited
-            avg_value = node.avg_value() if node.visit_count else node.reward / self.c_unvisited
-            return avg_value + self.c_explore * np.sqrt(np.log(node.parent.visit_count) / n_visits)
+    # def select(self):
+    #     def uct(node: SelaNode):
+    #         n_visits = node.visit_count if node.visit_count else self.c_unvisited
+    #         avg_value = node.avg_value() if node.visit_count else node.reward / self.c_unvisited
+    #         return avg_value + self.c_explore * np.sqrt(np.log(node.parent.visit_count) / n_visits)
 
-        if len(self.node_list) == 1:
-            return self.node_list[0]
+    #     if len(self.node_list) == 1:
+    #         return self.node_list[0]
         
-        all_children = self.node_list[1:]
-        node = max(all_children, key=uct)
+    #     all_children = self.node_list[1:]
+    #     node = max(all_children, key=uct)
 
-        self.node_pointer = self.node_list.index(node)
-        return node
+    #     self.node_pointer = self.node_list.index(node)
+    #     return node
 
     def create_new_node(self, results):
         parent = self.node_list[self.node_pointer]

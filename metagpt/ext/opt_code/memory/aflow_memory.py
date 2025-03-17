@@ -42,30 +42,30 @@ class AFlowMemory(Tree):
         )
         return root_node
     
-    def select(self):
-        k = self.k_selected
-        if len(self.node_list) <= k:
-            top_k_nodes = self.node_list
-        else:
-            # Select Top 3 score
-            top_k_nodes = sorted(self.node_list, key=lambda x: x.reward, reverse=True)[:k]
+    # def select(self):
+    #     k = self.k_selected
+    #     if len(self.node_list) <= k:
+    #         top_k_nodes = self.node_list
+    #     else:
+    #         # Select Top 3 score
+    #         top_k_nodes = sorted(self.node_list, key=lambda x: x.reward, reverse=True)[:k]
 
-        if self.node_list[0] not in top_k_nodes:
-            top_k_nodes.append(self.node_list[0])
+    #     if self.node_list[0] not in top_k_nodes:
+    #         top_k_nodes.append(self.node_list[0])
 
-        def select_by_prob(items):
-            sorted_items = sorted(items, key=lambda x: x.reward, reverse=True)
-            scores = [item.reward for item in sorted_items]
+    #     def select_by_prob(items):
+    #         sorted_items = sorted(items, key=lambda x: x.reward, reverse=True)
+    #         scores = [item.reward for item in sorted_items]
 
-            # transform score to probabilities
-            probabilities = [np.exp(score) for score in scores]
-            probabilities = probabilities / np.sum(probabilities)
+    #         # transform score to probabilities
+    #         probabilities = [np.exp(score) for score in scores]
+    #         probabilities = probabilities / np.sum(probabilities)
 
-            selected_index = np.random.choice(len(sorted_items), p=probabilities)
+    #         selected_index = np.random.choice(len(sorted_items), p=probabilities)
 
-            return sorted_items[selected_index]
+    #         return sorted_items[selected_index]
         
-        return select_by_prob(top_k_nodes)
+    #     return select_by_prob(top_k_nodes)
 
     def create_new_node(self, results):
         node = AFlowNode(

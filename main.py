@@ -71,7 +71,25 @@ dataset description: {data_info_path} (During EDA, you can use this file to get 
 """
 
 ADDITIONAL_INSTRUCTION = """
-"\n## Attention\n1. Please do not leak the target label in any form during training.\n2. Test set does not have the target column.\n3. When conducting data exploration or analysis, print out the results of your findings.\n4. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).\n5. When scaling or transforming features, make sure the target column is not included.\n6. You could utilize dev set to validate and improve model training. \n\n## Saving Dev and Test Predictions\n1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. \n- Both files should contain a single column named `target` with the predicted values.\n2. Make sure the prediction results are in the same format as the target column in the original training set. \n- For instance, if the original target column is a list of string, the prediction results should also be strings.\n\n## Output Performance\nPrint the train and dev set performance in the last step.\n\n# Output dir\nmetagpt/ext/opt_code/optimized/sela/{task}\n"
+## Attention
+1. Please do not leak the target label in any form during training.
+2. Test set does not have the target column.
+3. When conducting data exploration or analysis, print out the results of your findings.
+4. You should perform transformations on train, dev, and test sets at the same time (it's a good idea to define functions for this and avoid code repetition).
+5. When scaling or transforming features, make sure the target column is not included.
+6. You could utilize dev set to validate and improve model training.
+
+## Saving Dev and Test Predictions
+1. Save the prediction results of BOTH the dev set and test set in `dev_predictions.csv` and `test_predictions.csv` respectively in the output directory. 
+- Both files should contain a single column named `target` with the predicted values.
+2. Make sure the prediction results are in the same format as the target column in the original training set. 
+- For instance, if the original target column is a list of string, the prediction results should also be strings.
+
+## Output Performance
+Print the train and dev set performance in the last step.
+
+# Output dir
+metagpt/ext/opt_code/optimized/{task}/sela
 """
 
 DATASET_CONFIGS = {
@@ -108,8 +126,8 @@ def create_initial_state(task: str):
 
     data_config = {
         "datasets_dir": root_path.format(task=task),
-        "work_dir": f"metagpt/ext/opt_code/optimized/sela",
-        "role_dir": f"metagpt/ext/opt_code/optimized/{task}/roles",
+        "work_dir": f"metagpt/ext/opt_code/optimized/{task}/sela",
+        "role_dir": f"metagpt/ext/opt_code/optimized/{task}/sela/roles",
         "datasets": DATASET_CONFIGS
     }
 
@@ -120,7 +138,7 @@ def create_initial_state(task: str):
     initial_state = {
         "task": task,
         "work_dir": data_config["work_dir"],
-        "node_dir": os.path.join(data_config["role_dir"], task),
+        "node_dir": os.path.join(data_config["work_dir"], "nodes"),
         "dataset_config": dataset_config,
         "datasets_dir": datasets_dir,  # won't be used if external eval is used
         "exp_pool_path": exp_pool_path,

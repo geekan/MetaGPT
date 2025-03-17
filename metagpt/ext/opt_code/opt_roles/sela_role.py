@@ -66,7 +66,7 @@ def save_notebook(role: 'SelaRole', save_dir: str = "", name: str = "", save_to_
     tasks = role.planner.plan.tasks
     nb = process_cells(role.execute_code.nb)
     os.makedirs(save_dir, exist_ok=True)
-    file_path = save_dir / f"Node-{name}.ipynb"
+    file_path = save_dir / f"Node_{name}.ipynb"
     nbformat.write(nb, file_path)
 
     if save_to_depth:
@@ -101,7 +101,7 @@ class SelaRole(DataInterpreter, Experimenter): # TODO 现在继承 Experimenter 
     role_timeout: int = 1000
     if_start: bool = False
     state_saved: bool = False
-    root_path: str = "metagpt/ext/opt_code/optimized/titanic/roles" # TODO fix this
+    root_path: str = "metagpt/ext/opt_code/optimized/titanic/sela/roles" # TODO fix this
 
     async def initialize(self, node, kwargs: dict, root_path):
         # self.root_path = root_path
@@ -146,7 +146,7 @@ class SelaRole(DataInterpreter, Experimenter): # TODO 现在继承 Experimenter 
 
         stg_path = self.root_path
         name = self.node_id
-        role_path = os.path.join(stg_path, f"Node-{name}.json")
+        role_path = os.path.join(stg_path, f"Node_{name}.json")
         # save state as json file
         write_json_file(role_path, self.model_dump())
 
@@ -163,7 +163,7 @@ class SelaRole(DataInterpreter, Experimenter): # TODO 现在继承 Experimenter 
     def load_state(self, node): # TODO 应该放到 Node 类中
         stg_path = self.root_path
         name = node.id
-        role_dict = read_json_file(os.path.join(stg_path, f"Node-{name}.json"))
+        role_dict = read_json_file(os.path.join(stg_path, f"Node_{name}.json"))
         if role_dict.get("tool_recommender") is None:
             role_dict["tool_recommender"] = ToolRecommender()
         elif isinstance(role_dict.get("tool_recommender", {}).get("tools"), dict):
@@ -253,6 +253,7 @@ class SelaRole(DataInterpreter, Experimenter): # TODO 现在继承 Experimenter 
                     await DataInterpreter.run(self, with_message="continue")
                 else:
                     await DataInterpreter.run(self, with_message=node.state["requirement"])
+                    self.if_start = True
 
                 score_dict = await self.get_score()
                 score_dict = node.evaluate_simulation(score_dict)

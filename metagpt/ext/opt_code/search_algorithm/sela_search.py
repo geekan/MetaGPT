@@ -45,6 +45,21 @@ class SelaSearch(TreeSearch):
         global_context["insights_pool"] = self.load_insight_pool(self.configs["exp_pool_path"])
         self.llm = create_llm_instance(self.configs["llm_config"])
 
+    def select(self, memory):
+        def uct(node: SelaNode, memory: SelaMemory):
+            n_visits = node.visit_count if node.visit_count else memory.c_unvisited
+            avg_value = node.avg_value() if node.visit_count else node.reward / memory.c_unvisited
+            return avg_value + memory.c_explore * np.sqrt(np.log(node.parent.visit_count) / n_visits)
+        
+        if len(memory.node_list) == 1:
+            return memory.node_list[0]
+        
+        all_children = memory.node_list[1:]
+        node = max(all_children, key=lambda x: uct(x, memory))
+
+        memory.node_pointer = memory.node_list.index(node)
+        return node
+
     def load_insight_pool(self, file_path):
         data = self.load_json_data(file_path)
         return data
@@ -61,7 +76,7 @@ class SelaSearch(TreeSearch):
         if node.visit_count > 0:
             return await super().expand_and_prepare(node, memory)
         else:
-            return node, None
+            return node, self._prepare(node)
 
     async def _expand(self, node: SelaNode, memory: SelaMemory):
         original_instruction = self.get_next_instruction(node)

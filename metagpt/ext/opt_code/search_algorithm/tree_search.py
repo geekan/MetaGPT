@@ -22,6 +22,16 @@ class TreeSearch(ABC):
     async def _initialize(self, node, global_context):
         """Initialize the search with root node."""
         pass
+
+    @abstractmethod
+    def select(self, memory):
+        """
+        Select a node from the memory to process.
+        
+        Args:
+            memory: The memory to select a node from
+        """
+        pass
     
     async def expand_and_prepare(self, node, memory):
         trial_node = await self._expand(node, memory)
