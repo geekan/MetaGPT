@@ -48,6 +48,8 @@ SUPPORT_STREAM_MODELS = {
     "anthropic.claude-3-opus-20240229-v1:0": 4096,
     # Claude 3.5 Sonnet
     "anthropic.claude-3-5-sonnet-20240620-v1:0": 8192,
+    "anthropic.claude-3-5-sonnet-20241022-v2:0": 8192,
+    "us.anthropic.claude-3-5-sonnet-20241022-v2:0": 8192,
     # Claude 3.7 Sonnet
     "us.anthropic.claude-3-7-sonnet-20250219-v1:0": 131072,
     "anthropic.claude-3-7-sonnet-20250219-v1:0": 131072,
