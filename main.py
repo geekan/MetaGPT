@@ -155,7 +155,7 @@ def create_initial_state(task: str):
 
 
 async def main():
-    ds_config = ModelsConfig.default().get("deepseek-coder")
+    ds_config = ModelsConfig.default().get("gpt-4o-mini")
     memory = SelaMemory()
     task = "titanic"
 
@@ -194,4 +194,4 @@ async def main():
     await meta_agent.run(running_config)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(aflowmain())

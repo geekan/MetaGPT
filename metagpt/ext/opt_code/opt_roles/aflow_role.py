@@ -135,7 +135,7 @@ class AflowRole(Experimenter):
         # 这里先保存
         name = "node_" + node.id
             
-        file_path = os.path.join(self.root_path, )
+        file_path = os.path.join(self.root_path, name)
         self._save_files(file_path, {"graph": node.code, "prompt": node.prompt}, name)
 
         workflow_path = file_path.replace("\\", ".").replace("/", ".")

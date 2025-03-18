@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from metagpt.ext.opt_code.memory.tree import TreeNode
+import numpy as np
+
 
 class TreeSearch(ABC):
     """Base class for tree-based search algorithms."""
@@ -22,6 +24,24 @@ class TreeSearch(ABC):
     async def _initialize(self, node, global_context):
         """Initialize the search with root node."""
         pass
+
+    def select_with_strategy(self, memory, strategy: str = None):
+        """
+        Select a node from the memory to process based on the strategy.
+        
+        Args:
+            memory: The memory to select a node from
+            strategy: The strategy to use for selecting the node
+        """
+        match strategy:
+            case "random":
+                return np.random.choice(memory.node_list)
+            case "greedy":
+                # return the node with the highest reward
+                return max(memory.node_list, key=lambda x: x.reward)
+            case _:
+                return self.select(memory)
+
 
     @abstractmethod
     def select(self, memory):

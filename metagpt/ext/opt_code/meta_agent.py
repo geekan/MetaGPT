@@ -31,7 +31,7 @@ class MetaAgent(Role):
                 node = await self.initialize(kwargs)
                 self.started_search = True
             else:
-                node = self.search_algorithm.select(self.search_memory) # TODO: Implement memory selection
+                node = self.search_algorithm.select_with_strategy(self.search_memory, "greedy") # TODO: Implement memory selection
                 if node.depth > 4: # TODO: 这里逻辑没改
                     break
 

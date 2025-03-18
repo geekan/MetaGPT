@@ -30,6 +30,9 @@ class AFlowNode(TreeNode):
         else:
             self.experience["failure"][child.id] = child.modification_info
 
+    def extend_child(self, action):
+        pass
+
 class AFlowMemory(Tree):
     k_selected: int = 3
 
