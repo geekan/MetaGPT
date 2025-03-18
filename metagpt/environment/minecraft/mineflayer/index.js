@@ -1,5 +1,7 @@
 const fs = require("fs");
-const express = require("express");
+const express = require("express")
+const csrf = require("csurf")
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const mineflayer = require("mineflayer");
 
@@ -18,7 +20,18 @@ const { plugin: tool } = require("mineflayer-tool");
 let bot = null;
 
 const app = express();
+// Setup cookie parser middleware
+app.use(cookieParser())
 
+// Setup CSRF protection
+const csrfProtection = csrf({ cookie: true })
+app.use(csrfProtection)
+
+// Add CSRF token to all rendered templates
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken()
+  next()
+})
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: false }));
 
