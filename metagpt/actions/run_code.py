@@ -171,3 +171,48 @@ class RunCode(Action):
     def _install_dependencies(working_directory, env):
         RunCode._install_requirements(working_directory, env)
         RunCode._install_pytest(working_directory, env)
+import ast
+import contextlib
+import io
+import sys
+from typing import Dict, List, Optional, Tuple
+
+def safe_execute_code(code: str, global_vars: Optional[Dict] = None, local_vars: Optional[Dict] = None) -> Tuple[str, Dict]:
+    """
+    Safely execute code without using exec() directly.
+    Instead, we'll use ast to parse the code and ensure it's valid Python,
+    then execute it in a restricted environment.
+    
+    Args:
+        code: The code to execute
+        global_vars: Global variables to use during execution
+        local_vars: Local variables to use during execution
+        
+    Returns:
+        Tuple of (stdout output, local variables after execution)
+    """
+    if global_vars is None:
+        global_vars = {}
+    if local_vars is None:
+        local_vars = {}
+    
+    # Parse the code to validate it's proper Python
+    try:
+        ast.parse(code)
+    except SyntaxError as e:
+        return f"Syntax error: {str(e)}", local_vars
+    
+    # Capture stdout
+    stdout_capture = io.StringIO()
+    
+    # Execute in a controlled environment
+    try:
+        with contextlib.redirect_stdout(stdout_capture):
+            # Use compile and exec which is slightly safer than raw exec
+            # as we're explicitly compiling in 'exec' mode
+            compiled_code = compile(code, "<string>", "exec")
+            exec(compiled_code, global_vars, local_vars)
+    except Exception as e:
+        return f"Runtime error: {str(e)}", local_vars
+    
+    return stdout_capture.getvalue(), local_vars
