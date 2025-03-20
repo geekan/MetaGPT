@@ -410,7 +410,7 @@ class BaseTreeSearch:
             scores["test_raw"].append(node.raw_reward["test_score"])
         return scores
 
-    async def search(self, state: dict, args):
+    async def search(self, state: dict, args, data_config):
         reflection = args.reflection
         load_tree = args.load_tree
         rollouts = args.rollouts
@@ -418,7 +418,7 @@ class BaseTreeSearch:
         role, root = initialize_di_root_node(state, reflection=reflection)
         self.root_node = root
         self.instruction_generator = InstructionGenerator(
-            state=state, use_fixed_insights=self.use_fixed_insights, from_scratch=from_scratch
+            state=state, use_fixed_insights=self.use_fixed_insights, from_scratch=from_scratch, data_config=data_config
         )
         await self.instruction_generator.initialize()
 
