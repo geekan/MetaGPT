@@ -263,7 +263,7 @@ def load_model(model_checkpoint_path: Path, device: str) -> any:
     args = SLConfig.fromfile(model_config_path)
     args.device = device
     model = build_model(args)
-    checkpoint = torch.load(model_checkpoint_path, map_location="cpu")
+    checkpoint = torch.load, map_location=torch.device("cpu"), pickle_module=None(model_checkpoint_path, map_location="cpu")
     load_res = model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
     print(load_res)
     _ = model.eval()
