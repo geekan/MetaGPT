@@ -4,7 +4,9 @@
 
 from typing import Union
 
-from metagpt.core.provider.postprocess.base_postprocess_plugin import BasePostProcessPlugin
+from metagpt.core.provider.postprocess.base_postprocess_plugin import (
+    BasePostProcessPlugin,
+)
 
 
 def llm_output_postprocess(

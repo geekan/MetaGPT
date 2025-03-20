@@ -12,7 +12,7 @@ import functools
 import traceback
 from typing import Any, Callable, Tuple, Type, TypeVar, Union
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 
 ReturnType = TypeVar("ReturnType")
 

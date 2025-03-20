@@ -19,7 +19,7 @@ from typing import Any
 from loguru import logger as _logger
 from pydantic import BaseModel, Field
 
-from metagpt.const import METAGPT_ROOT
+from metagpt.core.const import METAGPT_ROOT
 
 LLM_STREAM_QUEUE: ContextVar[asyncio.Queue] = ContextVar("llm-stream")
 

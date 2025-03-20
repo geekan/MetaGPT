@@ -10,11 +10,11 @@ from uuid import UUID, uuid4
 from aiohttp import ClientSession, UnixConnector
 from pydantic import BaseModel, Field, PrivateAttr
 
-from metagpt.const import METAGPT_REPORTER_DEFAULT_URL
+from metagpt.core.const import METAGPT_REPORTER_DEFAULT_URL
 from metagpt.core.logs import create_llm_stream_queue, get_llm_stream_queue
 
 if typing.TYPE_CHECKING:
-    from metagpt.roles.role import Role
+    from metagpt.core.roles.base import BaseRole
 
 try:
     import requests_unixsocket as requests
@@ -23,7 +23,7 @@ except ImportError:
 
 from contextvars import ContextVar
 
-CURRENT_ROLE: ContextVar["Role"] = ContextVar("role")
+CURRENT_ROLE: ContextVar["BaseRole"] = ContextVar("BaseRole")
 
 
 class BlockType(str, Enum):

@@ -11,10 +11,10 @@ from typing import DefaultDict, Iterable, Optional, Set
 
 from pydantic import BaseModel, Field, SerializeAsAny
 
-from metagpt.const import IGNORED_MESSAGE_ID
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, any_to_str_set
-from metagpt.utils.exceptions import handle_exception
+from metagpt.core.const import IGNORED_MESSAGE_ID
+from metagpt.core.core_schema import Message
+from metagpt.core.utils.common import any_to_str, any_to_str_set
+from metagpt.core.utils.exceptions import handle_exception
 
 
 class Memory(BaseModel):

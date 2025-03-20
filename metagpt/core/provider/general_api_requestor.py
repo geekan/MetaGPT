@@ -8,8 +8,8 @@ from typing import AsyncGenerator, Iterator, Optional, Tuple, Union
 import aiohttp
 import requests
 
-from metagpt.logs import logger
-from metagpt.provider.general_api_base import APIRequestor, OpenAIResponse
+from metagpt.core.logs import logger
+from metagpt.core.provider.general_api_base import APIRequestor, OpenAIResponse
 
 
 def parse_stream_helper(line: bytes) -> Optional[bytes]:

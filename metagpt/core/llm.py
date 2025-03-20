@@ -7,9 +7,9 @@
 """
 from typing import Optional
 
-from metagpt.configs.llm_config import LLMConfig
-from metagpt.context import Context
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.context import Context
+from metagpt.core.provider.base_llm import BaseLLM
 
 
 def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> BaseLLM:

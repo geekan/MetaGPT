@@ -7,16 +7,12 @@
 """
 import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Literal, Optional
+from typing import Dict, Iterable, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator
 
-from metagpt.configs.embedding_config import EmbeddingConfig
-from metagpt.core.configs.llm_config import LLMConfig, LLMType
-from metagpt.configs.omniparse_config import OmniParseConfig
-from metagpt.configs.role_custom_config import RoleCustomConfig
-from metagpt.configs.workspace_config import WorkspaceConfig
-from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel
 
 
@@ -51,7 +47,6 @@ class CoreConfig(CLIParams, YamlModel):
     # Misc Parameters
     repair_llm_output: bool = False
     prompt_schema: Literal["json", "markdown", "raw"] = "json"
-    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
 
     @classmethod
     def from_home(cls, path):

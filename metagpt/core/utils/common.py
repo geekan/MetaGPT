@@ -45,10 +45,10 @@ from PIL import Image
 from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, RetryError, _utils
 
-from metagpt.const import MARKDOWN_TITLE_PREFIX, MESSAGE_ROUTE_TO_ALL
-from metagpt.logs import logger
-from metagpt.utils.exceptions import handle_exception
-from metagpt.utils.json_to_markdown import json_to_markdown
+from metagpt.core.const import MARKDOWN_TITLE_PREFIX, MESSAGE_ROUTE_TO_ALL
+from metagpt.core.logs import logger
+from metagpt.core.utils.exceptions import handle_exception
+from metagpt.core.utils.json_to_markdown import json_to_markdown
 
 
 def check_cmd_exists(command) -> int:

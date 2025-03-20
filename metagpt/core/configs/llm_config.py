@@ -11,9 +11,9 @@ from typing import Optional
 
 from pydantic import field_validator
 
-from metagpt.configs.compress_msg_config import CompressType
-from metagpt.const import CONFIG_ROOT, LLM_API_TIMEOUT, METAGPT_ROOT
-from metagpt.utils.yaml_model import YamlModel
+from metagpt.core.configs.compress_msg_config import CompressType
+from metagpt.core.const import CONFIG_ROOT, LLM_API_TIMEOUT, METAGPT_ROOT
+from metagpt.core.utils.yaml_model import YamlModel
 
 
 class LLMType(Enum):

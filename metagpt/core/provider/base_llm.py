@@ -24,12 +24,12 @@ from tenacity import (
 
 from metagpt.core.configs.compress_msg_config import CompressType
 from metagpt.core.configs.llm_config import LLMConfig
-from metagpt.const import IMAGES, LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
+from metagpt.core.const import IMAGES, LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.core.logs import logger
 from metagpt.core.provider.constant import MULTI_MODAL_MODELS
 from metagpt.core.utils.common import log_and_reraise
 from metagpt.core.utils.cost_manager import CostManager, Costs
-from metagpt.core.utils.token_counter import TOKEN_MAX
+from metagpt.core.utils.token_count_const import TOKEN_MAX
 
 
 class BaseLLM(ABC):
@@ -91,7 +91,7 @@ class BaseLLM(ABC):
 
     def format_msg(self, messages: Union[str, "Message", list[dict], list["Message"], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
-        from metagpt.core.schema import Message
+        from metagpt.schema import Message
 
         if not isinstance(messages, list):
             messages = [messages]

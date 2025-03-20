@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : llm_provider_registry.py
 """
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.provider.base_llm import BaseLLM
 
 
 class LLMProviderRegistry:

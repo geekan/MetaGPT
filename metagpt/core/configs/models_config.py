@@ -19,7 +19,7 @@ from pydantic import Field, field_validator
 
 from metagpt.core.config import merge_dict
 from metagpt.core.configs.llm_config import LLMConfig
-from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
+from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel
 
 

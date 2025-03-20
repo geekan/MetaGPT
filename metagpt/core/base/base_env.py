@@ -6,8 +6,8 @@ import typing
 from abc import abstractmethod
 from typing import Any, Optional
 
-from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
-from metagpt.base.base_serialization import BaseSerialization
+from metagpt.core.base.base_env_space import BaseEnvAction, BaseEnvObsParams
+from metagpt.core.base.base_serialization import BaseSerialization
 
 if typing.TYPE_CHECKING:
     from metagpt.schema import Message
