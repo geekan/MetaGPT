@@ -1,0 +1,21 @@
+# Example configuration for using Ollama with a third-party URL wrapper
+llm:
+  api_type: "ollama"  # Using the Ollama provider
+  model: "llama2"     # Specify the model name
+  base_url: "http://localhost:8989/ollama/api"  # Third-party wrapper URL with /api path
+  api_key: "not-needed-for-ollama"  # Ollama doesn't require an API key, but config needs this field
+
+# Alternative configuration if your wrapper doesn't include /api in the URL
+# llm:
+#   api_type: "ollama"
+#   model: "llama2"
+#   base_url: "http://localhost:8989/ollama"  # The code will handle adding /api before /chat
+#   api_key: "not-needed-for-ollama"
+
+# You can also use the proxy parameter if needed
+# llm:
+#   api_type: "ollama"
+#   model: "llama2"
+#   base_url: "http://localhost:11434"  # Direct Ollama URL
+#   proxy: "http://localhost:8989"      # Proxy server
+#   api_key: "not-needed-for-ollama"
