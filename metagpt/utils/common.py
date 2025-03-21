@@ -31,6 +31,8 @@ import uuid
 from asyncio import iscoroutinefunction
 from datetime import datetime
 from functools import partial
+import asyncio
+import nest_asyncio
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
@@ -670,6 +672,15 @@ def import_class_inst(class_name: str, module_name: str, *args, **kwargs) -> obj
 
 def format_trackback_info(limit: int = 2):
     return traceback.format_exc(limit=limit)
+
+
+def asyncio_run(future):
+    nest_asyncio.apply()
+    try:
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(future)
+    except RuntimeError: 
+        return asyncio.run(future)
 
 
 def serialize_decorator(func):

@@ -5,7 +5,7 @@
 
 import asyncio
 import time
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -24,9 +24,9 @@ OptimizerType = Literal["Graph", "Test"]
 
 
 class GraphOptimize(BaseModel):
-    modification: str = Field(default="", description="modification")
-    graph: str = Field(default="", description="graph")
-    prompt: str = Field(default="", description="prompt")
+    modification: Optional[str] = Field(default="", description="modification")
+    graph: Optional[str] = Field(default="", description="graph")
+    prompt: Optional[str] = Field(default="", description="prompt")
 
 
 class Optimizer:
@@ -90,7 +90,7 @@ class Optimizer:
                     break
                 except Exception as e:
                     retry_count += 1
-                    logger.info(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
+                    logger.exception(f"Error occurred: {e}. Retrying... (Attempt {retry_count}/{max_retries})")
                     if retry_count == max_retries:
                         logger.info("Max retries reached. Moving to next round.")
                         score = None

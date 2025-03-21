@@ -92,6 +92,9 @@ class LLMConfig(YamlModel):
     top_logprobs: Optional[int] = None
     timeout: int = 600
     context_length: Optional[int] = None  # Max input tokens
+    # For rate limit control
+    rpm: Optional[int] = 0
+    tpm: Optional[int] = 0
 
     # For Amazon Bedrock
     region_name: str = None
