@@ -13,7 +13,7 @@ ref5: https://ai.google.dev/models/gemini
 import anthropic
 import tiktoken
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 
 TOKEN_COSTS = {
     "anthropic/claude-3.5-sonnet": {"prompt": 0.003, "completion": 0.015},

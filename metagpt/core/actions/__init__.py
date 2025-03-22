@@ -6,7 +6,7 @@
 @File    : __init__.py
 """
 
-from metagpt.core.actions.base import Action
+from metagpt.core.actions.action import Action
 from metagpt.core.actions.action_output import ActionOutput
 
 __all__ = [

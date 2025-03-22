@@ -11,8 +11,8 @@ from uuid import uuid4
 
 from pydantic import field_validator, model_validator
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.utils.yaml_model import YamlModel
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.core.utils.yaml_model import YamlModel
 
 
 class WorkspaceConfig(YamlModel):

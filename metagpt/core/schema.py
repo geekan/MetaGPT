@@ -18,7 +18,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
-import time
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
@@ -37,8 +36,10 @@ from pydantic import (
     field_validator,
 )
 
-from metagpt.base.base_serialization import BaseSerialization
-from metagpt.const import (
+from metagpt.core.base.base_serialization import BaseSerialization
+from metagpt.core.actions.action_output import ActionOutput
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.const import (
     AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
@@ -49,8 +50,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
 )
 from metagpt.core.logs import logger
-from metagpt.repo_parser import DotClassInfo
-from metagpt.tools.tool_registry import register_tool
+from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.utils.common import (
     CodeParser,
     any_to_str,
@@ -58,10 +58,9 @@ from metagpt.core.utils.common import (
     aread,
     import_class,
     read_json_file,
-    write_json_file,
+    write_json_file
 )
 from metagpt.core.utils.exceptions import handle_exception
-from metagpt.core.utils.report import TaskReporter
 from metagpt.core.utils.serialize import (
     actionoutout_schema_to_mapping,
     actionoutput_mapping_to_str,
@@ -128,6 +127,36 @@ class SerializationMixin(BaseSerialization):
         """
 
         return str(SERDESER_PATH / f"{cls.__qualname__}.json")
+
+
+class CodeSummarizeContext(BaseModel):
+    design_filename: str = ""
+    task_filename: str = ""
+    codes_filenames: List[str] = Field(default_factory=list)
+    reason: str = ""
+
+    @staticmethod
+    def loads(filenames: List) -> CodeSummarizeContext:
+        ctx = CodeSummarizeContext()
+        for filename in filenames:
+            if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = str(filename)
+                continue
+            if Path(filename).is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = str(filename)
+                continue
+        return ctx
+
+    def __hash__(self):
+        return hash((self.design_filename, self.task_filename))
+
+
+class CodePlanAndChangeContext(BaseModel):
+    requirement: str = ""
+    issue: str = ""
+    prd_filename: str = ""
+    design_filename: str = ""
+    task_filename: str = ""
 
 
 class SimpleMessage(BaseModel):
@@ -219,6 +248,231 @@ class Documents(BaseModel):
         from metagpt.core.actions.action_output import ActionOutput
 
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
+
+
+@register_tool(
+    include_functions=[
+        "append_task",
+        "reset_task",
+        "replace_task",
+        "finish_current_task",
+    ]
+)
+class Plan(BaseModel):
+    """Plan is a sequence of tasks towards a goal."""
+
+    goal: str
+    context: str = ""
+    tasks: list[Task] = []
+    task_map: dict[str, Task] = {}
+    current_task_id: str = ""
+
+    def _topological_sort(self, tasks: list[Task]):
+        task_map = {task.task_id: task for task in tasks}
+        dependencies = {task.task_id: set(task.dependent_task_ids) for task in tasks}
+        sorted_tasks = []
+        visited = set()
+
+        def visit(task_id):
+            if task_id in visited:
+                return
+            visited.add(task_id)
+            for dependent_id in dependencies.get(task_id, []):
+                visit(dependent_id)
+            sorted_tasks.append(task_map[task_id])
+
+        for task in tasks:
+            visit(task.task_id)
+
+        return sorted_tasks
+
+    def add_tasks(self, tasks: list[Task]):
+        """
+        Integrates new tasks into the existing plan, ensuring dependency order is maintained.
+
+        This method performs two primary functions based on the current state of the task list:
+        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
+        correct execution order based on dependencies, and sets these as the current tasks.
+        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
+        any common prefix of tasks (based on task_id and instruction) and appends the remainder
+        of the new tasks. The current task is updated to the first unfinished task in this merged list.
+
+        Args:
+            tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
+
+        Returns:
+            None: The method updates the internal state of the plan but does not return anything.
+        """
+        if not tasks:
+            return
+
+        # Topologically sort the new tasks to ensure correct dependency order
+        new_tasks = self._topological_sort(tasks)
+
+        if not self.tasks:
+            # If there are no existing tasks, set the new tasks as the current tasks
+            self.tasks = new_tasks
+
+        else:
+            # Find the length of the common prefix between existing and new tasks
+            prefix_length = 0
+            for old_task, new_task in zip(self.tasks, new_tasks):
+                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
+                    break
+                prefix_length += 1
+
+            # Combine the common prefix with the remainder of the new tasks
+            final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
+            self.tasks = final_tasks
+
+        # Update current_task_id to the first unfinished task in the merged list
+        self._update_current_task()
+
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
+    def reset_task(self, task_id: str):
+        """
+        Reset a task based on task_id, i.e. set Task.is_finished=False and request redo. This also resets all tasks depending on it.
+
+        Args:
+            task_id (str): The ID of the task to be reset.
+        """
+        if task_id in self.task_map:
+            task = self.task_map[task_id]
+            task.reset()
+            # reset all downstream tasks that are dependent on the reset task
+            for dep_task in self.tasks:
+                if task_id in dep_task.dependent_task_ids:
+                    # FIXME: if LLM generates cyclic tasks, this will result in infinite recursion
+                    self.reset_task(dep_task.task_id)
+
+        self._update_current_task()
+
+    def _replace_task(self, new_task: Task):
+        """
+        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
+
+        Args:
+            new_task (Task): The new task that will replace an existing one.
+
+        Returns:
+            None
+        """
+        assert new_task.task_id in self.task_map
+        # Replace the task in the task map and the task list
+        self.task_map[new_task.task_id] = new_task
+        for i, task in enumerate(self.tasks):
+            if task.task_id == new_task.task_id:
+                self.tasks[i] = new_task
+                break
+
+        # Reset dependent tasks
+        for task in self.tasks:
+            if new_task.task_id in task.dependent_task_ids:
+                self.reset_task(task.task_id)
+
+        self._update_current_task()
+
+    def _append_task(self, new_task: Task):
+        """
+        Append a new task to the end of existing task sequences
+
+        Args:
+            new_task (Task): The new task to be appended to the existing task sequence
+
+        Returns:
+            None
+        """
+        # assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        if self.has_task_id(new_task.task_id):
+            logger.warning(
+                "Task already in current plan, should use replace_task instead. Overwriting the existing task."
+            )
+
+        assert all(
+            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
+        ), "New task has unknown dependencies"
+
+        # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
+        self.tasks.append(new_task)
+        self.task_map[new_task.task_id] = new_task
+        self._update_current_task()
+
+    def has_task_id(self, task_id: str) -> bool:
+        return task_id in self.task_map
+
+    def _update_current_task(self):
+        self.tasks = self._topological_sort(self.tasks)
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
+        current_task_id = ""
+        for task in self.tasks:
+            if not task.is_finished:
+                current_task_id = task.task_id
+                break
+        self.current_task_id = current_task_id
+        TaskReporter().report({"tasks": [i.model_dump() for i in self.tasks], "current_task_id": current_task_id})
+
+    @property
+    def current_task(self) -> Task:
+        """Find current task to execute
+
+        Returns:
+            Task: the current task to be executed
+        """
+        return self.task_map.get(self.current_task_id, None)
+
+    def finish_current_task(self):
+        """Finish current task, set Task.is_finished=True, set current task to next task"""
+        if self.current_task_id:
+            self.current_task.is_finished = True
+            self._update_current_task()  # set to next task
+
+    def finish_all_tasks(self):
+        "Finish all tasks."
+        while self.current_task:
+            self.finish_current_task()
+
+    def is_plan_finished(self) -> bool:
+        """Check if all tasks are finished"""
+        return all(task.is_finished for task in self.tasks)
+
+    def get_finished_tasks(self) -> list[Task]:
+        """return all finished tasks in correct linearized order
+
+        Returns:
+            list[Task]: list of finished tasks
+        """
+        return [task for task in self.tasks if task.is_finished]
+
+    def append_task(
+        self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""
+    ):
+        """
+        Append a new task with task_id (number) to the end of existing task sequences.
+        If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list.
+        Note that the assignee should be the 'name' of the role.
+        """
+        new_task = Task(
+            task_id=task_id,
+            dependent_task_ids=dependent_task_ids,
+            instruction=instruction,
+            assignee=assignee,
+            task_type=task_type,
+        )
+        return self._append_task(new_task)
+
+    def replace_task(self, task_id: str, new_dependent_task_ids: list[str], new_instruction: str, new_assignee: str):
+        """Replace an existing task (can be current task) based on task_id, and reset all tasks depending on it."""
+        new_task = Task(
+            task_id=task_id,
+            dependent_task_ids=new_dependent_task_ids,
+            instruction=new_instruction,
+            assignee=new_assignee,
+        )
+        return self._replace_task(new_task)
 
 
 class Resource(BaseModel):
@@ -485,231 +739,6 @@ class TaskResult(BaseModel):
     is_success: bool
 
 
-@register_tool(
-    include_functions=[
-        "append_task",
-        "reset_task",
-        "replace_task",
-        "finish_current_task",
-    ]
-)
-class Plan(BaseModel):
-    """Plan is a sequence of tasks towards a goal."""
-
-    goal: str
-    context: str = ""
-    tasks: list[Task] = []
-    task_map: dict[str, Task] = {}
-    current_task_id: str = ""
-
-    def _topological_sort(self, tasks: list[Task]):
-        task_map = {task.task_id: task for task in tasks}
-        dependencies = {task.task_id: set(task.dependent_task_ids) for task in tasks}
-        sorted_tasks = []
-        visited = set()
-
-        def visit(task_id):
-            if task_id in visited:
-                return
-            visited.add(task_id)
-            for dependent_id in dependencies.get(task_id, []):
-                visit(dependent_id)
-            sorted_tasks.append(task_map[task_id])
-
-        for task in tasks:
-            visit(task.task_id)
-
-        return sorted_tasks
-
-    def add_tasks(self, tasks: list[Task]):
-        """
-        Integrates new tasks into the existing plan, ensuring dependency order is maintained.
-
-        This method performs two primary functions based on the current state of the task list:
-        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
-        correct execution order based on dependencies, and sets these as the current tasks.
-        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
-        any common prefix of tasks (based on task_id and instruction) and appends the remainder
-        of the new tasks. The current task is updated to the first unfinished task in this merged list.
-
-        Args:
-            tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
-
-        Returns:
-            None: The method updates the internal state of the plan but does not return anything.
-        """
-        if not tasks:
-            return
-
-        # Topologically sort the new tasks to ensure correct dependency order
-        new_tasks = self._topological_sort(tasks)
-
-        if not self.tasks:
-            # If there are no existing tasks, set the new tasks as the current tasks
-            self.tasks = new_tasks
-
-        else:
-            # Find the length of the common prefix between existing and new tasks
-            prefix_length = 0
-            for old_task, new_task in zip(self.tasks, new_tasks):
-                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
-                    break
-                prefix_length += 1
-
-            # Combine the common prefix with the remainder of the new tasks
-            final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
-            self.tasks = final_tasks
-
-        # Update current_task_id to the first unfinished task in the merged list
-        self._update_current_task()
-
-        # Update the task map for quick access to tasks by ID
-        self.task_map = {task.task_id: task for task in self.tasks}
-
-    def reset_task(self, task_id: str):
-        """
-        Reset a task based on task_id, i.e. set Task.is_finished=False and request redo. This also resets all tasks depending on it.
-
-        Args:
-            task_id (str): The ID of the task to be reset.
-        """
-        if task_id in self.task_map:
-            task = self.task_map[task_id]
-            task.reset()
-            # reset all downstream tasks that are dependent on the reset task
-            for dep_task in self.tasks:
-                if task_id in dep_task.dependent_task_ids:
-                    # FIXME: if LLM generates cyclic tasks, this will result in infinite recursion
-                    self.reset_task(dep_task.task_id)
-
-        self._update_current_task()
-
-    def _replace_task(self, new_task: Task):
-        """
-        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
-
-        Args:
-            new_task (Task): The new task that will replace an existing one.
-
-        Returns:
-            None
-        """
-        assert new_task.task_id in self.task_map
-        # Replace the task in the task map and the task list
-        self.task_map[new_task.task_id] = new_task
-        for i, task in enumerate(self.tasks):
-            if task.task_id == new_task.task_id:
-                self.tasks[i] = new_task
-                break
-
-        # Reset dependent tasks
-        for task in self.tasks:
-            if new_task.task_id in task.dependent_task_ids:
-                self.reset_task(task.task_id)
-
-        self._update_current_task()
-
-    def _append_task(self, new_task: Task):
-        """
-        Append a new task to the end of existing task sequences
-
-        Args:
-            new_task (Task): The new task to be appended to the existing task sequence
-
-        Returns:
-            None
-        """
-        # assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
-        if self.has_task_id(new_task.task_id):
-            logger.warning(
-                "Task already in current plan, should use replace_task instead. Overwriting the existing task."
-            )
-
-        assert all(
-            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
-        ), "New task has unknown dependencies"
-
-        # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
-        self.tasks.append(new_task)
-        self.task_map[new_task.task_id] = new_task
-        self._update_current_task()
-
-    def has_task_id(self, task_id: str) -> bool:
-        return task_id in self.task_map
-
-    def _update_current_task(self):
-        self.tasks = self._topological_sort(self.tasks)
-        # Update the task map for quick access to tasks by ID
-        self.task_map = {task.task_id: task for task in self.tasks}
-
-        current_task_id = ""
-        for task in self.tasks:
-            if not task.is_finished:
-                current_task_id = task.task_id
-                break
-        self.current_task_id = current_task_id
-        TaskReporter().report({"tasks": [i.model_dump() for i in self.tasks], "current_task_id": current_task_id})
-
-    @property
-    def current_task(self) -> Task:
-        """Find current task to execute
-
-        Returns:
-            Task: the current task to be executed
-        """
-        return self.task_map.get(self.current_task_id, None)
-
-    def finish_current_task(self):
-        """Finish current task, set Task.is_finished=True, set current task to next task"""
-        if self.current_task_id:
-            self.current_task.is_finished = True
-            self._update_current_task()  # set to next task
-
-    def finish_all_tasks(self):
-        "Finish all tasks."
-        while self.current_task:
-            self.finish_current_task()
-
-    def is_plan_finished(self) -> bool:
-        """Check if all tasks are finished"""
-        return all(task.is_finished for task in self.tasks)
-
-    def get_finished_tasks(self) -> list[Task]:
-        """return all finished tasks in correct linearized order
-
-        Returns:
-            list[Task]: list of finished tasks
-        """
-        return [task for task in self.tasks if task.is_finished]
-
-    def append_task(
-        self, task_id: str, dependent_task_ids: list[str], instruction: str, assignee: str, task_type: str = ""
-    ):
-        """
-        Append a new task with task_id (number) to the end of existing task sequences.
-        If dependent_task_ids is not empty, the task will depend on the tasks with the ids in the list.
-        Note that the assignee should be the 'name' of the role.
-        """
-        new_task = Task(
-            task_id=task_id,
-            dependent_task_ids=dependent_task_ids,
-            instruction=instruction,
-            assignee=assignee,
-            task_type=task_type,
-        )
-        return self._append_task(new_task)
-
-    def replace_task(self, task_id: str, new_dependent_task_ids: list[str], new_instruction: str, new_assignee: str):
-        """Replace an existing task (can be current task) based on task_id, and reset all tasks depending on it."""
-        new_task = Task(
-            task_id=task_id,
-            dependent_task_ids=new_dependent_task_ids,
-            instruction=new_instruction,
-            assignee=new_assignee,
-        )
-        return self._replace_task(new_task)
-
-
 class MessageQueue(BaseModel):
     """Message queue which supports asynchronous updates."""
 
@@ -825,125 +854,6 @@ class RunCodeResult(BaseContext):
     summary: str
     stdout: str
     stderr: str
-
-
-class CodeSummarizeContext(BaseModel):
-    design_filename: str = ""
-    task_filename: str = ""
-    codes_filenames: List[str] = Field(default_factory=list)
-    reason: str = ""
-
-    @staticmethod
-    def loads(filenames: List) -> CodeSummarizeContext:
-        ctx = CodeSummarizeContext()
-        for filename in filenames:
-            if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
-                ctx.design_filename = str(filename)
-                continue
-            if Path(filename).is_relative_to(TASK_FILE_REPO):
-                ctx.task_filename = str(filename)
-                continue
-        return ctx
-
-    def __hash__(self):
-        return hash((self.design_filename, self.task_filename))
-
-
-class CodePlanAndChangeContext(BaseModel):
-    requirement: str = ""
-    issue: str = ""
-    prd_filename: str = ""
-    design_filename: str = ""
-    task_filename: str = ""
-
-
-# mermaid class view
-class UMLClassMeta(BaseModel):
-    name: str = ""
-    visibility: str = ""
-
-    @staticmethod
-    def name_to_visibility(name: str) -> str:
-        if name == "__init__":
-            return "+"
-        if name.startswith("__"):
-            return "-"
-        elif name.startswith("_"):
-            return "#"
-        return "+"
-
-
-class UMLClassAttribute(UMLClassMeta):
-    value_type: str = ""
-    default_value: str = ""
-
-    def get_mermaid(self, align=1) -> str:
-        content = "".join(["\t" for i in range(align)]) + self.visibility
-        if self.value_type:
-            content += self.value_type.replace(" ", "") + " "
-        name = self.name.split(":", 1)[1] if ":" in self.name else self.name
-        content += name
-        if self.default_value:
-            content += "="
-            if self.value_type not in ["str", "string", "String"]:
-                content += self.default_value
-            else:
-                content += '"' + self.default_value.replace('"', "") + '"'
-        # if self.abstraction:
-        #     content += "*"
-        # if self.static:
-        #     content += "$"
-        return content
-
-
-class UMLClassMethod(UMLClassMeta):
-    args: List[UMLClassAttribute] = Field(default_factory=list)
-    return_type: str = ""
-
-    def get_mermaid(self, align=1) -> str:
-        content = "".join(["\t" for i in range(align)]) + self.visibility
-        name = self.name.split(":", 1)[1] if ":" in self.name else self.name
-        content += name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
-        if self.return_type:
-            content += " " + self.return_type.replace(" ", "")
-        # if self.abstraction:
-        #     content += "*"
-        # if self.static:
-        #     content += "$"
-        return content
-
-
-class UMLClassView(UMLClassMeta):
-    attributes: List[UMLClassAttribute] = Field(default_factory=list)
-    methods: List[UMLClassMethod] = Field(default_factory=list)
-
-    def get_mermaid(self, align=1) -> str:
-        content = "".join(["\t" for i in range(align)]) + "class " + self.name + "{\n"
-        for v in self.attributes:
-            content += v.get_mermaid(align=align + 1) + "\n"
-        for v in self.methods:
-            content += v.get_mermaid(align=align + 1) + "\n"
-        content += "".join(["\t" for i in range(align)]) + "}\n"
-        return content
-
-    @classmethod
-    def load_dot_class_info(cls, dot_class_info: DotClassInfo) -> UMLClassView:
-        visibility = UMLClassView.name_to_visibility(dot_class_info.name)
-        class_view = cls(name=dot_class_info.name, visibility=visibility)
-        for i in dot_class_info.attributes.values():
-            visibility = UMLClassAttribute.name_to_visibility(i.name)
-            attr = UMLClassAttribute(name=i.name, visibility=visibility, value_type=i.type_, default_value=i.default_)
-            class_view.attributes.append(attr)
-        for i in dot_class_info.methods.values():
-            visibility = UMLClassMethod.name_to_visibility(i.name)
-            method = UMLClassMethod(name=i.name, visibility=visibility, return_type=i.return_args.type_)
-            for j in i.args:
-                arg = UMLClassAttribute(name=j.name, value_type=j.type_, default_value=j.default_)
-                method.args.append(arg)
-            method.return_type = i.return_args.type_
-            class_view.methods.append(method)
-        return class_view
-
 
 class BaseEnum(Enum):
     """Base class for enums."""

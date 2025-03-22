@@ -9,9 +9,12 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, Literal
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.configs.workspace_config import WorkspaceConfig
+from metagpt.core.configs.exp_pool_config import ExperiencePoolConfig
+from metagpt.core.configs.role_zero_config import RoleZeroConfig
 from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel
 
@@ -37,6 +40,7 @@ class CLIParams(BaseModel):
 
 class CoreConfig(CLIParams, YamlModel):
     """Configurations for MetaGPT"""
+    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
 
     # Key Parameters
     llm: LLMConfig
@@ -44,9 +48,16 @@ class CoreConfig(CLIParams, YamlModel):
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
+    # Experience Pool Parameters
+    exp_pool: ExperiencePoolConfig = Field(default_factory=ExperiencePoolConfig)
+
     # Misc Parameters
     repair_llm_output: bool = False
     prompt_schema: Literal["json", "markdown", "raw"] = "json"
+
+    # RoleZero's configuration
+    role_zero: RoleZeroConfig = Field(default_factory=RoleZeroConfig)
+
 
     @classmethod
     def from_home(cls, path):
