@@ -20,7 +20,7 @@ from metagpt.core.exp_pool.schema import (
 from metagpt.core.exp_pool.scorers import BaseScorer, SimpleScorer
 from metagpt.core.exp_pool.serializers import BaseSerializer, SimpleSerializer
 from metagpt.core.logs import logger
-from metagpt.utils.async_helper import NestAsyncio
+from metagpt.core.utils.async_helper import NestAsyncio
 from metagpt.core.utils.exceptions import handle_exception
 
 ReturnType = TypeVar("ReturnType")

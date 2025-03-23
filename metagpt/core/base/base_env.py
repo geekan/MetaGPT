@@ -10,7 +10,7 @@ from metagpt.core.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.core.base.base_serialization import BaseSerialization
 
 if typing.TYPE_CHECKING:
-    from metagpt.uml_schema import Message
+    from metagpt.core.schema import Message
 
 
 class BaseEnvironment(BaseSerialization):
