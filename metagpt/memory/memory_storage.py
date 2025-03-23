@@ -8,8 +8,8 @@ from pathlib import Path
 
 from llama_index.core.embeddings import BaseEmbedding
 
-from metagpt.const import DATA_PATH, MEM_TTL
-from metagpt.logs import logger
+from metagpt.core.const import DATA_PATH, MEM_TTL
+from metagpt.core.logs import logger
 from metagpt.rag.engines.simple import SimpleEngine
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig
 from metagpt.schema import Message

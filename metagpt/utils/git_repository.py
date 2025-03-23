@@ -30,7 +30,7 @@ from gitignore_parser import parse_gitignore
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.tools.libs.shell import shell_execute
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository

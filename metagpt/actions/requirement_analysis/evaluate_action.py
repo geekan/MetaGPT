@@ -12,8 +12,12 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
-from metagpt.logs import logger
-from metagpt.utils.common import CodeParser, general_after_log, to_markdown_code_block
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import (
+    CodeParser,
+    general_after_log,
+    to_markdown_code_block,
+)
 
 
 class EvaluationData(BaseModel):

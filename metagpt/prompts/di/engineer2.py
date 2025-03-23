@@ -1,7 +1,7 @@
 import time
 
-from metagpt.const import REACT_TEMPLATE_PATH, VUE_TEMPLATE_PATH
-from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
+from metagpt.core.const import REACT_TEMPLATE_PATH, VUE_TEMPLATE_PATH
+from metagpt.core.prompts.role_zero import ROLE_INSTRUCTION
 
 EXTRA_INSTRUCTION = """
 You are an autonomous programmer

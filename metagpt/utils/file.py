@@ -14,10 +14,10 @@ import aiofiles
 from fsspec.implementations.memory import MemoryFileSystem as _MemoryFileSystem
 
 from metagpt.config2 import config
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
+from metagpt.core.utils.exceptions import handle_exception
 from metagpt.utils import read_docx
-from metagpt.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
-from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.repo_to_markdown import is_text_file
 
 

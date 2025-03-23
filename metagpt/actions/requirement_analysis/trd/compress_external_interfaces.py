@@ -9,9 +9,9 @@
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
-from metagpt.logs import logger
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import general_after_log
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import general_after_log
 
 
 @register_tool(include_functions=["run"])

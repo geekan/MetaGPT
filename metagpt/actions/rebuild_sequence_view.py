@@ -18,11 +18,9 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
-from metagpt.const import GRAPH_REPO_FILE_REPO
-from metagpt.logs import logger
-from metagpt.repo_parser import CodeBlockInfo, DotClassInfo
-from metagpt.schema import UMLClassView
-from metagpt.utils.common import (
+from metagpt.core.const import GRAPH_REPO_FILE_REPO
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import (
     add_affix,
     aread,
     auto_namespace,
@@ -33,6 +31,8 @@ from metagpt.utils.common import (
     read_file_block,
     split_namespace,
 )
+from metagpt.repo_parser import CodeBlockInfo, DotClassInfo
+from metagpt.uml_schema import UMLClassView
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import SPO, GraphKeyword, GraphRepository
 

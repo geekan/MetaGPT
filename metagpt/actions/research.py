@@ -9,10 +9,10 @@ from typing import Any, Callable, Coroutine, Optional, Union
 from pydantic import TypeAdapter, model_validator
 
 from metagpt.actions import Action
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import OutputParser
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine
-from metagpt.utils.common import OutputParser
 from metagpt.utils.parse_html import WebPage
 from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
 

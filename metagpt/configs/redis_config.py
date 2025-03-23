@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : redis_config.py
 """
-from metagpt.utils.yaml_model import YamlModelWithoutDefault
+from metagpt.core.utils.yaml_model import YamlModelWithoutDefault
 
 
 class RedisConfig(YamlModelWithoutDefault):

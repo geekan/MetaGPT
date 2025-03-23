@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from metagpt.actions import Action
+from metagpt.core.utils.common import CodeParser, remove_comments
 from metagpt.prompts.di.write_analysis_code import (
     CHECK_DATA_PROMPT,
     DEBUG_REFLECTION_EXAMPLE,
@@ -15,8 +16,7 @@ from metagpt.prompts.di.write_analysis_code import (
     REFLECTION_SYSTEM_MSG,
     STRUCTUAL_PROMPT,
 )
-from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, remove_comments
+from metagpt.uml_schema import Message, Plan
 
 
 class WriteAnalysisCode(Action):

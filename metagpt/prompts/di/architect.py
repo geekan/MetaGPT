@@ -1,4 +1,4 @@
-from metagpt.const import REACT_TEMPLATE_PATH, VUE_TEMPLATE_PATH
+from metagpt.core.const import REACT_TEMPLATE_PATH, VUE_TEMPLATE_PATH
 
 SYSTEM_DESIGN_EXAMPLE = """
 ```markdown

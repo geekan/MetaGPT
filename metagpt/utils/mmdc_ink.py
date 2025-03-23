@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from aiohttp import ClientError, ClientSession
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 
 
 async def mermaid_to_file(mermaid_code, output_file_without_suffix, suffixes: Optional[List[str]] = None):

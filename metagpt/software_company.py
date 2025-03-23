@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typer
 
-from metagpt.const import CONFIG_ROOT
+from metagpt.core.const import CONFIG_ROOT
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 

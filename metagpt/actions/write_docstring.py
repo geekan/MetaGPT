@@ -27,8 +27,8 @@ import ast
 from pathlib import Path
 from typing import Literal, Optional
 
-from metagpt.actions.action import Action
-from metagpt.utils.common import OutputParser, aread, awrite
+from metagpt.core.actions.base import Action
+from metagpt.core.utils.common import OutputParser, aread, awrite
 from metagpt.utils.pycst import merge_docstring
 
 PYTHON_DOCSTRING_SYSTEM = """### Requirements

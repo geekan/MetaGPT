@@ -6,7 +6,8 @@ from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.strategy.experience_retriever import ExpRetriever, KeywordExpRetriever
 from metagpt.prompts.di.data_analyst import (
     CODE_STATUS,
     EXTRA_INSTRUCTION,
@@ -16,7 +17,6 @@ from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
 from metagpt.prompts.di.write_analysis_code import DATA_INFO
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import Message, TaskResult
-from metagpt.strategy.experience_retriever import ExpRetriever, KeywordExpRetriever
 from metagpt.strategy.task_type import TaskType
 from metagpt.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
 from metagpt.tools.tool_registry import register_tool

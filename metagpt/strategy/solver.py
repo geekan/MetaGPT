@@ -7,7 +7,7 @@
 """
 from abc import abstractmethod
 
-from metagpt.actions.action_graph import ActionGraph
+from metagpt.core.actions.action_graph import ActionGraph
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.strategy.search_space import SearchSpace
 

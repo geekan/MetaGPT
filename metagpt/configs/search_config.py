@@ -10,7 +10,7 @@ from typing import Callable, Optional
 
 from pydantic import ConfigDict, Field
 
-from metagpt.utils.yaml_model import YamlModel
+from metagpt.core.utils.yaml_model import YamlModel
 
 
 class SearchEngineType(Enum):

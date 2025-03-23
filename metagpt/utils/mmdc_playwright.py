@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 
 from playwright.async_api import async_playwright
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 
 
 async def mermaid_to_file(

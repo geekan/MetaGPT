@@ -12,14 +12,14 @@ from llama_index.core.schema import NodeWithScore
 from pydantic import BaseModel, Field, model_validator
 
 from metagpt.config2 import config
-from metagpt.context import Context
-from metagpt.logs import logger
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import aread, awrite, generate_fingerprint, list_files
+from metagpt.core.utils.report import EditorReporter
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig, LLMRankerConfig
-from metagpt.utils.common import aread, awrite, generate_fingerprint, list_files
 from metagpt.utils.file import File
-from metagpt.utils.report import EditorReporter
 
 UPLOADS_INDEX_ROOT = "/data/.index/uploads"
 DEFAULT_INDEX_ROOT = UPLOADS_INDEX_ROOT

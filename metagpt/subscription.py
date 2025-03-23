@@ -3,9 +3,9 @@ from typing import AsyncGenerator, Awaitable, Callable
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import Message
+from metagpt.uml_schema import Message
 
 
 class SubscriptionRunner(BaseModel):

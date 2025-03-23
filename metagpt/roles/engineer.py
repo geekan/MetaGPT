@@ -32,14 +32,21 @@ from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
-from metagpt.const import (
+from metagpt.core.const import (
     CODE_PLAN_AND_CHANGE_FILE_REPO,
     MESSAGE_ROUTE_TO_SELF,
     REQUIREMENT_FILENAME,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import (
+    any_to_name,
+    any_to_str,
+    any_to_str_set,
+    get_project_srcs_path,
+    init_python_folder,
+)
 from metagpt.roles import Role
 from metagpt.schema import (
     AIMessage,
@@ -49,13 +56,6 @@ from metagpt.schema import (
     Document,
     Documents,
     Message,
-)
-from metagpt.utils.common import (
-    any_to_name,
-    any_to_str,
-    any_to_str_set,
-    get_project_srcs_path,
-    init_python_folder,
 )
 from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.project_repo import ProjectRepo

@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
-from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import (

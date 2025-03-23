@@ -1,12 +1,11 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 
 class BaseBedrockProvider(ABC):
     # to handle different generation kwargs
     max_tokens_field_name = "max_tokens"
-    usage: Optional[dict] = None
 
     def __init__(self, reasoning: bool = False, reasoning_max_token: int = 4000):
         self.reasoning = reasoning

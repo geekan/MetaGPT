@@ -11,18 +11,19 @@ from gymnasium import spaces
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
-from metagpt.base import BaseEnvironment, BaseRole
-from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
-from metagpt.context import Context
+from metagpt.core.base import BaseEnvironment
+from metagpt.core.base.base_env_space import BaseEnvAction, BaseEnvObsParams
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.memory import Memory
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import get_function_schema, is_coroutine_func, is_send_to
 from metagpt.environment.api.env_api import (
     EnvAPIAbstract,
     ReadAPIRegistry,
     WriteAPIRegistry,
 )
-from metagpt.logs import logger
-from metagpt.memory import Memory
-from metagpt.schema import Message
-from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
+from metagpt.roles import Role
 from metagpt.utils.git_repository import GitRepository
 
 
@@ -129,8 +130,8 @@ class Environment(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, SerializeAsAny[BaseRole]] = Field(default_factory=dict, validate_default=True)
-    member_addrs: Dict[BaseRole, Set] = Field(default_factory=dict, exclude=True)
+    roles: dict[str, SerializeAsAny[Role]] = Field(default_factory=dict, validate_default=True)
+    member_addrs: Dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: Memory = Field(default_factory=Memory)  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
@@ -153,7 +154,7 @@ class Environment(ExtEnv):
         self.add_roles(self.roles.values())
         return self
 
-    def add_role(self, role: BaseRole):
+    def add_role(self, role: Role):
         """增加一个在当前环境的角色
         Add a role in the current environment
         """
@@ -161,7 +162,7 @@ class Environment(ExtEnv):
         role.set_env(self)
         role.context = self.context
 
-    def add_roles(self, roles: Iterable[BaseRole]):
+    def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
         Add a batch of characters in the current environment
         """
@@ -210,13 +211,13 @@ class Environment(ExtEnv):
                 await asyncio.gather(*futures)
             logger.debug(f"is idle: {self.is_idle}")
 
-    def get_roles(self) -> dict[str, BaseRole]:
+    def get_roles(self) -> dict[str, Role]:
         """获得环境内的所有角色
         Process all Role runs at once
         """
         return self.roles
 
-    def get_role(self, name: str) -> BaseRole:
+    def get_role(self, name: str) -> Role:
         """获得环境内的指定角色
         get all the environment roles
         """

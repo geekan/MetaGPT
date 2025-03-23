@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import field_validator
 
-from metagpt.utils.yaml_model import YamlModel
+from metagpt.core.utils.yaml_model import YamlModel
 
 
 class EmbeddingType(Enum):

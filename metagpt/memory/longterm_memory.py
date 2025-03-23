@@ -8,10 +8,10 @@ from typing import Optional
 
 from pydantic import ConfigDict, Field
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.roles.role import RoleContext
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
-from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 
 

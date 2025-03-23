@@ -5,7 +5,8 @@ from typing import Annotated
 from pydantic import Field
 
 from metagpt.actions.di.run_command import RunCommand
-from metagpt.const import TEAMLEADER_NAME
+from metagpt.core.const import TEAMLEADER_NAME
+from metagpt.core.strategy.experience_retriever import ExpRetriever, SimpleExpRetriever
 from metagpt.prompts.di.role_zero import QUICK_THINK_TAG
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
@@ -15,7 +16,6 @@ from metagpt.prompts.di.team_leader import (
 )
 from metagpt.roles.di.role_zero import RoleZero
 from metagpt.schema import AIMessage, Message, UserMessage
-from metagpt.strategy.experience_retriever import ExpRetriever, SimpleExpRetriever
 from metagpt.tools.tool_registry import register_tool
 
 

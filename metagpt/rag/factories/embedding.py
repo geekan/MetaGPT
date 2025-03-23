@@ -11,7 +11,7 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 
 from metagpt.config2 import Config
 from metagpt.configs.embedding_config import EmbeddingType
-from metagpt.configs.llm_config import LLMType
+from metagpt.core.configs.llm_config import LLMType
 from metagpt.rag.factories.base import GenericFactory
 
 

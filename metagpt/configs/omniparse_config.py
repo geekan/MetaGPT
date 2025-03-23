@@ -1,4 +1,4 @@
-from metagpt.utils.yaml_model import YamlModel
+from metagpt.core.utils.yaml_model import YamlModel
 
 
 class OmniParseConfig(YamlModel):

@@ -25,11 +25,11 @@ from dashscope.common.error import (
     UnsupportedApiProtocol,
 )
 
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream
-from metagpt.provider.base_llm import BaseLLM, LLMConfig
-from metagpt.provider.llm_provider_registry import LLMType, register_provider
-from metagpt.utils.cost_manager import CostManager
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream
+from metagpt.core.provider.base_llm import BaseLLM, LLMConfig
+from metagpt.core.provider.llm_provider_registry import LLMType, register_provider
+from metagpt.core.utils.cost_manager import CostManager
 from metagpt.utils.token_counter import DASHSCOPE_TOKEN_COSTS
 
 

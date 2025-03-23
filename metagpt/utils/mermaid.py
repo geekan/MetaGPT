@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import List, Optional
 
 from metagpt.config2 import Config
-from metagpt.logs import logger
-from metagpt.utils.common import awrite, check_cmd_exists
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import awrite, check_cmd_exists
 
 
 async def mermaid_to_file(

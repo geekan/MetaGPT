@@ -2,7 +2,7 @@
 
 from unidiff import Hunk, PatchedFile, PatchSet
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 
 
 def rm_patch_useless_part(patch: PatchSet, used_suffix: list[str] = ["java", "py"]) -> PatchSet:

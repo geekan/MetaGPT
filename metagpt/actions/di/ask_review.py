@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from metagpt.actions import Action
-from metagpt.logs import get_human_input, logger
-from metagpt.schema import Message, Plan
+from metagpt.core.actions import Action
+from metagpt.core.logs import get_human_input, logger
+from metagpt.core.schema import Message, Plan
 
 
 class ReviewConst:

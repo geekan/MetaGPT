@@ -7,7 +7,7 @@
 """
 from typing import List, Union
 
-from metagpt.actions.action_node import ActionNode
+from metagpt.core.actions.action_node import ActionNode
 
 LANGUAGE = ActionNode(
     key="Language",

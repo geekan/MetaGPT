@@ -17,21 +17,21 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
-from metagpt.const import PACKAGE_REQUIREMENTS_FILENAME
-from metagpt.logs import logger
-from metagpt.schema import AIMessage, Document, Documents, Message
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import (
+from metagpt.core.actions.base import Action
+from metagpt.core.const import PACKAGE_REQUIREMENTS_FILENAME
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import (
     aread,
     awrite,
     rectify_pathname,
     save_json_to_markdown,
     to_markdown_code_block,
 )
+from metagpt.core.utils.report import DocsReporter
+from metagpt.uml_schema import AIMessage, Document, Documents, Message
 from metagpt.utils.project_repo import ProjectRepo
-from metagpt.utils.report import DocsReporter
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content

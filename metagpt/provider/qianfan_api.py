@@ -8,12 +8,12 @@ import qianfan
 from qianfan import ChatCompletion
 from qianfan.resources.typing import JsonBody
 
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.utils.cost_manager import CostManager
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.provider.llm_provider_registry import register_provider
+from metagpt.core.utils.cost_manager import CostManager
 from metagpt.utils.token_counter import (
     QIANFAN_ENDPOINT_TOKEN_COSTS,
     QIANFAN_MODEL_TOKEN_COSTS,

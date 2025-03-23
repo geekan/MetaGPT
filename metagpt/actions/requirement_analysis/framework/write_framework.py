@@ -11,9 +11,9 @@ import json
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
-from metagpt.logs import logger
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import general_after_log, to_markdown_code_block
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import general_after_log, to_markdown_code_block
 
 
 @register_tool(include_functions=["run"])

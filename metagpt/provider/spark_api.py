@@ -9,13 +9,13 @@ from sparkai.core.messages.system import SystemMessage
 from sparkai.core.outputs.llm_result import LLMResult
 from sparkai.llm.llm import ChatSparkLLM
 
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.utils.common import any_to_str
-from metagpt.utils.cost_manager import CostManager
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.provider.llm_provider_registry import register_provider
+from metagpt.core.utils.common import any_to_str
+from metagpt.core.utils.cost_manager import CostManager
 from metagpt.utils.token_counter import SPARK_TOKENS
 
 

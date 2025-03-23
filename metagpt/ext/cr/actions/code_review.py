@@ -9,16 +9,16 @@ from pathlib import Path
 import aiofiles
 from unidiff import PatchSet
 
-from metagpt.actions.action import Action
+from metagpt.core.actions.base import Action
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import parse_json_code_block
+from metagpt.core.utils.report import EditorReporter
 from metagpt.ext.cr.utils.cleaner import (
     add_line_num_on_patch,
     get_code_block_from_patch,
     rm_patch_useless_part,
 )
 from metagpt.ext.cr.utils.schema import Point
-from metagpt.logs import logger
-from metagpt.utils.common import parse_json_code_block
-from metagpt.utils.report import EditorReporter
 
 CODE_REVIEW_PROMPT_TEMPLATE = """
 NOTICE

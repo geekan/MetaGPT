@@ -10,11 +10,11 @@
 
 from typing import Optional
 
-from metagpt.actions.action import Action
-from metagpt.const import TEST_CODES_FILE_REPO
-from metagpt.logs import logger
-from metagpt.schema import Document, TestingContext
-from metagpt.utils.common import CodeParser
+from metagpt.core.actions.base import Action
+from metagpt.core.const import TEST_CODES_FILE_REPO
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import CodeParser
+from metagpt.uml_schema import Document, TestingContext
 
 PROMPT_TEMPLATE = """
 NOTICE

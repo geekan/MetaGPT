@@ -17,11 +17,11 @@ from google.generativeai.types.generation_types import (
     GenerationConfig,
 )
 
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream, logger
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.provider.llm_provider_registry import register_provider
 
 
 class GeminiGenerativeModel(GenerativeModel):

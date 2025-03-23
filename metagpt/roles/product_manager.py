@@ -9,12 +9,12 @@
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.core.roles.role import RoleReactMode
+from metagpt.core.utils.common import any_to_name, any_to_str, tool2name
 from metagpt.prompts.product_manager import PRODUCT_MANAGER_INSTRUCTION
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.roles.role import RoleReactMode
 from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
-from metagpt.utils.common import any_to_name, any_to_str, tool2name
 from metagpt.utils.git_repository import GitRepository
 
 

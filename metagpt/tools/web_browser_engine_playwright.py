@@ -11,7 +11,7 @@ from typing import Literal, Optional
 from playwright.async_api import async_playwright
 from pydantic import BaseModel, Field, PrivateAttr
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.utils.parse_html import WebPage
 
 

@@ -6,6 +6,6 @@
 @File    : __init__.py
 @Desc    : The implementation of RFC243. https://deepwisdom.feishu.cn/wiki/QobGwPkImijoyukBUKHcrYetnBb
 """
-from metagpt.actions.requirement_analysis.evaluate_action import EvaluationData, EvaluateAction
+from metagpt.actions.requirement_analysis.evaluate_action import EvaluateAction, EvaluationData
 
 __all__ = [EvaluationData, EvaluateAction]

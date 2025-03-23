@@ -5,10 +5,10 @@ Author: garylin2099
 """
 from typing import Optional
 
-from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
-from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.const import LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
+from metagpt.core.logs import logger
+from metagpt.core.provider.base_llm import BaseLLM
 
 
 class HumanProvider(BaseLLM):

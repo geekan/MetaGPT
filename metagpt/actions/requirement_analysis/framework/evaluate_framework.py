@@ -8,8 +8,8 @@
 """
 
 from metagpt.actions.requirement_analysis import EvaluateAction, EvaluationData
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import to_markdown_code_block
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import to_markdown_code_block
 
 
 @register_tool(include_functions=["run"])

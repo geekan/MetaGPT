@@ -9,11 +9,11 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.action import Action
-from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
-from metagpt.schema import CodePlanAndChangeContext, Document
-from metagpt.utils.common import get_markdown_code_block_type
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.actions.base import Action
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import get_markdown_code_block_type
+from metagpt.uml_schema import CodePlanAndChangeContext, Document
 from metagpt.utils.project_repo import ProjectRepo
 
 DEVELOPMENT_PLAN = ActionNode(

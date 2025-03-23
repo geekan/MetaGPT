@@ -11,10 +11,10 @@ from copy import deepcopy
 from typing import Tuple
 
 from metagpt.actions import Action
-from metagpt.logs import logger
-from metagpt.schema import Message, Plan, Task
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import CodeParser
 from metagpt.strategy.task_type import TaskType
-from metagpt.utils.common import CodeParser
+from metagpt.uml_schema import Message, Plan, Task
 
 PROMPT_TEMPLATE: str = """
 # Context:

@@ -8,12 +8,12 @@ from pydantic import Field, PrivateAttr, model_validator
 
 from metagpt.actions import Action
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
-from metagpt.logs import logger
-from metagpt.tools.tool_registry import register_tool
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import CodeParser
+from metagpt.core.utils.report import ThoughtReporter
 from metagpt.tools.web_browser_engine import WebBrowserEngine
-from metagpt.utils.common import CodeParser
 from metagpt.utils.parse_html import WebPage
-from metagpt.utils.report import ThoughtReporter
 
 REWRITE_QUERY_PROMPT = """
 Role: You are a highly efficient assistant that provide a better search query for web search engine to answer the given question.

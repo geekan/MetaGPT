@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from metagpt.config2 import config
 from metagpt.configs.embedding_config import EmbeddingType
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.rag.interface import RAGObject
 from metagpt.rag.prompts.default_prompts import DEFAULT_CHOICE_SELECT_PROMPT
 

@@ -10,14 +10,14 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
 from metagpt.actions.requirement_analysis.framework.evaluate_framework import EvaluateFramework
 from metagpt.actions.requirement_analysis.framework.write_framework import WriteFramework
 from metagpt.config2 import config
-from metagpt.utils.common import awrite
+from metagpt.core.utils.common import awrite
 
 
 async def save_framework(

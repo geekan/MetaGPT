@@ -1,4 +1,4 @@
-from metagpt.prompts.di.role_zero import THOUGHT_GUIDANCE
+from metagpt.core.prompts.role_zero import THOUGHT_GUIDANCE
 
 TL_INSTRUCTION = """
 You are a team leader, and you are responsible for drafting tasks and routing tasks to your team members.

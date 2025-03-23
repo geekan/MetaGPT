@@ -9,12 +9,12 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import CodeParser
 from metagpt.llm import LLM
-from metagpt.logs import logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.strategy.base import ThoughtNode, ThoughtTree
 from metagpt.strategy.tot_schema import MethodSelect, Strategy, ThoughtSolverConfig
-from metagpt.utils.common import CodeParser
 
 OUTPUT_FORMAT = """
 Each output should be strictly a list of nodes, in json format, like this:

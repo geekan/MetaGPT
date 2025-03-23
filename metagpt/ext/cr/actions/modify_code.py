@@ -6,14 +6,14 @@ from typing import Optional
 
 from unidiff import PatchSet
 
-from metagpt.actions.action import Action
+from metagpt.core.actions.base import Action
+from metagpt.core.utils.common import CodeParser
+from metagpt.core.utils.report import EditorReporter
 from metagpt.ext.cr.utils.cleaner import (
     add_line_num_on_patch,
     get_code_block_from_patch,
     rm_patch_useless_part,
 )
-from metagpt.utils.common import CodeParser
-from metagpt.utils.report import EditorReporter
 
 SYSTEM_MSGS_PROMPT = """
 You're an adaptive software developer who excels at refining code based on user inputs. You're proficient in creating Git patches to represent code modifications.

@@ -25,8 +25,8 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 
 from metagpt.actions import Action
-from metagpt.logs import logger
-from metagpt.utils.report import NotebookReporter
+from metagpt.core.logs import logger
+from metagpt.core.utils.report import NotebookReporter
 
 INSTALL_KEEPLEN = 500
 INI_CODE = """import warnings

@@ -8,12 +8,12 @@ from bs4 import BeautifulSoup
 from unidiff import PatchSet
 
 import metagpt.ext.cr
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.report import EditorReporter
 from metagpt.ext.cr.actions.code_review import CodeReview as CodeReview_
 from metagpt.ext.cr.actions.modify_code import ModifyCode
 from metagpt.ext.cr.utils.schema import Point
 from metagpt.tools.libs.browser import Browser
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.report import EditorReporter
 
 
 @register_tool(tags=["codereview"], include_functions=["review", "fix"])
