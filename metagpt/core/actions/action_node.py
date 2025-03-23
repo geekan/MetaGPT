@@ -23,7 +23,9 @@ from metagpt.core.exp_pool import exp_cache
 from metagpt.core.exp_pool.serializers import ActionNodeSerializer
 from metagpt.core.llm import BaseLLM
 from metagpt.core.logs import logger
-from metagpt.core.provider.postprocess.llm_output_postprocess import llm_output_postprocess
+from metagpt.core.provider.postprocess.llm_output_postprocess import (
+    llm_output_postprocess,
+)
 from metagpt.core.utils.common import OutputParser, general_after_log
 from metagpt.core.utils.human_interaction import HumanInteraction
 from metagpt.core.utils.sanitize import sanitize

@@ -6,7 +6,6 @@
 @File    : __init__.py
 """
 
-from metagpt.core.roles.base import BaseRole
+from metagpt.core.roles.role import Role, BaseRoleZero
 
-
-__all__ = ["BaseRole"]
+__all__ = ["Role", "BaseRoleZero"]

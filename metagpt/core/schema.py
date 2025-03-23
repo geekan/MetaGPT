@@ -36,9 +36,8 @@ from pydantic import (
     field_validator,
 )
 
-from metagpt.core.base.base_serialization import BaseSerialization
 from metagpt.core.actions.action_output import ActionOutput
-from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.base.base_serialization import BaseSerialization
 from metagpt.core.const import (
     AGENT,
     MESSAGE_ROUTE_CAUSE_BY,
@@ -51,6 +50,7 @@ from metagpt.core.const import (
 )
 from metagpt.core.logs import logger
 from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import (
     CodeParser,
     any_to_str,
@@ -58,7 +58,7 @@ from metagpt.core.utils.common import (
     aread,
     import_class,
     read_json_file,
-    write_json_file
+    write_json_file,
 )
 from metagpt.core.utils.exceptions import handle_exception
 from metagpt.core.utils.serialize import (
@@ -854,6 +854,7 @@ class RunCodeResult(BaseContext):
     summary: str
     stdout: str
     stderr: str
+
 
 class BaseEnum(Enum):
     """Base class for enums."""

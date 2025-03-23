@@ -17,11 +17,11 @@ from pydantic import BaseModel
 
 from metagpt.core.const import TOOL_SCHEMA_PATH
 from metagpt.core.logs import logger
+from metagpt.core.tools.base import Tool, ToolSchema
 from metagpt.core.tools.tool_convert import (
     convert_code_to_tool_schema,
     convert_code_to_tool_schema_ast,
 )
-from metagpt.core.tools.base import Tool, ToolSchema
 
 
 class ToolRegistry(BaseModel):

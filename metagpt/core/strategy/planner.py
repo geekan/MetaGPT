@@ -64,7 +64,7 @@ class BasePlanner(BaseModel):
     @property
     def current_task_id(self):
         return self.plan.current_task_id
-    
+
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""
         user_requirement = self.plan.goal

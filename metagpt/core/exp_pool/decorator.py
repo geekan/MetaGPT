@@ -7,7 +7,10 @@ from typing import Any, Callable, Optional, TypeVar
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from metagpt.core.config import CoreConfig
-from metagpt.core.exp_pool.context_builders import BaseContextBuilder, SimpleContextBuilder
+from metagpt.core.exp_pool.context_builders import (
+    BaseContextBuilder,
+    SimpleContextBuilder,
+)
 from metagpt.core.exp_pool.manager import ExperienceManager, get_exp_manager
 from metagpt.core.exp_pool.perfect_judges import BasePerfectJudge, SimplePerfectJudge
 from metagpt.core.exp_pool.schema import (

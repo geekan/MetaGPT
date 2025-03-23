@@ -22,12 +22,8 @@
 
 from __future__ import annotations
 
-import inspect
-import json
-import re
-import traceback
 from datetime import datetime
-from typing import Annotated, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
+from typing import Annotated, Callable, Literal, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -51,7 +47,6 @@ from metagpt.core.prompts.role_zero import (
     SYSTEM_PROMPT,
 )
 from metagpt.core.provider import HumanProvider
-from metagpt.core.roles import Role
 from metagpt.core.schema import (
     AIMessage,
     Message,
@@ -173,7 +168,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
     observe_all_msg_from_buffer: bool = False  # whether to save all msgs from buffer to memory for role's awareness
-    
+
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     @model_validator(mode="after")

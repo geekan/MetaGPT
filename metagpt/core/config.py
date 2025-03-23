@@ -9,12 +9,12 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, Literal
 
-from pydantic import BaseModel, model_validator, Field
+from pydantic import BaseModel, Field, model_validator
 
-from metagpt.core.configs.llm_config import LLMConfig
-from metagpt.core.configs.workspace_config import WorkspaceConfig
 from metagpt.core.configs.exp_pool_config import ExperiencePoolConfig
+from metagpt.core.configs.llm_config import LLMConfig
 from metagpt.core.configs.role_zero_config import RoleZeroConfig
+from metagpt.core.configs.workspace_config import WorkspaceConfig
 from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel
 
@@ -40,6 +40,7 @@ class CLIParams(BaseModel):
 
 class CoreConfig(CLIParams, YamlModel):
     """Configurations for MetaGPT"""
+
     workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
 
     # Key Parameters
@@ -57,7 +58,6 @@ class CoreConfig(CLIParams, YamlModel):
 
     # RoleZero's configuration
     role_zero: RoleZeroConfig = Field(default_factory=RoleZeroConfig)
-
 
     @classmethod
     def from_home(cls, path):

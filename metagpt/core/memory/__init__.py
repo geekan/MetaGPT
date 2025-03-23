@@ -8,7 +8,6 @@
 
 from metagpt.core.memory.base import Memory
 
-
 __all__ = [
     "Memory",
 ]
