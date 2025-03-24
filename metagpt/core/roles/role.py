@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, Set, Type, Union
+from typing import Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 

@@ -3,7 +3,7 @@ import pytest
 from metagpt.actions import UserRequirement
 from metagpt.core.logs import logger
 from metagpt.core.schema import Message
-from metagpt.roles.di.role_zero import RoleZero
+from metagpt.roles.role_zero import RoleZero
 
 
 @pytest.mark.asyncio

@@ -7,6 +7,6 @@
 """
 
 from metagpt.core.roles.role import Role
-from metagpt.core.roles.role_zero import BaseRoleZero
+from metagpt.core.roles.base_role_zero import BaseRoleZero
 
 __all__ = ["Role", "BaseRoleZero"]

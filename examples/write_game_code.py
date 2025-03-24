@@ -2,8 +2,8 @@ import asyncio
 import time
 
 from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.roles.di.engineer2 import Engineer2
-from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.roles.engineer2 import Engineer2
+from metagpt.roles.team_leader import TeamLeader
 from metagpt.schema import Message
 
 

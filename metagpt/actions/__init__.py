@@ -9,9 +9,9 @@ from enum import Enum
 
 from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
-from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
-from metagpt.actions.di.write_plan import WritePlan
+from metagpt.actions.execute_nb_code import ExecuteNbCode
+from metagpt.actions.write_analysis_code import WriteAnalysisCode
+from metagpt.actions.write_plan import WritePlan
 from metagpt.actions.project_management import WriteTasks
 from metagpt.actions.research import CollectLinks, ConductResearch, WebBrowseAndSummarize
 from metagpt.actions.run_code import RunCode

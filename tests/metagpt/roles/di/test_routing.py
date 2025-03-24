@@ -4,9 +4,9 @@ from metagpt.core.logs import logger
 from metagpt.core.schema import Message
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.roles import Architect, ProductManager, ProjectManager
-from metagpt.roles.di.data_analyst import DataAnalyst
-from metagpt.roles.di.engineer2 import Engineer2
-from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.roles.data_analyst import DataAnalyst
+from metagpt.roles.engineer2 import Engineer2
+from metagpt.roles.team_leader import TeamLeader
 
 NORMAL_QUESTION = [
     "create a 2048 game",

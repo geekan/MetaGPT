@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from metagpt.core.context import Context
 from metagpt.core.schema import UserMessage
 from metagpt.core.utils.common import awrite
-from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.roles.data_interpreter import DataInterpreter
 from metagpt.utils.git_repository import GitRepository
 
 

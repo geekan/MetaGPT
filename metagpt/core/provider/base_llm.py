@@ -29,7 +29,7 @@ from metagpt.core.logs import logger
 from metagpt.core.provider.constant import MULTI_MODAL_MODELS
 from metagpt.core.utils.common import log_and_reraise
 from metagpt.core.utils.cost_manager import CostManager, Costs
-from metagpt.core.utils.token_count_const import TOKEN_MAX
+from metagpt.core.utils.token_counter import TOKEN_MAX
 
 
 class BaseLLM(ABC):

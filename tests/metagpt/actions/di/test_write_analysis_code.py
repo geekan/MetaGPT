@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
+from metagpt.actions.write_analysis_code import WriteAnalysisCode
 from metagpt.core.schema import Message
 
 

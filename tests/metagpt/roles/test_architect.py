@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions import WritePRD
-from metagpt.actions.di.run_command import RunCommand
+from metagpt.actions.run_command import RunCommand
 from metagpt.core.const import PRDS_FILE_REPO
 from metagpt.core.logs import logger
 from metagpt.core.schema import Message

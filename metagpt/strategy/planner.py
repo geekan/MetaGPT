@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import List
 
-from metagpt.actions.di.ask_review import AskReview, ReviewConst
-from metagpt.actions.di.write_plan import (
+from metagpt.actions.ask_review import AskReview, ReviewConst
+from metagpt.actions.write_plan import (
     WritePlan,
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,

@@ -9,8 +9,8 @@ from metagpt.roles import (
     ProjectManager,
     QaEngineer,
 )
-from metagpt.roles.di.data_interpreter import DataInterpreter
-from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.roles.data_interpreter import DataInterpreter
+from metagpt.roles.team_leader import TeamLeader
 
 
 @pytest.fixture
