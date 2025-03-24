@@ -14,7 +14,7 @@ class TestRAGEmbeddingFactory:
     @pytest.fixture
     def mock_config(self, mocker):
         config = Config.default().model_copy(deep=True)
-        default = mocker.patch("metagpt.config2.Config.default")
+        default = mocker.patch("metagpt.core.config2.Config.default")
         default.return_value = config
         return config
 

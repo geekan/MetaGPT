@@ -8,13 +8,15 @@ from urllib.parse import unquote, urlparse, urlunparse
 from uuid import UUID, uuid4
 
 from aiohttp import ClientSession, UnixConnector
+from playwright.async_api import Page as AsyncPage
+from playwright.sync_api import Page as SyncPage
 from pydantic import BaseModel, Field, PrivateAttr
 
 from metagpt.core.const import METAGPT_REPORTER_DEFAULT_URL
 from metagpt.core.logs import create_llm_stream_queue, get_llm_stream_queue
 
 if typing.TYPE_CHECKING:
-    from metagpt.core.roles.base import BaseRole
+    from metagpt.core.roles.role import Role
 
 try:
     import requests_unixsocket as requests
@@ -23,7 +25,7 @@ except ImportError:
 
 from contextvars import ContextVar
 
-CURRENT_ROLE: ContextVar["BaseRole"] = ContextVar("BaseRole")
+CURRENT_ROLE: ContextVar["Role"] = ContextVar("role")
 
 
 class BlockType(str, Enum):
@@ -203,6 +205,27 @@ class TerminalReporter(ResourceReporter):
 
     async def async_report(self, value: str, name: Literal["cmd", "output"]):
         """Report terminal command or output asynchronously."""
+        return await super().async_report(value, name)
+
+
+class BrowserReporter(ResourceReporter):
+    """Browser output callback for streaming reporting of requested URL and page content.
+
+    The browser has state, so in practice, each browser should instantiate its own BrowserReporter object.
+    """
+
+    block: Literal[BlockType.BROWSER] = BlockType.BROWSER
+
+    def report(self, value: Union[str, SyncPage], name: Literal["url", "page"]):
+        """Report browser URL or page content synchronously."""
+        if name == "page":
+            value = {"page_url": value.url, "title": value.title(), "screenshot": str(value.screenshot())}
+        return super().report(value, name)
+
+    async def async_report(self, value: Union[str, AsyncPage], name: Literal["url", "page"]):
+        """Report browser URL or page content asynchronously."""
+        if name == "page":
+            value = {"page_url": value.url, "title": await value.title(), "screenshot": str(await value.screenshot())}
         return await super().async_report(value, name)
 
 

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.config2 import Config
+from metagpt.core.config2 import Config
 from metagpt.core.configs.exp_pool_config import ExperiencePoolRetrievalType
 from metagpt.core.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, Experience, QueryType
 from metagpt.core.logs import logger

@@ -37,7 +37,7 @@ class HumanInteraction(object):
         except Exception:
             return False, None
 
-        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+        actionnode_class = import_class("ActionNode", "metagpt.core.actions.action_node")  # avoid circular import
         tmp_key = "tmp"
         tmp_cls = actionnode_class.create_model_class(class_name=tmp_key.upper(), mapping={tmp_key: (req_type, ...)})
         try:

@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.core.config import CoreConfig
+from metagpt.core.config2 import Config
 from metagpt.core.configs.llm_config import LLMConfig, LLMType
 from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.provider.llm_provider_registry import create_llm_instance
@@ -61,7 +61,7 @@ class Context(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     kwargs: AttrDict = AttrDict()
-    config: CoreConfig = Field(default_factory=CoreConfig.default)
+    config: Config = Field(default_factory=Config.default)
 
     cost_manager: CostManager = CostManager()
 

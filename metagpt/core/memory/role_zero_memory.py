@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from pydantic import Field
 
-from metagpt.core.actions import UserRequirement
+from metagpt.core.actions.add_requirement import UserRequirement
 from metagpt.core.const import TEAMLEADER_NAME
 from metagpt.core.logs import logger
 from metagpt.core.memory import Memory

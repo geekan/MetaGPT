@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
@@ -34,7 +35,7 @@ from metagpt.core.const import MESSAGE_ROUTE_TO_SELF
 from metagpt.core.context_mixin import ContextMixin
 from metagpt.core.logs import logger
 from metagpt.core.memory import Memory
-from metagpt.core.provider import HumanProvider
+from metagpt.core.provider.human_provider import HumanProvider
 from metagpt.core.schema import (
     AIMessage,
     Message,

@@ -75,7 +75,7 @@ def deserialize_message(message_ser: str) -> "Message":
     message = pickle.loads(message_ser)
     if message.instruct_content:
         ic = message.instruct_content
-        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+        actionnode_class = import_class("ActionNode", "metagpt.core.actions.action_node")  # avoid circular import
         ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new

@@ -7,13 +7,21 @@
 """
 import os
 from pathlib import Path
-from typing import Dict, Iterable, Literal
+from typing import Dict, Iterable, List, Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
+from metagpt.core.configs.browser_config import BrowserConfig
+from metagpt.core.configs.embedding_config import EmbeddingConfig
 from metagpt.core.configs.exp_pool_config import ExperiencePoolConfig
-from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.configs.mermaid_config import MermaidConfig
+from metagpt.core.configs.omniparse_config import OmniParseConfig
+from metagpt.core.configs.redis_config import RedisConfig
+from metagpt.core.configs.role_custom_config import RoleCustomConfig
 from metagpt.core.configs.role_zero_config import RoleZeroConfig
+from metagpt.core.configs.s3_config import S3Config
+from metagpt.core.configs.search_config import SearchConfig
 from metagpt.core.configs.workspace_config import WorkspaceConfig
 from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel
@@ -38,23 +46,54 @@ class CLIParams(BaseModel):
         return self
 
 
-class CoreConfig(CLIParams, YamlModel):
+class Config(CLIParams, YamlModel):
     """Configurations for MetaGPT"""
-
-    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
 
     # Key Parameters
     llm: LLMConfig
 
+    # RAG Embedding
+    embedding: EmbeddingConfig = EmbeddingConfig()
+
+    # omniparse
+    omniparse: OmniParseConfig = OmniParseConfig()
+
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
-    # Experience Pool Parameters
-    exp_pool: ExperiencePoolConfig = Field(default_factory=ExperiencePoolConfig)
+    # Tool Parameters
+    search: SearchConfig = SearchConfig()
+    enable_search: bool = False
+    browser: BrowserConfig = BrowserConfig()
+    mermaid: MermaidConfig = MermaidConfig()
+
+    # Storage Parameters
+    s3: Optional[S3Config] = None
+    redis: Optional[RedisConfig] = None
 
     # Misc Parameters
     repair_llm_output: bool = False
     prompt_schema: Literal["json", "markdown", "raw"] = "json"
+    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
+    enable_longterm_memory: bool = False
+    code_validate_k_times: int = 2
+
+    # Experience Pool Parameters
+    exp_pool: ExperiencePoolConfig = Field(default_factory=ExperiencePoolConfig)
+
+    # Will be removed in the future
+    metagpt_tti_url: str = ""
+    language: str = "English"
+    redis_key: str = "placeholder"
+    iflytek_app_id: str = ""
+    iflytek_api_secret: str = ""
+    iflytek_api_key: str = ""
+    azure_tts_subscription_key: str = ""
+    azure_tts_region: str = ""
+    _extra: dict = dict()  # extra config dict
+
+    # Role's custom configuration
+    roles: Optional[List[RoleCustomConfig]] = None
 
     # RoleZero's configuration
     role_zero: RoleZeroConfig = Field(default_factory=RoleZeroConfig)
@@ -65,10 +104,10 @@ class CoreConfig(CLIParams, YamlModel):
         pathname = CONFIG_ROOT / path
         if not pathname.exists():
             return None
-        return CoreConfig.from_yaml_file(pathname)
+        return Config.from_yaml_file(pathname)
 
     @classmethod
-    def default(cls, reload: bool = False, **kwargs) -> "CoreConfig":
+    def default(cls, reload: bool = False, **kwargs) -> "Config":
         """Load default config
         - Priority: env < default_config_paths
         - Inside default_config_paths, the latter one overwrites the former one
@@ -78,9 +117,9 @@ class CoreConfig(CLIParams, YamlModel):
             CONFIG_ROOT / "config2.yaml",
         )
         if reload or default_config_paths not in _CONFIG_CACHE:
-            dicts = [dict(os.environ), *(CoreConfig.read_yaml(path) for path in default_config_paths), kwargs]
+            dicts = [dict(os.environ), *(Config.read_yaml(path) for path in default_config_paths), kwargs]
             final = merge_dict(dicts)
-            _CONFIG_CACHE[default_config_paths] = CoreConfig(**final)
+            _CONFIG_CACHE[default_config_paths] = Config(**final)
         return _CONFIG_CACHE[default_config_paths]
 
     @classmethod
@@ -88,14 +127,14 @@ class CoreConfig(CLIParams, YamlModel):
         """user config llm
         example:
         llm_config = {"api_type": "xxx", "api_key": "xxx", "model": "xxx"}
-        gpt4 = CoreConfig.from_llm_config(llm_config)
+        gpt4 = Config.from_llm_config(llm_config)
         A = Role(name="A", profile="Democratic candidate", goal="Win the election", actions=[a1], watch=[a2], config=gpt4)
         """
         llm_config = LLMConfig.model_validate(llm_config)
         dicts = [dict(os.environ)]
         dicts += [{"llm": llm_config}]
         final = merge_dict(dicts)
-        return CoreConfig(**final)
+        return Config(**final)
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
@@ -110,6 +149,26 @@ class CoreConfig(CLIParams, YamlModel):
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
 
+    @property
+    def extra(self):
+        return self._extra
+
+    @extra.setter
+    def extra(self, value: dict):
+        self._extra = value
+
+    def get_openai_llm(self) -> Optional[LLMConfig]:
+        """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
+        if self.llm.api_type == LLMType.OPENAI:
+            return self.llm
+        return None
+
+    def get_azure_llm(self) -> Optional[LLMConfig]:
+        """Get Azure LLMConfig by name. If no Azure, raise Exception"""
+        if self.llm.api_type == LLMType.AZURE:
+            return self.llm
+        return None
+
 
 def merge_dict(dicts: Iterable[Dict]) -> Dict:
     """Merge multiple dicts into one, with the latter dict overwriting the former"""
@@ -120,3 +179,4 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
 
 
 _CONFIG_CACHE = {}
+config = Config.default()

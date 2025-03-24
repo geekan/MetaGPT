@@ -9,7 +9,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from metagpt.core.config import CoreConfig
+from metagpt.core.config2 import Config
 from metagpt.core.context import Context
 from metagpt.core.provider.base_llm import BaseLLM
 
@@ -27,7 +27,7 @@ class ContextMixin(BaseModel):
     # Env/Role/Action will use this context as private context, or use self.context as public context
     private_context: Optional[Context] = Field(default=None, exclude=True)
     # Env/Role/Action will use this config as private config, or use self.context.config as public config
-    private_config: Optional[CoreConfig] = Field(default=None, exclude=True)
+    private_config: Optional[Config] = Field(default=None, exclude=True)
 
     # Env/Role/Action will use this llm as private llm, or use self.context._llm instance
     private_llm: Optional[BaseLLM] = Field(default=None, exclude=True)
@@ -53,7 +53,7 @@ class ContextMixin(BaseModel):
         """Set context"""
         self.set("private_context", context, override)
 
-    def set_config(self, config: CoreConfig, override=False):
+    def set_config(self, config: Config, override=False):
         """Set config"""
         self.set("private_config", config, override)
         if config is not None:
@@ -64,14 +64,14 @@ class ContextMixin(BaseModel):
         self.set("private_llm", llm, override)
 
     @property
-    def config(self) -> CoreConfig:
+    def config(self) -> Config:
         """Role config: role config > context config"""
         if self.private_config:
             return self.private_config
         return self.context.config
 
     @config.setter
-    def config(self, config: CoreConfig) -> None:
+    def config(self, config: Config) -> None:
         """Set config"""
         self.set_config(config)
 

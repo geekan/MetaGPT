@@ -9,7 +9,7 @@ from typing import Callable, Optional, Union
 import regex as re
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from metagpt.core.config import CoreConfig
+from metagpt.core.config2 import Config
 from metagpt.core.logs import logger
 from metagpt.core.utils.custom_decoder import CustomDecoder
 
@@ -155,7 +155,7 @@ def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = 
 
 
 def repair_llm_raw_output(
-    output: str, req_keys: list[str], repair_type: RepairType = None, config: Optional[CoreConfig] = None
+    output: str, req_keys: list[str], repair_type: RepairType = None, config: Optional[Config] = None
 ) -> str:
     """
     in open-source llm model, it usually can't follow the instruction well, the output may be incomplete,
@@ -171,7 +171,7 @@ def repair_llm_raw_output(
             target: { xxx }
             output: { xxx }]
     """
-    config = config if config else CoreConfig.default()
+    config = config if config else Config.default()
     if not config.repair_llm_output:
         return output
 
@@ -259,7 +259,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
                 "next_action":"None"
             }
         """
-        config = CoreConfig.default()
+        config = Config.default()
         if retry_state.outcome.failed:
             if retry_state.args:
                 # # can't be used as args=retry_state.args
@@ -281,7 +281,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
 
 
 def repair_stop_after_attempt(retry_state):
-    return stop_after_attempt(3 if CoreConfig.default().repair_llm_output else 0)(retry_state)
+    return stop_after_attempt(3 if Config.default().repair_llm_output else 0)(retry_state)
 
 
 @retry(

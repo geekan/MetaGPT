@@ -17,7 +17,7 @@ from typing import Dict, List, Optional
 
 from pydantic import Field, field_validator
 
-from metagpt.config2 import merge_dict
+from metagpt.core.config2 import merge_dict
 from metagpt.core.configs.llm_config import LLMConfig
 from metagpt.core.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.core.utils.yaml_model import YamlModel

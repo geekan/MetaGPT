@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os.path
+import time
 import uuid
 from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
@@ -36,7 +37,6 @@ from pydantic import (
     field_validator,
 )
 
-from metagpt.core.actions.action_output import ActionOutput
 from metagpt.core.base.base_serialization import BaseSerialization
 from metagpt.core.const import (
     AGENT,
@@ -61,6 +61,7 @@ from metagpt.core.utils.common import (
     write_json_file,
 )
 from metagpt.core.utils.exceptions import handle_exception
+from metagpt.core.utils.report import TaskReporter
 from metagpt.core.utils.serialize import (
     actionoutout_schema_to_mapping,
     actionoutput_mapping_to_str,
@@ -507,7 +508,9 @@ class Message(BaseModel):
             if "mapping" in ic:
                 # compatible with custom-defined ActionOutput
                 mapping = actionoutput_str_to_mapping(ic["mapping"])
-                actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+                actionnode_class = import_class(
+                    "ActionNode", "metagpt.core.actions.action_node"
+                )  # avoid circular import
                 ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
             elif "module" in ic:
                 # subclasses of BaseModel
@@ -520,7 +523,9 @@ class Message(BaseModel):
     @field_validator("cause_by", mode="before")
     @classmethod
     def check_cause_by(cls, cause_by: Any) -> str:
-        return any_to_str(cause_by if cause_by else import_class("UserRequirement", "metagpt.actions.add_requirement"))
+        return any_to_str(
+            cause_by if cause_by else import_class("UserRequirement", "metagpt.core.actions.add_requirement")
+        )
 
     @field_validator("sent_from", mode="before")
     @classmethod
@@ -543,7 +548,7 @@ class Message(BaseModel):
             # compatible with custom-defined ActionOutput
             schema = ic.model_json_schema()
             ic_type = str(type(ic))
-            if "<class 'metagpt.actions.action_node" in ic_type:
+            if "<class 'metagpt.core.actions.action_node" in ic_type:
                 # instruct_content from AutoNode.create_model_class, for now, it's single level structure.
                 mapping = actionoutout_schema_to_mapping(schema)
                 mapping = actionoutput_mapping_to_str(mapping)

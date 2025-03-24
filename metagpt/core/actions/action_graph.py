@@ -7,7 +7,7 @@
 """
 from __future__ import annotations
 
-# from metagpt.actions.action_node import ActionNode
+# from metagpt.core.actions.action_node import ActionNode
 
 
 class ActionGraph:
