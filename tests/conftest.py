@@ -150,6 +150,12 @@ def context(request):
     repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     ctx.config.project_path = str(repo.workdir)
 
+    # 使用 kwargs 存储额外属性
+    ctx.kwargs.set("git_repo", repo)
+    from metagpt.utils.project_repo import ProjectRepo
+
+    ctx.kwargs.set("repo", ProjectRepo(repo))
+
     # Destroy git repo at the end of the test session.
     def fin():
         if ctx.config.project_path:

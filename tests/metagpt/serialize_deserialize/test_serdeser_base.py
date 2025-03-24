@@ -8,10 +8,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from metagpt.actions.fix_bug import FixBug
 from metagpt.core.actions import Action, ActionOutput
 from metagpt.core.actions.action_node import ActionNode
 from metagpt.core.actions.add_requirement import UserRequirement
-from metagpt.core.actions.fix_bug import FixBug
 from metagpt.core.roles.role import Role, RoleReactMode
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")

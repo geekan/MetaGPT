@@ -28,12 +28,10 @@ from metagpt.core.schema import (
     SerializationMixin,
     SystemMessage,
     Task,
-    UMLClassAttribute,
-    UMLClassMethod,
-    UMLClassView,
     UserMessage,
 )
 from metagpt.core.utils.common import any_to_str
+from metagpt.uml_schema import UMLClassAttribute, UMLClassMethod, UMLClassView
 
 
 def test_messages():
@@ -413,11 +411,11 @@ class TestUserModelWithExclude(TestUserModel):
 class TestSerializationMixin:
     @pytest.fixture
     def mock_write_json_file(self, mocker):
-        return mocker.patch("metagpt.schema.write_json_file")
+        return mocker.patch("metagpt.core.schema.write_json_file")
 
     @pytest.fixture
     def mock_read_json_file(self, mocker):
-        return mocker.patch("metagpt.schema.read_json_file")
+        return mocker.patch("metagpt.core.schema.read_json_file")
 
     @pytest.fixture
     def mock_user_model(self):

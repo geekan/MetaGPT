@@ -7,9 +7,10 @@
 """
 import pytest
 
+from metagpt.actions import ActionType
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_test import WriteTest
-from metagpt.core.actions import Action, ActionType
+from metagpt.core.actions import Action
 
 
 def test_action_repr():
