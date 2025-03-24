@@ -40,15 +40,8 @@ from metagpt.core.const import (
     TASK_FILE_REPO,
 )
 from metagpt.core.logs import logger
-from metagpt.core.utils.common import (
-    any_to_name,
-    any_to_str,
-    any_to_str_set,
-    get_project_srcs_path,
-    init_python_folder,
-)
-from metagpt.roles import Role
-from metagpt.schema import (
+from metagpt.core.roles import Role
+from metagpt.core.schema import (
     AIMessage,
     CodePlanAndChangeContext,
     CodeSummarizeContext,
@@ -56,6 +49,13 @@ from metagpt.schema import (
     Document,
     Documents,
     Message,
+)
+from metagpt.core.utils.common import (
+    any_to_name,
+    any_to_str,
+    any_to_str_set,
+    get_project_srcs_path,
+    init_python_folder,
 )
 from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.project_repo import ProjectRepo

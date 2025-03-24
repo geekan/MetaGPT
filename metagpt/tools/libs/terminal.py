@@ -5,7 +5,7 @@ from asyncio import Queue
 from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
-from metagpt.config2 import Config
+from metagpt.core.config2 import Config
 from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
 from metagpt.core.logs import logger
 from metagpt.core.tools.tool_registry import register_tool

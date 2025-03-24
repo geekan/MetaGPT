@@ -10,11 +10,11 @@ import json
 from copy import deepcopy
 from typing import Tuple
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
+from metagpt.core.schema import Message, Plan, Task
 from metagpt.core.utils.common import CodeParser
 from metagpt.strategy.task_type import TaskType
-from metagpt.uml_schema import Message, Plan, Task
 
 PROMPT_TEMPLATE: str = """
 # Context:

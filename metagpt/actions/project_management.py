@@ -18,9 +18,10 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
-from metagpt.core.actions.base import Action
+from metagpt.core.actions import Action
 from metagpt.core.const import PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.core.logs import logger
+from metagpt.core.schema import AIMessage, Document, Documents, Message
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import (
     aread,
@@ -30,7 +31,6 @@ from metagpt.core.utils.common import (
     to_markdown_code_block,
 )
 from metagpt.core.utils.report import DocsReporter
-from metagpt.uml_schema import AIMessage, Document, Documents, Message
 from metagpt.utils.project_repo import ProjectRepo
 
 NEW_REQ_TEMPLATE = """

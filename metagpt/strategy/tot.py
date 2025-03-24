@@ -10,9 +10,9 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.core.logs import logger
+from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.utils.common import CodeParser
 from metagpt.llm import LLM
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.strategy.base import ThoughtNode, ThoughtTree
 from metagpt.strategy.tot_schema import MethodSelect, Strategy, ThoughtSolverConfig
 

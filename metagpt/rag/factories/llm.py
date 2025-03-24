@@ -12,9 +12,9 @@ from llama_index.core.llms import (
 from llama_index.core.llms.callbacks import llm_completion_callback
 from pydantic import Field
 
-from metagpt.config2 import config
+from metagpt.core.config2 import config
+from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.utils.async_helper import NestAsyncio
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.token_counter import TOKEN_MAX
 
 

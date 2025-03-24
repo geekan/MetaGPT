@@ -8,9 +8,9 @@ from typing import Dict, List, Tuple
 
 from pydantic import model_validator
 
-from metagpt.actions import UserRequirement
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.actions.search_enhanced_qa import SearchEnhancedQA
+from metagpt.core.actions.add_requirement import UserRequirement
 from metagpt.core.const import IMAGES
 from metagpt.core.logs import logger
 from metagpt.core.prompts.role_zero import (
@@ -27,7 +27,7 @@ from metagpt.core.prompts.role_zero import (
     SUMMARY_PROBLEM_WHEN_DUPLICATE,
     SUMMARY_PROMPT,
 )
-from metagpt.core.roles.role import BaseRoleZero
+from metagpt.core.roles import BaseRoleZero
 from metagpt.core.schema import AIMessage, Message, UserMessage
 from metagpt.core.tools.tool_recommend import BM25ToolRecommender
 from metagpt.core.tools.tool_registry import register_tool

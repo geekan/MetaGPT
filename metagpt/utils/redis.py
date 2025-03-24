@@ -12,7 +12,7 @@ from datetime import timedelta
 
 import redis.asyncio as aioredis
 
-from metagpt.configs.redis_config import RedisConfig
+from metagpt.core.configs.redis_config import RedisConfig
 from metagpt.core.logs import logger
 
 

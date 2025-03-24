@@ -16,12 +16,12 @@ from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
-from metagpt.core.actions.base import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
+from metagpt.core.schema import CodingContext, Document
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import CodeParser, aread, awrite
 from metagpt.core.utils.report import EditorReporter
-from metagpt.uml_schema import CodingContext, Document
 from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """

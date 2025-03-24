@@ -24,7 +24,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
 from metagpt.core.utils.report import NotebookReporter
 

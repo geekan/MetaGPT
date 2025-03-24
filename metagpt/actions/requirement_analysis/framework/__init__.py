@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from metagpt.actions.requirement_analysis.framework.evaluate_framework import EvaluateFramework
 from metagpt.actions.requirement_analysis.framework.write_framework import WriteFramework
-from metagpt.config2 import config
+from metagpt.core.config2 import config
 from metagpt.core.utils.common import awrite
 
 

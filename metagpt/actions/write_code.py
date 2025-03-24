@@ -24,11 +24,11 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
-from metagpt.core.actions.base import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
+from metagpt.core.schema import CodingContext, Document, RunCodeResult
 from metagpt.core.utils.common import CodeParser, get_markdown_code_block_type
 from metagpt.core.utils.report import EditorReporter
-from metagpt.uml_schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """

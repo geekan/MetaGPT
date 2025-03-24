@@ -6,8 +6,8 @@ import json
 
 from pydantic import Field, PrivateAttr, model_validator
 
-from metagpt.actions import Action
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import CodeParser

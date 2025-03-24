@@ -31,7 +31,7 @@ from llama_index.core.schema import (
     TransformComponent,
 )
 
-from metagpt.config2 import config
+from metagpt.core.config2 import config
 from metagpt.core.utils.common import import_class
 from metagpt.rag.factories import (
     get_index,

@@ -17,7 +17,7 @@ from typing import List, Optional, Set
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.const import GRAPH_REPO_FILE_REPO
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import (

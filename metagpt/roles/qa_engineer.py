@@ -23,6 +23,14 @@ from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.core.const import MESSAGE_ROUTE_TO_NONE, MESSAGE_ROUTE_TO_SELF
 from metagpt.core.logs import logger
+from metagpt.core.roles import Role
+from metagpt.core.schema import (
+    AIMessage,
+    Document,
+    Message,
+    RunCodeContext,
+    TestingContext,
+)
 from metagpt.core.utils.common import (
     any_to_str,
     any_to_str_set,
@@ -31,8 +39,6 @@ from metagpt.core.utils.common import (
     parse_recipient,
 )
 from metagpt.core.utils.report import EditorReporter
-from metagpt.roles import Role
-from metagpt.schema import AIMessage, Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.project_repo import ProjectRepo
 
 

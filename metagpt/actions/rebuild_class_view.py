@@ -13,7 +13,7 @@ from typing import Optional, Set, Tuple
 
 import aiofiles
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.const import (
     AGGREGATION,
     COMPOSITION,

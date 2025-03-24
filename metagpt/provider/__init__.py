@@ -12,7 +12,6 @@ from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.bedrock_api import BedrockLLM
 from metagpt.provider.dashscope_api import DashScopeLLM
 from metagpt.provider.google_gemini_api import GeminiLLM
-from metagpt.provider.human_provider import HumanProvider
 from metagpt.provider.metagpt_api import MetaGPTLLM
 from metagpt.provider.ollama_api import OllamaLLM
 from metagpt.provider.openai_api import OpenAILLM
@@ -28,7 +27,6 @@ __all__ = [
     "AzureOpenAILLM",
     "MetaGPTLLM",
     "OllamaLLM",
-    "HumanProvider",
     "SparkLLM",
     "QianFanLLM",
     "DashScopeLLM",

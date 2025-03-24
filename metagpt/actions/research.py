@@ -8,7 +8,7 @@ from typing import Any, Callable, Coroutine, Optional, Union
 
 from pydantic import TypeAdapter, model_validator
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import OutputParser
 from metagpt.tools.search_engine import SearchEngine

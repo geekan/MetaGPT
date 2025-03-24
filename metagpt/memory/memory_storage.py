@@ -10,9 +10,9 @@ from llama_index.core.embeddings import BaseEmbedding
 
 from metagpt.core.const import DATA_PATH, MEM_TTL
 from metagpt.core.logs import logger
+from metagpt.core.schema import Message
 from metagpt.rag.engines.simple import SimpleEngine
 from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig
-from metagpt.schema import Message
 from metagpt.utils.embedding import get_embedding
 
 

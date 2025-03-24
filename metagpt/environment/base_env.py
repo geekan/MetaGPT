@@ -16,6 +16,7 @@ from metagpt.core.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.core.context import Context
 from metagpt.core.logs import logger
 from metagpt.core.memory import Memory
+from metagpt.core.roles import Role
 from metagpt.core.schema import Message
 from metagpt.core.utils.common import get_function_schema, is_coroutine_func, is_send_to
 from metagpt.environment.api.env_api import (
@@ -23,7 +24,6 @@ from metagpt.environment.api.env_api import (
     ReadAPIRegistry,
     WriteAPIRegistry,
 )
-from metagpt.roles import Role
 from metagpt.utils.git_repository import GitRepository
 
 

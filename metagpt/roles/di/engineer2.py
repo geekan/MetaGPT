@@ -6,7 +6,9 @@ from pathlib import Path
 from pydantic import Field
 
 from metagpt.core.logs import logger
+from metagpt.core.schema import UserMessage
 from metagpt.core.strategy.experience_retriever import ENGINEER_EXAMPLE
+from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import CodeParser, awrite
 from metagpt.core.utils.report import EditorReporter
 
@@ -18,13 +20,11 @@ from metagpt.prompts.di.engineer2 import (
     WRITE_CODE_SYSTEM_PROMPT,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import UserMessage
 from metagpt.tools.libs.cr import CodeReview
 from metagpt.tools.libs.deployer import Deployer
 from metagpt.tools.libs.git import git_create_pull
 from metagpt.tools.libs.image_getter import ImageGetter
 from metagpt.tools.libs.terminal import Terminal
-from metagpt.tools.tool_registry import register_tool
 
 
 @register_tool(include_functions=["write_new_code"])

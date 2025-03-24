@@ -10,7 +10,7 @@ from typing import Annotated, Callable, Coroutine, Literal, Optional, Union, ove
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from metagpt.configs.search_config import SearchConfig
+from metagpt.core.configs.search_config import SearchConfig
 from metagpt.core.logs import logger
 from metagpt.tools import SearchEngineType
 

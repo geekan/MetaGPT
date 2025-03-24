@@ -13,10 +13,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from metagpt.core.actions.base import Action
+from metagpt.core.actions.action import Action
 from metagpt.core.logs import logger
+from metagpt.core.schema import RunCodeContext, RunCodeResult
 from metagpt.core.utils.common import CodeParser
-from metagpt.uml_schema import RunCodeContext, RunCodeResult
 from metagpt.utils.project_repo import ProjectRepo
 
 PROMPT_TEMPLATE = """

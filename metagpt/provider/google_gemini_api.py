@@ -74,7 +74,7 @@ class GeminiLLM(BaseLLM):
 
     def format_msg(self, messages: Union[str, "Message", list[dict], list["Message"], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
-        from metagpt.schema import Message
+        from metagpt.core.schema import Message
 
         if not isinstance(messages, list):
             messages = [messages]

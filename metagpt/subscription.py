@@ -4,8 +4,8 @@ from typing import AsyncGenerator, Awaitable, Callable
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.core.logs import logger
-from metagpt.roles import Role
-from metagpt.uml_schema import Message
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message
 
 
 class SubscriptionRunner(BaseModel):
@@ -15,7 +15,7 @@ class SubscriptionRunner(BaseModel):
         >>> import asyncio
         >>> from metagpt.address import SubscriptionRunner
         >>> from metagpt.roles import Searcher
-        >>> from metagpt.schema import Message
+        >>> from metagpt.core.schema import Message
 
         >>> async def trigger():
         ...     while True:

@@ -6,8 +6,10 @@ from pydantic import Field
 
 from metagpt.actions.di.run_command import RunCommand
 from metagpt.core.const import TEAMLEADER_NAME
+from metagpt.core.prompts.role_zero import QUICK_THINK_TAG
+from metagpt.core.schema import AIMessage, Message, UserMessage
 from metagpt.core.strategy.experience_retriever import ExpRetriever, SimpleExpRetriever
-from metagpt.prompts.di.role_zero import QUICK_THINK_TAG
+from metagpt.core.tools.tool_registry import register_tool
 from metagpt.prompts.di.team_leader import (
     FINISH_CURRENT_TASK_CMD,
     TL_INFO,
@@ -15,8 +17,6 @@ from metagpt.prompts.di.team_leader import (
     TL_THOUGHT_GUIDANCE,
 )
 from metagpt.roles.di.role_zero import RoleZero
-from metagpt.schema import AIMessage, Message, UserMessage
-from metagpt.tools.tool_registry import register_tool
 
 
 @register_tool(include_functions=["publish_team_message"])

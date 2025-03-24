@@ -13,7 +13,7 @@ from typing import Optional, Tuple, Union
 import aiofiles
 from fsspec.implementations.memory import MemoryFileSystem as _MemoryFileSystem
 
-from metagpt.config2 import config
+from metagpt.core.config2 import config
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
 from metagpt.core.utils.exceptions import handle_exception

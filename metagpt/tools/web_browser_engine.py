@@ -7,7 +7,7 @@ from typing import Annotated, Any, Callable, Coroutine, Optional, Union, overloa
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from metagpt.configs.browser_config import BrowserConfig
+from metagpt.core.configs.browser_config import BrowserConfig
 from metagpt.tools import WebBrowserEngineType
 from metagpt.utils.parse_html import WebPage
 

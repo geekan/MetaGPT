@@ -6,9 +6,10 @@
 @File    : __init__.py
 """
 
-from metagpt.configs.browser_config import WebBrowserEngineType
-from metagpt.configs.search_config import SearchEngineType
+from metagpt.core.configs.browser_config import WebBrowserEngineType
+from metagpt.core.configs.search_config import SearchEngineType
 from metagpt.tools import libs  # this registers all tools
+from metagpt.core.tools import TOOL_REGISTRY
 
 _ = libs, TOOL_REGISTRY  # Avoid pre-commit error
 

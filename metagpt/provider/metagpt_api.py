@@ -9,7 +9,7 @@ from openai.types import CompletionUsage
 
 from metagpt.core.configs.llm_config import LLMType
 from metagpt.core.provider.llm_provider_registry import register_provider
-from metagpt.provider import OpenAILLM
+from metagpt.provider.openai_api import OpenAILLM
 
 
 @register_provider(LLMType.METAGPT)

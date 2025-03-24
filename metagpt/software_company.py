@@ -26,8 +26,8 @@ def generate_repo(
     recover_path=None,
 ):
     """Run the startup logic. Can be called from CLI or other Python scripts."""
-    from metagpt.config2 import config
-    from metagpt.context import Context
+    from metagpt.core.config2 import config
+    from metagpt.core.context import Context
     from metagpt.roles import (
         Architect,
         DataAnalyst,

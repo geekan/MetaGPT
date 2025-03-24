@@ -7,7 +7,7 @@
 """
 from llama_index.embeddings.openai import OpenAIEmbedding
 
-from metagpt.config2 import config
+from metagpt.core.config2 import config
 
 
 def get_embedding() -> OpenAIEmbedding:

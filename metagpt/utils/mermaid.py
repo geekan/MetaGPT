@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import List, Optional
 
-from metagpt.config2 import Config
+from metagpt.core.config2 import Config
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import awrite, check_cmd_exists
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from metagpt.core.const import AGENT, IMAGES, MESSAGE_ROUTE_TO_ALL, TEAMLEADER_NAME
 from metagpt.core.logs import get_human_input
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message, SerializationMixin
 from metagpt.core.utils.common import extract_and_encode_images
 from metagpt.environment.base_env import Environment
-from metagpt.roles import Role
-from metagpt.schema import Message, SerializationMixin
 
 
 class MGXEnv(Environment, SerializationMixin):

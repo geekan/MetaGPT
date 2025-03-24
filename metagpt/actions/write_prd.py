@@ -20,7 +20,6 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action, ActionOutput
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.write_prd_an import (
     COMPETITIVE_QUADRANT_CHART,
@@ -30,6 +29,7 @@ from metagpt.actions.write_prd_an import (
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
 )
+from metagpt.core.actions import Action, ActionOutput
 from metagpt.core.actions.action_node import ActionNode
 from metagpt.core.const import (
     BUGFIX_FILENAME,
@@ -37,6 +37,7 @@ from metagpt.core.const import (
     REQUIREMENT_FILENAME,
 )
 from metagpt.core.logs import logger
+from metagpt.core.schema import AIMessage, Document, Documents, Message
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import (
     CodeParser,
@@ -47,7 +48,6 @@ from metagpt.core.utils.common import (
     to_markdown_code_block,
 )
 from metagpt.core.utils.report import DocsReporter, GalleryReporter
-from metagpt.uml_schema import AIMessage, Document, Documents, Message
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
 from metagpt.utils.project_repo import ProjectRepo

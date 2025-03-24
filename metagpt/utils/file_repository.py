@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 from metagpt.core.logs import logger
+from metagpt.core.schema import Document
 from metagpt.core.utils.common import aread, awrite
 from metagpt.core.utils.json_to_markdown import json_to_markdown
-from metagpt.uml_schema import Document
 
 
 class FileRepository:

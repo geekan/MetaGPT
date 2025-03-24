@@ -11,7 +11,7 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.schema import NodeWithScore
 from pydantic import BaseModel, Field, model_validator
 
-from metagpt.config2 import config
+from metagpt.core.config2 import config
 from metagpt.core.context import Context
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import aread, awrite, generate_fingerprint, list_files

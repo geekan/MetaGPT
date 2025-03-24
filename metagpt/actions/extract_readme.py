@@ -11,10 +11,10 @@ from typing import Optional
 
 from pydantic import Field
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.const import GRAPH_REPO_FILE_REPO
+from metagpt.core.schema import Message
 from metagpt.core.utils.common import aread
-from metagpt.uml_schema import Message
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 

@@ -1,4 +1,4 @@
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 
 
 class RunCommand(Action):

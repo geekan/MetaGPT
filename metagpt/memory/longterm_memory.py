@@ -10,9 +10,9 @@ from pydantic import ConfigDict, Field
 
 from metagpt.core.logs import logger
 from metagpt.core.roles.role import RoleContext
+from metagpt.core.schema import Message
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
-from metagpt.schema import Message
 
 
 class LongTermMemory(Memory):

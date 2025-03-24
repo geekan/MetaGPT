@@ -11,7 +11,7 @@ from typing import List
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import (

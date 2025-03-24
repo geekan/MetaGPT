@@ -9,7 +9,7 @@ from pathlib import Path
 import aiofiles
 from unidiff import PatchSet
 
-from metagpt.core.actions.base import Action
+from metagpt.core.actions import Action
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import parse_json_code_block
 from metagpt.core.utils.report import EditorReporter
