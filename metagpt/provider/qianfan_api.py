@@ -14,7 +14,7 @@ from metagpt.core.logs import log_llm_stream
 from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.provider.llm_provider_registry import register_provider
 from metagpt.core.utils.cost_manager import CostManager
-from metagpt.utils.token_counter import (
+from metagpt.core.utils.token_counter import (
     QIANFAN_ENDPOINT_TOKEN_COSTS,
     QIANFAN_MODEL_TOKEN_COSTS,
 )

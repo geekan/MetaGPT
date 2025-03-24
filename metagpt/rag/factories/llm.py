@@ -15,7 +15,7 @@ from pydantic import Field
 from metagpt.core.config2 import config
 from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.utils.async_helper import NestAsyncio
-from metagpt.utils.token_counter import TOKEN_MAX
+from metagpt.core.utils.token_counter import TOKEN_MAX
 
 
 class RAGLLM(CustomLLM):

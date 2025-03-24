@@ -30,7 +30,7 @@ from metagpt.core.logs import log_llm_stream
 from metagpt.core.provider.base_llm import BaseLLM, LLMConfig
 from metagpt.core.provider.llm_provider_registry import LLMType, register_provider
 from metagpt.core.utils.cost_manager import CostManager
-from metagpt.utils.token_counter import DASHSCOPE_TOKEN_COSTS
+from metagpt.core.utils.token_counter import DASHSCOPE_TOKEN_COSTS
 
 
 def build_api_arequest(

@@ -13,9 +13,9 @@ from metagpt.core.logs import log_llm_stream, logger
 from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.provider.llm_provider_registry import register_provider
 from metagpt.core.utils.cost_manager import CostManager
+from metagpt.core.utils.token_counter import BEDROCK_TOKEN_COSTS
 from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUPPORT_STREAM_MODELS, get_max_tokens
-from metagpt.utils.token_counter import BEDROCK_TOKEN_COSTS
 
 
 @register_provider([LLMType.BEDROCK])

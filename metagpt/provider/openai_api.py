@@ -33,7 +33,7 @@ from metagpt.core.provider.llm_provider_registry import register_provider
 from metagpt.core.utils.common import CodeParser, decode_image, log_and_reraise
 from metagpt.core.utils.cost_manager import CostManager
 from metagpt.core.utils.exceptions import handle_exception
-from metagpt.utils.token_counter import (
+from metagpt.core.utils.token_counter import (
     count_message_tokens,
     count_output_tokens,
     get_max_completion_tokens,

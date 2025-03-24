@@ -16,7 +16,7 @@ from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.provider.llm_provider_registry import register_provider
 from metagpt.core.utils.common import any_to_str
 from metagpt.core.utils.cost_manager import CostManager
-from metagpt.utils.token_counter import SPARK_TOKENS
+from metagpt.core.utils.token_counter import SPARK_TOKENS
 
 
 @register_provider(LLMType.SPARK)
