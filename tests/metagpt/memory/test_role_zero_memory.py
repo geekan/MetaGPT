@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 import pytest
 
 from metagpt.actions import UserRequirement
-from metagpt.const import TEAMLEADER_NAME
+from metagpt.core.const import TEAMLEADER_NAME
+from metagpt.core.schema import AIMessage, LongTermMemoryItem, Message, UserMessage
 from metagpt.memory.role_zero_memory import RoleZeroLongTermMemory
-from metagpt.schema import AIMessage, LongTermMemoryItem, Message, UserMessage
 
 
 class TestRoleZeroLongTermMemory:

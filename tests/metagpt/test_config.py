@@ -6,8 +6,8 @@
 @File    : test_config.py
 """
 
-from metagpt.config2 import Config
-from metagpt.configs.llm_config import LLMType
+from metagpt.core.config2 import Config
+from metagpt.core.configs.llm_config import LLMType
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 

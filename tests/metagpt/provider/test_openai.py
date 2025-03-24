@@ -9,10 +9,10 @@ from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
-from metagpt.configs.compress_msg_config import CompressType
-from metagpt.const import TEST_DATA_PATH
-from metagpt.llm import LLM
-from metagpt.logs import logger
+from metagpt.core.configs.compress_msg_config import CompressType
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.llm import LLM
+from metagpt.core.logs import logger
 from metagpt.provider import OpenAILLM
 from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,

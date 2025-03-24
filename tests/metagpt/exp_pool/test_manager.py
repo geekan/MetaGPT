@@ -1,13 +1,13 @@
 import pytest
 
-from metagpt.config2 import Config
-from metagpt.configs.exp_pool_config import (
+from metagpt.core.config2 import Config
+from metagpt.core.configs.exp_pool_config import (
     ExperiencePoolConfig,
     ExperiencePoolRetrievalType,
 )
-from metagpt.configs.llm_config import LLMConfig
-from metagpt.exp_pool.manager import Experience, ExperienceManager
-from metagpt.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, QueryType
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.exp_pool.manager import Experience, ExperienceManager
+from metagpt.core.exp_pool.schema import DEFAULT_SIMILARITY_TOP_K, QueryType
 
 
 class TestExperienceManager:

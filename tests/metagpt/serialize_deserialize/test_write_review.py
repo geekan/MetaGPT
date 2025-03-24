@@ -2,8 +2,8 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_review import WriteReview
+from metagpt.core.actions.action_node import ActionNode
 
 TEMPLATE_CONTEXT = """
 {

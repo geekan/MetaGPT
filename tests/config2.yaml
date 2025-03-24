@@ -14,9 +14,6 @@ s3:
   secure: false
   bucket: "mock"
 
-azure_tts_subscription_key: "xxx"
-azure_tts_region: "eastus"
-
 iflytek_app_id: "xxx"
 iflytek_api_key: "xxx"
 iflytek_api_secret: "xxx"

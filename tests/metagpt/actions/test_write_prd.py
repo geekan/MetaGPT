@@ -12,12 +12,12 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions import UserRequirement, WritePRD
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, REQUIREMENT_FILENAME
-from metagpt.logs import logger
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, REQUIREMENT_FILENAME
+from metagpt.core.logs import logger
+from metagpt.core.roles.role import RoleReactMode
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import any_to_str
 from metagpt.roles.product_manager import ProductManager
-from metagpt.roles.role import RoleReactMode
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
 from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import NEW_REQUIREMENT_SAMPLE
 

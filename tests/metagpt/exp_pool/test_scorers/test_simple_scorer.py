@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from metagpt.exp_pool.schema import Score
-from metagpt.exp_pool.scorers.simple import SIMPLE_SCORER_TEMPLATE, SimpleScorer
-from metagpt.llm import BaseLLM
+from metagpt.core.exp_pool.schema import Score
+from metagpt.core.exp_pool.scorers.simple import SIMPLE_SCORER_TEMPLATE, SimpleScorer
+from metagpt.core.llm import BaseLLM
 
 
 class TestSimpleScorer:
@@ -32,7 +32,7 @@ class TestSimpleScorer:
         mock_llm.aask.return_value = f"```json\n{mock_llm_response}\n```"
 
         # Mock CodeParser.parse_code
-        mocker.patch("metagpt.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
+        mocker.patch("metagpt.core.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
 
         # Test evaluate method
         result = await simple_scorer.evaluate(req, resp)
@@ -57,7 +57,7 @@ class TestSimpleScorer:
         mock_llm.aask.return_value = f"```json\n{mock_llm_response}\n```"
 
         # Mock CodeParser.parse_code
-        mocker.patch("metagpt.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
+        mocker.patch("metagpt.core.utils.common.CodeParser.parse_code", return_value=mock_llm_response)
 
         # Test evaluate method with invalid response
         with pytest.raises(json.JSONDecodeError):

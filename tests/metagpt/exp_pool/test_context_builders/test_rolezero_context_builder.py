@@ -1,8 +1,8 @@
 import pytest
 
-from metagpt.const import EXPERIENCE_MASK
-from metagpt.exp_pool.context_builders.base import BaseContextBuilder
-from metagpt.exp_pool.context_builders.role_zero import RoleZeroContextBuilder
+from metagpt.core.const import EXPERIENCE_MASK
+from metagpt.core.exp_pool.context_builders.base import BaseContextBuilder
+from metagpt.core.exp_pool.context_builders.role_zero import RoleZeroContextBuilder
 
 
 class TestRoleZeroContextBuilder:

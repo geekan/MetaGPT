@@ -1,7 +1,7 @@
 import pytest
 
-from metagpt.exp_pool.perfect_judges import SimplePerfectJudge
-from metagpt.exp_pool.schema import MAX_SCORE, Experience, Metric, Score
+from metagpt.core.exp_pool.perfect_judges import SimplePerfectJudge
+from metagpt.core.exp_pool.schema import MAX_SCORE, Experience, Metric, Score
 
 
 class TestSimplePerfectJudge:

@@ -8,8 +8,8 @@
 
 import pytest
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.utils.common import check_cmd_exists, new_transaction_id
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.core.utils.common import check_cmd_exists, new_transaction_id
 from metagpt.utils.mermaid import MMC1, mermaid_to_file
 
 

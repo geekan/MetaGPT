@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.exp_pool.serializers.simple import SimpleSerializer
+from metagpt.core.exp_pool.serializers.simple import SimpleSerializer
 
 
 class TestSimpleSerializer:

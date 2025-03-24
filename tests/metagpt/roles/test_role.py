@@ -3,9 +3,9 @@
 # @Desc   : unittest of Role
 import pytest
 
-from metagpt.provider.human_provider import HumanProvider
-from metagpt.roles.role import Role
-from metagpt.schema import Message, UserMessage
+from metagpt.core.provider.human_provider import HumanProvider
+from metagpt.core.roles.role import Role
+from metagpt.core.schema import Message, UserMessage
 
 
 def test_role_desc():

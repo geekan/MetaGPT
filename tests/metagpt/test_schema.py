@@ -14,11 +14,11 @@ from typing import Annotated
 import pytest
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action
-from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.const import SERDESER_PATH, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
-from metagpt.schema import (
+from metagpt.core.actions import Action
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.const import SERDESER_PATH, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
+from metagpt.core.schema import (
     AIMessage,
     CodeSummarizeContext,
     Document,
@@ -33,7 +33,7 @@ from metagpt.schema import (
     UMLClassView,
     UserMessage,
 )
-from metagpt.utils.common import any_to_str
+from metagpt.core.utils.common import any_to_str
 
 
 def test_messages():
@@ -115,7 +115,7 @@ def test_message_serdeser():
     message_dict = message.model_dump()
     new_message = Message(**message_dict)
     assert new_message.instruct_content is None
-    assert new_message.cause_by == "metagpt.actions.add_requirement.UserRequirement"
+    assert new_message.cause_by == "metagpt.core.actions.add_requirement.UserRequirement"
     assert not Message.load("{")
 
 

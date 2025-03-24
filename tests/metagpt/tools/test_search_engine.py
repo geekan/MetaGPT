@@ -11,8 +11,8 @@ from typing import Callable
 
 import pytest
 
-from metagpt.configs.search_config import SearchConfig
-from metagpt.logs import logger
+from metagpt.core.configs.search_config import SearchConfig
+from metagpt.core.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
 

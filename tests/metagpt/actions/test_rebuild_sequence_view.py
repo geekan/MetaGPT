@@ -11,9 +11,9 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.rebuild_sequence_view import RebuildSequenceView
-from metagpt.const import GRAPH_REPO_FILE_REPO
-from metagpt.llm import LLM
-from metagpt.utils.common import aread
+from metagpt.core.const import GRAPH_REPO_FILE_REPO
+from metagpt.core.llm import LLM
+from metagpt.core.utils.common import aread
 from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.graph_repository import SPO
 

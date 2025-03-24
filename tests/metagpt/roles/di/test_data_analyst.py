@@ -4,9 +4,9 @@ import pytest
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_recommend import BM25ToolRecommender
 from metagpt.roles.di.data_analyst import DataAnalyst
-from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 
 class TestDataAnalyst:

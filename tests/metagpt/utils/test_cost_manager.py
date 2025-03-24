@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.utils.cost_manager import CostManager
+from metagpt.core.utils.cost_manager import CostManager
 
 
 def test_cost_manager():

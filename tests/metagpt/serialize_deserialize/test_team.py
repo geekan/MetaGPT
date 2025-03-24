@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.context import Context
-from metagpt.logs import logger
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import write_json_file
 from metagpt.roles import Architect, ProductManager, ProjectManager
 from metagpt.team import Team
-from metagpt.utils.common import write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     RoleA,

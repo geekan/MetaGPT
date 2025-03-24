@@ -10,15 +10,15 @@ import json
 import pytest
 from openai._models import BaseModel
 
-from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_plan_and_change_an import (
     REFINED_TEMPLATE,
     WriteCodePlanAndChange,
 )
-from metagpt.logs import logger
-from metagpt.schema import CodePlanAndChangeContext
-from metagpt.utils.common import CodeParser
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.logs import logger
+from metagpt.core.schema import CodePlanAndChangeContext
+from metagpt.core.utils.common import CodeParser
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,

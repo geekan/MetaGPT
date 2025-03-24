@@ -4,8 +4,8 @@
 
 import asyncio
 
-from metagpt.actions.action import Action
-from metagpt.const import TEST_DATA_PATH
+from metagpt.core.actions import Action
+from metagpt.core.const import TEST_DATA_PATH
 from metagpt.ext.android_assistant.actions.parse_record import ParseRecord
 
 TASK_PATH = TEST_DATA_PATH.joinpath("andriod_assistant/demo_Contacts")

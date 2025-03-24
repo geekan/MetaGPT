@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 import metagpt
-from metagpt.const import TEST_DATA_PATH
+from metagpt.core.const import TEST_DATA_PATH
 from metagpt.environment.android.android_env import AndroidEnv
 from metagpt.ext.android_assistant.actions.manual_record import ManualRecord
 from metagpt.ext.android_assistant.actions.parse_record import ParseRecord

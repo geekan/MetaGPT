@@ -9,7 +9,7 @@ from typing import List, Tuple, Union
 
 import pytest
 
-from metagpt.utils.common import OutputParser
+from metagpt.core.utils.common import OutputParser
 
 
 def test_parse_blocks():

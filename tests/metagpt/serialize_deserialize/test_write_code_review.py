@@ -5,7 +5,7 @@
 import pytest
 
 from metagpt.actions import WriteCodeReview
-from metagpt.schema import CodingContext, Document
+from metagpt.core.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio

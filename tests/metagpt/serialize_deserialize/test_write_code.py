@@ -6,7 +6,7 @@
 import pytest
 
 from metagpt.actions import WriteCode
-from metagpt.schema import CodingContext, Document
+from metagpt.core.schema import CodingContext, Document
 
 
 def test_write_design_serdeser(context):

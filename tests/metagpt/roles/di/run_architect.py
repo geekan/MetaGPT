@@ -1,8 +1,8 @@
 import asyncio
 import os
 
+from metagpt.core.schema import Message
 from metagpt.roles.architect import Architect
-from metagpt.schema import Message
 
 DESIGN_DOC_SNAKE = """
 {

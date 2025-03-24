@@ -12,9 +12,11 @@ import pytest
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.context import Context
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.schema import Message, UserMessage
+from metagpt.core.utils.common import any_to_str, is_send_to
 from metagpt.environment import Environment
-from metagpt.logs import logger
 from metagpt.roles import (
     Architect,
     Engineer,
@@ -23,8 +25,6 @@ from metagpt.roles import (
     QaEngineer,
     Role,
 )
-from metagpt.schema import Message, UserMessage
-from metagpt.utils.common import any_to_str, is_send_to
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("../data/serdeser_storage")
 

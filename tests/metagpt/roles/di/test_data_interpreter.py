@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 
 

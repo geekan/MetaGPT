@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from metagpt.core.logs import logger
 from metagpt.ext.stanford_town.memory.agent_memory import BasicMemory
-from metagpt.logs import logger
 
 """
 memory测试思路

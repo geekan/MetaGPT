@@ -1,11 +1,11 @@
 import pytest
 
-from metagpt.exp_pool.context_builders.base import (
+from metagpt.core.exp_pool.context_builders.base import (
     EXP_TEMPLATE,
     BaseContextBuilder,
     Experience,
 )
-from metagpt.exp_pool.schema import Metric, Score
+from metagpt.core.exp_pool.schema import Metric, Score
 
 
 class TestBaseContextBuilder:

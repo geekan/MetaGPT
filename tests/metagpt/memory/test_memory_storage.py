@@ -11,10 +11,10 @@ from typing import List
 import pytest
 
 from metagpt.actions import UserRequirement, WritePRD
-from metagpt.actions.action_node import ActionNode
-from metagpt.const import DATA_PATH
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.const import DATA_PATH
+from metagpt.core.schema import Message
 from metagpt.memory.memory_storage import MemoryStorage
-from metagpt.schema import Message
 from tests.metagpt.memory.mock_text_embed import (
     mock_openai_aembed_document,
     mock_openai_embed_document,

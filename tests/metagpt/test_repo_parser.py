@@ -3,8 +3,8 @@ from pprint import pformat
 
 import pytest
 
-from metagpt.const import METAGPT_ROOT
-from metagpt.logs import logger
+from metagpt.core.const import METAGPT_ROOT
+from metagpt.core.logs import logger
 from metagpt.repo_parser import DotClassAttribute, DotClassMethod, DotReturn, RepoParser
 
 
@@ -13,7 +13,7 @@ def test_repo_parser():
     symbols = repo_parser.generate_symbols()
     logger.info(pformat(symbols))
 
-    assert "tot_schema.py" in str(symbols)
+    assert "planner.py" in str(symbols)
 
     output_path = repo_parser.generate_structure(mode="json")
     assert output_path.exists()

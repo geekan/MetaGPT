@@ -3,8 +3,8 @@
 # @Desc   : the unittest of Memory
 
 from metagpt.actions import UserRequirement
-from metagpt.memory.memory import Memory
-from metagpt.schema import Message
+from metagpt.core.memory.base import Memory
+from metagpt.core.schema import Message
 
 
 def test_memory():

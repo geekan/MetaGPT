@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.core.logs import logger
 from metagpt.ext.werewolf.actions import AddNewExperiences, RetrieveExperiences
 from metagpt.ext.werewolf.schema import RoleExperience
-from metagpt.logs import logger
 
 
 class TestExperiencesOperation:

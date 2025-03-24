@@ -10,7 +10,7 @@ import pytest
 import requests
 from openai import OpenAIError
 
-from metagpt.provider.general_api_base import (
+from metagpt.core.provider.general_api_base import (
     APIRequestor,
     ApiType,
     OpenAIResponse,
@@ -121,7 +121,7 @@ def test_requestor_headers():
 
 
 def test_api_requestor(mocker):
-    mocker.patch("metagpt.provider.general_api_base.APIRequestor._interpret_response", mock_interpret_response)
+    mocker.patch("metagpt.core.provider.general_api_base.APIRequestor._interpret_response", mock_interpret_response)
     resp, _, _ = api_requestor.request(method="get", url="/s?wd=baidu")
 
     resp, _, _ = api_requestor.request(method="post", url="/s?wd=baidu")
@@ -130,7 +130,7 @@ def test_api_requestor(mocker):
 @pytest.mark.asyncio
 async def test_async_api_requestor(mocker):
     mocker.patch(
-        "metagpt.provider.general_api_base.APIRequestor._interpret_async_response", mock_interpret_async_response
+        "metagpt.core.provider.general_api_base.APIRequestor._interpret_async_response", mock_interpret_async_response
     )
     resp, _, _ = await api_requestor.arequest(method="get", url="/s?wd=baidu")
     resp, _, _ = await api_requestor.arequest(method="post", url="/s?wd=baidu")

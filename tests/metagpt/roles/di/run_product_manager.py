@@ -1,7 +1,7 @@
 import asyncio
 import sys
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.roles import ProductManager
 
 CASE0_WRITE_2048 = """Write a PRD for a cli 2048 game"""

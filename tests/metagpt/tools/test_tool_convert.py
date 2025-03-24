@@ -2,7 +2,7 @@ from typing import Literal, Union
 
 import pandas as pd
 
-from metagpt.tools.tool_convert import (
+from metagpt.core.tools.tool_convert import (
     convert_code_to_tool_schema,
     convert_code_to_tool_schema_ast,
 )

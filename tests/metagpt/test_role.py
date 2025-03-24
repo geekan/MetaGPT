@@ -15,12 +15,13 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import BaseModel
 
-from metagpt.actions import Action, ActionOutput, UserRequirement
+from metagpt.core.actions import Action, ActionOutput
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import any_to_name, any_to_str
 from metagpt.environment import Environment
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.roles import Role
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_name, any_to_str
 
 
 class MockAction(Action):
@@ -39,7 +40,7 @@ class MockRole(Role):
 def test_basic():
     mock_role = MockRole()
     assert mock_role.addresses == ({"tests.metagpt.test_role.MockRole"})
-    assert mock_role.rc.watch == {"metagpt.actions.add_requirement.UserRequirement"}
+    assert mock_role.rc.watch == {"metagpt.core.actions.add_requirement.UserRequirement"}
 
     mock_role = MockRole(name="mock_role")
     assert mock_role.addresses == {"tests.metagpt.test_role.MockRole", "mock_role"}

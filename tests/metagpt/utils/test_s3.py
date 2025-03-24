@@ -11,9 +11,9 @@ from pathlib import Path
 import aioboto3
 import pytest
 
-from metagpt.config2 import Config
-from metagpt.configs.s3_config import S3Config
-from metagpt.utils.common import aread
+from metagpt.core.config2 import Config
+from metagpt.core.configs.s3_config import S3Config
+from metagpt.core.utils.common import aread
 from metagpt.utils.s3 import S3
 
 

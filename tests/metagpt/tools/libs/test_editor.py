@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.const import TEST_DATA_PATH
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.utils.common import list_files
 from metagpt.tools.libs.editor import Editor
 from metagpt.tools.libs.index_repo import (
     CHATS_INDEX_ROOT,
@@ -13,7 +14,6 @@ from metagpt.tools.libs.index_repo import (
     UPLOAD_ROOT,
     IndexRepo,
 )
-from metagpt.utils.common import list_files
 
 TEST_FILE_CONTENT = """
 # this is line one

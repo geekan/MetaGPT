@@ -1,8 +1,8 @@
 import pytest
 
-from metagpt.schema import Plan, Task
-from metagpt.tools import TOOL_REGISTRY
-from metagpt.tools.tool_recommend import (
+from metagpt.core.schema import Plan, Task
+from metagpt.core.tools import TOOL_REGISTRY
+from metagpt.core.tools.tool_recommend import (
     BM25ToolRecommender,
     ToolRecommender,
     TypeMatchToolRecommender,

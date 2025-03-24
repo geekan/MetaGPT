@@ -2,8 +2,8 @@ from typing import Type
 
 import pytest
 
-from metagpt.actions.action_node import ActionNode
-from metagpt.exp_pool.serializers.action_node import ActionNodeSerializer
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.exp_pool.serializers.action_node import ActionNodeSerializer
 
 
 class TestActionNodeSerializer:
