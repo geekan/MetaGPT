@@ -69,21 +69,22 @@ class BaseRoleZero(Role):
     use_summary: bool = True  # whether to summarize at the end
 
     @model_validator(mode="after")
-    def set_plan_and_tool(self) -> "RoleZero":
-        return super().__init__()
+    def set_plan_and_tool(self) -> "BaseRoleZero":
+        """Initialize plan and tool related attributes"""
+        return self
 
     @model_validator(mode="after")
-    def set_tool_execution(self) -> "RoleZero":
-        return super().__init__()
+    def set_tool_execution(self) -> "BaseRoleZero":
+        """Initialize tool execution mapping"""
+        return self
 
     @model_validator(mode="after")
-    def set_longterm_memory(self) -> "RoleZero":
+    def set_longterm_memory(self) -> "BaseRoleZero":
         """Set up long-term memory for the role if enabled in the configuration.
 
         If `enable_longterm_memory` is True, set up long-term memory.
         The role name will be used as the collection name.
         """
-
         if self.config.role_zero.enable_longterm_memory:
             # Use config.role_zero to initialize long-term memory
             self.rc.memory = RoleZeroLongTermMemory(
