@@ -17,7 +17,7 @@ from metagpt.core.config2 import config
 from metagpt.core.logs import logger
 from metagpt.core.utils.common import aread, aread_bin, awrite_bin, check_http_endpoint
 from metagpt.core.utils.exceptions import handle_exception
-from metagpt.utils import read_docx
+from metagpt.utils.read_document import read_docx
 from metagpt.utils.repo_to_markdown import is_text_file
 
 

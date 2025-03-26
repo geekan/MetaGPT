@@ -49,7 +49,6 @@ from metagpt.core.const import (
     TASK_FILE_REPO,
 )
 from metagpt.core.logs import logger
-from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import (
     CodeParser,
