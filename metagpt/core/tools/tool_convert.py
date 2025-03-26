@@ -1,7 +1,7 @@
 import ast
 import inspect
 
-from metagpt.utils.parse_docstring import GoogleDocstringParser, remove_spaces
+from metagpt.core.utils.parse_docstring import GoogleDocstringParser, remove_spaces
 
 PARSER = GoogleDocstringParser
 

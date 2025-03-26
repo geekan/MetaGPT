@@ -10,3 +10,5 @@ aiofiles==23.2.1
 rank-bm25==0.2.2  # for tool recommendation
 tree_sitter~=0.23.2
 tree_sitter_python~=0.23.2
+chardet==5.2.0
+anthropic==0.47.2
