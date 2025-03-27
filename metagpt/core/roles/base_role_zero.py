@@ -21,7 +21,7 @@ from metagpt.core.prompts.role_zero import (
 from metagpt.core.roles.role import Role
 from metagpt.core.schema import AIMessage, Message
 from metagpt.core.strategy.experience_retriever import DummyExpRetriever, ExpRetriever
-from metagpt.core.tools.tool_recommend import ToolRecommender
+from metagpt.core.tools.tool_recommend_base import ToolRecommender
 
 
 class BaseRoleZero(Role):

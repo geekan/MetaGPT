@@ -24,6 +24,7 @@ tqdm==4.66.2
 # selenium>4
 # webdriver_manager<3.9
 anthropic==0.47.2
+numpy~=1.26.4
 typing-inspect==0.8.0
 libcst==1.0.1
 qdrant-client==1.7.0

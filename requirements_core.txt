@@ -1,6 +1,5 @@
 aiohttp==3.8.6
 loguru==0.6.0
-numpy~=1.26.4
 pydantic>=2.5.3
 PyYAML==6.0.1
 setuptools==65.6.3

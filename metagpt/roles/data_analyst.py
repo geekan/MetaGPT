@@ -10,12 +10,13 @@ from metagpt.core.logs import logger
 from metagpt.core.prompts.role_zero import ROLE_INSTRUCTION
 from metagpt.core.schema import Message, TaskResult
 from metagpt.core.strategy.experience_retriever import ExpRetriever, KeywordExpRetriever
-from metagpt.core.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
+from metagpt.core.tools.tool_recommend_base import ToolRecommender
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.prompts.data_analyst import CODE_STATUS, EXTRA_INSTRUCTION, TASK_TYPE_DESC
 from metagpt.prompts.write_analysis_code import DATA_INFO
 from metagpt.roles.role_zero import RoleZero
 from metagpt.strategy.task_type import TaskType
+from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 
 @register_tool(include_functions=["write_and_exec_code"])
