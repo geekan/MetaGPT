@@ -1,11 +1,24 @@
 # Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
 # Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
 # Config Docs: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
+# llm:
+#   api_type: 'ollama'
+#   base_url: 'http://127.0.0.1:11434/api'
+#   model: 'phi4'
+#   api_key: "YOUR_API_KEY_Node"
+
+# llm:
+#   api_type: 'gemini'
+#   api_key: 'AIzaSyDXdIPHzeQq9Zge8C2h61WNMCOFjcFAfws'
+#   model: 'gemini-2.0-flash'
+
 llm:
-  api_type: 'ollama'
-  base_url: 'http://127.0.0.1:11434/api'
-  model: 'phi4'
-  api_key: "YOUR_API_KEY_Node"
+  api_type: 'gemini'
+  api_key: 'AIzaSyDXdIPHzeQq9Zge8C2h61WNMCOFjcFAfws'
+  model: 'gemini-2.5-pro-exp-03-25'
+
+  
+
 
 # llm:
 #   api_type: 'ollama'
