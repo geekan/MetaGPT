@@ -1,3 +1,4 @@
+import ast
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
@@ -578,7 +579,7 @@ class ActionNode:
                     extracted_data[field_name] = raw_value.lower() in ("true", "yes", "1", "on", "True")
                 elif field_type == list:
                     try:
-                        extracted_data[field_name] = eval(raw_value)
+                        extracted_data[field_name] = ast.literal_eval(raw_value)
                         if not isinstance(extracted_data[field_name], list):
                             raise ValueError
                     except:
