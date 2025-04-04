@@ -26,17 +26,17 @@ def mock_plan(mocker):
 
 @pytest.fixture
 def mock_bm25_tr(mocker):
-    tr = BM25ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web scraping"])
+    tr = BM25ToolRecommender(tools=["ask_hunman", "reply_to_human", "web scraping"])
     return tr
 
 
 def test_tr_init():
-    tr = ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web scraping", "non-existing tool"])
+    tr = ToolRecommender(tools=["ask_hunman", "reply_to_human", "codereview", "non-existing tool"])
     # web_scraping is a tool tag, it has one tool scrape_web_playwright
     assert list(tr.tools.keys()) == [
-        "FillMissingValue",
-        "PolynomialExpansion",
-        "scrape_web_playwright",
+        "ask_hunman",
+        "reply_to_human",
+        "codereview",
     ]
 
 
