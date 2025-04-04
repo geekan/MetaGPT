@@ -10,8 +10,8 @@
 import pytest
 
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.logs import logger
-from metagpt.schema import CodeSummarizeContext
+from metagpt.core.logs import logger
+from metagpt.core.schema import CodeSummarizeContext
 from tests.mock.mock_llm import MockLLM
 
 DESIGN_CONTENT = """

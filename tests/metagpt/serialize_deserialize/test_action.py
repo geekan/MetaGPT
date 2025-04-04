@@ -4,7 +4,7 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 
 
 @pytest.mark.asyncio

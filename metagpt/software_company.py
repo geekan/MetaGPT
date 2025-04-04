@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typer
 
-from metagpt.const import CONFIG_ROOT
+from metagpt.core.const import CONFIG_ROOT
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -26,8 +26,8 @@ def generate_repo(
     recover_path=None,
 ):
     """Run the startup logic. Can be called from CLI or other Python scripts."""
-    from metagpt.config2 import config
-    from metagpt.context import Context
+    from metagpt.core.config2 import config
+    from metagpt.core.context import Context
     from metagpt.roles import (
         Architect,
         DataAnalyst,

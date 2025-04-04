@@ -10,9 +10,9 @@ import json
 import pytest
 
 from metagpt.actions.project_management import WriteTasks
-from metagpt.const import METAGPT_ROOT
-from metagpt.logs import logger
-from metagpt.schema import AIMessage, Message
+from metagpt.core.const import METAGPT_ROOT
+from metagpt.core.logs import logger
+from metagpt.core.schema import AIMessage, Message
 from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import (
     REFINED_DESIGN_JSON,

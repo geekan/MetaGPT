@@ -7,9 +7,9 @@ from llama_index.core import Document
 from llama_index.core.async_utils import run_jobs
 from llama_index.core.readers.base import BaseReader
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.utils.async_helper import NestAsyncio
 from metagpt.rag.schema import OmniParseOptions, OmniParseType, ParseResultType
-from metagpt.utils.async_helper import NestAsyncio
 from metagpt.utils.omniparse_client import OmniParseClient
 
 

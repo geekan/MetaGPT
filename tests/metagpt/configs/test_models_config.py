@@ -1,9 +1,9 @@
 import pytest
 
-from metagpt.actions.talk_action import TalkAction
-from metagpt.configs.models_config import ModelsConfig
-from metagpt.const import METAGPT_ROOT, TEST_DATA_PATH
-from metagpt.utils.common import aread, awrite
+from metagpt.actions import UserRequirement
+from metagpt.core.configs.models_config import ModelsConfig
+from metagpt.core.const import METAGPT_ROOT, TEST_DATA_PATH
+from metagpt.core.utils.common import aread, awrite
 
 
 @pytest.mark.asyncio
@@ -22,7 +22,7 @@ async def test_models_configs(context):
         await awrite(filename=METAGPT_ROOT / "config/config2.yaml", data=test_data)
 
     try:
-        action = TalkAction(context=context, i_context="who are you?", llm_name_or_type="YOUR_MODEL_NAME_1")
+        action = UserRequirement(llm_name_or_type="YOUR_MODEL_NAME_1")
         assert action.private_llm.config.model == "YOUR_MODEL_NAME_1"
         assert context.config.llm.model != "YOUR_MODEL_NAME_1"
     finally:

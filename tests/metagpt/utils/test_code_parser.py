@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.utils.common import CodeParser
+from metagpt.core.utils.common import CodeParser
 
 t_text = '''
 ## Required Python third-party packages

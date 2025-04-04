@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 import pytest
 
-from metagpt.base.base_env_space import BaseEnvAction, BaseEnvObsParams
+from metagpt.core.base.base_env_space import BaseEnvAction, BaseEnvObsParams
 from metagpt.environment.api.env_api import EnvAPIAbstract
 from metagpt.environment.base_env import (
     Environment,

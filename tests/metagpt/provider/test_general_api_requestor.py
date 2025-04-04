@@ -4,7 +4,7 @@
 
 import pytest
 
-from metagpt.provider.general_api_requestor import (
+from metagpt.core.provider.general_api_requestor import (
     GeneralAPIRequestor,
     parse_stream,
     parse_stream_helper,

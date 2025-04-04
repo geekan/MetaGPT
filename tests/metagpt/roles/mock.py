@@ -8,7 +8,7 @@
 import json
 
 from metagpt.actions import UserRequirement, WriteDesign, WritePRD, WriteTasks
-from metagpt.schema import Message
+from metagpt.core.schema import Message
 
 USER_REQUIREMENT = """开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"""
 

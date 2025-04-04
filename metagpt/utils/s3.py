@@ -8,9 +8,9 @@ from typing import Optional
 import aioboto3
 import aiofiles
 
-from metagpt.config2 import S3Config
-from metagpt.const import BASE64_FORMAT
-from metagpt.logs import logger
+from metagpt.core.config2 import S3Config
+from metagpt.core.const import BASE64_FORMAT
+from metagpt.core.logs import logger
 
 
 class S3:

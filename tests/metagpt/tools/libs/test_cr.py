@@ -29,7 +29,7 @@ class TestCodeReview:
         self.cr = CodeReview()
 
     @patch("aiofiles.open", new_callable=MagicMock)
-    @patch("metagpt.utils.report.EditorReporter.async_report", new_callable=AsyncMock)
+    @patch("metagpt.core.utils.report.EditorReporter.async_report", new_callable=AsyncMock)
     @patch("metagpt.ext.cr.actions.code_review.CodeReview.run", new_callable=AsyncMock)
     async def test_review(self, mock_run, mock_report, mock_aiofiles_open):
         """Test the review method with a local patch file."""

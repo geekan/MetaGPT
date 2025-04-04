@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 import pytest_asyncio
 
-from metagpt.const import TEST_DATA_PATH
+from metagpt.core.const import TEST_DATA_PATH
 from metagpt.tools.libs.browser import Browser
 
 TEST_URL = "https://docs.deepwisdom.ai/main/en/guide/get_started/quickstart.html"

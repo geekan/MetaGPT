@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.utils.token_counter import count_message_tokens, count_output_tokens
+from metagpt.core.utils.token_counter import count_message_tokens, count_output_tokens
 
 
 def test_count_message_tokens():

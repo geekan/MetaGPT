@@ -4,12 +4,12 @@
 
 from pydantic import BaseModel
 
-from metagpt.actions.action_node import ActionNode
-from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.design_api import WriteDesign
-from metagpt.memory.memory import Memory
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, read_json_file, write_json_file
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.memory.base import Memory
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import any_to_str, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import serdeser_path
 
 

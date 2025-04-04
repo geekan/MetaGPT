@@ -4,9 +4,9 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions.action import Action
+from metagpt.core.actions import Action
+from metagpt.core.schema import Message
 from metagpt.roles.product_manager import ProductManager
-from metagpt.schema import Message
 
 
 @pytest.mark.asyncio

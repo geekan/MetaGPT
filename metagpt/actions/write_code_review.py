@@ -15,14 +15,14 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.actions import WriteCode
-from metagpt.actions.action import Action
-from metagpt.logs import logger
-from metagpt.schema import CodingContext, Document
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import CodeParser, aread, awrite
+from metagpt.actions.write_code import WriteCode
+from metagpt.core.actions import Action
+from metagpt.core.logs import logger
+from metagpt.core.schema import CodingContext, Document
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import CodeParser, aread, awrite
+from metagpt.core.utils.report import EditorReporter
 from metagpt.utils.project_repo import ProjectRepo
-from metagpt.utils.report import EditorReporter
 
 PROMPT_TEMPLATE = """
 # System

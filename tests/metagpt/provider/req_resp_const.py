@@ -28,7 +28,7 @@ from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 from qianfan.resources.typing import QfResponse
 
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.provider.base_llm import BaseLLM
 
 prompt = "who are you?"
 messages = [{"role": "user", "content": prompt}]

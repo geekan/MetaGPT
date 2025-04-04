@@ -8,7 +8,7 @@
 import pytest
 
 from metagpt.actions.write_code_review import WriteCodeReview
-from metagpt.schema import CodingContext, Document
+from metagpt.core.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio

@@ -1,14 +1,14 @@
 import json
 from typing import Optional, Union
 
-from metagpt.config2 import config
-from metagpt.configs.llm_config import LLMType
-from metagpt.const import LLM_API_TIMEOUT
-from metagpt.logs import logger
+from metagpt.core.config2 import config
+from metagpt.core.configs.llm_config import LLMType
+from metagpt.core.const import LLM_API_TIMEOUT
+from metagpt.core.logs import logger
+from metagpt.core.provider.constant import GENERAL_FUNCTION_SCHEMA
+from metagpt.core.schema import Message
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
-from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.openai_api import OpenAILLM
-from metagpt.schema import Message
 
 OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 
@@ -58,7 +58,7 @@ class MockLLM(OriginalLLM):
         return rsp
 
     async def original_aask_batch(self, msgs: list, timeout=LLM_API_TIMEOUT) -> str:
-        """A copy of metagpt.provider.base_llm.BaseLLM.aask_batch, we can't use super().aask because it will be mocked"""
+        """A copy of metagpt.core.provider.base_llm.BaseLLM.aask_batch, we can't use super().aask because it will be mocked"""
         context = []
         for msg in msgs:
             umsg = self._user_msg(msg)

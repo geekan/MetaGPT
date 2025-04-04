@@ -1,8 +1,8 @@
 import pytest
 
 from metagpt.actions.requirement_analysis.requirement.pic2txt import Pic2Txt
-from metagpt.const import TEST_DATA_PATH
-from metagpt.utils.common import aread
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.utils.common import aread
 
 
 @pytest.mark.asyncio

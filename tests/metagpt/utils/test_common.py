@@ -17,10 +17,9 @@ import pytest
 from pydantic import BaseModel
 
 from metagpt.actions import RunCode
-from metagpt.const import get_metagpt_root
-from metagpt.roles.tutorial_assistant import TutorialAssistant
-from metagpt.schema import Message
-from metagpt.utils.common import (
+from metagpt.core.const import get_metagpt_root
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import (
     NoMoneyException,
     OutputParser,
     any_to_str,
@@ -39,6 +38,7 @@ from metagpt.utils.common import (
     require_python_version,
     split_namespace,
 )
+from metagpt.roles import Engineer
 
 
 class TestGetProjectRoot:
@@ -63,12 +63,12 @@ class TestGetProjectRoot:
             want: str
 
         inputs = [
-            Input(x=TutorialAssistant, want="metagpt.roles.tutorial_assistant.TutorialAssistant"),
-            Input(x=TutorialAssistant(), want="metagpt.roles.tutorial_assistant.TutorialAssistant"),
+            Input(x=Engineer, want="metagpt.roles.engineer.Engineer"),
+            Input(x=Engineer(), want="metagpt.roles.engineer.Engineer"),
             Input(x=RunCode, want="metagpt.actions.run_code.RunCode"),
             Input(x=RunCode(), want="metagpt.actions.run_code.RunCode"),
-            Input(x=Message, want="metagpt.schema.Message"),
-            Input(x=Message(content=""), want="metagpt.schema.Message"),
+            Input(x=Message, want="metagpt.core.schema.Message"),
+            Input(x=Message(content=""), want="metagpt.core.schema.Message"),
             Input(x="A", want="A"),
         ]
         for i in inputs:
@@ -82,20 +82,20 @@ class TestGetProjectRoot:
 
         inputs = [
             Input(
-                x=[TutorialAssistant, RunCode(), "a"],
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
+                x=[Engineer, RunCode(), "a"],
+                want={"metagpt.roles.engineer.Engineer", "metagpt.actions.run_code.RunCode", "a"},
             ),
             Input(
-                x={TutorialAssistant, "a"},
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "a"},
+                x={Engineer, "a"},
+                want={"metagpt.roles.engineer.Engineer", "a"},
             ),
             Input(
-                x=(TutorialAssistant, RunCode(), "a"),
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
+                x=(Engineer, RunCode(), "a"),
+                want={"metagpt.roles.engineer.Engineer", "metagpt.actions.run_code.RunCode", "a"},
             ),
             Input(
-                x={"a": TutorialAssistant, "b": RunCode(), "c": "a"},
-                want={"a", "metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode"},
+                x={"a": Engineer, "b": RunCode(), "c": "a"},
+                want={"a", "metagpt.roles.engineer.Engineer", "metagpt.actions.run_code.RunCode"},
             ),
         ]
         for i in inputs:

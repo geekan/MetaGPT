@@ -9,9 +9,9 @@
 import pytest
 
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.const import REQUIREMENT_FILENAME
-from metagpt.context import Context
-from metagpt.schema import Message
+from metagpt.core.const import REQUIREMENT_FILENAME
+from metagpt.core.context import Context
+from metagpt.core.schema import Message
 
 
 @pytest.mark.asyncio

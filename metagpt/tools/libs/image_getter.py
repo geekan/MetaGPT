@@ -6,10 +6,10 @@ from playwright.async_api import Browser as Browser_
 from playwright.async_api import BrowserContext, Page, Playwright, async_playwright
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import decode_image
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.common import decode_image
+from metagpt.core.utils.report import BrowserReporter
 from metagpt.utils.proxy_env import get_proxy_from_env
-from metagpt.utils.report import BrowserReporter
 
 DOWNLOAD_PICTURE_JAVASCRIPT = """
 async () => {{

@@ -5,7 +5,7 @@ import copy
 
 from pydantic import BaseModel, ConfigDict, SerializeAsAny
 
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOKV2,
     ActionPass,

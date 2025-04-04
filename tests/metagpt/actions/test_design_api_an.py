@@ -8,10 +8,10 @@
 import pytest
 from openai._models import BaseModel
 
-from metagpt.actions.action_node import ActionNode, dict_to_markdown
 from metagpt.actions.design_api import NEW_REQ_TEMPLATE
 from metagpt.actions.design_api_an import REFINED_DESIGN_NODE
-from metagpt.llm import LLM
+from metagpt.core.actions.action_node import ActionNode, dict_to_markdown
+from metagpt.core.llm import LLM
 from tests.data.incremental_dev_project.mock import (
     DESIGN_SAMPLE,
     REFINED_DESIGN_JSON,

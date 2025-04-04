@@ -14,19 +14,19 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.const import SERDESER_PATH
-from metagpt.context import Context
-from metagpt.environment import Environment
-from metagpt.environment.mgx.mgx_env import MGXEnv
-from metagpt.logs import logger
-from metagpt.roles import Role
-from metagpt.schema import Message
-from metagpt.utils.common import (
+from metagpt.core.const import SERDESER_PATH
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import (
     NoMoneyException,
     read_json_file,
     serialize_decorator,
     write_json_file,
 )
+from metagpt.environment import Environment
+from metagpt.environment.mgx.mgx_env import MGXEnv
 
 
 class Team(BaseModel):

@@ -22,12 +22,12 @@ from volcenginesdkarkruntime._base_client import AsyncHttpxClientWrapper
 from volcenginesdkarkruntime._streaming import AsyncStream
 from volcenginesdkarkruntime.types.chat import ChatCompletion, ChatCompletionChunk
 
-from metagpt.configs.llm_config import LLMType
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream
-from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.core.configs.llm_config import LLMType
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream
+from metagpt.core.provider.llm_provider_registry import register_provider
+from metagpt.core.utils.token_counter import DOUBAO_TOKEN_COSTS
 from metagpt.provider.openai_api import OpenAILLM
-from metagpt.utils.token_counter import DOUBAO_TOKEN_COSTS
 
 
 @register_provider(LLMType.ARK)

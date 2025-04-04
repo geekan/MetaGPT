@@ -13,8 +13,8 @@ import time
 import pytest
 from typer.testing import CliRunner
 
-from metagpt.const import TEST_DATA_PATH
-from metagpt.logs import logger
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.logs import logger
 from metagpt.software_company import app
 
 runner = CliRunner()

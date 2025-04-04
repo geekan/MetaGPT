@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.extract_readme import ExtractReadMe
-from metagpt.llm import LLM
+from metagpt.core.llm import LLM
 
 
 @pytest.mark.asyncio

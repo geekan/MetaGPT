@@ -4,7 +4,7 @@
 
 from pydantic import BaseModel
 
-from metagpt.utils.human_interaction import HumanInteraction
+from metagpt.core.utils.human_interaction import HumanInteraction
 
 
 class InstructContent(BaseModel):

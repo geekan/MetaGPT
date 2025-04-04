@@ -7,9 +7,9 @@
 from typing import List
 
 from metagpt.actions import WritePRD
-from metagpt.actions.action_node import ActionNode
-from metagpt.schema import Message
-from metagpt.utils.serialize import (
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.schema import Message
+from metagpt.core.utils.serialize import (
     actionoutout_schema_to_mapping,
     deserialize_message,
     serialize_message,

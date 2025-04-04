@@ -8,10 +8,10 @@ from llama_index.core.evaluation import SemanticSimilarityEvaluator
 from llama_index.core.schema import NodeWithScore
 from pydantic import BaseModel
 
-from metagpt.const import EXAMPLE_BENCHMARK_PATH
-from metagpt.logs import logger
+from metagpt.core.const import EXAMPLE_BENCHMARK_PATH
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import read_json_file
 from metagpt.rag.factories import get_rag_embedding
-from metagpt.utils.common import read_json_file
 
 
 class DatasetInfo(BaseModel):

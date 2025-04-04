@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.const import METAGPT_ROOT
+from metagpt.core.const import METAGPT_ROOT
 from metagpt.utils.read_document import read_docx
 
 

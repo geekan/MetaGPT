@@ -1,7 +1,7 @@
 import pytest
 
-from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
-from metagpt.schema import Message
+from metagpt.actions.write_analysis_code import WriteAnalysisCode
+from metagpt.core.schema import Message
 
 
 @pytest.mark.asyncio

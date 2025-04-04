@@ -35,7 +35,7 @@ async def default_get_env(key: str, app_name: str = None) -> str:
     if env_app_key in os.environ:
         return os.environ[env_app_key]
 
-    from metagpt.context import Context
+    from metagpt.core.context import Context
 
     context = Context()
     val = context.kwargs.get(app_key, None)
@@ -52,7 +52,7 @@ async def default_get_env_description() -> Dict[str, str]:
         call = f'await get_env(key="{key}", app_name="{app_name}")'
         result[call] = f"Return the value of environment variable `{k}`."
 
-    from metagpt.context import Context
+    from metagpt.core.context import Context
 
     context = Context()
     for k in context.kwargs.__dict__.keys():

@@ -23,7 +23,7 @@ from metagpt.environment import Environment
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
 from metagpt.roles import Architect
-from metagpt.roles.di.team_leader import TeamLeader
+from metagpt.roles.team_leader import TeamLeader
 from metagpt.schema import AIMessage, UserMessage
 from metagpt.strategy.experience_retriever import TRDToolExpRetriever
 from metagpt.utils.common import aread

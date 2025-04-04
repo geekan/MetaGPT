@@ -3,13 +3,13 @@
 # @Desc   :
 import pytest
 
-from metagpt.actions.action_node import ActionNode
-from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.project_management import WriteTasks
+from metagpt.core.actions.action_node import ActionNode
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import any_to_str, read_json_file, write_json_file
 from metagpt.environment import Environment
 from metagpt.roles.project_manager import ProjectManager
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     ActionRaise,

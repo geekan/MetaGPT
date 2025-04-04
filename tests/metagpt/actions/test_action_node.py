@@ -11,14 +11,14 @@ from typing import List, Optional, Tuple
 import pytest
 from pydantic import BaseModel, Field, ValidationError
 
-from metagpt.actions import Action
-from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode
+from metagpt.core.actions import Action
+from metagpt.core.actions.action_node import ActionNode, ReviewMode, ReviseMode
+from metagpt.core.llm import LLM
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import encode_image
 from metagpt.environment import Environment
-from metagpt.llm import LLM
-from metagpt.roles import Role
-from metagpt.schema import Message
 from metagpt.team import Team
-from metagpt.utils.common import encode_image
 
 
 @pytest.mark.asyncio

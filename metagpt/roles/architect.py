@@ -9,8 +9,8 @@ from pydantic import Field
 
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.write_prd import WritePRD
-from metagpt.prompts.di.architect import ARCHITECT_EXAMPLE, ARCHITECT_INSTRUCTION
-from metagpt.roles.di.role_zero import RoleZero
+from metagpt.prompts.architect import ARCHITECT_EXAMPLE, ARCHITECT_INSTRUCTION
+from metagpt.roles.role_zero import RoleZero
 from metagpt.tools.libs.terminal import Terminal
 
 

@@ -1,7 +1,7 @@
 import pytest
 from llama_index.core import Document
 
-from metagpt.const import EXAMPLE_DATA_PATH
+from metagpt.core.const import EXAMPLE_DATA_PATH
 from metagpt.rag.parsers import OmniParse
 from metagpt.rag.schema import (
     OmniParsedResult,

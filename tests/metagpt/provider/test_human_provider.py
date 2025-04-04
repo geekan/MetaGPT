@@ -4,7 +4,7 @@
 
 import pytest
 
-from metagpt.provider.human_provider import HumanProvider
+from metagpt.core.provider.human_provider import HumanProvider
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 resp_content = "test"

@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.repo_parser import RepoParser
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphRepository

@@ -6,7 +6,7 @@
 import pytest
 
 from metagpt.actions import WritePRD
-from metagpt.schema import Message
+from metagpt.core.schema import Message
 
 
 @pytest.mark.asyncio

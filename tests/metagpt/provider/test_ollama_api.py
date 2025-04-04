@@ -40,7 +40,7 @@ async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[An
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
+    mocker.patch("metagpt.core.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
 
     ollama_llm = OllamaLLM(mock_llm_config)
 

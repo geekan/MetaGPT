@@ -4,7 +4,7 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions.action import Action
+from metagpt.core.actions import Action
 from metagpt.roles.architect import Architect
 
 

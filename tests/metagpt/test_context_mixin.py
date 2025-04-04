@@ -10,12 +10,12 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel
 
-from metagpt.actions import Action
-from metagpt.config2 import Config
-from metagpt.const import CONFIG_ROOT
-from metagpt.context_mixin import ContextMixin
+from metagpt.core.actions import Action
+from metagpt.core.config2 import Config
+from metagpt.core.const import CONFIG_ROOT
+from metagpt.core.context_mixin import ContextMixin
+from metagpt.core.roles import Role
 from metagpt.environment import Environment
-from metagpt.roles import Role
 from metagpt.team import Team
 from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,

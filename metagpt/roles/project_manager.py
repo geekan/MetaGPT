@@ -7,7 +7,7 @@
 """
 from metagpt.actions import WriteTasks
 from metagpt.actions.design_api import WriteDesign
-from metagpt.roles.di.role_zero import RoleZero
+from metagpt.roles.role_zero import RoleZero
 
 
 class ProjectManager(RoleZero):

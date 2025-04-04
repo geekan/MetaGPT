@@ -6,7 +6,7 @@
 @File    : test_json_to_markdown.py
 """
 
-from metagpt.utils.json_to_markdown import json_to_markdown
+from metagpt.core.utils.json_to_markdown import json_to_markdown
 
 
 def test_json_to_markdown():

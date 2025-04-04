@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.tools.tool_registry import ToolRegistry
+from metagpt.core.tools.tool_registry import ToolRegistry
 
 
 @pytest.fixture

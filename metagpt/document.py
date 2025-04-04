@@ -17,7 +17,7 @@ from llama_index.readers.file import PDFReader
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.repo_parser import RepoParser
 
 

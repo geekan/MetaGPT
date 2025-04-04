@@ -10,8 +10,8 @@ import uuid
 
 import pytest
 
-from metagpt.actions.debug_error import DebugError
-from metagpt.schema import RunCodeContext, RunCodeResult
+from metagpt.actions import DebugError
+from metagpt.core.schema import RunCodeContext, RunCodeResult
 
 CODE_CONTENT = '''
 from typing import List

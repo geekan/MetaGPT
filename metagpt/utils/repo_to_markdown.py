@@ -11,8 +11,8 @@ from typing import Tuple, Union
 
 from gitignore_parser import parse_gitignore
 
-from metagpt.logs import logger
-from metagpt.utils.common import (
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import (
     aread,
     awrite,
     get_markdown_codeblock_type,

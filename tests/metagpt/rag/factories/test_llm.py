@@ -3,9 +3,9 @@ from typing import Optional, Union
 import pytest
 from llama_index.core.llms import LLMMetadata
 
-from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.provider.base_llm import BaseLLM
 from metagpt.rag.factories.llm import RAGLLM, get_rag_llm
 
 

@@ -7,15 +7,15 @@ from typing import List, Literal
 import boto3
 from botocore.eventstream import EventStream
 
-from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.const import USE_CONFIG_TIMEOUT
-from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.core.configs.llm_config import LLMConfig, LLMType
+from metagpt.core.const import USE_CONFIG_TIMEOUT
+from metagpt.core.logs import log_llm_stream, logger
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.provider.llm_provider_registry import register_provider
+from metagpt.core.utils.cost_manager import CostManager
+from metagpt.core.utils.token_counter import BEDROCK_TOKEN_COSTS
 from metagpt.provider.bedrock.bedrock_provider import get_provider
 from metagpt.provider.bedrock.utils import NOT_SUPPORT_STREAM_MODELS, get_max_tokens
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.utils.cost_manager import CostManager
-from metagpt.utils.token_counter import BEDROCK_TOKEN_COSTS
 
 
 @register_provider([LLMType.BEDROCK])
@@ -130,9 +130,6 @@ class BedrockLLM(BaseLLM):
         collected_content = await self._get_stream_response_body(stream_response)
         log_llm_stream("\n")
         full_text = ("".join(collected_content)).lstrip()
-        if self.__provider.usage:
-            # if provider provide usage, update it
-            self._update_costs(self.__provider.usage, self.config.model)
         return full_text
 
     def _get_response_body(self, response) -> dict:

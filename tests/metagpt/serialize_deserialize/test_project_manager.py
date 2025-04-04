@@ -4,8 +4,8 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions.action import Action
 from metagpt.actions.project_management import WriteTasks
+from metagpt.core.actions import Action
 from metagpt.roles.project_manager import ProjectManager
 
 

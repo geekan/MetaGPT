@@ -6,11 +6,11 @@ Author: garylin2099
 import re
 
 from metagpt.actions import Action
-from metagpt.config2 import config
-from metagpt.const import METAGPT_ROOT
-from metagpt.logs import logger
+from metagpt.core.config2 import config
+from metagpt.core.const import METAGPT_ROOT
+from metagpt.core.logs import logger
+from metagpt.core.schema import Message
 from metagpt.roles import Role
-from metagpt.schema import Message
 
 EXAMPLE_CODE_FILE = METAGPT_ROOT / "examples/build_customized_agent.py"
 MULTI_ACTION_AGENT_CODE_EXAMPLE = EXAMPLE_CODE_FILE.read_text()

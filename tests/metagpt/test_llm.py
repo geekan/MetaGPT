@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.llm import LLM
+from metagpt.core.llm import LLM
 
 
 @pytest.fixture()

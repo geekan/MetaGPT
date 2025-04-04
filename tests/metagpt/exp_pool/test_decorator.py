@@ -2,14 +2,14 @@ import asyncio
 
 import pytest
 
-from metagpt.config2 import Config
-from metagpt.configs.exp_pool_config import ExperiencePoolConfig
-from metagpt.exp_pool.context_builders import SimpleContextBuilder
-from metagpt.exp_pool.decorator import ExpCacheHandler, exp_cache
-from metagpt.exp_pool.manager import ExperienceManager
-from metagpt.exp_pool.perfect_judges import SimplePerfectJudge
-from metagpt.exp_pool.schema import Experience, QueryType, Score
-from metagpt.exp_pool.scorers import SimpleScorer
+from metagpt.core.config2 import Config
+from metagpt.core.configs.exp_pool_config import ExperiencePoolConfig
+from metagpt.core.exp_pool.context_builders import SimpleContextBuilder
+from metagpt.core.exp_pool.decorator import ExpCacheHandler, exp_cache
+from metagpt.core.exp_pool.manager import ExperienceManager
+from metagpt.core.exp_pool.perfect_judges import SimplePerfectJudge
+from metagpt.core.exp_pool.schema import Experience, QueryType, Score
+from metagpt.core.exp_pool.scorers import SimpleScorer
 from metagpt.rag.engines import SimpleEngine
 
 
@@ -156,7 +156,7 @@ class TestExpCache:
     @pytest.fixture
     def mock_config(self, mocker):
         config = Config.default().model_copy(deep=True)
-        default = mocker.patch("metagpt.config2.Config.default")
+        default = mocker.patch("metagpt.core.config2.Config.default")
         default.return_value = config
         return config
 

@@ -17,10 +17,10 @@ from typing import Callable
 import aiohttp.web
 import pytest
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
-from metagpt.context import Context as MetagptContext
-from metagpt.llm import LLM
-from metagpt.logs import logger
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
+from metagpt.core.context import Context as MetagptContext
+from metagpt.core.llm import LLM
+from metagpt.core.logs import logger
 from metagpt.utils.git_repository import GitRepository
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
@@ -62,8 +62,8 @@ def pytest_runtest_makereport(item, call):
 def llm_mock(rsp_cache, mocker, request):
     llm = MockLLM(allow_open_api_call=ALLOW_OPENAI_API_CALL)
     llm.rsp_cache = rsp_cache
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", llm.aask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
     mocker.patch("metagpt.provider.openai_api.OpenAILLM.aask_code", llm.aask_code)
     yield mocker
     if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
@@ -149,6 +149,12 @@ def context(request):
     ctx = MetagptContext()
     repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     ctx.config.project_path = str(repo.workdir)
+
+    # 使用 kwargs 存储额外属性
+    ctx.kwargs.set("git_repo", repo)
+    from metagpt.utils.project_repo import ProjectRepo
+
+    ctx.kwargs.set("repo", ProjectRepo(repo))
 
     # Destroy git repo at the end of the test session.
     def fin():

@@ -4,8 +4,8 @@
 import pytest
 
 from metagpt.actions.import_repo import ImportRepo
-from metagpt.context import Context
-from metagpt.utils.common import list_files
+from metagpt.core.context import Context
+from metagpt.core.utils.common import list_files
 
 
 @pytest.mark.asyncio

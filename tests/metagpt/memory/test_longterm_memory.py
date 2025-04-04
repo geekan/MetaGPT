@@ -7,10 +7,10 @@
 
 import pytest
 
-from metagpt.actions import UserRequirement
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.roles.role import RoleContext
+from metagpt.core.schema import Message
 from metagpt.memory.longterm_memory import LongTermMemory
-from metagpt.roles.role import RoleContext
-from metagpt.schema import Message
 from tests.metagpt.memory.mock_text_embed import (
     mock_openai_aembed_document,
     mock_openai_embed_document,
@@ -28,7 +28,7 @@ async def test_ltm_search(mocker):
     )
 
     role_id = "UTUserLtm(Product Manager)"
-    rc = RoleContext(watch={"metagpt.actions.add_requirement.UserRequirement"})
+    rc = RoleContext(watch={"metagpt.core.actions.add_requirement.UserRequirement"})
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 

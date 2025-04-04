@@ -27,7 +27,7 @@ async def test_collect_links(mocker, search_engine_mocker, context):
         elif "sort the remaining search results" in prompt:
             return "[1,2]"
 
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     resp = await research.CollectLinks(
         search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO), context=context
     ).run("The application of MetaGPT")
@@ -48,7 +48,7 @@ async def test_collect_links_with_rank_func(mocker, search_engine_mocker, contex
         rank_after.append(results)
         return results
 
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
     resp = await research.CollectLinks(
         search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO),
         rank_func=rank_func,
@@ -64,7 +64,7 @@ async def test_web_browse_and_summarize(mocker, context):
     async def mock_llm_ask(*args, **kwargs):
         return "metagpt"
 
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     url = "https://github.com/geekan/MetaGPT"
     url2 = "https://github.com/trending"
     query = "What's new in metagpt"
@@ -80,7 +80,7 @@ async def test_web_browse_and_summarize(mocker, context):
     async def mock_llm_ask(*args, **kwargs):
         return "Not relevant."
 
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     resp = await research.WebBrowseAndSummarize(context=context).run(url, query=query)
 
     assert len(resp) == 1
@@ -97,7 +97,7 @@ async def test_conduct_research(mocker, context):
         data = f"# Research Report\n## Introduction\n{args} {kwargs}"
         return data
 
-    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
+    mocker.patch("metagpt.core.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     content = (
         "MetaGPT takes a one line requirement as input and "
         "outputs user stories / competitive analysis / requirements / data structures / APIs / documents, etc."

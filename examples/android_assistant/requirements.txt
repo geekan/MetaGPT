@@ -1,2 +1,0 @@
-pyshine==0.0.9
-opencv-python==4.6.0.66

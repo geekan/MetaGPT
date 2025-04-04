@@ -7,7 +7,7 @@ import json
 from zhipuai import ZhipuAI
 from zhipuai.core._http_client import ZHIPUAI_DEFAULT_TIMEOUT
 
-from metagpt.provider.general_api_requestor import GeneralAPIRequestor
+from metagpt.core.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 
 

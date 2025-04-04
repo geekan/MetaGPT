@@ -13,8 +13,8 @@ import re
 from pathlib import Path
 from typing import Set
 
-from metagpt.utils.common import aread, awrite
-from metagpt.utils.exceptions import handle_exception
+from metagpt.core.utils.common import aread, awrite
+from metagpt.core.utils.exceptions import handle_exception
 
 
 class DependencyFile:

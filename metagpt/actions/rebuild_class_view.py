@@ -13,18 +13,18 @@ from typing import Optional, Set, Tuple
 
 import aiofiles
 
-from metagpt.actions import Action
-from metagpt.const import (
+from metagpt.core.actions import Action
+from metagpt.core.const import (
     AGGREGATION,
     COMPOSITION,
     DATA_API_DESIGN_FILE_REPO,
     GENERALIZATION,
     GRAPH_REPO_FILE_REPO,
 )
-from metagpt.logs import logger
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import concat_namespace, split_namespace
 from metagpt.repo_parser import DotClassInfo, RepoParser
-from metagpt.schema import UMLClassView
-from metagpt.utils.common import concat_namespace, split_namespace
+from metagpt.uml_schema import UMLClassView
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 

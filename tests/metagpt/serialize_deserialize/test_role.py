@@ -9,13 +9,17 @@ import pytest
 from pydantic import BaseModel, SerializeAsAny
 
 from metagpt.actions import WriteCode
-from metagpt.actions.add_requirement import UserRequirement
-from metagpt.logs import logger
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.logs import logger
+from metagpt.core.roles.role import Role
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import (
+    format_trackback_info,
+    read_json_file,
+    write_json_file,
+)
 from metagpt.roles.engineer import Engineer
 from metagpt.roles.product_manager import ProductManager
-from metagpt.roles.role import Role
-from metagpt.schema import Message
-from metagpt.utils.common import format_trackback_info, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     RoleA,

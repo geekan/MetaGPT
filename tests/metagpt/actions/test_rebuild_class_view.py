@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.rebuild_class_view import RebuildClassView
-from metagpt.llm import LLM
+from metagpt.core.llm import LLM
 
 
 @pytest.mark.asyncio

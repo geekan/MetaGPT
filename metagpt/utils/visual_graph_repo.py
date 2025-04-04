@@ -15,9 +15,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
-from metagpt.schema import UMLClassView
-from metagpt.utils.common import split_namespace
+from metagpt.core.const import AGGREGATION, COMPOSITION, GENERALIZATION
+from metagpt.core.utils.common import split_namespace
+from metagpt.uml_schema import UMLClassView
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 

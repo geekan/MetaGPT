@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from metagpt.const import (
+from metagpt.core.const import (
     CLASS_VIEW_FILE_REPO,
     CODE_PLAN_AND_CHANGE_FILE_REPO,
     CODE_PLAN_AND_CHANGE_PDF_FILE_REPO,
@@ -36,7 +36,7 @@ from metagpt.const import (
     TEST_OUTPUTS_FILE_REPO,
     VISUAL_GRAPH_REPO_FILE_REPO,
 )
-from metagpt.utils.common import get_project_srcs_path
+from metagpt.core.utils.common import get_project_srcs_path
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
 

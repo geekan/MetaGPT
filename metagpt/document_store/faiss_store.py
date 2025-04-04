@@ -16,9 +16,9 @@ from llama_index.core.schema import Document, QueryBundle, TextNode
 from llama_index.core.storage import StorageContext
 from llama_index.vector_stores.faiss import FaissVectorStore
 
+from metagpt.core.logs import logger
 from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
-from metagpt.logs import logger
 from metagpt.utils.embedding import get_embedding
 
 

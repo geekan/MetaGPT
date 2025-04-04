@@ -1,0 +1,67 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# 包基本信息
+[tool.poetry]
+name = "metagpt-core"
+version = "1.0.0"
+description = "The core package of The Multi-Agent Framework"
+authors = ["Alexander Wu <alexanderwu@deepwisdom.ai>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/geekan/MetaGPT"
+keywords = ["metagpt", "core", "llm", "multi-agent", "multi-role", "programming", "gpt", "metaprogramming"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+]
+# 简化包配置，只包含当前目录下的Python文件
+packages = [
+    { include = "metagpt/core/**/*.py", from = "../.." }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+aiohttp = "3.8.6"
+loguru = "0.6.0"
+pydantic = ">=2.5.3"
+PyYAML = "6.0.1"
+setuptools = "65.6.3"
+tenacity = "8.2.3"
+tiktoken = "0.7.0"
+aiofiles = "23.2.1"
+rank-bm25 = "0.2.2"
+tree_sitter = "~0.23.2"
+tree_sitter_python = "~0.23.2"
+
+# 可选依赖
+[tool.poetry.group.pyppeteer.dependencies]
+pyppeteer = ">=1.0.2"
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+pytest-html = "*"
+pytest-xdist = "*"
+pytest-timeout = "*"
+connexion = {extras = ["uvicorn"], version = "^3.0.5"}
+azure-cognitiveservices-speech = "^1.31.0"
+aioboto3 = "^12.4.0"
+gradio = "3.0.0"
+google-api-core = "2.17.1"
+protobuf = "^4.25.5"
+pylint = "3.0.3"
+pybrowsers = "*"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.0.3"
+black = "^23.3.0"
+isort = "^5.12.0"
+pre-commit = "^3.6.0"

@@ -1,10 +1,10 @@
 import pytest
 
-from metagpt.config2 import Config
-from metagpt.const import TEST_DATA_PATH
+from metagpt.core.config2 import Config
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.utils.common import aread
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.factories.embedding import RAGEmbeddingFactory
-from metagpt.utils.common import aread
 
 
 @pytest.mark.skip

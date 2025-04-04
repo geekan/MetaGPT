@@ -14,11 +14,15 @@ from types import SimpleNamespace
 import pytest
 
 from metagpt.actions import WriteCode, WriteTasks
-from metagpt.const import REQUIREMENT_FILENAME, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
-from metagpt.logs import logger
+from metagpt.core.const import (
+    REQUIREMENT_FILENAME,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
+)
+from metagpt.core.logs import logger
+from metagpt.core.schema import CodingContext, Message
+from metagpt.core.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.roles.engineer import Engineer
-from metagpt.schema import CodingContext, Message
-from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
 from metagpt.utils.git_repository import ChangeType
 from metagpt.utils.project_repo import ProjectRepo
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages

@@ -1,4 +1,4 @@
-from metagpt.roles.di.data_analyst import DataAnalyst
+from metagpt.roles.data_analyst import DataAnalyst
 
 HOUSE_PRICE_TRAIN_PATH = "/data/house-prices-advanced-regression-techniques/split_train.csv"
 HOUSE_PRICE_EVAL_PATH = "/data/house-prices-advanced-regression-techniques/split_eval.csv"

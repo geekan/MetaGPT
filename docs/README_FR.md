@@ -109,11 +109,13 @@ Vous pouvez aussi utiliser [Data Interpreter](https://github.com/geekan/MetaGPT/
 
 ```python
 import asyncio
-from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.roles.data_interpreter import DataInterpreter
+
 
 async def main():
     di = DataInterpreter()
     await di.run("Exécuter une analyse de données sur le jeu de données sklearn Iris et y inclure un graphique")
+
 
 asyncio.run(main())  # ou attendre main() dans une configuration de notebook jupyter
 ```

@@ -1,7 +1,7 @@
 import pytest
 
-from metagpt.exp_pool.context_builders.base import BaseContextBuilder
-from metagpt.exp_pool.context_builders.simple import (
+from metagpt.core.exp_pool.context_builders.base import BaseContextBuilder
+from metagpt.core.exp_pool.context_builders.simple import (
     SIMPLE_CONTEXT_TEMPLATE,
     SimpleContextBuilder,
 )
