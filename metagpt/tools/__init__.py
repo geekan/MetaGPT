@@ -8,8 +8,8 @@
 
 from metagpt.core.configs.browser_config import WebBrowserEngineType
 from metagpt.core.configs.search_config import SearchEngineType
-from metagpt.tools import libs  # this registers all tools
 from metagpt.core.tools import TOOL_REGISTRY
+from metagpt.tools import libs  # this registers all tools
 
 _ = libs, TOOL_REGISTRY  # Avoid pre-commit error
 

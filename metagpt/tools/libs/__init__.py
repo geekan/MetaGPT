@@ -4,12 +4,11 @@
 # @Author  : lidanyang
 # @File    : __init__.py
 # @Desc    :
-from metagpt.tools.libs import browser, deployer, editor, git, terminal
+from metagpt.tools.libs import browser, deployer, git, terminal
 from metagpt.tools.libs.env import default_get_env, get_env, get_env_default, get_env_description, set_get_env_entry
 
 _ = (
     terminal,
-    editor,
     browser,
     deployer,
     git,

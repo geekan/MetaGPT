@@ -11,11 +11,12 @@ from metagpt.actions.write_analysis_code import CheckData, WriteAnalysisCode
 from metagpt.core.logs import logger
 from metagpt.core.roles import Role
 from metagpt.core.schema import Message, Task, TaskResult
-from metagpt.core.tools.tool_recommend import BM25ToolRecommender, ToolRecommender
+from metagpt.core.tools.tool_recommend_base import ToolRecommender
 from metagpt.core.utils.common import CodeParser
 from metagpt.core.utils.report import ThoughtReporter
 from metagpt.prompts.write_analysis_code import DATA_INFO
 from metagpt.strategy.task_type import TaskType
+from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 REACT_THINK_PROMPT = """
 # User Requirement

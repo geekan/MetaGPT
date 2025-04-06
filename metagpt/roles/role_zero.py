@@ -29,7 +29,6 @@ from metagpt.core.prompts.role_zero import (
 )
 from metagpt.core.roles import BaseRoleZero
 from metagpt.core.schema import AIMessage, Message, UserMessage
-from metagpt.core.tools.tool_recommend import BM25ToolRecommender
 from metagpt.core.tools.tool_registry import register_tool
 from metagpt.core.utils.common import CodeParser, any_to_str, extract_and_encode_images
 from metagpt.core.utils.repair_llm_raw_output import (
@@ -41,6 +40,7 @@ from metagpt.core.utils.report import ThoughtReporter
 from metagpt.strategy.planner import Planner
 from metagpt.tools.libs.browser import Browser
 from metagpt.tools.libs.editor import Editor
+from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 
 @register_tool(include_functions=["ask_human", "reply_to_human"])

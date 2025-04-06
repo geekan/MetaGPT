@@ -6,12 +6,10 @@ from pathlib import Path
 
 from loguru import logger
 
-import metagpt
-
 
 def get_metagpt_package_root():
     """Get the root directory of the installed package."""
-    package_root = Path(metagpt.core.__file__).parent.parent
+    package_root = Path(__file__).parent.parent.parent
     logger.info(f"Package root set to {str(package_root)}")
     return package_root
 

@@ -6,12 +6,10 @@
 @File    : __init__.py
 """
 
-from metagpt.utils.read_document import read_docx
 from metagpt.utils.singleton import Singleton
 from metagpt.core.utils.token_counter import TOKEN_COSTS, count_message_tokens, count_output_tokens
 
 __all__ = [
-    "read_docx",
     "Singleton",
     "TOKEN_COSTS",
     "new_transaction_id",
