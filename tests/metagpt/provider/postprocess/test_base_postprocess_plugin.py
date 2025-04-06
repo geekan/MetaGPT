@@ -3,7 +3,9 @@
 # @Desc   :
 
 
-from metagpt.provider.postprocess.base_postprocess_plugin import BasePostProcessPlugin
+from metagpt.core.provider.postprocess.base_postprocess_plugin import (
+    BasePostProcessPlugin,
+)
 
 raw_output = """
 [CONTENT]

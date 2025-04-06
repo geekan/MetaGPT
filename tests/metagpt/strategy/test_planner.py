@@ -1,4 +1,4 @@
-from metagpt.schema import Plan, Task
+from metagpt.core.schema import Plan, Task
 from metagpt.strategy.planner import Planner
 from metagpt.strategy.task_type import TaskType
 

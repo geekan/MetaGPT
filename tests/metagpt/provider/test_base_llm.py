@@ -8,11 +8,11 @@
 
 import pytest
 
-from metagpt.configs.compress_msg_config import CompressType
-from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import IMAGES
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.schema import AIMessage, Message, UserMessage
+from metagpt.core.configs.compress_msg_config import CompressType
+from metagpt.core.configs.llm_config import LLMConfig
+from metagpt.core.const import IMAGES
+from metagpt.core.provider.base_llm import BaseLLM
+from metagpt.core.schema import AIMessage, Message, UserMessage
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 from tests.metagpt.provider.req_resp_const import (
     default_resp_cont,

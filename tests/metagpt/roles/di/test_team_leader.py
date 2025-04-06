@@ -1,5 +1,6 @@
 import pytest
 
+from metagpt.core.schema import Message
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.roles import (
     Architect,
@@ -8,9 +9,8 @@ from metagpt.roles import (
     ProjectManager,
     QaEngineer,
 )
-from metagpt.roles.di.data_interpreter import DataInterpreter
-from metagpt.roles.di.team_leader import TeamLeader
-from metagpt.schema import Message
+from metagpt.roles.data_interpreter import DataInterpreter
+from metagpt.roles.team_leader import TeamLeader
 
 
 @pytest.fixture

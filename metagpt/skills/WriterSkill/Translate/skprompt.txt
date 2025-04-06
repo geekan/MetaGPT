@@ -1,7 +1,0 @@
-Translate the input below into {{$language}}
-
-MAKE SURE YOU ONLY USE {{$language}}.
-
-{{$input}}
-
-Translation:

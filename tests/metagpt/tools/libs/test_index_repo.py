@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
 from metagpt.tools.libs.index_repo import (
     CHATS_INDEX_ROOT,
     UPLOADS_INDEX_ROOT,

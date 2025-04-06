@@ -8,7 +8,7 @@
 
 from typing import Optional
 
-from metagpt.actions.action import Action
+from metagpt.core.actions import Action
 
 
 class WritePRDReview(Action):

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from metagpt.exp_pool.serializers import RoleZeroSerializer
+from metagpt.core.exp_pool.serializers import RoleZeroSerializer
 
 
 class TestRoleZeroSerializer:

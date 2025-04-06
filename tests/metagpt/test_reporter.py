@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 import aiohttp.web
 import pytest
 
-from metagpt.logs import log_llm_stream
-from metagpt.utils.report import (
+from metagpt.core.logs import log_llm_stream
+from metagpt.core.utils.report import (
     END_MARKER_NAME,
     BlockType,
     BrowserReporter,

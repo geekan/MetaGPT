@@ -11,11 +11,12 @@ import shutil
 from pathlib import Path
 from typing import Dict, Optional
 
-from metagpt.actions import Action, UserRequirement
-from metagpt.const import REQUIREMENT_FILENAME
-from metagpt.logs import logger
-from metagpt.schema import AIMessage
-from metagpt.utils.common import any_to_str
+from metagpt.core.actions import Action
+from metagpt.core.actions.add_requirement import UserRequirement
+from metagpt.core.const import REQUIREMENT_FILENAME
+from metagpt.core.logs import logger
+from metagpt.core.schema import AIMessage
+from metagpt.core.utils.common import any_to_str
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.project_repo import ProjectRepo
 

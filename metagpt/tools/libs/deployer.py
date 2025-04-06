@@ -1,4 +1,4 @@
-from metagpt.tools.tool_registry import register_tool
+from metagpt.core.tools.tool_registry import register_tool
 
 
 # An un-implemented tool reserved for deploying a local service to public

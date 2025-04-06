@@ -16,21 +16,21 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from metagpt.actions import Action
 from metagpt.actions.extract_readme import ExtractReadMe
 from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.actions.rebuild_sequence_view import RebuildSequenceView
-from metagpt.const import GRAPH_REPO_FILE_REPO
-from metagpt.logs import logger
-from metagpt.schema import Message
-from metagpt.tools.libs.git import git_clone
-from metagpt.utils.common import (
+from metagpt.core.actions import Action
+from metagpt.core.const import GRAPH_REPO_FILE_REPO
+from metagpt.core.logs import logger
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import (
     aread,
     awrite,
     list_files,
     parse_json_code_block,
     split_namespace,
 )
+from metagpt.tools.libs.git import git_clone
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository

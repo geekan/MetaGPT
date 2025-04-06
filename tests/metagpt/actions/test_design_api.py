@@ -11,9 +11,9 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.design_api import WriteDesign
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
-from metagpt.logs import logger
-from metagpt.schema import AIMessage, Message
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT
+from metagpt.core.logs import logger
+from metagpt.core.schema import AIMessage, Message
 from metagpt.utils.project_repo import ProjectRepo
 from tests.data.incremental_dev_project.mock import DESIGN_SAMPLE, REFINED_PRD_JSON
 

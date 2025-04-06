@@ -11,8 +11,8 @@ from urllib.parse import urljoin
 
 from pyppeteer import launch
 
-from metagpt.config2 import Config
-from metagpt.logs import logger
+from metagpt.core.config2 import Config
+from metagpt.core.logs import logger
 
 
 async def mermaid_to_file(

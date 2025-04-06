@@ -5,3 +5,7 @@
 # @File    : __init__.py
 
 from metagpt import _compat as _  # noqa: F401
+from metagpt import provider  # noqa: F401
+
+# Import all providers to ensure they are registered
+from metagpt.provider import *  # noqa: F403

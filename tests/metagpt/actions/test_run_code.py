@@ -9,7 +9,7 @@
 import pytest
 
 from metagpt.actions.run_code import RunCode
-from metagpt.schema import RunCodeContext
+from metagpt.core.schema import RunCodeContext
 
 
 @pytest.mark.asyncio

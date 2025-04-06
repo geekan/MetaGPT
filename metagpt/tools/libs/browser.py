@@ -14,7 +14,8 @@ from playwright.async_api import (
 )
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.tools.tool_registry import register_tool
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.report import BrowserReporter
 from metagpt.utils.a11y_tree import (
     click_element,
     get_accessibility_tree,
@@ -26,7 +27,6 @@ from metagpt.utils.a11y_tree import (
     type_text,
 )
 from metagpt.utils.proxy_env import get_proxy_from_env
-from metagpt.utils.report import BrowserReporter
 
 
 @register_tool(

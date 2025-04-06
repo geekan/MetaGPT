@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.core.utils.custom_decoder import CustomDecoder
 
 
 def test_parse_single_quote():

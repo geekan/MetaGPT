@@ -9,9 +9,9 @@ from llama_index.embeddings.gemini import GeminiEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.embeddings.openai import OpenAIEmbedding
 
-from metagpt.config2 import Config
-from metagpt.configs.embedding_config import EmbeddingType
-from metagpt.configs.llm_config import LLMType
+from metagpt.core.config2 import Config
+from metagpt.core.configs.embedding_config import EmbeddingType
+from metagpt.core.configs.llm_config import LLMType
 from metagpt.rag.factories.base import GenericFactory
 
 

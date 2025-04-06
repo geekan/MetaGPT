@@ -1,7 +1,7 @@
 import pytest
 
-from metagpt.logs import logger
-from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.core.logs import logger
+from metagpt.roles.data_interpreter import DataInterpreter
 
 
 @pytest.mark.asyncio

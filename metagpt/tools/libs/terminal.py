@@ -5,11 +5,11 @@ from asyncio import Queue
 from asyncio.subprocess import PIPE, STDOUT
 from typing import Optional
 
-from metagpt.config2 import Config
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
-from metagpt.logs import logger
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
+from metagpt.core.config2 import Config
+from metagpt.core.const import DEFAULT_WORKSPACE_ROOT, SWE_SETUP_PATH
+from metagpt.core.logs import logger
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.report import END_MARKER_VALUE, TerminalReporter
 
 
 @register_tool()

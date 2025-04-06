@@ -14,10 +14,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set
 
-from metagpt.logs import logger
-from metagpt.schema import Document
-from metagpt.utils.common import aread, awrite
-from metagpt.utils.json_to_markdown import json_to_markdown
+from metagpt.core.logs import logger
+from metagpt.core.schema import Document
+from metagpt.core.utils.common import aread, awrite
+from metagpt.core.utils.json_to_markdown import json_to_markdown
 
 
 class FileRepository:

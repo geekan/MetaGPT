@@ -21,10 +21,10 @@ from typing import Tuple
 
 from pydantic import Field
 
-from metagpt.actions.action import Action
-from metagpt.logs import logger
-from metagpt.schema import RunCodeContext, RunCodeResult
-from metagpt.utils.exceptions import handle_exception
+from metagpt.core.actions import Action
+from metagpt.core.logs import logger
+from metagpt.core.schema import RunCodeContext, RunCodeResult
+from metagpt.core.utils.exceptions import handle_exception
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.

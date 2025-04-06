@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.utils.common import awrite
+from metagpt.core.utils.common import awrite
 from metagpt.utils.git_repository import GitRepository
 
 

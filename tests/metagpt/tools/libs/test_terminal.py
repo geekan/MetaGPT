@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.const import DATA_PATH, METAGPT_ROOT
+from metagpt.core.const import DATA_PATH, METAGPT_ROOT
 from metagpt.tools.libs.terminal import Terminal
 
 

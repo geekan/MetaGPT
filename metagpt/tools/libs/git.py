@@ -9,7 +9,7 @@ from typing import Optional
 from github.Issue import Issue
 from github.PullRequest import PullRequest
 
-from metagpt.tools.tool_registry import register_tool
+from metagpt.core.tools.tool_registry import register_tool
 
 
 @register_tool(tags=["software development", "git", "create a git pull request or merge request"])

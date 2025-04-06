@@ -10,10 +10,10 @@ import json
 import pytest
 
 from metagpt.actions import WritePRD
-from metagpt.context import Context
-from metagpt.logs import logger
+from metagpt.core.context import Context
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import any_to_str
 from metagpt.roles import ProductManager
-from metagpt.utils.common import any_to_str
 from metagpt.utils.git_repository import GitRepository
 from tests.metagpt.roles.mock import MockMessages
 

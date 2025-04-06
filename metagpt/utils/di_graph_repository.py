@@ -16,7 +16,7 @@ from typing import List
 
 import networkx
 
-from metagpt.utils.common import aread, awrite
+from metagpt.core.utils.common import aread, awrite
 from metagpt.utils.graph_repository import SPO, GraphRepository
 
 

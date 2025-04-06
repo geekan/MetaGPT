@@ -8,8 +8,8 @@
 import pytest
 
 from metagpt.actions.write_test import WriteTest
-from metagpt.logs import logger
-from metagpt.schema import Document, TestingContext
+from metagpt.core.logs import logger
+from metagpt.core.schema import Document, TestingContext
 
 
 @pytest.mark.asyncio

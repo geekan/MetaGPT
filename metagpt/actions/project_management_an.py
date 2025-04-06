@@ -7,7 +7,7 @@
 """
 from typing import List, Optional
 
-from metagpt.actions.action_node import ActionNode
+from metagpt.core.actions.action_node import ActionNode
 
 REQUIRED_PACKAGES = ActionNode(
     key="Required packages",

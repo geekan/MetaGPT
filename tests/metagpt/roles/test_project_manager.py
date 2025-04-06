@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.roles import ProjectManager
 from tests.metagpt.roles.mock import MockMessages
 

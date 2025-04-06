@@ -7,13 +7,12 @@ import aiofiles
 from bs4 import BeautifulSoup
 from unidiff import PatchSet
 
-import metagpt.ext.cr
-from metagpt.ext.cr.actions.code_review import CodeReview as CodeReview_
-from metagpt.ext.cr.actions.modify_code import ModifyCode
-from metagpt.ext.cr.utils.schema import Point
+from metagpt.actions.code_review import CodeReview as CodeReview_
+from metagpt.actions.modify_code import ModifyCode
+from metagpt.core.schema import Point
+from metagpt.core.tools.tool_registry import register_tool
+from metagpt.core.utils.report import EditorReporter
 from metagpt.tools.libs.browser import Browser
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.report import EditorReporter
 
 
 @register_tool(tags=["codereview"], include_functions=["review", "fix"])
@@ -44,7 +43,7 @@ class CodeReview:
             >>> await cr.review(patch_path="/data/uploads/main.py", output_file="cr/main.json")
         """
         patch = await self._get_patch_content(patch_path)
-        point_file = point_file if point_file else Path(metagpt.ext.cr.__file__).parent / "points.json"
+        point_file = point_file if point_file else Path(metagpt.actions.__file__).parent / "points.json"
         await EditorReporter().async_report(str(point_file), "path")
         async with aiofiles.open(point_file, "rb") as f:
             cr_point_content = await f.read()

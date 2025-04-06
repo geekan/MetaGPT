@@ -4,8 +4,8 @@ from typing import Union
 
 import httpx
 
+from metagpt.core.utils.common import aread_bin
 from metagpt.rag.schema import OmniParsedResult
-from metagpt.utils.common import aread_bin
 
 
 class OmniParseClient:

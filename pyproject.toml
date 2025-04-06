@@ -1,0 +1,131 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "metagpt"
+version = "1.0.0"
+description = "The Multi-Agent Framework"
+authors = ["Alexander Wu <alexanderwu@deepwisdom.ai>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/geekan/MetaGPT"
+keywords = ["metagpt", "multi-agent", "multi-role", "programming", "gpt", "llm", "metaprogramming"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+]
+exclude = ["metagpt/core/**", "examples/**", "tests/**", "scripts/**"]
+packages = [
+    { include = "metagpt" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+# 明确将metagpt-core作为依赖，使用path确保开发模式下也能正确工作
+metagpt-core = { path = "metagpt/core", develop = true }
+channels = "4.0.0"
+faiss_cpu = "1.7.4"
+fire = "0.4.0"
+typer = "0.9.0"
+lancedb = "0.4.0"
+meilisearch = "0.21.0"
+openai = "^1.64.0"
+openpyxl = "^3.1.5"
+beautifulsoup4 = "4.12.3"
+pandas = "2.1.1"
+python_docx = "0.8.11"
+tqdm = "4.66.2"
+anthropic = "0.47.2"
+numpy = "^1.26.4"
+typing-inspect = "0.8.0"
+libcst = "1.0.1"
+qdrant-client = "1.7.0"
+grpcio = "^1.67.0"
+grpcio-tools = "^1.62.3"
+grpcio-status = "^1.62.3"
+ta = "0.10.2"
+semantic-kernel = "0.4.3.dev0"
+wrapt = "1.15.0"
+redis = "^5.0.0"
+curl-cffi = "^0.7.0"
+httplib2 = "^0.22.0"
+websocket-client = "^1.8.0"
+gitpython = "3.1.40"
+zhipuai = "^2.1.5"
+rich = "13.6.0"
+nbclient = "0.9.0"
+nbformat = "5.9.2"
+ipython = "8.17.2"
+ipykernel = "6.27.1"
+scikit_learn = "1.3.2"
+typing-extensions = "4.11.0"
+socksio = "^1.0.0"
+gitignore-parser = "0.1.9"
+websockets = ">=10.0,<12.0"
+networkx = "^3.2.1"
+google-generativeai = "0.4.1"
+playwright = ">=1.26"
+anytree = "*"
+ipywidgets = "8.1.1"
+pillow = "*"
+imap_tools = "1.5.0"
+pylint = "^3.0.3"
+pygithub = "^2.3"
+htmlmin = "*"
+fsspec = "*"
+grep-ast = "^0.3.3"
+unidiff = "0.7.5"
+qianfan = "^0.4.4"
+dashscope = "^1.19.3"
+jieba = "0.42.1"
+volcengine-python-sdk = {extras = ["ark"], version = "^1.0.94"}
+gymnasium = "0.29.1"
+boto3 = "^1.34.69"
+spark_ai_python = "^0.3.30"
+httpx = "0.28.1"
+
+[tool.poetry.group.selenium.dependencies]
+selenium = ">4"
+webdriver_manager = "*"
+beautifulsoup4 = "*"
+
+[tool.poetry.group.search-google.dependencies]
+google-api-python-client = "2.94.0"
+
+[tool.poetry.group.search-ddg.dependencies]
+duckduckgo-search = "^4.1.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+pytest-html = "*"
+pytest-xdist = "*"
+pytest-timeout = "*"
+connexion = {extras = ["uvicorn"], version = "^3.0.5"}
+azure-cognitiveservices-speech = "^1.31.0"
+aioboto3 = "^12.4.0"
+gradio = "3.0.0"
+google-api-core = "2.17.1"
+protobuf = "^4.25.5"
+pylint = "3.0.3"
+pybrowsers = "*"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.0.3"
+black = "^23.3.0"
+isort = "^5.12.0"
+pre-commit = "^3.6.0"
+
+[tool.poetry.scripts]
+metagpt = "metagpt.software_company:app"
+install-mermaid = "scripts.install_mermaid:install_mermaid_cli"
+
+[tool.poetry.group.pyppeteer.dependencies]
+pyppeteer = ">=1.0.2"

@@ -16,8 +16,8 @@ from typing import List
 
 from pydantic import BaseModel
 
+from metagpt.core.utils.common import concat_namespace, split_namespace
 from metagpt.repo_parser import DotClassInfo, DotClassRelationship, RepoFileInfo
-from metagpt.utils.common import concat_namespace, split_namespace
 
 
 class GraphKeyword:

@@ -1,9 +1,9 @@
-from metagpt.actions.action import Action
-from metagpt.config2 import Config
-from metagpt.const import TEST_DATA_PATH
-from metagpt.context import Context
-from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.roles.role import Role
+from metagpt.core.actions import Action
+from metagpt.core.config2 import Config
+from metagpt.core.const import TEST_DATA_PATH
+from metagpt.core.context import Context
+from metagpt.core.provider.llm_provider_registry import create_llm_instance
+from metagpt.core.roles.role import Role
 
 
 def test_set_llm():

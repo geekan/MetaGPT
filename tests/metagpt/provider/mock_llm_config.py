@@ -6,7 +6,7 @@
 @File    : mock_llm_config.py
 """
 
-from metagpt.configs.llm_config import LLMConfig
+from metagpt.core.configs.llm_config import LLMConfig
 
 mock_llm_config = LLMConfig(
     llm_type="mock",

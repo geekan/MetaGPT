@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from metagpt.roles import Role
-from metagpt.schema import Message
+from metagpt.core.roles import Role
+from metagpt.core.schema import Message
 from metagpt.subscription import SubscriptionRunner
 
 

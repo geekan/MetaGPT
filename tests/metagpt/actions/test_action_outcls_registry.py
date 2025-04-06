@@ -4,7 +4,7 @@
 
 from typing import List
 
-from metagpt.actions.action_node import ActionNode
+from metagpt.core.actions.action_node import ActionNode
 
 
 def test_action_outcls_registry():

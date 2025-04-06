@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.write_code import WriteCode
-from metagpt.logs import logger
-from metagpt.schema import CodingContext, Document
-from metagpt.utils.common import CodeParser, aread
+from metagpt.core.logs import logger
+from metagpt.core.schema import CodingContext, Document
+from metagpt.core.utils.common import CodeParser, aread
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     REFINED_CODE_INPUT_SAMPLE,

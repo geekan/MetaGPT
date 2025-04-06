@@ -13,10 +13,10 @@ from pydantic import Field
 
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.core.schema import Message
+from metagpt.core.utils.common import any_to_str, aread, awrite
 from metagpt.environment import Environment
 from metagpt.roles import QaEngineer
-from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, aread, awrite
 
 
 async def test_qa(context):

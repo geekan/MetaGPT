@@ -1,4 +1,4 @@
-from metagpt.prompts.di.role_zero import ROLE_INSTRUCTION
+from metagpt.core.prompts.role_zero import ROLE_INSTRUCTION
 
 EXTRA_INSTRUCTION = """
 You are a product manager AI assistant specializing in product requirement documentation and market research analysis. 

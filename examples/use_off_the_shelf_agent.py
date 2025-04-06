@@ -7,8 +7,8 @@ import asyncio
 
 from metagpt.environment.mgx.mgx_env import MGXEnv
 from metagpt.logs import logger
-from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.roles.product_manager import ProductManager
+from metagpt.roles.team_leader import TeamLeader
 from metagpt.schema import Message
 
 

@@ -21,10 +21,10 @@ from typing import Dict, List, Optional
 import pandas as pd
 from pydantic import BaseModel, Field, field_validator
 
-from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
-from metagpt.logs import logger
-from metagpt.utils.common import any_to_str, aread, remove_white_spaces
-from metagpt.utils.exceptions import handle_exception
+from metagpt.core.const import AGGREGATION, COMPOSITION, GENERALIZATION
+from metagpt.core.logs import logger
+from metagpt.core.utils.common import any_to_str, aread, remove_white_spaces
+from metagpt.core.utils.exceptions import handle_exception
 
 
 class RepoFileInfo(BaseModel):

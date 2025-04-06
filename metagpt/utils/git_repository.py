@@ -30,7 +30,7 @@ from gitignore_parser import parse_gitignore
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.logs import logger
+from metagpt.core.logs import logger
 from metagpt.tools.libs.shell import shell_execute
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
@@ -271,7 +271,7 @@ class GitRepository:
         """
         if not auth and not access_token:
             raise ValueError('`access_token` is invalid. Visit: "https://github.com/settings/tokens"')
-        from metagpt.context import Context
+        from metagpt.core.context import Context
 
         base = self.current_branch
         head = base if not new_branch else self.new_branch(new_branch)
@@ -416,7 +416,7 @@ class GitRepository:
     @classmethod
     @retry(wait=wait_random_exponential(min=1, max=15), stop=stop_after_attempt(3))
     async def clone_from(cls, url: str | Path, output_dir: str | Path = None) -> "GitRepository":
-        from metagpt.context import Context
+        from metagpt.core.context import Context
 
         to_path = Path(output_dir or Path(__file__).parent / f"../../workspace/downloads/{uuid.uuid4().hex}").resolve()
         to_path.mkdir(parents=True, exist_ok=True)

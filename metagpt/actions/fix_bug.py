@@ -4,7 +4,7 @@
 @Author  : mashenquan
 @File    : fix_bug.py
 """
-from metagpt.actions import Action
+from metagpt.core.actions import Action
 
 
 class FixBug(Action):
