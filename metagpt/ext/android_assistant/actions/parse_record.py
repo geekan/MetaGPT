@@ -109,7 +109,7 @@ class ParseRecord(Action):
 
                 logger.info(f"Waiting for GPT-4V to generate documentation for the element {resource_id}")
                 node = await RECORD_PARSE_NODE.fill(
-                    context=context, llm=self.llm, images=[img_before_base64, img_after_base64]
+                    req=context, llm=self.llm, images=[img_before_base64, img_after_base64]
                 )
                 if "error" in node.content:
                     return AndroidActionOutput(action_state=RunState.FAIL)
