@@ -6,7 +6,11 @@
 """
 
 from metagpt.roles.di.data_interpreter import DataInterpreter
-from metagpt.tools.libs.web_scraping import view_page_element_to_scrape
+
+# from metagpt.tools.libs.web_scraping import view_page_element_to_scrape
+# This function has been refactored in MetaGPT v0.7+version, 
+# and the web crawling related functions have been integrated into the scrape_web_playwright tool
+
 
 PAPER_LIST_REQ = """"
 Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
@@ -32,9 +36,12 @@ NEWS_36KR_REQ = """从36kr创投平台https://pitchhub.36kr.com/financing-flash 
 
 
 async def main():
-    di = DataInterpreter(tools=[view_page_element_to_scrape.__name__])
-
+    # di = DataInterpreter(tools=[view_page_element_to_scrape.__name__])
+    
+    # The above has expired，Modify as follows：
+    di = DataInterpreter(tools=["scrape_web_playwright"]) 
     await di.run(ECOMMERCE_REQ)
+
 
 
 if __name__ == "__main__":
