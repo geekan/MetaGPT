@@ -1,0 +1,5 @@
+llm:
+  api_type: llamaapi
+  base_url: "https://api.llama.com/compat/v1/"
+  api_key: "YOUR_API_KEY"
+  model: llama-4-Maverick-17B-128E-Instruct-FP8
