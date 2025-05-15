@@ -1,3 +1,4 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
 llm:
   api_type: llama_api
   base_url: "https://api.llama.com/compat/v1/"
