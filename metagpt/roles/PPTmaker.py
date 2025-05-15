@@ -35,7 +35,8 @@ class LatexGeneratorAction(Action):
         Returns:
             Generated LaTeX code as string
         """
-        logger.info(f"Executing {self.name} Action: Generating LaTeX content for request '{request[:]}...'")
+        logger.info(f"Actual max_tokens used: {self.llm.config.max_token}")
+        logger.info(f"Executing {self.name} Action: Generating LaTeX content for request \n'{request[:]}...'")
         
         system_content = SYSTEM_PROMPT
         user_content = USER_CONTENT.format(request=request, history=history)
@@ -112,7 +113,6 @@ class PPTMaker(RoleZero):
     def _reset_state(self):
         """Reset internal state to prepare for a new task"""
         self.curr_step = 0
-        self.accumulated_latex = ""
         self.is_completed = False
         self.validator_feedback = ""  
         logger.info(f"{self.name} state has been reset")
@@ -150,56 +150,50 @@ class PPTMaker(RoleZero):
         
         logger.info(f"{self.name} selected tool: {tool_name}")
         
-        request = self.rc.history[0].content if self.rc.history else "No topic provided"
         result = None
 
         try:
             if tool_name == "latexgenerator":
                 LatexGenerator = LatexGeneratorAction()
                 result = await LatexGenerator.run(
-                    request=request, 
-                    history=self.accumulated_latex
+                    request=self.rc.history[0].content, 
+                    history=self.rc.history
                 )
                 self.optimized_result = result    
                 if result:
-                    if not self.accumulated_latex:
-                        self.accumulated_latex = result
-                    else:
-                        self.accumulated_latex += "\n" + result
+                    self.rc.memory.add(result) 
                     
-                    logger.info(f"LaTeX content generated, current total length: {len(self.accumulated_latex)}")
+                    logger.info(f"LaTeX content generated, current total length: {len(self.rc.history)}")
                 message_content = f"Step {self.curr_step+1}/{self.max_steps}: Used tool {tool_name} to generate content"
 
             elif tool_name == "validator":
                 Validator = ValidatorAction()
                 result = await Validator.run(
-                    request=request, 
-                    history=self.accumulated_latex
+                    request=self.rc.history[0].content, 
+                    history=self.rc.history
                 )
                 message_content = f"Step {self.curr_step+1}/{self.max_steps}: Used tool {tool_name} to validate content"
-                self.accumulated_latex += "\n" + result
+                self.rc.memory.add(result) 
 
                 if "No further feedback" in result:
                     logger.info(f"{self.name}: Validator indicates task is complete")
                     self.is_completed = True
                     self.curr_step += 1
-                    return self.optimized_result
+                    return Message(content=self.optimized_result, role=self.profile, cause_by=tool_class)
 
         except Exception as e:
             logger.error(f"Error executing tool {tool_name}: {e}")
-            message_content = f"Error executing tool {tool_name}: {e}"
         
         self.curr_step += 1
-        Message(content=message_content, role=self.profile, cause_by=tool_class)
-        return self.optimized_result
+        return Message(content=self.optimized_result or message_content, role=self.profile, cause_by=tool_class)
     
     async def run(self, prompt: Message) -> Message:
-        """ Execute the current action"""
         self.rc.memory.add(prompt)
+        message = await self.react()
         while True:
             if self.curr_step >= self.max_steps or self.is_completed:
                 logger.info(f"{self.name} task completed or reached maximum steps ({self.max_steps})")
-                final_message = f"Generation task completed.\nGenerated LaTeX content:\n\n{message}"
-                self.save_md(message, filename="presentation.md")
-                return Message(content=final_message, role=self.profile, cause_by=self.__class__)
+                final_message = f"Generation task completed.\nGenerated LaTeX content:\n\n{message.content}"
+                self.save_md(final_message, filename="presentation.md")
+                return Message(content=final_message, role=self.profile)
             message = await self.react()
