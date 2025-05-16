@@ -96,7 +96,7 @@ class AndroidAssistant(Role):
             ignore_memory = False
             state_val = newest_msg.content.split(".")[-1]  # RoundCount: 1, action_state: RunState.SUCCESS
             logger.warning(f"Latest action_state is {state_val}, will run in the remainder rounds without `react`")
-        return await super()._observe(ignore_memory)
+        return await super()._observe()
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")

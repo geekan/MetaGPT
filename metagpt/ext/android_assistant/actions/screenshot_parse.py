@@ -143,7 +143,7 @@ next action. You should always prioritize these documented elements for interact
 
         ui_doc = self._makeup_ui_document(elem_list, docs_dir)
         context = parse_template.format(ui_document=ui_doc, task_description=task_desc, last_act=last_act)
-        node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])
+        node = await SCREENSHOT_PARSE_NODE.fill(req=context, llm=self.llm, images=[img_base64])
 
         if "error" in node.content:
             return AndroidActionOutput(action_state=RunState.FAIL)

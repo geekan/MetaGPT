@@ -101,7 +101,7 @@ class SelfLearnAndReflect(Action):
         self_explore_template = screenshot_parse_self_explore_template
         context = self_explore_template.format(task_description=task_desc, last_act=last_act)
 
-        node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])
+        node = await SCREENSHOT_PARSE_NODE.fill(req=context, llm=self.llm, images=[img_base64])
         logger.debug(f"fill result:{node}")
         if "error" in node.content:
             return AndroidActionOutput(action_state=RunState.FAIL)
