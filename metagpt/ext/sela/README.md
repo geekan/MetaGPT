@@ -19,11 +19,6 @@ You can either download the datasets from the link or prepare the datasets from 
 
 ## 2. Configurations
 
-### Data Config
-
-- **`datasets.yaml`:** Provide base prompts, metrics, and target columns for respective datasets.
-- **`data.yaml`:** Modify `datasets_dir` to the base directory of all prepared datasets.
-
 ### LLM Config
 
 ```yaml
@@ -34,13 +29,7 @@ llm:
   api_key: sk-xxx
   temperature: 0.5
 ```
-
-
-## 3. SELA
-
-### Run SELA
-
-#### Setup
+### Setup
 
 ```bash
 pip install -e .
@@ -50,13 +39,43 @@ cd metagpt/ext/sela
 pip install -r requirements.txt
 ```
 
-#### Running Experiments
+## 3. Quick Start
 
-- **Examples:**
+### Example : Running SELA on the House Price Prediction Task
+
+- **To run the project, simply execute the following command**
     ```bash
+    python run_sela.py
+    ```
+
+- **Explanation of `run_sela.py`**
+    ```bash
+    requirement = ('''
+    Optimize dataset using MCTS with 10 rollouts. 
+    This is a 05_house-prices-advanced-regression-techniques dataset.
+    Your goal is to predict the target column `SalePrice`.
+    Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target.
+    Report rmse on the eval data. Do not plot or make any visualizations.''')
+    data_dir = "Path/to/dataset"
+
+    sela = SELA()
+    await sela.run(requirement, data_dir)
+    ```
+
+## 4. SELA Reproduction Details
+
+### Data Config
+- **`datasets.yaml`:** Provide base prompts, metrics, and target columns for respective datasets.
+- **`data.yaml`:** Modify `datasets_dir` to the base directory of all prepared datasets.
+
+### Run SELA
+
+#### Examples
+
+```bash
     python run_experiment.py --exp_mode mcts --task titanic --rollouts 10
     python run_experiment.py --exp_mode mcts --task house-prices --rollouts 10 --low_is_better
-    ```
+ ```
 
 #### Parameters
 
@@ -78,7 +97,7 @@ pip install -r requirements.txt
 
 ### Ablation Study
 
-**RandomSearch**
+#### RandomSearch
 
 - **Use a single insight:**
     ```bash
@@ -90,7 +109,7 @@ pip install -r requirements.txt
     python run_experiment.py --exp_mode rs --task titanic --rs_mode set
     ```
 
-## 4. Citation
+## 5. Citation
 Please cite our paper if you use SELA or find it cool or useful! 
 
 ```bibtex

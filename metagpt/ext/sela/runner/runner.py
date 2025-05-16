@@ -13,13 +13,13 @@ from metagpt.ext.sela.utils import DATA_CONFIG, save_notebook
 
 class Runner:
     result_path: str = "results/base"
-    data_config = DATA_CONFIG
     start_task_id = 1
 
-    def __init__(self, args, **kwargs):
+    def __init__(self, args, data_config=None, **kwargs):
         self.args = args
         self.start_time_raw = datetime.datetime.now()
         self.start_time = self.start_time_raw.strftime("%Y%m%d%H%M")
+        self.data_config = data_config if data_config is not None else DATA_CONFIG
         self.state = create_initial_state(
             self.args.task,
             start_task_id=self.start_task_id,
