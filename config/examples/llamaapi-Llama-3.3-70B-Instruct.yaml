@@ -1,0 +1,6 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+llm:
+  api_type: llama_api
+  base_url: "https://api.llama.com/compat/v1/"
+  api_key: "YOUR_API_KEY"
+  model: "Llama-3.3-70B-Instruct"

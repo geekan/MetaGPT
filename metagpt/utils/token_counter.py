@@ -113,6 +113,10 @@ TOKEN_COSTS = {
     "doubao-pro-128k-240515": {"prompt": 0.0007, "completion": 0.0013},
     "llama3-70b-llama3-70b-instruct": {"prompt": 0.0, "completion": 0.0},
     "llama3-8b-llama3-8b-instruct": {"prompt": 0.0, "completion": 0.0},
+    "llama-4-Scout-17B-16E-Instruct-FP8" : {"prompt": 0.0, "completion": 0.0}, # start, for Llama API
+    "llama-4-Maverick-17B-128E-Instruct-FP8": {"prompt": 0.0, "completion": 0.0},
+    "llama-3.3-8B-Instruct": {"prompt": 0.0, "completion": 0.0},
+    "llama-3.3-70B-Instruct": {"prompt": 0.0, "completion": 0.0}, # end, for Llama API
 }
 
 
