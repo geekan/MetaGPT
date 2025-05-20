@@ -85,13 +85,13 @@ llm:
 
 ### Usage
 
-After installation, you can use MetaGPT at CLI
+After installation, you can use MetaGPT at CLI:
 
 ```bash
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
 
-or use it as library
+or use it as library:
 
 ```python
 from metagpt.software_company import generate_repo
