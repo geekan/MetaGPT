@@ -25,6 +25,7 @@ from metagpt.tools.libs.terminal import Terminal
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.common import CodeParser, awrite
 from metagpt.utils.report import EditorReporter
+from metagpt.utils.role_zero_utils import get_plan_status
 
 
 @register_tool(include_functions=["write_new_code"])
@@ -117,7 +118,7 @@ class Engineer2(RoleZero):
         """
         # If the path is not absolute, try to fix it with the editor's working directory.
         path = self.editor._try_fix_path(path)
-        plan_status, _ = self._get_plan_status()
+        plan_status, _ = get_plan_status(planner=self.planner)
         prompt = WRITE_CODE_PROMPT.format(
             user_requirement=self.planner.plan.goal,
             plan_status=plan_status,
