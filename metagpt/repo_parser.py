@@ -18,7 +18,6 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import pandas as pd
 from pydantic import BaseModel, Field, field_validator
 
 from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
@@ -508,6 +507,8 @@ class RepoParser(BaseModel):
         Args:
             output_path (Path): The path to the CSV file to be generated.
         """
+        import pandas as pd
+
         files_classes = [i.model_dump() for i in self.generate_symbols()]
         df = pd.DataFrame(files_classes)
         df.to_csv(output_path, index=False)
