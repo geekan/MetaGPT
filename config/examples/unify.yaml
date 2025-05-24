@@ -1,0 +1,5 @@
+llm:
+  api_type: "unify"  
+  model: "llama-3-8b-chat@together-ai"  # or Get a list of models here: https://docs.unify.ai/python/utils#list-models
+  base_url: "https://api.unify.ai/v0"  
+  api_key: "Enter your Unify API key here"   # or Get your API key from https://console.unify.ai
