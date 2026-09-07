@@ -44,7 +44,7 @@ class ResultEmbedding(BaseModel):
 class OpenAIText2Embedding:
     def __init__(self, api_key: str, proxy: str):
         """
-        :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
+        :param api_key: OpenAI API key, for more details, checkout: `https://platform.openai.com/account/api-keys`
         """
         self.api_key = api_key
         self.proxy = proxy
@@ -77,7 +77,7 @@ async def oas3_openai_text_to_embedding(text, openai_api_key: str, model="text-e
 
     :param text: The text used for embedding.
     :param model: One of ['text-embedding-ada-002'], ID of the model to use. For more details, checkout: `https://api.openai.com/v1/models`.
-    :param config: OpenAI config with API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
+    :param openai_api_key: OpenAI API key, for more details, checkout: `https://platform.openai.com/account/api-keys`
     :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
     """
     if not text:
