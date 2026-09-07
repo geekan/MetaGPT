@@ -31,11 +31,7 @@ async def text_to_speech(
     :param style: Speaking style to express different emotions like cheerfulness, empathy, and calm. For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
     :param role: With roles, the same voice can act as a different age and gender. For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
     :param text: The text used for voice conversion.
-    :param subscription_key: key is used to access your Azure AI service API, see: `https://portal.azure.com/` > `Resource Management` > `Keys and Endpoint`
-    :param region: This is the location (or region) of your resource. You may need to use this field when making calls to this API.
-    :param iflytek_app_id: Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`
-    :param iflytek_api_key: WebAPI argument, see: `https://console.xfyun.cn/services/tts`
-    :param iflytek_api_secret: WebAPI argument, see: `https://console.xfyun.cn/services/tts`
+    :param config: TTS configuration providing the Azure subscription key and region.
     :return: Returns the Base64-encoded .wav/.mp3 file data if successful, otherwise an empty string.
 
     """
