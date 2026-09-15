@@ -52,7 +52,15 @@ class ResourceReporter(BaseModel):
     block: BlockType = Field(description="The type of block that is reporting the resource")
     uuid: UUID = Field(default_factory=uuid4, description="The unique identifier for the resource")
     enable_llm_stream: bool = Field(False, description="Indicates whether to connect to an LLM stream for reporting")
-    callback_url: str = Field(METAGPT_REPORTER_DEFAULT_URL, description="The URL to which the report should be sent")
+    callback_url: str = Field(
+        METAGPT_REPORTER_DEFAULT_URL,
+        description=(
+            "The URL to which the report should be sent. Defaults to the METAGPT_REPORTER_URL "
+            "environment variable, which is empty unless set -- with no URL, reporting is a no-op "
+            "and nothing leaves the process. The async path also accepts a '+unix' scheme, e.g. "
+            "'http+unix://%2Fvar%2Frun%2Fx.sock/report', to POST over a Unix socket."
+        ),
+    )
     _llm_task: Optional[asyncio.Task] = PrivateAttr(None)
 
     def report(self, value: Any, name: str, extra: Optional[dict] = None):
