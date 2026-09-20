@@ -9,10 +9,10 @@
 from collections import defaultdict
 from typing import DefaultDict, Iterable, Optional, Set
 
-from pydantic import BaseModel, Field, SerializeAsAny
+from pydantic import BaseModel, Field
 
 from metagpt.const import IGNORED_MESSAGE_ID
-from metagpt.schema import Message
+from metagpt.schema import Message, _CheckpointMessage
 from metagpt.utils.common import any_to_str, any_to_str_set
 from metagpt.utils.exceptions import handle_exception
 
@@ -20,8 +20,8 @@ from metagpt.utils.exceptions import handle_exception
 class Memory(BaseModel):
     """The most basic memory: super-memory"""
 
-    storage: list[SerializeAsAny[Message]] = []
-    index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(default_factory=lambda: defaultdict(list))
+    storage: list[_CheckpointMessage] = []
+    index: DefaultDict[str, list[_CheckpointMessage]] = Field(default_factory=lambda: defaultdict(list))
     ignore_id: bool = False
 
     def add(self, message: Message):

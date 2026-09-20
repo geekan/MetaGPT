@@ -43,6 +43,7 @@ from metagpt.schema import (
     SerializationMixin,
     Task,
     TaskResult,
+    _CheckpointMessage,
 )
 from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
@@ -96,10 +97,7 @@ class RoleContext(BaseModel):
 
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
     env: BaseEnvironment = Field(default=None, exclude=True)  # # avoid circular import
-    # TODO judge if ser&deser
-    msg_buffer: MessageQueue = Field(
-        default_factory=MessageQueue, exclude=True
-    )  # Message Buffer with Asynchronous Updates
+    msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     working_memory: Memory = Field(default_factory=Memory)
@@ -153,7 +151,7 @@ class Role(BaseRole, SerializationMixin, ContextMixin, BaseModel):
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
-    latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
+    latest_observed_msg: Optional[_CheckpointMessage] = None  # record the latest observed message when interrupted
     observe_all_msg_from_buffer: bool = False  # whether to save all msgs from buffer to memory for role's awareness
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`

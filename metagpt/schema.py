@@ -25,16 +25,22 @@ from asyncio import Queue, QueueEmpty, wait_for
 from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
+from typing import Annotated, Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
 
 from pydantic import (
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     PrivateAttr,
+    SerializeAsAny,
+    TypeAdapter,
+    WrapSerializer,
     create_model,
     field_serializer,
     field_validator,
+    model_serializer,
+    model_validator,
 )
 
 from metagpt.base.base_serialization import BaseSerialization
@@ -416,6 +422,34 @@ class Message(BaseModel):
         return self.role == "assistant"
 
 
+def _serialize_checkpoint_message(message, handler):
+    data = handler(message)
+    data["__module_class_name"] = f"{type(message).__module__}.{type(message).__qualname__}"
+    return data
+
+
+def _restore_checkpoint_message(value):
+    if not isinstance(value, dict) or "__module_class_name" not in value:
+        return value
+    data = dict(value)
+    class_name = data.pop("__module_class_name")
+    pending_types = [Message]
+    while pending_types:
+        message_type = pending_types.pop()
+        if f"{message_type.__module__}.{message_type.__qualname__}" == class_name:
+            return message_type.model_validate(data)
+        pending_types.extend(message_type.__subclasses__())
+    raise ValueError(f"Unknown message type: {class_name}")
+
+
+_CheckpointMessage = Annotated[
+    SerializeAsAny[Message],
+    BeforeValidator(_restore_checkpoint_message),
+    WrapSerializer(_serialize_checkpoint_message),
+]
+_CHECKPOINT_MESSAGES = TypeAdapter(list[_CheckpointMessage])
+
+
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
@@ -716,6 +750,19 @@ class MessageQueue(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     _queue: Queue = PrivateAttr(default_factory=Queue)
+
+    @model_serializer
+    def _serialize_messages(self) -> dict[str, list[_CheckpointMessage]]:
+        return {"messages": list(self._queue._queue)}
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _restore_messages(cls, value, handler):
+        queue = handler(value)
+        if isinstance(value, dict):
+            for message in _CHECKPOINT_MESSAGES.validate_python(value.get("messages", [])):
+                queue.push(message)
+        return queue
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""
