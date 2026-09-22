@@ -1,0 +1,6 @@
+# aimlapi.com — https://docs.aimlapi.com
+llm:
+  api_type: aimlapi
+  base_url: "https://api.aimlapi.com/v1"
+  api_key: "YOUR_API_KEY"
+  model: "anthropic/claude-sonnet-4.6"

@@ -44,6 +44,7 @@ class LLMType(Enum):
     BEDROCK = "bedrock"
     ARK = "ark"  # https://www.volcengine.com/docs/82379/1263482#python-sdk
     LLAMA_API = "llama_api"
+    AIMLAPI = "aimlapi"  # aimlapi.com, https://docs.aimlapi.com
 
     def __missing__(self, key):
         return self.OPENAI

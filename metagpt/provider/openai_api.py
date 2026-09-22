@@ -27,6 +27,7 @@ from tenacity import (
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import USE_CONFIG_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
+from metagpt.provider.aimlapi import aimlapi_default_headers
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
@@ -53,6 +54,7 @@ from metagpt.utils.token_counter import (
         LLMType.SILICONFLOW,
         LLMType.OPENROUTER,
         LLMType.LLAMA_API,
+        LLMType.AIMLAPI,
     ]
 )
 class OpenAILLM(BaseLLM):
@@ -73,6 +75,10 @@ class OpenAILLM(BaseLLM):
 
     def _make_client_kwargs(self) -> dict:
         kwargs = {"api_key": self.config.api_key, "base_url": self.config.base_url}
+
+        # provider-scoped attribution; empty for every provider but aimlapi.com
+        if default_headers := aimlapi_default_headers(self.config):
+            kwargs["default_headers"] = default_headers
 
         # to use proxy, openai v1 needs http_client
         if proxy_params := self._get_proxy_params():
