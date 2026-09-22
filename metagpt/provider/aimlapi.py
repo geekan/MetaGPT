@@ -33,7 +33,7 @@ AIMLAPI_HOSTS = frozenset({"api.aimlapi.com"})
 AIMLAPI_ATTRIBUTION_HEADERS = {
     "HTTP-Referer": "https://github.com/FoundationAgents/MetaGPT",
     "X-Title": "MetaGPT",
-    "X-AIMLAPI-Partner-ID": "part_metagpt",
+    "X-AIMLAPI-Partner-ID": "part_ae9uKiFKtDmVG2KCkYwhrdQs",
     "X-AIMLAPI-Source": "agent/metagpt",
 }
 
