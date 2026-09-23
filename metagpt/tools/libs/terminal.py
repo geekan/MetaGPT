@@ -12,6 +12,31 @@ from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.utils.report import END_MARKER_VALUE, TerminalReporter
 
+DEFAULT_COMMAND_TIMEOUT = 600
+TIMEOUT_MESSAGE = (
+    "\n[Terminal timeout] The command did not finish within {timeout} seconds and was terminated. "
+    "The shell session has been reset, so the working directory and shell variables are back to their defaults. "
+    "Run long-running commands with `daemon=True`, or raise the limit via the METAGPT_TERMINAL_TIMEOUT "
+    "environment variable.\n"
+)
+
+
+def get_default_command_timeout() -> Optional[float]:
+    """Return the per-command timeout in seconds, or None if timeouts are disabled.
+
+    Configurable through the `METAGPT_TERMINAL_TIMEOUT` environment variable; a value of 0
+    (or below) disables the timeout.
+    """
+    raw = os.environ.get("METAGPT_TERMINAL_TIMEOUT")
+    if raw is None:
+        return DEFAULT_COMMAND_TIMEOUT
+    try:
+        timeout = float(raw)
+    except ValueError:
+        logger.warning(f"Invalid METAGPT_TERMINAL_TIMEOUT={raw!r}, falling back to {DEFAULT_COMMAND_TIMEOUT}s.")
+        return DEFAULT_COMMAND_TIMEOUT
+    return timeout if timeout > 0 else None
+
 
 @register_tool()
 class Terminal:
@@ -37,6 +62,8 @@ class Terminal:
         self.stdout_queue = Queue(maxsize=1000)
         self.observer = TerminalReporter()
         self.process: Optional[asyncio.subprocess.Process] = None
+        # Upper bound for a single non-daemon command. Set to None to wait forever.
+        self.command_timeout: Optional[float] = get_default_command_timeout()
         #  The cmd in forbidden_terminal_commands will be replace by pass ana return the advise. example:{"cmd":"forbidden_reason/advice"}
         self.forbidden_commands = {
             "run dev": "Use Deployer.deploy_to_public instead.",
@@ -64,7 +91,7 @@ class Terminal:
         output = await self.run_command(self.pwd_command)
         logger.info("The terminal is at:", output)
 
-    async def run_command(self, cmd: str, daemon=False) -> str:
+    async def run_command(self, cmd: str, daemon=False, timeout: Optional[float] = None) -> str:
         """
         Executes a specified command in the terminal and streams the output back in real time.
         This command maintains state across executions, such as the current directory,
@@ -74,6 +101,11 @@ class Terminal:
             cmd (str): The command to execute in the terminal.
             daemon (bool): If True, executes the command in an asynchronous task, allowing
                            the main program to continue execution.
+            timeout (float): Maximum number of seconds to wait for the command to finish.
+                             Defaults to `self.command_timeout` (600s, configurable through the
+                             `METAGPT_TERMINAL_TIMEOUT` environment variable). On timeout the shell
+                             is restarted and the partial output is returned together with an
+                             explicit timeout notice. Ignored when `daemon` is True.
         Returns:
             str: The command's output or an empty string if `daemon` is True. Remember that
                  when `daemon` is True, use the `get_stdout_output` method to get the output.
@@ -102,9 +134,26 @@ class Terminal:
         if daemon:
             asyncio.create_task(self._read_and_process_output(cmd))
         else:
-            output += await self._read_and_process_output(cmd)
+            output += await self._run_until_marker(cmd, self.command_timeout if timeout is None else timeout)
 
         return output
+
+    async def _run_until_marker(self, cmd: str, timeout: Optional[float]) -> str:
+        """Read the output of `cmd` until the end marker, giving up after `timeout` seconds."""
+        # `cmd_output` is shared with the reader so partial output survives a timeout.
+        cmd_output = []
+        reader = self._read_and_process_output(cmd, cmd_output=cmd_output)
+        if not timeout:
+            return await reader
+
+        try:
+            return await asyncio.wait_for(reader, timeout)
+        except asyncio.TimeoutError:
+            logger.warning(f"Command timed out after {timeout}s, restarting the terminal: {cmd}")
+            # The command may still be running and would corrupt the output of the next one,
+            # so drop the shell. The next command starts a fresh session.
+            await self._terminate_process()
+            return "".join(cmd_output) + TIMEOUT_MESSAGE.format(timeout=timeout)
 
     async def execute_in_conda_env(self, cmd: str, env, daemon=False) -> str:
         """
@@ -144,9 +193,11 @@ class Terminal:
             output_lines.append(line)
         return "\n".join(output_lines)
 
-    async def _read_and_process_output(self, cmd, daemon=False) -> str:
+    async def _read_and_process_output(self, cmd, daemon=False, cmd_output: Optional[list] = None) -> str:
+        cmd_output = [] if cmd_output is None else cmd_output
+        # Bind the process locally: a timeout may replace `self.process` while this reader runs.
+        process = self.process
         async with self.observer as observer:
-            cmd_output = []
             await observer.async_report(cmd + self.command_terminator, "cmd")
             # report the command
             # Read the output until the unique marker is found.
@@ -154,10 +205,22 @@ class Terminal:
             # '\r' is changed to '\n', resulting in excessive output.
             tmp = b""
             while True:
-                output = tmp + await self.process.stdout.read(1)
-                if not output:
-                    continue
-                *lines, tmp = output.splitlines(True)
+                chunk = await process.stdout.read(1)
+                if not chunk:
+                    # EOF: the shell is gone, so the marker will never arrive. Flush whatever is
+                    # buffered and stop instead of spinning on an empty read forever.
+                    logger.warning(f"The terminal exited before the command completed: {cmd}")
+                    lines, tmp = ([tmp], b"") if tmp else ([], b"")
+                else:
+                    lines = (tmp + chunk).splitlines(True)
+                    if lines[-1].endswith(b"\n"):
+                        # The buffer ends on a complete line, so every line can be processed.
+                        # Note: `*lines, tmp = ...` would move that last line into `tmp` instead,
+                        # hiding the end-of-command marker and hanging forever (#2110).
+                        tmp = b""
+                    else:
+                        # Keep the unterminated remainder buffered until the rest arrives.
+                        *lines, tmp = lines
                 for line in lines:
                     line = line.decode(errors="ignore")
                     ix = line.rfind(END_MARKER_VALUE)
@@ -173,6 +236,26 @@ class Terminal:
                     cmd_output.append(line)
                     if daemon:
                         await self.stdout_queue.put(line)
+                if not chunk:
+                    return "".join(cmd_output)
+
+    async def _terminate_process(self):
+        """Kill the persistent shell process so that the next command starts a fresh one."""
+        process, self.process = self.process, None
+        if process is None or process.returncode is not None:
+            return
+        try:
+            process.kill()
+        except ProcessLookupError:
+            return
+        if process.stdin is not None:
+            # Release the pipes now, otherwise they are closed during GC, possibly after the event
+            # loop is gone, which surfaces as a "RuntimeError: Event loop is closed".
+            process.stdin.close()
+        await process.wait()
+        transport = getattr(process, "_transport", None)
+        if transport is not None:
+            transport.close()
 
     async def close(self):
         """Close the persistent shell process."""
