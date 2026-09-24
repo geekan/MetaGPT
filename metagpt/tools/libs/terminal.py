@@ -157,7 +157,12 @@ class Terminal:
                 output = tmp + await self.process.stdout.read(1)
                 if not output:
                     continue
-                *lines, tmp = output.splitlines(True)
+                split = output.splitlines(True)
+                if split and split[-1].endswith((b"\n", b"\r")):
+                    lines = split
+                    tmp = b""
+                else:
+                    *lines, tmp = split
                 for line in lines:
                     line = line.decode(errors="ignore")
                     ix = line.rfind(END_MARKER_VALUE)
