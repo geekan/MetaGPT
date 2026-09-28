@@ -99,6 +99,8 @@ class OpenAILLM(BaseLLM):
         has_finished = False
         async for chunk in response:
             if not chunk.choices:
+                if chunk_usage := getattr(chunk, "usage", None):
+                    usage = CompletionUsage(**chunk_usage) if isinstance(chunk_usage, dict) else chunk_usage
                 continue
 
             choice0 = chunk.choices[0]
