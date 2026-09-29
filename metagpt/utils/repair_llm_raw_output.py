@@ -125,8 +125,9 @@ def repair_json_format(output: str) -> str:
     new_arr = []
     for json_line in arr:
         # look for # or // comments and make sure they are not inside the string value
+        # string branch is escape-aware so `\"` does not end the string early
         comment_index = -1
-        for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", json_line):
+        for match in re.finditer(r"('(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\")|(#|//)", json_line):
             if match.group(1):  # if the string value
                 continue
             if match.group(2):  # if comments
