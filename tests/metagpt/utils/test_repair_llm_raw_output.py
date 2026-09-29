@@ -168,6 +168,32 @@ def test_repair_json_format():
     assert output == target_output
 
 
+def test_repair_json_format_preserves_escaped_quotes_and_urls():
+    import json
+
+    from metagpt.utils.repair_llm_raw_output import repair_json_format
+
+    # `\"` must not terminate the string early; otherwise `//` in the URL is treated as a comment.
+    raw_output = json.dumps({"text": 'say "https://example.com"'})
+    repaired = repair_json_format(raw_output)
+    assert json.loads(repaired) == {"text": 'say "https://example.com"'}
+
+    raw_output = '{"text": "path \\"C:\\\\dir\\" and https://example.com/a#b"}'
+    repaired = repair_json_format(raw_output)
+    assert json.loads(repaired) == {"text": 'path "C:\\dir" and https://example.com/a#b'}
+
+    # real comments outside strings are still removed
+    raw_output = '{"a": "https://example.com",  # note\n "b": 1}'
+    repaired = repair_json_format(raw_output)
+    assert json.loads(repaired) == {"a": "https://example.com", "b": 1}
+
+    raw_output = "{'text': 'say \\'https://example.com\\''}"
+    repaired = repair_json_format(raw_output)
+    # single-quoted form is not valid JSON, but must not be truncated mid-string
+    assert "https://example.com" in repaired
+    assert not repaired.rstrip().endswith("https:")
+
+
 def test_repair_invalid_json():
     from metagpt.utils.repair_llm_raw_output import repair_invalid_json
 
