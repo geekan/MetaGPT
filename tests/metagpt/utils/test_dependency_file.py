@@ -61,5 +61,57 @@ async def test_dependency_file():
     assert not file.exists
 
 
+@pytest.mark.asyncio
+async def test_dependency_file_unicode_and_quoted_paths_roundtrip(tmp_path):
+    """Unicode/quoted filenames must survive save/load without corrupting JSON escapes."""
+    targets = [
+        ("src/主程序.py", {"docs/设计.md"}),
+        ("src/café.py", {"docs/naïve.md"}),
+        ("src/🚀.py", {"docs/🎯.md"}),
+        ('src/say "hi".py', {'docs/quote "x".md'}),
+    ]
+
+    store = DependencyFile(tmp_path)
+    for filename, deps in targets:
+        await store.update(filename=filename, dependencies=deps)
+
+    reloaded = DependencyFile(tmp_path)
+    await reloaded.load()
+    for filename, deps in targets:
+        assert await reloaded.get(filename, persist=False) == deps
+
+
+@pytest.mark.asyncio
+async def test_dependency_file_load_preserves_unrelated_entry_after_update(tmp_path):
+    """A second update must not persist a corrupted first entry back to disk."""
+    store = DependencyFile(tmp_path)
+    await store.update("src/主程序.py", {"docs/设计.md"})
+    await store.update("other.txt", {"dep.txt"})
+
+    reloaded = DependencyFile(tmp_path)
+    assert await reloaded.get("src/主程序.py") == {"docs/设计.md"}
+    assert await reloaded.get("other.txt") == {"dep.txt"}
+
+
+@pytest.mark.asyncio
+async def test_dependency_file_normalizes_legacy_windows_separators(tmp_path):
+    """Existing files that used backslash path separators still load."""
+    (tmp_path / ".dependencies.json").write_text(
+        '{"src\\\\main.py": ["docs\\\\design.md"]}',
+        encoding="utf-8",
+    )
+    store = DependencyFile(tmp_path)
+    await store.load()
+    assert await store.get("src/main.py", persist=False) == {"docs/design.md"}
+
+
+@pytest.mark.asyncio
+async def test_dependency_file_deletes_unicode_entry(tmp_path):
+    store = DependencyFile(tmp_path)
+    await store.update("src/主程序.py", {"docs/设计.md"})
+    await store.update("src/主程序.py", dependencies=None)
+    assert await store.get("src/主程序.py") == set()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

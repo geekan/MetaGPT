@@ -36,8 +36,12 @@ class DependencyFile:
         if not self._filename.exists():
             return
         json_data = await aread(self._filename)
-        json_data = re.sub(r"\\+", "/", json_data)  # Compatible with windows path
-        self._dependencies = json.loads(json_data)
+        dependencies = json.loads(json_data)
+        # Normalize separators after decoding so JSON escapes like \uXXXX and \" stay intact.
+        self._dependencies = {
+            re.sub(r"\\+", "/", filename): [re.sub(r"\\+", "/", path) for path in paths]
+            for filename, paths in dependencies.items()
+        }
 
     @handle_exception
     async def save(self):
