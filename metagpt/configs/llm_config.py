@@ -102,6 +102,8 @@ class LLMConfig(YamlModel):
 
     # Cost Control
     calc_usage: bool = True
+    max_budget: float = 10.0  # USD hard cap when enforce_budget
+    enforce_budget: bool = False  # raise NoMoneyError when total_cost >= max_budget
 
     # Compress request messages under token limit
     compress_type: CompressType = CompressType.NO_COMPRESS
@@ -112,6 +114,13 @@ class LLMConfig(YamlModel):
     # reasoning / thinking switch
     reasoning: bool = False
     reasoning_max_token: int = 4000  # reasoning budget tokens to generate, usually smaller than max_token
+
+    # Resilience (MEO-style circuit breaker + task-aware fallback chain)
+    enable_resilience: bool = False  # wrap with FallbackLLM when True
+    fallback_models: list[str] = []  # ModelsConfig keys or api_type names for extra hops
+    default_task: Optional[str] = None  # default|code|json|chat|creative|translate
+    circuit_breaker_threshold: int = 5
+    circuit_breaker_reset_timeout: float = 60.0
 
     @field_validator("api_key")
     @classmethod

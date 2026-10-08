@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
@@ -28,8 +28,13 @@ from metagpt.const import IMAGES, LLM_API_TIMEOUT, USE_CONFIG_TIMEOUT
 from metagpt.logs import logger
 from metagpt.provider.constant import MULTI_MODAL_MODELS
 from metagpt.utils.common import log_and_reraise
-from metagpt.utils.cost_manager import CostManager, Costs
+from metagpt.utils.cost_manager import CostManager, Costs, NoMoneyError
 from metagpt.utils.token_counter import TOKEN_MAX
+from metagpt.provider.rate_limiter import get_rate_limiter
+from metagpt.provider.retry_policy import DEFAULT_RETRY_POLICY, RetryPolicy, with_retry
+from metagpt.provider.token_usage import TokenUsageTracker, get_token_usage_tracker, normalize_usage
+from metagpt.provider.context_manager import ContextManager
+from metagpt.provider.tool_calling import to_openai_tools
 
 
 class BaseLLM(ABC):
@@ -46,6 +51,17 @@ class BaseLLM(ABC):
     # Should always use model not config.model within this class
     model: Optional[str] = None
     pricing_plan: Optional[str] = None
+
+    # Shared retry + rate-limit (MEO-compatible)
+    retry_policy: Optional["RetryPolicy"] = None
+    rate_limit_key: Optional[str] = None  # defaults to provider class name
+
+    # Shared token usage tracking (MEO tokenUsage.js twin)
+    token_usage: Optional[TokenUsageTracker] = None
+    _last_usage: Optional[dict] = None
+
+    # Shared context + tool calling (MEO twins)
+    context_manager: Optional[ContextManager] = None
 
     _reasoning_content: Optional[str] = None  # content from reasoning mode
 
@@ -121,11 +137,12 @@ class BaseLLM(ABC):
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
 
-    def _update_costs(self, usage: Union[dict, BaseModel], model: str = None, local_calc_usage: bool = True):
+    def _update_costs(self, usage: Union[dict, BaseModel], model: str = None, local_calc_usage: bool = True, provider: str = ""):
         """update each request's token cost
         Args:
             model (str): model name or in some scenarios called endpoint
             local_calc_usage (bool): some models don't calculate usage, it will overwrite LLMConfig.calc_usage
+            provider (str): optional provider tag for shared CostManager.by_provider
         """
         calc_usage = self.config.calc_usage and local_calc_usage
         model = model or self.pricing_plan
@@ -133,16 +150,82 @@ class BaseLLM(ABC):
         usage = usage.model_dump() if isinstance(usage, BaseModel) else usage
         if calc_usage and self.cost_manager and usage:
             try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, model)
+                prompt_tokens = int(usage.get("prompt_tokens", 0) or usage.get("input_tokens", 0) or 0)
+                completion_tokens = int(usage.get("completion_tokens", 0) or usage.get("output_tokens", 0) or 0)
+                provider_tag = provider or getattr(self, "provider_name", "") or self.__class__.__name__
+                # Prefer shared updateCost when available (MEO-compatible interface)
+                if hasattr(self.cost_manager, "updateCost"):
+                    self.cost_manager.updateCost(
+                        promptTokens=prompt_tokens,
+                        completionTokens=completion_tokens,
+                        model=model,
+                        provider=provider_tag,
+                    )
+                else:
+                    self.cost_manager.update_cost(prompt_tokens, completion_tokens, model)
+                # Shared TokenUsage tracker (always, even if cost calc disabled elsewhere)
+                tracker = self.token_usage or get_token_usage_tracker()
+                self._last_usage = tracker.record(
+                    promptTokens=prompt_tokens,
+                    completionTokens=completion_tokens,
+                    model=model,
+                    provider=provider_tag,
+                    usage=usage,
+                )
             except Exception as e:
                 logger.error(f"{self.__class__.__name__} updates costs failed! exp: {e}")
+
+    @property
+    def last_token_usage(self) -> Optional[dict]:
+        """Normalized usage from the most recent call ({promptTokens, completionTokens, totalTokens})."""
+        return self._last_usage
+
+    def get_token_usage_totals(self) -> dict:
+        tracker = self.token_usage or get_token_usage_tracker()
+        return tracker.totals()
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:
             return Costs(0, 0, 0, 0)
         return self.cost_manager.get_costs()
+
+    def get_cost_snapshot(self) -> dict:
+        """Shared MEO-compatible cost snapshot dict."""
+        if not self.cost_manager:
+            return CostManager().getCosts()
+        if hasattr(self.cost_manager, "getCosts"):
+            return self.cost_manager.getCosts()
+        c = self.cost_manager.get_costs()
+        return {
+            "totalPromptTokens": c.total_prompt_tokens,
+            "totalCompletionTokens": c.total_completion_tokens,
+            "totalCost": c.total_cost,
+            "maxBudget": c.total_budget,
+            "remaining": max(0.0, c.total_budget - c.total_cost),
+            "overBudget": c.total_cost >= c.total_budget,
+        }
+
+    def set_cost_manager(self, cost_manager: CostManager) -> None:
+        """Attach / replace shared CostManager (same interface as MEO)."""
+        self.cost_manager = cost_manager
+
+    def check_budget(self) -> None:
+        """Raise NoMoneyError if enforce_budget and over max_budget."""
+        if self.cost_manager is None:
+            return
+        if hasattr(self.cost_manager, "checkBudget"):
+            self.cost_manager.checkBudget()
+        elif getattr(self.cost_manager, "enforce_budget", False):
+            if self.cost_manager.total_cost >= self.cost_manager.max_budget:
+                raise NoMoneyError(self.cost_manager.total_cost, self.cost_manager.max_budget)
+
+    def set_budget(self, max_budget: float, enforce: Optional[bool] = None) -> dict:
+        if self.cost_manager is None:
+            self.cost_manager = CostManager()
+        if hasattr(self.cost_manager, "setBudget"):
+            return self.cost_manager.setBudget(max_budget, enforce=enforce)
+        self.cost_manager.max_budget = float(max_budget)
+        return self.get_cost_snapshot()
 
     def mask_base64_data(self, msg: dict) -> dict:
         """Process the base64 image data in the message, replacing it with placeholders for easier logging
@@ -209,6 +292,57 @@ class BaseLLM(ABC):
         # rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp
 
+    async def aask_messages(
+        self,
+        messages: list[dict],
+        tools: Optional[list] = None,
+        tool_choice: Any = None,
+        timeout=USE_CONFIG_TIMEOUT,
+        stream: Optional[bool] = None,
+        use_context_manager: bool = True,
+    ) -> Any:
+        """Chat with full message list + optional OpenAI tools (shared toolCalling interface).
+
+        Returns raw provider response (dict / SDK object) so callers can parse tool_calls.
+        Falls back to acompletion_text (string) if the provider has no tools-capable path.
+        """
+        msgs = [dict(m) for m in messages]
+        if use_context_manager:
+            ctx = self.context_manager or ContextManager()
+            self.context_manager = ctx
+            # sync context store with caller messages (non-system first)
+            ctx.clear(keep_system=False)
+            for m in msgs:
+                ctx.add_message(m)
+            msgs = ctx.messages()
+
+        openai_tools = to_openai_tools(tools) if tools else None
+        if stream is None:
+            stream = self.config.stream and not openai_tools
+
+        # Prefer subclass hook if present
+        if hasattr(self, "_achat_completion_with_tools"):
+            kwargs = {"timeout": self.get_timeout(timeout)}
+            if openai_tools:
+                kwargs["tools"] = openai_tools
+            if tool_choice is not None:
+                kwargs["tool_choice"] = tool_choice
+            self.check_budget()
+            return await self._achat_completion_with_tools(msgs, **kwargs)
+
+        # Default: text-only path (tools ignored by this provider)
+        if openai_tools:
+            logger.warning(f"[toolCalling] {self.__class__.__name__} has no tools path; degrading to text")
+            names = ", ".join(t["function"]["name"] for t in openai_tools)
+            msgs = list(msgs)
+            if msgs:
+                msgs[-1] = {
+                    **msgs[-1],
+                    "content": f"{msgs[-1].get('content', '')}\n\nAvailable tools: {names}",
+                }
+        text = await self.acompletion_text(msgs, stream=stream, timeout=self.get_timeout(timeout))
+        return {"choices": [{"message": {"role": "assistant", "content": text}}]}
+
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
 
@@ -246,6 +380,9 @@ class BaseLLM(ABC):
     async def _achat_completion_stream(self, messages: list[dict], timeout: int = USE_CONFIG_TIMEOUT) -> str:
         """_achat_completion_stream implemented by inherited class"""
 
+    def _provider_rate_key(self) -> str:
+        return self.rate_limit_key or self.__class__.__name__
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_random_exponential(min=1, max=60),
@@ -256,11 +393,28 @@ class BaseLLM(ABC):
     async def acompletion_text(
         self, messages: list[dict], stream: bool = False, timeout: int = USE_CONFIG_TIMEOUT
     ) -> str:
-        """Asynchronous version of completion. Return str. Support stream-print"""
-        if stream:
-            return await self._achat_completion_stream(messages, timeout=self.get_timeout(timeout))
-        resp = await self._achat_completion(messages, timeout=self.get_timeout(timeout))
-        return self.get_choice_text(resp)
+        """Asynchronous version of completion. Return str. Support stream-print.
+
+        Applies shared RateLimiter + RetryPolicy (429-aware) before hitting the provider.
+        """
+        self.check_budget()
+        limiter = get_rate_limiter()
+        key = self._provider_rate_key()
+        gate = await limiter.acquire(key)
+        if not gate.get("allowed"):
+            logger.warning(f"[rateLimiter] acquire failed key={key} after wait; proceeding carefully")
+        try:
+            policy = self.retry_policy or DEFAULT_RETRY_POLICY
+
+            async def _call() -> str:
+                if stream:
+                    return await self._achat_completion_stream(messages, timeout=self.get_timeout(timeout))
+                resp = await self._achat_completion(messages, timeout=self.get_timeout(timeout))
+                return self.get_choice_text(resp)
+
+            return await with_retry(_call, policy=policy)
+        finally:
+            limiter.release(key)
 
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""

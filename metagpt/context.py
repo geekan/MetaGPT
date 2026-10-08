@@ -89,6 +89,7 @@ class Context(BaseModel):
         self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
             self._llm.cost_manager = self._select_costmanager(self.config.llm)
+        self._apply_budget_to_cost_manager(self._llm)
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
@@ -97,7 +98,19 @@ class Context(BaseModel):
         llm = create_llm_instance(llm_config)
         if llm.cost_manager is None:
             llm.cost_manager = self._select_costmanager(llm_config)
+        self._apply_budget_to_cost_manager(llm)
         return llm
+
+    def _apply_budget_to_cost_manager(self, llm: BaseLLM) -> None:
+        """Push LLMConfig budget into shared CostManager (MEO-compatible fields)."""
+        cfg = llm.config
+        cm = llm.cost_manager
+        if cm is None:
+            return
+        if hasattr(cfg, "max_budget") and cfg.max_budget is not None:
+            cm.max_budget = float(cfg.max_budget)
+        if hasattr(cfg, "enforce_budget"):
+            cm.enforce_budget = bool(cfg.enforce_budget)
 
     def serialize(self) -> Dict[str, Any]:
         """Serialize the object's attributes into a dictionary.

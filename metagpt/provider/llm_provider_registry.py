@@ -41,6 +41,11 @@ def create_llm_instance(config: LLMConfig) -> BaseLLM:
     if llm.use_system_prompt and not config.use_system_prompt:
         # for models like o1-series, default openai provider.use_system_prompt is True, but it should be False for o1-*
         llm.use_system_prompt = config.use_system_prompt
+    if config.enable_resilience:
+        # Lazy import avoids circular dependency at module load
+        from metagpt.provider.fallback_router import FallbackLLM
+
+        return FallbackLLM(config)
     return llm
 
 

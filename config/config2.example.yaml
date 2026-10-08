@@ -7,6 +7,16 @@ llm:
   # timeout: 600 # Optional. If set to 0, default value is 300.
   # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
   pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
+  # Cost Control (shared CostManager interface with MEO)
+  max_budget: 10.0       # USD
+  enforce_budget: false  # true → BaseLLM.check_budget raises NoMoneyError
+
+  # Resilience (circuit breaker + task-aware fallback chain)
+  enable_resilience: false
+  # fallback_models: ["gemini", "ollama"]  # keys under models: section
+  # default_task: "default"  # default|code|json|chat|creative|translate
+  # circuit_breaker_threshold: 5
+  # circuit_breaker_reset_timeout: 60.0
 
 
 # RAG Embedding.
