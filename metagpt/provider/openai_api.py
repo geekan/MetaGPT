@@ -98,6 +98,10 @@ class OpenAILLM(BaseLLM):
         collected_reasoning_messages = []
         has_finished = False
         async for chunk in response:
+            chunk_has_usage = hasattr(chunk, "usage") and chunk.usage
+            if chunk_has_usage:
+                usage = CompletionUsage(**chunk.usage) if isinstance(chunk.usage, dict) else chunk.usage
+
             if not chunk.choices:
                 continue
 
@@ -110,18 +114,10 @@ class OpenAILLM(BaseLLM):
             finish_reason = choice0.finish_reason if hasattr(choice0, "finish_reason") else None
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
-            chunk_has_usage = hasattr(chunk, "usage") and chunk.usage
-            if has_finished:
-                # for oneapi, there has a usage chunk after finish_reason not none chunk
-                if chunk_has_usage:
-                    usage = CompletionUsage(**chunk.usage) if isinstance(chunk.usage, dict) else chunk.usage
             if finish_reason:
-                if chunk_has_usage:
-                    # Some services have usage as an attribute of the chunk, such as Fireworks
-                    usage = CompletionUsage(**chunk.usage) if isinstance(chunk.usage, dict) else chunk.usage
-                elif hasattr(choice0, "usage"):
+                if hasattr(choice0, "usage") and choice0.usage:
                     # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
-                    usage = CompletionUsage(**choice0.usage)
+                    usage = CompletionUsage(**choice0.usage) if isinstance(choice0.usage, dict) else choice0.usage
                 has_finished = True
 
         log_llm_stream("\n")
