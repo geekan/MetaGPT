@@ -154,6 +154,16 @@ def test_repair_json_format():
     output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
     assert output == target_output
 
+    raw_output = '{"text": "say \\"https://example.com\\""} // comment'
+    target_output = '{"text": "say \\"https://example.com\\""}'
+    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    assert output == target_output
+
+    raw_output = '{"text": "tag #hashtag inside \\"quoted string\\""} # comment'
+    target_output = '{"text": "tag #hashtag inside \\"quoted string\\""}'
+    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    assert output == target_output
+
     raw_output = """
     {
         "Language": "#en_us#",  // define language
