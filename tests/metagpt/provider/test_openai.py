@@ -167,6 +167,66 @@ async def test_openai_acompletion(mocker):
     await llm_general_chat_funcs_test(llm, prompt, messages, resp_cont)
 
 
+@pytest.mark.asyncio
+async def test_openai_stream_usage_empty_choices(mocker):
+    from openai.types.chat.chat_completion_chunk import Choice as AChoice, ChoiceDelta
+
+    chunk1 = ChatCompletionChunk(
+        id="cmpl-1",
+        model="custom-model",
+        object="chat.completion.chunk",
+        created=1700000000,
+        choices=[
+            AChoice(
+                delta=ChoiceDelta(role="assistant", content="Hello world"),
+                finish_reason=None,
+                index=0,
+            )
+        ],
+    )
+    chunk2 = ChatCompletionChunk(
+        id="cmpl-1",
+        model="custom-model",
+        object="chat.completion.chunk",
+        created=1700000000,
+        choices=[
+            AChoice(
+                delta=ChoiceDelta(),
+                finish_reason="stop",
+                index=0,
+            )
+        ],
+    )
+    stream_usage = CompletionUsage(prompt_tokens=10, completion_tokens=5, total_tokens=15)
+    chunk3 = ChatCompletionChunk(
+        id="cmpl-1",
+        model="custom-model",
+        object="chat.completion.chunk",
+        created=1700000000,
+        choices=[],
+        usage=stream_usage,
+    )
+
+    class StreamIterator:
+        async def __aiter__(self):
+            for c in [chunk1, chunk2, chunk3]:
+                yield c
+
+    async def mock_stream(*args, **kwargs):
+        return StreamIterator()
+
+    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_stream)
+
+    llm = OpenAILLM(mock_llm_config)
+    from metagpt.utils.cost_manager import CostManager
+
+    llm.cost_manager = CostManager()
+    resp = await llm.acompletion_text([{"role": "user", "content": "hi"}], stream=True)
+    assert resp == "Hello world"
+    assert llm.cost_manager.total_prompt_tokens == 10
+    assert llm.cost_manager.total_completion_tokens == 5
+
+
 def test_count_tokens():
     llm = LLM()
     llm.model = "gpt-4o"
