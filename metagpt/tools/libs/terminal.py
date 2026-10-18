@@ -153,11 +153,31 @@ class Terminal:
             # We read bytes directly from stdout instead of text because when reading text,
             # '\r' is changed to '\n', resulting in excessive output.
             tmp = b""
+            deadline = asyncio.get_running_loop().time() + 300
             while True:
-                output = tmp + await self.process.stdout.read(1)
-                if not output:
-                    continue
+                if daemon:
+                    chunk = await self.process.stdout.read(1)
+                else:
+                    remaining = deadline - asyncio.get_running_loop().time()
+                    if remaining <= 0:
+                        self.process.kill()
+                        self.process = None
+                        raise TimeoutError(f"Command timed out after 300s: {cmd}")
+                    try:
+                        chunk = await asyncio.wait_for(self.process.stdout.read(1), timeout=remaining)
+                    except asyncio.TimeoutError as e:
+                        self.process.kill()
+                        self.process = None
+                        raise TimeoutError(f"Command timed out after 300s: {cmd}") from e
+                if not chunk:
+                    self.process = None
+                    raise RuntimeError(f"Terminal process exited before command completed: {cmd}")
+                output = tmp + chunk
                 *lines, tmp = output.splitlines(True)
+                # The marker is the last line, so splitlines always leaves it in tmp until another byte arrives.
+                if END_MARKER_VALUE in tmp.decode(errors="ignore"):
+                    lines.append(tmp)
+                    tmp = b""
                 for line in lines:
                     line = line.decode(errors="ignore")
                     ix = line.rfind(END_MARKER_VALUE)
