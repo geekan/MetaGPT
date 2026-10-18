@@ -136,6 +136,15 @@ async def parse_commands(command_rsp: str, llm, exclusive_tool_commands: list[st
     if isinstance(commands, dict):
         commands = commands["commands"] if "commands" in commands else [commands]
 
+    if not isinstance(commands, list) or not all(
+        isinstance(command, dict) and "command_name" in command for command in commands
+    ):
+        return (
+            'Invalid commands: expected a JSON list like [{"command_name": "<Tool.method>", "command_args": {...}}].',
+            False,
+            command_rsp,
+        )
+
     # Set the exclusive command flag to False.
     command_flag = [command["command_name"] not in exclusive_tool_commands for command in commands]
     if command_flag.count(False) > 1:
