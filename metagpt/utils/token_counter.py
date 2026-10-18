@@ -104,6 +104,10 @@ TOKEN_COSTS = {
     "deepseek-chat": {"prompt": 0.00027, "completion": 0.0011},
     "deepseek-coder": {"prompt": 0.00027, "completion": 0.0011},
     "deepseek-reasoner": {"prompt": 0.00055, "completion": 0.0022},
+    # Peak rates (off-peak is half), per 1K tokens
+    "deepseek-flash": {"prompt": 0.0003, "completion": 0.0012},
+    "deepseek-v4-flash": {"prompt": 0.0003, "completion": 0.0012},  # legacy alias of deepseek-flash
+    "deepseek-v4-pro": {"prompt": 0.00132, "completion": 0.00396},
     # For ark model https://www.volcengine.com/docs/82379/1099320
     "doubao-lite-4k-240515": {"prompt": 0.000043, "completion": 0.000086},
     "doubao-lite-32k-240515": {"prompt": 0.000043, "completion": 0.000086},
@@ -306,6 +310,9 @@ TOKEN_MAX = {
     "deepseek/deepseek-chat": 128000,  # end, for openrouter
     "deepseek-chat": 128000,
     "deepseek-coder": 128000,
+    "deepseek-flash": 1024000,
+    "deepseek-v4-flash": 1024000,
+    "deepseek-v4-pro": 1024000,
     "deepseek-ai/DeepSeek-Coder-V2-Instruct": 32000,  # siliconflow
     "yi-large": 16385,
     "microsoft/wizardlm-2-8x22b": 65536,
