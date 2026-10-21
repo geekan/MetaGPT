@@ -20,6 +20,7 @@ from metagpt.provider.anthropic_api import AnthropicLLM
 from metagpt.provider.bedrock_api import BedrockLLM
 from metagpt.provider.ark_api import ArkLLM
 from metagpt.provider.openrouter_reasoning import OpenrouterReasoningLLM
+from metagpt.provider.minimax_api import MiniMaxLLM
 
 __all__ = [
     "GeminiLLM",
@@ -36,4 +37,5 @@ __all__ = [
     "BedrockLLM",
     "ArkLLM",
     "OpenrouterReasoningLLM",
+    "MiniMaxLLM",
 ]

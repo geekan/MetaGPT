@@ -72,3 +72,7 @@ mock_llm_config_bedrock = LLMConfig(
 )
 
 mock_llm_config_ark = LLMConfig(api_type="ark", api_key="eyxxx", base_url="xxx", model="ep-xxx")
+
+mock_llm_config_minimax = LLMConfig(
+    api_type="minimax", api_key="xxx", base_url="https://api.minimax.io/v1", model="MiniMax-M3"
+)
