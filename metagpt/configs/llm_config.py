@@ -9,7 +9,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 
 from metagpt.configs.compress_msg_config import CompressType
 from metagpt.const import CONFIG_ROOT, LLM_API_TIMEOUT, METAGPT_ROOT
@@ -113,6 +113,16 @@ class LLMConfig(YamlModel):
     # reasoning / thinking switch
     reasoning: bool = False
     reasoning_max_token: int = 4000  # reasoning budget tokens to generate, usually smaller than max_token
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_minimax_defaults(cls, values):
+        if isinstance(values, dict) and values.get("api_type") in ("minimax", LLMType.MINIMAX):
+            values = values.copy()
+            if not values.get("model"):
+                values["model"] = "MiniMax-M3.1-Flash"
+            values.setdefault("base_url", "https://api.minimax.io/v1")
+        return values
 
     @field_validator("api_key")
     @classmethod

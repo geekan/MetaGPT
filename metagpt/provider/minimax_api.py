@@ -14,7 +14,7 @@ config2.yaml example:
 ```yaml
 llm:
   api_type: "minimax"
-  model: "MiniMax-M3"  # or MiniMax-M2.7
+  model: "MiniMax-M3.1-Flash"  # or MiniMax-M3
   base_url: "https://api.minimax.io/v1"  # global endpoint; use https://api.minimaxi.com/v1 for China
   api_key: "YOUR_API_KEY"
   temperature: 0.5  # MiniMax requires temperature in (0.0, 1.0]
@@ -42,6 +42,14 @@ class MiniMaxLLM(OpenAILLM):
     open-closed range (0.0, 1.0]; a non-positive temperature is rejected by the API,
     so it is bumped up to ``MINIMAX_MIN_TEMPERATURE``.
     """
+
+    def format_msg(self, messages):
+        # Keep reasoning and tool-call fields when replaying a complete conversation.
+        if isinstance(messages, dict):
+            return [messages]
+        if isinstance(messages, list) and all(isinstance(message, dict) for message in messages):
+            return messages
+        return super().format_msg(messages)
 
     def _cons_kwargs(self, messages: list[dict], timeout=USE_CONFIG_TIMEOUT, **extra_kwargs) -> dict:
         kwargs = super()._cons_kwargs(messages, timeout=timeout, **extra_kwargs)

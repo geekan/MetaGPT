@@ -111,6 +111,12 @@ omniparse:
     base_url: "YOUR_BASE_URL"
 
 models:
+#  "MiniMax-M3.1-Flash":  # MiniMax default; MiniMax-M3 is also supported
+#    api_type: "minimax"
+#    model: "MiniMax-M3.1-Flash"
+#    base_url: "https://api.minimax.io/v1"  # use https://api.minimaxi.com/v1 for China
+#    api_key: "YOUR_API_KEY"
+#    temperature: 0.5
 #  "YOUR_MODEL_NAME_1 or YOUR_API_TYPE_1": # model: "gpt-4-turbo"  # or gpt-3.5-turbo
 #    api_type: "openai"  # or azure / ollama / groq etc.
 #    base_url: "YOUR_BASE_URL"
@@ -119,12 +125,6 @@ models:
 #    # timeout: 600 # Optional. If set to 0, default value is 300.
 #    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 #    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
-#  "MiniMax-M3":  # MiniMax (OpenAI-compatible). Docs: https://platform.minimax.io/docs
-#    api_type: "minimax"
-#    model: "MiniMax-M3"  # or MiniMax-M2.7
-#    base_url: "https://api.minimax.io/v1"  # global endpoint; use https://api.minimaxi.com/v1 for China
-#    api_key: "YOUR_API_KEY"
-#    temperature: 0.5  # MiniMax requires temperature in (0.0, 1.0]
 #  "YOUR_MODEL_NAME_2 or YOUR_API_TYPE_2": # api_type: "openai"  # or azure / ollama / groq etc.
 #    api_type: "openai"  # or azure / ollama / groq etc.
 #    base_url: "YOUR_BASE_URL"
@@ -133,9 +133,3 @@ models:
 #    # timeout: 600 # Optional. If set to 0, default value is 300.
 #    # Details: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 #    pricing_plan: "" # Optional. Use for Azure LLM when its model name is not the same as OpenAI's
-#  "MiniMax-M3":  # MiniMax (OpenAI-compatible). Docs: https://platform.minimax.io/docs
-#    api_type: "minimax"
-#    model: "MiniMax-M3"  # or MiniMax-M2.7
-#    base_url: "https://api.minimax.io/v1"  # global endpoint; use https://api.minimaxi.com/v1 for China
-#    api_key: "YOUR_API_KEY"
-#    temperature: 0.5  # MiniMax requires temperature in (0.0, 1.0]
